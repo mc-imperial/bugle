@@ -25,12 +25,19 @@ execute_process(
         OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-add_executable(llvm2boogie
-  src/main.cpp
+add_library(bugleAnalysis STATIC
+  lib/Analysis/PointerAnalysis.cpp
 )
 
-set_target_properties(llvm2boogie PROPERTIES
-                        COMPILE_FLAGS "${LLVM_CFLAGS}"
-                        LINK_FLAGS "${LLVM_LDFLAGS}")
+add_library(bugleTranslator STATIC
+  lib/Translator/BasicBlockTranslator.cpp
+)
 
-target_link_libraries(llvm2boogie ${LLVM_LIBS})
+add_executable(bugle
+  tools/bugle.cpp
+)
+
+set_target_properties(bugle bugleAnalysis bugleTranslator PROPERTIES COMPILE_FLAGS "${LLVM_CFLAGS}")
+set_target_properties(bugle PROPERTIES LINK_FLAGS "${LLVM_LDFLAGS}")
+
+target_link_libraries(bugle bugleAnalysis bugleTranslator ${LLVM_LIBS})
