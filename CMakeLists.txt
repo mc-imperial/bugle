@@ -25,6 +25,8 @@ execute_process(
         OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
+include_directories(include)
+
 add_library(bugleAnalysis STATIC
   lib/Analysis/PointerAnalysis.cpp
 )

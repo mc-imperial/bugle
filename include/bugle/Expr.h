@@ -1,4 +1,5 @@
 #include "bugle/Ref.h"
+#include "bugle/Type.h"
 
 namespace bugle {
 
@@ -8,24 +9,31 @@ class Var;
 
 class Expr {
   enum {
-    ArrayPtr,
+    Array,
+    ArrayId,
+    ArrayOffset,
     Phi,
+    Unary,
     Binary
   } Kind;
 
-  enum {
-    BV,
-    Float,
-    Pointer
-  } Type;
+  Type type;
 };
 
-class ArrayPtrExpr : public Expr {
-  ref<Array> array;
+class ArrayExpr : public Expr {
+  ref<Expr> array;
   ref<Expr> offset;
 
 public:
 
+};
+
+class ArrayIdExpr : public Expr {
+  ref<Expr> array;
+};
+
+class ArrayOffsetExpr : public Expr {
+  ref<Expr> array;
 };
 
 class PhiExpr : public Expr {
