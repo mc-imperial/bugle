@@ -1,5 +1,8 @@
 #include "bugle/Ref.h"
 
+#ifndef BUGLE_STMT_H
+#define BUGLE_STMT_H
+
 namespace bugle {
 
 class Expr;
@@ -27,3 +30,5 @@ class ReturnStmt : public Stmt {
 };
 
 }
+
+#endif

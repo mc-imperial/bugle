@@ -1,6 +1,9 @@
 #include "bugle/Ref.h"
 #include "bugle/Type.h"
 
+#ifndef BUGLE_EXPR_H
+#define BUGLE_EXPR_H
+
 namespace bugle {
 
 class Array;
@@ -56,3 +59,5 @@ class CallExpr : public Expr {
 }
 
 };
+
+#endif
