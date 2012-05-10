@@ -1,18 +1,26 @@
-namespace bugle {
-
 #ifndef BUGLE_TYPE_H
 #define BUGLE_TYPE_H
 
+namespace bugle {
+
 struct Type {
-  enum {
+  enum Kind {
     BV,
     Float,
     Pointer,
     ArrayId
-  } Kind;
+  };
 
-  Type kind;
+  Kind kind;
   unsigned width;
+
+  Type(Kind kind) : kind(kind), width(0) {
+    assert(kind == ArrayId);
+  }
+
+  Type(Kind kind, unsigned width) : kind(kind), width(width) {
+    assert(kind != ArrayId);
+  }
 };
 
 }

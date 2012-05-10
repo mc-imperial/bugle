@@ -5,8 +5,9 @@
 
 namespace bugle {
 
-class Expr;
 class BasicBlock;
+class Expr;
+class Var;
 
 class Stmt {
 };

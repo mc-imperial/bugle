@@ -13,6 +13,8 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "bugle/Translator/TranslateModule.h"
+
 using namespace llvm;
 
 static cl::opt<std::string>
@@ -62,6 +64,9 @@ int main(int argc, char **argv) {
       errs() << "bitcode didn't read correctly.\n";
     return 1;
   }
+
+  bugle::TranslateModule TM(M.get());
+  TM.translate();
 
   return 0;
 }

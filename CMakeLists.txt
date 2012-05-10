@@ -31,15 +31,22 @@ add_library(bugleAnalysis STATIC
   lib/Analysis/PointerAnalysis.cpp
 )
 
+add_library(bugleBoogie STATIC
+  lib/Boogie/Expr.cpp
+)
+
 add_library(bugleTranslator STATIC
-  lib/Translator/BasicBlockTranslator.cpp
+  lib/Translator/TranslateModule.cpp
+  lib/Translator/TranslateFunction.cpp
 )
 
 add_executable(bugle
   tools/bugle.cpp
 )
 
-set_target_properties(bugle bugleAnalysis bugleTranslator PROPERTIES COMPILE_FLAGS "${LLVM_CFLAGS}")
-set_target_properties(bugle PROPERTIES LINK_FLAGS "${LLVM_LDFLAGS}")
+set_target_properties(bugle bugleAnalysis bugleBoogie bugleTranslator
+    PROPERTIES COMPILE_FLAGS "-std=c++0x ${LLVM_CFLAGS}")
+set_target_properties(bugle
+    PROPERTIES LINK_FLAGS "${LLVM_LDFLAGS}")
 
-target_link_libraries(bugle bugleAnalysis bugleTranslator ${LLVM_LIBS})
+target_link_libraries(bugle bugleAnalysis bugleBoogie bugleTranslator ${LLVM_LIBS})
