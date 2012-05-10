@@ -13,6 +13,7 @@ class Stmt;
 class BasicBlock {
   OwningPtrVector<Stmt> stmts;
 
+public:
   void addStmt(Stmt *stmt) {
     stmts.push_back(stmt);
   }

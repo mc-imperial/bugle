@@ -14,7 +14,7 @@ execute_process(
 set(LLVM_CFLAGS "${LLVM_CFLAGS} -fno-exceptions -fno-rtti")
 
 execute_process(
-        COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs bitreader
+        COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs bitreader target
         OUTPUT_VARIABLE LLVM_LIBS
         OUTPUT_STRIP_TRAILING_WHITESPACE
 )
@@ -49,4 +49,5 @@ set_target_properties(bugle bugleAnalysis bugleBoogie bugleTranslator
 set_target_properties(bugle
     PROPERTIES LINK_FLAGS "${LLVM_LDFLAGS}")
 
+target_link_libraries(bugleTranslator bugleBoogie)
 target_link_libraries(bugle bugleAnalysis bugleBoogie bugleTranslator ${LLVM_LIBS})

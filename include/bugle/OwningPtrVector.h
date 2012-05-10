@@ -7,7 +7,7 @@
 namespace bugle {
 
 template <typename T>
-class OwningPtrVector : public std::vector<T *> {
+struct OwningPtrVector : std::vector<T *> {
   ~OwningPtrVector() {
     std::for_each(this->begin(), this->end(), [](T *p){ delete p; });
   }

@@ -10,16 +10,24 @@ class Expr;
 class Var;
 
 class Stmt {
+public:
+  virtual ~Stmt() {}
 };
 
 class ExprStmt : public Stmt {
-  ref<Var> var;
   ref<Expr> expr;
+
+public:
+  ExprStmt(ref<Expr> expr) : expr(expr) {}
 };
 
-class ArrayWriteStmt : public Stmt {
-  ref<Expr> array;
+class StoreStmt : public Stmt {
+  ref<Expr> pointer;
   ref<Expr> value;
+
+public:
+  StoreStmt(ref<Expr> pointer, ref<Expr> value) :
+    pointer(pointer), value(value) {}
 };
 
 class GotoStmt : public Stmt {
@@ -28,6 +36,9 @@ class GotoStmt : public Stmt {
 
 class ReturnStmt : public Stmt {
   ref<Expr> value;
+
+public:
+  ReturnStmt(ref<Expr> value) : value(value) {}
 };
 
 }

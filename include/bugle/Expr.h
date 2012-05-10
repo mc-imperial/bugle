@@ -1,6 +1,7 @@
 #include "bugle/Ref.h"
 #include "bugle/Type.h"
 #include "bugle/Var.h"
+#include "llvm/ADT/APInt.h"
 #include <vector>
 
 #ifndef BUGLE_EXPR_H
@@ -21,6 +22,8 @@ class Var;
 class Expr {
 public:
   enum Kind {
+    BVConst,
+    Arg,
     ArrayRef,
     Pointer,
     Phi,
@@ -29,9 +32,13 @@ public:
     // Unary
     ArrayId,
     ArrayOffset,
+    BVToFloat,
+    FloatToBV,
+    BVToPtr,
+    PtrToBV,
 
     UnaryFirst = ArrayId,
-    UnaryLast = ArrayOffset,
+    UnaryLast = PtrToBV,
 
     // Binary
     BVAdd,
@@ -61,6 +68,28 @@ public:
   static bool classof(const Expr *E) { return E->getKind() == kind; } \
   static bool classof(const kind##Expr *) { return true; }
 
+class BVConstExpr : public Expr {
+  BVConstExpr(const llvm::APInt &bv) :
+    Expr(Type(Type::BV, bv.getBitWidth())), bv(bv) {}
+  llvm::APInt bv;
+
+public:
+  static ref<Expr> create(const llvm::APInt &bv);
+  static ref<Expr> createZero(unsigned width);
+
+  EXPR_KIND(BVConst)
+  const llvm::APInt &getValue() const { return bv; }
+};
+
+class ArgExpr : public Expr {
+  ArgExpr(Type type) : Expr(type) {}
+
+public:
+  static ref<Expr> create(Type type);
+
+  EXPR_KIND(Arg)
+};
+
 class ArrayRefExpr : public Expr {
   ArrayRefExpr(llvm::Value *array) : Expr(Type(Type::ArrayId)), array(array) {}
   llvm::Value *array;
@@ -73,7 +102,8 @@ public:
 
 class PointerExpr : public Expr {
   PointerExpr(ref<Expr> array, ref<Expr> offset) :
-    Expr(Type(Type::Pointer, offset->getType().width)), array(array), offset(offset) {}
+    Expr(Type(Type::Pointer, offset->getType().width)),
+    array(array), offset(offset) {}
   ref<Expr> array, offset;
 
 public:
@@ -115,6 +145,10 @@ public:
 
 UNARY_EXPR(ArrayId)
 UNARY_EXPR(ArrayOffset)
+UNARY_EXPR(BVToFloat)
+UNARY_EXPR(FloatToBV)
+UNARY_EXPR(BVToPtr)
+UNARY_EXPR(PtrToBV)
 
 #undef UNARY_EXPR
 
@@ -153,5 +187,7 @@ public:
 };
 
 }
+
+#undef EXPR_KIND
 
 #endif
