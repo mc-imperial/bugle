@@ -1,6 +1,8 @@
 #include "bugle/Translator/TranslateModule.h"
 #include "bugle/Translator/TranslateFunction.h"
 #include "bugle/Expr.h"
+#include "bugle/Function.h"
+#include "bugle/Module.h"
 #include "llvm/Constant.h"
 #include "llvm/Constants.h"
 #include "llvm/Module.h"
@@ -31,7 +33,11 @@ bugle::Type TranslateModule::translateType(llvm::Type *T) {
 }
 
 void TranslateModule::translate() {
-  llvm::Function *F = M->getFunction("main");
-  TranslateFunction TF(this, F);
-  TF.translate();
+  for (auto i = M->begin(), e = M->end(); i != e; ++i)
+    FunctionMap[&*i] = BM->addFunction(i->getName());
+
+  for (auto i = M->begin(), e = M->end(); i != e; ++i) {
+    TranslateFunction TF(this, FunctionMap[&*i], &*i);
+    TF.translate();
+  }
 }

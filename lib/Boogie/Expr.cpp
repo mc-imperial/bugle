@@ -10,12 +10,8 @@ ref<Expr> BVConstExpr::createZero(unsigned width) {
   return create(llvm::APInt(width, 0));
 }
 
-ref<Expr> ArgExpr::create(Type t) {
-  return new ArgExpr(t);
-}
-
-ref<Expr> ArrayRefExpr::create(llvm::Value *v) {
-  return new ArrayRefExpr(v);
+ref<Expr> GlobalArrayRefExpr::create(GlobalArray *global) {
+  return new GlobalArrayRefExpr(global);
 }
 
 ref<Expr> PointerExpr::create(ref<Expr> array, ref<Expr> offset) {
@@ -25,8 +21,8 @@ ref<Expr> PointerExpr::create(ref<Expr> array, ref<Expr> offset) {
   return new PointerExpr(array, offset);
 }
 
-ref<Expr> PhiExpr::create(Var *var) {
-  return new PhiExpr(var);
+ref<Expr> VarRefExpr::create(Var *var) {
+  return new VarRefExpr(var);
 }
 
 ref<Expr> ArrayIdExpr::create(ref<Expr> pointer) {

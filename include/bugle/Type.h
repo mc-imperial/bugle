@@ -1,6 +1,8 @@
 #ifndef BUGLE_TYPE_H
 #define BUGLE_TYPE_H
 
+#include <assert.h>
+
 namespace bugle {
 
 struct Type {

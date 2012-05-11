@@ -13,6 +13,8 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "bugle/BPLModuleWriter.h"
+#include "bugle/Module.h"
 #include "bugle/Translator/TranslateModule.h"
 
 using namespace llvm;
@@ -65,8 +67,12 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  bugle::TranslateModule TM(M.get());
+  bugle::Module BM;
+  bugle::TranslateModule TM(&BM, M.get());
   TM.translate();
+
+  bugle::BPLModuleWriter MW(llvm::outs(), &BM);
+  MW.write();
 
   return 0;
 }

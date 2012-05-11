@@ -4,6 +4,8 @@
 #include "bugle/BPLModuleWriter.h"
 #include "bugle/BasicBlock.h"
 #include "bugle/Expr.h"
+#include "bugle/GlobalArray.h"
+#include "bugle/Module.h"
 #include "llvm/BasicBlock.h"
 #include "llvm/Function.h"
 #include "llvm/InstrTypes.h"
@@ -15,16 +17,19 @@ using namespace llvm;
 
 void TranslateFunction::translate() {
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
-    ValueExprMap[&*i] = ArgExpr::create(TM->translateType(i->getType()));
+    Var *V = BF->addArgument(TM->translateType(i->getType()), i->getName());
+    ValueExprMap[&*i] = VarRefExpr::create(V);
   }
 
-  BPLModuleWriter MW(outs());
-  BPLFunctionWriter FW(&MW, outs());
-  for (auto i = F->begin(), e = F->end(); i != e; ++i) {
-    bugle::BasicBlock BBB;
-    translateBasicBlock(&BBB, &*i);
-    FW.writeBasicBlock(&BBB);
-  }
+  auto RT = F->getFunctionType()->getReturnType();
+  if (!RT->isVoidTy())
+    ReturnVar = BF->addReturn(TM->translateType(RT), "ret");
+
+  for (auto i = F->begin(), e = F->end(); i != e; ++i)
+    BasicBlockMap[&*i] = BF->addBasicBlock(i->getName());
+
+  for (auto i = F->begin(), e = F->end(); i != e; ++i)
+    translateBasicBlock(BasicBlockMap[&*i], &*i);
 }
 
 ref<Expr> TranslateFunction::translateValue(llvm::Value *V) {
@@ -53,7 +58,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       assert(0 && "Unsupported binary operator");
     }
   } else if (auto AI = dyn_cast<AllocaInst>(I)) {
-    E = PointerExpr::create(ArrayRefExpr::create(AI),
+    GlobalArray *GA = TM->BM->addGlobal(AI->getName());
+    E = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
     ref<Expr> Ptr = translateValue(SI->getPointerOperand()),
@@ -61,10 +67,12 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     BBB->addStmt(new StoreStmt(Ptr, Val));
     return;
   } else if (auto RI = dyn_cast<ReturnInst>(I)) {
-    ref<Expr> Val;
-    if (auto V = RI->getReturnValue())
-      Val = translateValue(V);
-    BBB->addStmt(new ReturnStmt(Val));
+    if (auto V = RI->getReturnValue()) {
+      assert(ReturnVar && "Returning value without return variable?");
+      ref<Expr> Val = translateValue(V);
+      BBB->addStmt(new VarAssignStmt(ReturnVar, Val));
+    }
+    BBB->addStmt(new ReturnStmt);
     return;
   } else {
     assert(0 && "Unsupported instruction");

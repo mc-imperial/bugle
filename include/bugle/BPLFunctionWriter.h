@@ -14,20 +14,26 @@ namespace bugle {
 class BPLModuleWriter;
 class BasicBlock;
 class Expr;
+class Function;
 class Stmt;
+class Var;
 
 class BPLFunctionWriter {
   BPLModuleWriter *MW;
   llvm::raw_ostream &OS;
+  bugle::Function *F;
   llvm::DenseMap<Expr *, unsigned> SSAVarIds;
 
+  void writeVar(Var *V);
   void writeExpr(Expr *E);
   void writeStmt(Stmt *S);
+  void writeBasicBlock(BasicBlock *BB);
 
 public:
-  BPLFunctionWriter(BPLModuleWriter *MW, llvm::raw_ostream &OS)
-    : MW(MW), OS(OS) {}
-  void writeBasicBlock(BasicBlock *BB);
+  BPLFunctionWriter(BPLModuleWriter *MW, llvm::raw_ostream &OS,
+                    bugle::Function *F)
+    : MW(MW), OS(OS), F(F) {}
+  void write();
 };
 
 }

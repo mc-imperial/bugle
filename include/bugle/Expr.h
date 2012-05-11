@@ -15,8 +15,8 @@ class Value;
 
 namespace bugle {
 
-class Array;
 class Function;
+class GlobalArray;
 class Var;
 
 class Expr {
@@ -24,9 +24,9 @@ public:
   enum Kind {
     BVConst,
     Arg,
-    ArrayRef,
+    GlobalArrayRef,
     Pointer,
-    Phi,
+    VarRef,
     Call,
 
     // Unary
@@ -81,24 +81,16 @@ public:
   const llvm::APInt &getValue() const { return bv; }
 };
 
-class ArgExpr : public Expr {
-  ArgExpr(Type type) : Expr(type) {}
+class GlobalArrayRefExpr : public Expr {
+  GlobalArrayRefExpr(GlobalArray *array) :
+    Expr(Type(Type::ArrayId)), array(array) {}
+  GlobalArray *array;
 
 public:
-  static ref<Expr> create(Type type);
+  static ref<Expr> create(GlobalArray *array);
 
-  EXPR_KIND(Arg)
-};
-
-class ArrayRefExpr : public Expr {
-  ArrayRefExpr(llvm::Value *array) : Expr(Type(Type::ArrayId)), array(array) {}
-  llvm::Value *array;
-
-public:
-  static ref<Expr> create(llvm::Value *array);
-
-  EXPR_KIND(ArrayRef)
-  llvm::Value *getArray() const { return array; }
+  EXPR_KIND(GlobalArrayRef)
+  GlobalArray *getArray() const { return array; }
 };
 
 class PointerExpr : public Expr {
@@ -115,13 +107,15 @@ public:
   ref<Expr> getOffset() const { return offset; }
 };
 
-class PhiExpr : public Expr {
+/// Local variable reference.  Used for phi nodes, parameters and return
+/// variables.
+class VarRefExpr : public Expr {
   Var *var;
-  PhiExpr(Var *var) : Expr(var->getType()), var(var) {}
+  VarRefExpr(Var *var) : Expr(var->getType()), var(var) {}
 
 public:
   static ref<Expr> create(Var *var);
-  EXPR_KIND(Phi)
+  EXPR_KIND(VarRef)
 };
 
 class UnaryExpr : public Expr {

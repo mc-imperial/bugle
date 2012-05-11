@@ -1,3 +1,4 @@
+#include "bugle/Expr.h"
 #include "bugle/Ref.h"
 
 #ifndef BUGLE_STMT_H
@@ -14,6 +15,7 @@ public:
   enum Kind {
     Eval,
     Store,
+    VarAssign,
     Goto,
     Return
   };
@@ -50,6 +52,18 @@ public:
   ref<Expr> getValue() const { return value; }
 };
 
+class VarAssignStmt : public Stmt {
+  Var *var;
+  ref<Expr> value;
+
+public:
+  VarAssignStmt(Var *var, ref<Expr> value) : var(var), value(value) {}
+
+  STMT_KIND(VarAssign)
+  Var *getVar() const { return var; }
+  ref<Expr> getValue() const { return value; }
+};
+
 class GotoStmt : public Stmt {
   std::vector<BasicBlock *> blocks;
 
@@ -62,10 +76,8 @@ class ReturnStmt : public Stmt {
   ref<Expr> value;
 
 public:
-  ReturnStmt(ref<Expr> value) : value(value) {}
-
+  ReturnStmt() {}
   STMT_KIND(Return)
-  ref<Expr> getValue() const { return value; }
 };
 
 }
