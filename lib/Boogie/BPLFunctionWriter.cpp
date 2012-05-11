@@ -33,6 +33,8 @@ void BPLFunctionWriter::writeExpr(Expr *E) {
     OS << ", ";
     writeExpr(PtrE->getOffset().get());
     OS << ")";
+  } else if (auto VarE = dyn_cast<VarRefExpr>(E)) {
+    OS << VarE->getVar()->getName();
   } else if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(E)) {
     OS << "ARRAY(" << ArrE->getArray()->getName() << ")";
   } else {

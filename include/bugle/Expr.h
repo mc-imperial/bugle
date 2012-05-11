@@ -116,6 +116,7 @@ class VarRefExpr : public Expr {
 public:
   static ref<Expr> create(Var *var);
   EXPR_KIND(VarRef)
+  Var *getVar() const { return var; }
 };
 
 class UnaryExpr : public Expr {
