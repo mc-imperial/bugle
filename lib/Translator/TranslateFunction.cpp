@@ -54,6 +54,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     switch (BO->getOpcode()) {
     case BinaryOperator::Add:
       E = BVAddExpr::create(LHS, RHS);
+      break;
     default:
       assert(0 && "Unsupported binary operator");
     }
