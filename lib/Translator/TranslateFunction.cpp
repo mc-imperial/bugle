@@ -1,11 +1,14 @@
 #include "bugle/Translator/TranslateFunction.h"
 #include "bugle/Translator/TranslateModule.h"
+#include "bugle/BPLFunctionWriter.h"
+#include "bugle/BPLModuleWriter.h"
 #include "bugle/BasicBlock.h"
 #include "bugle/Expr.h"
 #include "llvm/BasicBlock.h"
 #include "llvm/Function.h"
 #include "llvm/InstrTypes.h"
 #include "llvm/Instructions.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace bugle;
 using namespace llvm;
@@ -15,9 +18,12 @@ void TranslateFunction::translate() {
     ValueExprMap[&*i] = ArgExpr::create(TM->translateType(i->getType()));
   }
 
+  BPLModuleWriter MW(outs());
+  BPLFunctionWriter FW(&MW, outs());
   for (auto i = F->begin(), e = F->end(); i != e; ++i) {
     bugle::BasicBlock BBB;
     translateBasicBlock(&BBB, &*i);
+    FW.writeBasicBlock(&BBB);
   }
 }
 
@@ -59,11 +65,12 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     if (auto V = RI->getReturnValue())
       Val = translateValue(V);
     BBB->addStmt(new ReturnStmt(Val));
+    return;
   } else {
     assert(0 && "Unsupported instruction");
   }
   ValueExprMap[I] = E;
-  BBB->addStmt(new ExprStmt(E));
+  BBB->addStmt(new EvalStmt(E));
 }
 
 void TranslateFunction::translateBasicBlock(bugle::BasicBlock *BBB,

@@ -32,6 +32,7 @@ add_library(bugleAnalysis STATIC
 )
 
 add_library(bugleBoogie STATIC
+  lib/Boogie/BPLFunctionWriter.cpp
   lib/Boogie/Expr.cpp
 )
 

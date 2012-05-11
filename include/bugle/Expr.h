@@ -98,6 +98,7 @@ public:
   static ref<Expr> create(llvm::Value *array);
 
   EXPR_KIND(ArrayRef)
+  llvm::Value *getArray() const { return array; }
 };
 
 class PointerExpr : public Expr {
