@@ -64,8 +64,18 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
     ref<Expr> Ptr = translateValue(SI->getPointerOperand()),
-              Val = translateValue(SI->getValueOperand());
-    BBB->addStmt(new StoreStmt(Ptr, Val));
+              Val = translateValue(SI->getValueOperand()),
+              PtrArr = ArrayIdExpr::create(Ptr),
+              PtrOfs = ArrayOffsetExpr::create(Ptr);
+    assert(Val->getType().width % 8 == 0);
+    for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
+      ref<Expr> PtrByteOfs =
+        BVAddExpr::create(PtrOfs,
+                          BVConstExpr::create(PtrOfs->getType().width, i));
+      ref<Expr> ValByte =
+        BVExtractExpr::create(Val, i*8, 8); // Assumes little endian
+      BBB->addStmt(new StoreStmt(PtrArr, PtrByteOfs, ValByte));
+    }
     return;
   } else if (auto RI = dyn_cast<ReturnInst>(I)) {
     if (auto V = RI->getReturnValue()) {

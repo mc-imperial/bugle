@@ -50,10 +50,10 @@ void BPLFunctionWriter::writeStmt(Stmt *S) {
     OS << ";\n";
     SSAVarIds[ES->getExpr().get()] = id;
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
-    ref<Expr> PtrArr = ArrayIdExpr::create(SS->getPointer());
+    ref<Expr> PtrArr = SS->getArray();
     if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
       OS << "  " << ArrE->getArray()->getName() << "[";
-      writeExpr(ArrayOffsetExpr::create(SS->getPointer()).get());
+      writeExpr(SS->getOffset().get());
       OS << "] := ";
       writeExpr(SS->getValue().get());
       OS << ";\n";

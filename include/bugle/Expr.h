@@ -23,11 +23,11 @@ class Expr {
 public:
   enum Kind {
     BVConst,
-    Arg,
     GlobalArrayRef,
     Pointer,
     VarRef,
     Call,
+    BVExtract,
 
     // Unary
     ArrayId,
@@ -75,6 +75,7 @@ class BVConstExpr : public Expr {
 
 public:
   static ref<Expr> create(const llvm::APInt &bv);
+  static ref<Expr> create(unsigned width, uint64_t val, bool isSigned = false);
   static ref<Expr> createZero(unsigned width);
 
   EXPR_KIND(BVConst)
@@ -117,6 +118,20 @@ public:
   static ref<Expr> create(Var *var);
   EXPR_KIND(VarRef)
   Var *getVar() const { return var; }
+};
+
+class BVExtractExpr : public Expr {
+  BVExtractExpr(ref<Expr> expr, unsigned offset, unsigned width) :
+    Expr(Type(Type::BV, width)), expr(expr), offset(offset) {}
+  ref<Expr> expr;
+  unsigned offset;
+
+public:
+  static ref<Expr> create(ref<Expr> expr, unsigned offset, unsigned width);
+
+  EXPR_KIND(BVExtract)
+  ref<Expr> getSubExpr() const { return expr; }
+  unsigned getOffset() const { return offset; }
 };
 
 class UnaryExpr : public Expr {

@@ -10,6 +10,10 @@ ref<Expr> BVConstExpr::createZero(unsigned width) {
   return create(llvm::APInt(width, 0));
 }
 
+ref<Expr> BVConstExpr::create(unsigned width, uint64_t val, bool isSigned) {
+  return create(llvm::APInt(width, val, isSigned));
+}
+
 ref<Expr> GlobalArrayRefExpr::create(GlobalArray *global) {
   return new GlobalArrayRefExpr(global);
 }
@@ -23,6 +27,14 @@ ref<Expr> PointerExpr::create(ref<Expr> array, ref<Expr> offset) {
 
 ref<Expr> VarRefExpr::create(Var *var) {
   return new VarRefExpr(var);
+}
+
+ref<Expr> BVExtractExpr::create(ref<Expr> expr, unsigned offset,
+                                unsigned width) {
+  if (auto e = dyn_cast<BVConstExpr>(expr))
+    return BVConstExpr::create(e->getValue().ashr(offset).zextOrTrunc(width));
+
+  return new BVExtractExpr(expr, offset, width);
 }
 
 ref<Expr> ArrayIdExpr::create(ref<Expr> pointer) {

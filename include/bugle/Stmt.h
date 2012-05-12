@@ -40,15 +40,17 @@ public:
 };
 
 class StoreStmt : public Stmt {
-  ref<Expr> pointer;
+  ref<Expr> array;
+  ref<Expr> offset;
   ref<Expr> value;
 
 public:
-  StoreStmt(ref<Expr> pointer, ref<Expr> value) :
-    pointer(pointer), value(value) {}
+  StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value) :
+    array(array), offset(offset), value(value) {}
 
   STMT_KIND(Store)
-  ref<Expr> getPointer() const { return pointer; }
+  ref<Expr> getArray() const { return array; }
+  ref<Expr> getOffset() const { return offset; }
   ref<Expr> getValue() const { return value; }
 };
 
