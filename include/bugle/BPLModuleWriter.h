@@ -10,7 +10,7 @@ class raw_ostream;
 namespace bugle {
 
 class Module;
-class Type;
+struct Type;
 
 class BPLModuleWriter {
   llvm::raw_ostream &OS;
