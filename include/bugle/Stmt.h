@@ -17,7 +17,8 @@ public:
     Store,
     VarAssign,
     Goto,
-    Return
+    Return,
+    Assume
   };
 
   virtual ~Stmt() {}
@@ -80,6 +81,16 @@ class ReturnStmt : public Stmt {
 public:
   ReturnStmt() {}
   STMT_KIND(Return)
+};
+
+class AssumeStmt : public Stmt {
+  ref<Expr> pred;
+
+public:
+  AssumeStmt(ref<Expr> pred) : pred(pred) {}
+
+  STMT_KIND(Assume)
+  ref<Expr> getPredicate() const { return pred; }
 };
 
 }
