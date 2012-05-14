@@ -63,6 +63,18 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     case BinaryOperator::Add:
       E = BVAddExpr::create(LHS, RHS);
       break;
+    case BinaryOperator::Sub:
+      E = BVSubExpr::create(LHS, RHS);
+      break;
+    case BinaryOperator::Mul:
+      E = BVMulExpr::create(LHS, RHS);
+      break;
+    case BinaryOperator::SDiv:
+      E = BVSDivExpr::create(LHS, RHS);
+      break;
+    case BinaryOperator::UDiv:
+      E = BVUDivExpr::create(LHS, RHS);
+      break;
     default:
       assert(0 && "Unsupported binary operator");
     }

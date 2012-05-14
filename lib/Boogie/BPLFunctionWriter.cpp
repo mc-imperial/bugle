@@ -111,6 +111,42 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
            << ") : bv" << BinE->getType().width;
       });
       break;
+    case Expr::BVSub:
+      OS << "BV" << BinE->getType().width << "_SUB";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function {:bvbuiltin \"bvsub\"} BV" << BinE->getType().width
+           << "_SUB(bv" << BinE->getType().width
+           << ", bv" << BinE->getType().width
+           << ") : bv" << BinE->getType().width;
+      });
+      break;
+    case Expr::BVMul:
+      OS << "BV" << BinE->getType().width << "_MUL";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function {:bvbuiltin \"bvmul\"} BV" << BinE->getType().width
+           << "_MUL(bv" << BinE->getType().width
+           << ", bv" << BinE->getType().width
+           << ") : bv" << BinE->getType().width;
+      });
+      break;
+    case Expr::BVSDiv:
+      OS << "BV" << BinE->getType().width << "_SDIV";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function {:bvbuiltin \"bvsdiv\"} BV" << BinE->getType().width
+           << "_SDIV(bv" << BinE->getType().width
+           << ", bv" << BinE->getType().width
+           << ") : bv" << BinE->getType().width;
+      });
+      break;
+    case Expr::BVUDiv:
+      OS << "BV" << BinE->getType().width << "_UDIV";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function {:bvbuiltin \"bvudiv\"} BV" << BinE->getType().width
+           << "_UDIV(bv" << BinE->getType().width
+           << ", bv" << BinE->getType().width
+           << ") : bv" << BinE->getType().width;
+      });
+      break;
     case Expr::BVSgt:
       OS << "BV" << BinE->getLHS()->getType().width << "_SGT";
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {

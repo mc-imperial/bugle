@@ -48,6 +48,10 @@ public:
 
     // Binary
     BVAdd,
+    BVSub,
+    BVMul,
+    BVSDiv,
+    BVUDiv,
     BVConcat,
     BVSgt,
 
@@ -253,6 +257,10 @@ public:
   };
 
 BINARY_EXPR(BVAdd)
+BINARY_EXPR(BVSub)
+BINARY_EXPR(BVMul)
+BINARY_EXPR(BVSDiv)
+BINARY_EXPR(BVUDiv)
 BINARY_EXPR(BVConcat)
 BINARY_EXPR(BVSgt)
 

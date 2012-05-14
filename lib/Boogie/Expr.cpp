@@ -169,6 +169,54 @@ ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new BVAddExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
 }
 
+ref<Expr> BVSubExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue() - e2->getValue());
+
+  return new BVSubExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+ref<Expr> BVMulExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue() * e2->getValue());
+
+  return new BVMulExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+ref<Expr> BVSDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue().sdiv(e2->getValue()));
+
+  return new BVSDivExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+ref<Expr> BVUDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue().udiv(e2->getValue()));
+
+  return new BVUDivExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
 ref<Expr> BVConcatExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
   assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
