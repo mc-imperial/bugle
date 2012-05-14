@@ -288,10 +288,16 @@ BINARY_EXPR(BVSle)
 
 class CallExpr : public Expr {
   Function *callee;
-  std::vector<ref<Expr> > args;
+  std::vector<ref<Expr>> args;
+  CallExpr(Type t, Function *callee, const std::vector<ref<Expr>> &args) :
+    Expr(t), callee(callee), args(args) {}
 
 public:
+  static ref<Expr> create(Function *callee, const std::vector<ref<Expr>> &args);
+
   EXPR_KIND(Call)
+  Function *getCallee() const { return callee; }
+  const std::vector<ref<Expr>> &getArgs() const { return args; }
 };
 
 }

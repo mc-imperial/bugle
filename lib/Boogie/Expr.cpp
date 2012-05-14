@@ -1,4 +1,5 @@
 #include "bugle/Expr.h"
+#include "bugle/Function.h"
 
 using namespace bugle;
 
@@ -290,3 +291,8 @@ ICMP_EXPR_CREATE(BVSgtExpr, sgt)
 ICMP_EXPR_CREATE(BVSgeExpr, sge)
 ICMP_EXPR_CREATE(BVSltExpr, slt)
 ICMP_EXPR_CREATE(BVSleExpr, sle)
+
+ref<Expr> CallExpr::create(Function *f, const std::vector<ref<Expr>> &args) {
+  assert(f->return_begin()+1 == f->return_end());
+  return new CallExpr((*f->return_begin())->getType(), f, args);
+}

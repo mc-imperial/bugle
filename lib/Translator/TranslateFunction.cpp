@@ -10,6 +10,7 @@
 #include "llvm/Function.h"
 #include "llvm/InstrTypes.h"
 #include "llvm/Instructions.h"
+#include "llvm/Support/CallSite.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace bugle;
@@ -21,9 +22,8 @@ void TranslateFunction::translate() {
     ValueExprMap[&*i] = VarRefExpr::create(V);
   }
 
-  auto RT = F->getFunctionType()->getReturnType();
-  if (!RT->isVoidTy())
-    ReturnVar = BF->addReturn(TM->translateType(RT), "ret");
+  if (BF->return_begin() != BF->return_end())
+    ReturnVar = *BF->return_begin();
 
   for (auto i = F->begin(), e = F->end(); i != e; ++i)
     BasicBlockMap[&*i] = BF->addBasicBlock(i->getName());
@@ -163,6 +163,23 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto SEI = dyn_cast<SExtInst>(I)) {
     ref<Expr> Op = translateValue(SEI->getOperand(0));
     E = BVSExtExpr::create(cast<IntegerType>(SEI->getType())->getBitWidth(),Op);
+  } else if (auto CI = dyn_cast<CallInst>(I)) {
+    auto F = CI->getCalledFunction();
+    assert(F && "Only direct calls for now");
+    auto FI = TM->FunctionMap.find(F);
+    assert(FI != TM->FunctionMap.end() && "Could not find function in map!");
+
+    CallSite CS(CI);
+    std::vector<ref<Expr>> Args;
+    std::transform(CS.arg_begin(), CS.arg_end(), std::back_inserter(Args),
+                   [&](Value *V) { return translateValue(V); });
+
+    if (CI->getType()->isVoidTy()) {
+      BBB->addStmt(new CallStmt(FI->second, Args));
+      return;
+    } else {
+      E = CallExpr::create(FI->second, Args);
+    }
   } else if (auto RI = dyn_cast<ReturnInst>(I)) {
     if (auto V = RI->getReturnValue()) {
       assert(ReturnVar && "Returning value without return variable?");

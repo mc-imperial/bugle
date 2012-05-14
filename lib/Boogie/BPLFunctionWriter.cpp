@@ -104,6 +104,15 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     ScopedParenPrinter X(OS, Depth, 7);
     OS << "!";
     writeExpr(OS, NotE->getSubExpr().get(), 8);
+  } else if (auto CE = dyn_cast<CallExpr>(E)) {
+    OS << CE->getCallee()->getName() << "(";
+    for (auto b = CE->getArgs().begin(), i = b, e = CE->getArgs().end();
+         i != e; ++i) {
+      if (i != b)
+        OS << ", ";
+      writeExpr(OS, i->get());
+    }
+    OS << ")";
   } else if (auto BinE = dyn_cast<BinaryExpr>(E)) {
     switch (BinE->getKind()) {
     case Expr::BVAdd:
@@ -177,10 +186,22 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
 void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   if (auto ES = dyn_cast<EvalStmt>(S)) {
     unsigned id = SSAVarIds.size();
-    OS << "  v" << id << " := ";
+    OS << "  ";
+    if (isa<CallExpr>(ES->getExpr()))
+      OS << "call ";
+    OS << "v" << id << " := ";
     writeExpr(OS, ES->getExpr().get());
     OS << ";\n";
     SSAVarIds[ES->getExpr().get()] = id;
+  } else if (auto CS = dyn_cast<CallStmt>(S)) {
+    OS << "  call " << CS->getCallee()->getName() << "(";
+    for (auto b = CS->getArgs().begin(), i = b, e = CS->getArgs().end();
+         i != e; ++i) {
+      if (i != b)
+        OS << ", ";
+      writeExpr(OS, i->get());
+    }
+    OS << ");\n";
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     ref<Expr> PtrArr = SS->getArray();
     if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {

@@ -18,7 +18,8 @@ public:
     VarAssign,
     Goto,
     Return,
-    Assume
+    Assume,
+    Call
   };
 
   virtual ~Stmt() {}
@@ -91,6 +92,19 @@ public:
 
   STMT_KIND(Assume)
   ref<Expr> getPredicate() const { return pred; }
+};
+
+class CallStmt : public Stmt {
+  Function *callee;
+  std::vector<ref<Expr>> args;
+
+public:
+  CallStmt(Function *callee, const std::vector<ref<Expr>> &args) :
+    callee(callee), args(args) {}
+
+  STMT_KIND(Call)
+  Function *getCallee() const { return callee; }
+  const std::vector<ref<Expr>> &getArgs() const { return args; }
 };
 
 }

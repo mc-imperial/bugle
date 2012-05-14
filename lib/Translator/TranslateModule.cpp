@@ -5,8 +5,8 @@
 #include "bugle/Module.h"
 #include "llvm/Constant.h"
 #include "llvm/Constants.h"
+#include "llvm/DerivedTypes.h"
 #include "llvm/Module.h"
-#include "llvm/Type.h"
 
 using namespace llvm;
 using namespace bugle;
@@ -35,8 +35,13 @@ bugle::Type TranslateModule::translateType(llvm::Type *T) {
 void TranslateModule::translate() {
    BM->setPointerWidth(TD.getPointerSizeInBits());
 
-  for (auto i = M->begin(), e = M->end(); i != e; ++i)
-    FunctionMap[&*i] = BM->addFunction(i->getName());
+  for (auto i = M->begin(), e = M->end(); i != e; ++i) {
+    auto BF = FunctionMap[&*i] = BM->addFunction(i->getName());
+
+    auto RT = i->getFunctionType()->getReturnType();
+    if (!RT->isVoidTy())
+      BF->addReturn(translateType(RT), "ret");
+  }
 
   for (auto i = M->begin(), e = M->end(); i != e; ++i) {
     TranslateFunction TF(this, FunctionMap[&*i], &*i);
