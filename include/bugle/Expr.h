@@ -44,7 +44,7 @@ public:
     BoolToBV,
 
     UnaryFirst = ArrayId,
-    UnaryLast = PtrToBV,
+    UnaryLast = BoolToBV,
 
     // Binary
     BVAdd,
@@ -198,6 +198,11 @@ protected:
 
 public:
   ref<Expr> getSubExpr() const { return expr; }
+  static bool classof(const Expr *E) {
+    Kind k = E->getKind();
+    return k >= UnaryFirst && k <= UnaryLast;
+  }
+  static bool classof(const UnaryExpr *) { return true; }
 };
 
 #define UNARY_EXPR(kind) \
@@ -230,6 +235,11 @@ protected:
 public:
   ref<Expr> getLHS() const { return lhs; }
   ref<Expr> getRHS() const { return rhs; }
+  static bool classof(const Expr *E) {
+    Kind k = E->getKind();
+    return k >= BinaryFirst && k <= BinaryLast;
+  }
+  static bool classof(const BinaryExpr *) { return true; }
 };
 
 #define BINARY_EXPR(kind) \
