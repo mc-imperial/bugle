@@ -268,6 +268,12 @@ void BPLFunctionWriter::write() {
 
     OS << " {\n";
 
+    for (auto i = F->local_begin(), e = F->local_end(); i != e; ++i) {
+      OS << "  var ";
+      writeVar(OS, *i);
+      OS << ";\n";
+    }
+
     for (auto i = SSAVarIds.begin(), e = SSAVarIds.end(); i != e; ++i) {
       OS << "  var v" << i->second << ":";
       MW->writeType(OS, i->first->getType());
