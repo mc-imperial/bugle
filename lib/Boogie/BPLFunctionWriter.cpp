@@ -198,6 +198,19 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << "  " << VAS->getVar()->getName() << " := ";
     writeExpr(OS, VAS->getValue().get());
     OS << ";\n";
+  } else if (auto GS = dyn_cast<GotoStmt>(S)) { 
+    OS << "  goto ";
+    for (auto b = GS->getBlocks().begin(), i = b, e = GS->getBlocks().end();
+         i != e; ++i) {
+      if (i != b)
+        OS << ", ";
+      OS << (*i)->getName();
+    }
+    OS << ";\n";
+  } else if (auto AS = dyn_cast<AssumeStmt>(S)) {
+    OS << "  assume ";
+    writeExpr(OS, AS->getPredicate().get());
+    OS << ";\n";
   } else if (isa<ReturnStmt>(S)) {
     OS << "  return;\n";
   } else {
