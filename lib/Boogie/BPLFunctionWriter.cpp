@@ -50,11 +50,25 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
        << "_ZEXT" << ZEE->getType().width << "(";
     writeExpr(OS, ZEE->getSubExpr().get());
     OS << ")";
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "function {:bvbuiltin \"zero_extend\"} BV"
+         << ZEE->getSubExpr()->getType().width
+         << "_ZEXT" << ZEE->getType().width
+         << "(bv" << ZEE->getSubExpr()->getType().width
+         << ") : bv" << ZEE->getType().width;
+    });
   } else if (auto SEE = dyn_cast<BVSExtExpr>(E)) {
     OS << "BV" << SEE->getSubExpr()->getType().width
        << "_SEXT" << SEE->getType().width << "(";
     writeExpr(OS, SEE->getSubExpr().get());
     OS << ")";
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "function {:bvbuiltin \"sign_extend\"} BV"
+         << SEE->getSubExpr()->getType().width
+         << "_SEXT" << SEE->getType().width
+         << "(bv" << SEE->getSubExpr()->getType().width
+         << ") : bv" << SEE->getType().width;
+    });
   } else if (auto LE = dyn_cast<LoadExpr>(E)) {
     ref<Expr> PtrArr = LE->getArray();
     if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
@@ -88,9 +102,22 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     switch (BinE->getKind()) {
     case Expr::BVAdd:
       OS << "BV" << BinE->getType().width << "_ADD";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function {:bvbuiltin \"bvadd\"} BV" << BinE->getType().width
+           << "_ADD(bv" << BinE->getType().width
+           << ", bv" << BinE->getType().width
+           << ") : bv" << BinE->getType().width;
+      });
       break;
     case Expr::BVSgt:
       OS << "BV" << BinE->getLHS()->getType().width << "_SGT";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function {:bvbuiltin \"bvsgt\"} BV"
+           << BinE->getLHS()->getType().width
+           << "_SGT(bv" << BinE->getLHS()->getType().width
+           << ", bv" << BinE->getLHS()->getType().width
+           << ") : bool";
+      });
       break;
     default:
       assert(0 && "Unsupported binary expr");

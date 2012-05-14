@@ -35,14 +35,24 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
   }
 }
 
+void BPLModuleWriter::writeIntrinsic(std::function<void(llvm::raw_ostream&)> F){
+  std::string S;
+  llvm::raw_string_ostream SS(S);
+  F(SS);
+  IntrinsicSet.insert(SS.str());
+}
+
 void BPLModuleWriter::write() {
-  std::string S; 
+  std::string S;
   llvm::raw_string_ostream SS(S);
   for (auto i = M->begin(), e = M->end(); i != e; ++i) {
     BPLFunctionWriter FW(this, SS, *i);
     FW.write();
   }
 
-  // TODO: write required intrinsics
+  for (auto i = IntrinsicSet.begin(), e = IntrinsicSet.end(); i != e; ++i) {
+    OS << *i << ";\n";
+  }
+
   OS << SS.str();
 }
