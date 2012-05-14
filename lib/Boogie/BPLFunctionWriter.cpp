@@ -40,6 +40,8 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     auto &Val = CE->getValue();
     Val.print(OS, /*isSigned=*/false);
     OS << "bv" << Val.getBitWidth();
+  } else if (auto BCE = dyn_cast<BoolConstExpr>(E)) {
+    OS << (BCE->getValue() ? "true" : "false");
   } else if (auto EE = dyn_cast<BVExtractExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 8);
     writeExpr(OS, EE->getSubExpr().get(), 9);
