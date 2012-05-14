@@ -34,6 +34,7 @@ public:
     BVSExt,
 
     // Unary
+    Not,
     ArrayId,
     ArrayOffset,
     BVToFloat,
@@ -43,7 +44,7 @@ public:
     BVToBool,
     BoolToBV,
 
-    UnaryFirst = ArrayId,
+    UnaryFirst = Not,
     UnaryLast = BoolToBV,
 
     // Binary
@@ -218,6 +219,7 @@ public:
     EXPR_KIND(kind) \
   };
 
+UNARY_EXPR(Not)
 UNARY_EXPR(ArrayId)
 UNARY_EXPR(ArrayOffset)
 UNARY_EXPR(BVToFloat)

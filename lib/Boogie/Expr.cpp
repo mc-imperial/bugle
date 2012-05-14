@@ -48,6 +48,14 @@ ref<Expr> BVExtractExpr::create(ref<Expr> expr, unsigned offset,
   return new BVExtractExpr(expr, offset, width);
 }
 
+ref<Expr> NotExpr::create(ref<Expr> op) {
+  assert(op->getType().kind == Type::Bool);
+  if (auto e = dyn_cast<BoolConstExpr>(op))
+    return BoolConstExpr::create(!e->getValue());
+
+  return new NotExpr(Type(Type::Bool), op);
+}
+
 ref<Expr> ArrayIdExpr::create(ref<Expr> pointer) {
   assert(pointer->getType().kind == Type::Pointer);
   if (auto e = dyn_cast<PointerExpr>(pointer))

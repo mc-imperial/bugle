@@ -100,6 +100,10 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << "(if ";
     writeExpr(OS, B2BVE->getSubExpr().get());
     OS  << " then 1bv1 else 0bv1)";
+  } else if (auto NotE = dyn_cast<NotExpr>(E)) {
+    ScopedParenPrinter X(OS, Depth, 7);
+    OS << "!";
+    writeExpr(OS, NotE->getSubExpr().get(), 8);
   } else if (auto BinE = dyn_cast<BinaryExpr>(E)) {
     switch (BinE->getKind()) {
     case Expr::BVAdd:
