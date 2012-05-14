@@ -107,60 +107,59 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   } else if (auto BinE = dyn_cast<BinaryExpr>(E)) {
     switch (BinE->getKind()) {
     case Expr::BVAdd:
-      OS << "BV" << BinE->getType().width << "_ADD";
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function {:bvbuiltin \"bvadd\"} BV" << BinE->getType().width
-           << "_ADD(bv" << BinE->getType().width
-           << ", bv" << BinE->getType().width
-           << ") : bv" << BinE->getType().width;
-      });
-      break;
     case Expr::BVSub:
-      OS << "BV" << BinE->getType().width << "_SUB";
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function {:bvbuiltin \"bvsub\"} BV" << BinE->getType().width
-           << "_SUB(bv" << BinE->getType().width
-           << ", bv" << BinE->getType().width
-           << ") : bv" << BinE->getType().width;
-      });
-      break;
     case Expr::BVMul:
-      OS << "BV" << BinE->getType().width << "_MUL";
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function {:bvbuiltin \"bvmul\"} BV" << BinE->getType().width
-           << "_MUL(bv" << BinE->getType().width
-           << ", bv" << BinE->getType().width
-           << ") : bv" << BinE->getType().width;
-      });
-      break;
     case Expr::BVSDiv:
-      OS << "BV" << BinE->getType().width << "_SDIV";
+    case Expr::BVUDiv: {
+      const char *IntName, *SMTName;
+      switch (BinE->getKind()) {
+      case Expr::BVAdd:  IntName = "ADD";  SMTName = "bvadd";  break;
+      case Expr::BVSub:  IntName = "SUB";  SMTName = "bvsub";  break;
+      case Expr::BVMul:  IntName = "MUL";  SMTName = "bvmul";  break;
+      case Expr::BVSDiv: IntName = "SDIV"; SMTName = "bvsdiv"; break;
+      case Expr::BVUDiv: IntName = "UDIV"; SMTName = "bvudiv"; break;
+      default: assert(0 && "huh?");
+      }
+      OS << "BV" << BinE->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function {:bvbuiltin \"bvsdiv\"} BV" << BinE->getType().width
-           << "_SDIV(bv" << BinE->getType().width
+        OS << "function {:bvbuiltin \"" << SMTName << "\"} BV"
+           << BinE->getType().width
+           << "_" << IntName << "(bv" << BinE->getType().width
            << ", bv" << BinE->getType().width
            << ") : bv" << BinE->getType().width;
       });
       break;
-    case Expr::BVUDiv:
-      OS << "BV" << BinE->getType().width << "_UDIV";
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function {:bvbuiltin \"bvudiv\"} BV" << BinE->getType().width
-           << "_UDIV(bv" << BinE->getType().width
-           << ", bv" << BinE->getType().width
-           << ") : bv" << BinE->getType().width;
-      });
-      break;
+    }
+    case Expr::BVUgt:
+    case Expr::BVUge:
+    case Expr::BVUlt:
+    case Expr::BVUle:
     case Expr::BVSgt:
-      OS << "BV" << BinE->getLHS()->getType().width << "_SGT";
+    case Expr::BVSge:
+    case Expr::BVSlt:
+    case Expr::BVSle: {
+      const char *IntName, *SMTName;
+      switch (BinE->getKind()) {
+      case Expr::BVUgt: IntName = "UGT"; SMTName = "bvugt"; break;
+      case Expr::BVUge: IntName = "UGE"; SMTName = "bvuge"; break;
+      case Expr::BVUlt: IntName = "ULT"; SMTName = "bvult"; break;
+      case Expr::BVUle: IntName = "ULE"; SMTName = "bvule"; break;
+      case Expr::BVSgt: IntName = "SGT"; SMTName = "bvsgt"; break;
+      case Expr::BVSge: IntName = "SGE"; SMTName = "bvsge"; break;
+      case Expr::BVSlt: IntName = "SLT"; SMTName = "bvslt"; break;
+      case Expr::BVSle: IntName = "SLE"; SMTName = "bvsle"; break;
+      default: assert(0 && "huh?");
+      }
+      OS << "BV" << BinE->getLHS()->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function {:bvbuiltin \"bvsgt\"} BV"
+        OS << "function {:bvbuiltin \"" << SMTName << "\"} BV"
            << BinE->getLHS()->getType().width
-           << "_SGT(bv" << BinE->getLHS()->getType().width
+           << "_" << IntName << "(bv" << BinE->getLHS()->getType().width
            << ", bv" << BinE->getLHS()->getType().width
            << ") : bool";
       });
       break;
+    }
     default:
       assert(0 && "Unsupported binary expr");
       break;

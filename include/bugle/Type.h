@@ -24,6 +24,10 @@ struct Type {
   Type(Kind kind, unsigned width) : kind(kind), width(width) {
     assert(kind != ArrayId && kind != Bool);
   }
+
+  bool operator==(const Type &other) const {
+    return kind == other.kind && width == other.width;
+  }
 };
 
 }

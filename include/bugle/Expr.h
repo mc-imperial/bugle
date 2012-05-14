@@ -48,16 +48,25 @@ public:
     UnaryLast = BoolToBV,
 
     // Binary
+    Eq,
+    Ne,
     BVAdd,
     BVSub,
     BVMul,
     BVSDiv,
     BVUDiv,
     BVConcat,
+    BVUgt,
+    BVUge,
+    BVUlt,
+    BVUle,
     BVSgt,
+    BVSge,
+    BVSlt,
+    BVSle,
 
-    BinaryFirst = BVAdd,
-    BinaryLast = BVSgt
+    BinaryFirst = Eq,
+    BinaryLast = BVSle
   };
 
   unsigned refCount;
@@ -258,13 +267,22 @@ public:
     EXPR_KIND(kind) \
   };
 
+BINARY_EXPR(Eq)
+BINARY_EXPR(Ne)
 BINARY_EXPR(BVAdd)
 BINARY_EXPR(BVSub)
 BINARY_EXPR(BVMul)
 BINARY_EXPR(BVSDiv)
 BINARY_EXPR(BVUDiv)
 BINARY_EXPR(BVConcat)
+BINARY_EXPR(BVUgt)
+BINARY_EXPR(BVUge)
+BINARY_EXPR(BVUlt)
+BINARY_EXPR(BVUle)
 BINARY_EXPR(BVSgt)
+BINARY_EXPR(BVSge)
+BINARY_EXPR(BVSlt)
+BINARY_EXPR(BVSle)
 
 #undef BINARY_EXPR
 

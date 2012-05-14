@@ -165,6 +165,34 @@ ref<Expr> BoolToBVExpr::create(ref<Expr> bv) {
   return new BoolToBVExpr(Type(Type::BV, 1), bv);
 }
 
+ref<Expr> EqExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType() == rhs->getType());
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BoolConstExpr::create(e1->getValue() == e2->getValue());
+
+  if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
+      return BoolConstExpr::create(e1->getValue() == e2->getValue());
+
+  return new EqExpr(Type(Type::Bool), lhs, rhs);
+}
+
+ref<Expr> NeExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType() == rhs->getType());
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BoolConstExpr::create(e1->getValue() != e2->getValue());
+
+  if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
+      return BoolConstExpr::create(e1->getValue() != e2->getValue());
+
+  return new NeExpr(Type(Type::Bool), lhs, rhs);
+}
+
 ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
   assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
@@ -241,14 +269,24 @@ ref<Expr> BVConcatExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new BVConcatExpr(Type(Type::BV, resWidth), lhs, rhs);
 }
 
-ref<Expr> BVSgtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
-  assert(lhsTy.width == rhsTy.width);
-
-  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
-    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
-      return BoolConstExpr::create(e1->getValue().sgt(e2->getValue()));
-
-  return new BVSgtExpr(Type(Type::Bool), lhs, rhs);
+#define ICMP_EXPR_CREATE(cls, method) \
+ref<Expr> cls::create(ref<Expr> lhs, ref<Expr> rhs) { \
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType(); \
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV); \
+  assert(lhsTy.width == rhsTy.width); \
+ \
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs)) \
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs)) \
+      return BoolConstExpr::create(e1->getValue().method(e2->getValue())); \
+ \
+  return new cls(Type(Type::Bool), lhs, rhs); \
 }
+
+ICMP_EXPR_CREATE(BVUgtExpr, ugt)
+ICMP_EXPR_CREATE(BVUgeExpr, uge)
+ICMP_EXPR_CREATE(BVUltExpr, ult)
+ICMP_EXPR_CREATE(BVUleExpr, ule)
+ICMP_EXPR_CREATE(BVSgtExpr, sgt)
+ICMP_EXPR_CREATE(BVSgeExpr, sge)
+ICMP_EXPR_CREATE(BVSltExpr, slt)
+ICMP_EXPR_CREATE(BVSleExpr, sle)

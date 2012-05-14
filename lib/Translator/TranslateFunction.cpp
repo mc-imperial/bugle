@@ -142,9 +142,16 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     ref<Expr> LHS = translateValue(II->getOperand(0)),
               RHS = translateValue(II->getOperand(1));
     switch (II->getPredicate()) {
-    case ICmpInst::ICMP_SGT:
-      E = BVSgtExpr::create(LHS, RHS);
-      break;
+    case ICmpInst::ICMP_EQ:  E = EqExpr::create(LHS, RHS);    break;
+    case ICmpInst::ICMP_NE:  E = NeExpr::create(LHS, RHS);    break;
+    case ICmpInst::ICMP_UGT: E = BVUgtExpr::create(LHS, RHS); break;
+    case ICmpInst::ICMP_UGE: E = BVUgeExpr::create(LHS, RHS); break;
+    case ICmpInst::ICMP_ULT: E = BVUltExpr::create(LHS, RHS); break;
+    case ICmpInst::ICMP_ULE: E = BVUleExpr::create(LHS, RHS); break;
+    case ICmpInst::ICMP_SGT: E = BVSgtExpr::create(LHS, RHS); break;
+    case ICmpInst::ICMP_SGE: E = BVSgeExpr::create(LHS, RHS); break;
+    case ICmpInst::ICMP_SLT: E = BVSltExpr::create(LHS, RHS); break;
+    case ICmpInst::ICMP_SLE: E = BVSleExpr::create(LHS, RHS); break;
     default:
       assert(0 && "Unsupported icmp");
     }
