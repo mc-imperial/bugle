@@ -77,8 +77,6 @@ public:
 };
 
 class ReturnStmt : public Stmt {
-  ref<Expr> value;
-
 public:
   ReturnStmt() {}
   STMT_KIND(Return)
