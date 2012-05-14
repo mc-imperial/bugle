@@ -102,6 +102,18 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       BBB->addStmt(new StoreStmt(PtrArr, PtrByteOfs, ValByte));
     }
     return;
+  } else if (auto II = dyn_cast<ICmpInst>(I)) {
+    ref<Expr> LHS = translateValue(II->getOperand(0)),
+              RHS = translateValue(II->getOperand(1));
+    switch (II->getPredicate()) {
+    case ICmpInst::ICMP_SGT:
+      E = BVSgtExpr::create(LHS, RHS);
+      break;
+    default:
+      assert(0 && "Unsupported icmp");
+    }
+    BBB->addStmt(new EvalStmt(E));
+    E = BoolToBVExpr::create(E);
   } else if (auto RI = dyn_cast<ReturnInst>(I)) {
     if (auto V = RI->getReturnValue()) {
       assert(ReturnVar && "Returning value without return variable?");

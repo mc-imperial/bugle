@@ -14,6 +14,10 @@ ref<Expr> BVConstExpr::create(unsigned width, uint64_t val, bool isSigned) {
   return create(llvm::APInt(width, val, isSigned));
 }
 
+ref<Expr> BoolConstExpr::create(bool val) {
+  return new BoolConstExpr(val);
+}
+
 ref<Expr> GlobalArrayRefExpr::create(GlobalArray *global) {
   return new GlobalArrayRefExpr(global);
 }
@@ -102,6 +106,27 @@ ref<Expr> PtrToBVExpr::create(ref<Expr> bv) {
   return new PtrToBVExpr(Type(Type::BV, ty.width), bv);
 }
 
+ref<Expr> BVToBoolExpr::create(ref<Expr> bv) {
+  const Type &ty = bv->getType();
+  assert(ty.kind == Type::BV);
+  assert(ty.width == 1);
+
+  if (auto e = dyn_cast<BoolToBVExpr>(bv))
+    return e->getSubExpr();
+
+  return new BVToBoolExpr(Type(Type::Bool), bv);
+}
+
+ref<Expr> BoolToBVExpr::create(ref<Expr> bv) {
+  const Type &ty = bv->getType();
+  assert(ty.kind == Type::Bool);
+
+  if (auto e = dyn_cast<BVToBoolExpr>(bv))
+    return e->getSubExpr();
+
+  return new BoolToBVExpr(Type(Type::BV, 1), bv);
+}
+
 ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
   assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
@@ -128,4 +153,16 @@ ref<Expr> BVConcatExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
     }
 
   return new BVConcatExpr(Type(Type::BV, resWidth), lhs, rhs);
+}
+
+ref<Expr> BVSgtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BoolConstExpr::create(e1->getValue().sgt(e2->getValue()));
+
+  return new BVSgtExpr(Type(Type::Bool), lhs, rhs);
 }

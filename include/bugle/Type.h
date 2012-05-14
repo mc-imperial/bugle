@@ -7,6 +7,7 @@ namespace bugle {
 
 struct Type {
   enum Kind {
+    Bool,
     BV,
     Float,
     Pointer,
@@ -17,11 +18,11 @@ struct Type {
   unsigned width;
 
   Type(Kind kind) : kind(kind), width(0) {
-    assert(kind == ArrayId);
+    assert(kind == ArrayId || kind == Bool);
   }
 
   Type(Kind kind, unsigned width) : kind(kind), width(width) {
-    assert(kind != ArrayId);
+    assert(kind != ArrayId && kind != Bool);
   }
 };
 

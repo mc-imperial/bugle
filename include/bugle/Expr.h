@@ -23,6 +23,7 @@ class Expr {
 public:
   enum Kind {
     BVConst,
+    BoolConst,
     GlobalArrayRef,
     Pointer,
     Load,
@@ -37,6 +38,8 @@ public:
     FloatToBV,
     BVToPtr,
     PtrToBV,
+    BVToBool,
+    BoolToBV,
 
     UnaryFirst = ArrayId,
     UnaryLast = PtrToBV,
@@ -44,9 +47,10 @@ public:
     // Binary
     BVAdd,
     BVConcat,
+    BVSgt,
 
     BinaryFirst = BVAdd,
-    BinaryLast = BVConcat
+    BinaryLast = BVSgt
   };
 
   unsigned refCount;
@@ -82,6 +86,17 @@ public:
 
   EXPR_KIND(BVConst)
   const llvm::APInt &getValue() const { return bv; }
+};
+
+class BoolConstExpr : public Expr {
+  BoolConstExpr(bool val) : Expr(Type(Type::Bool)), val(val) {}
+  bool val;
+
+public:
+  static ref<Expr> create(bool val);
+
+  EXPR_KIND(BoolConst)
+  bool getValue() const { return val; }
 };
 
 class GlobalArrayRefExpr : public Expr {
@@ -176,6 +191,8 @@ UNARY_EXPR(BVToFloat)
 UNARY_EXPR(FloatToBV)
 UNARY_EXPR(BVToPtr)
 UNARY_EXPR(PtrToBV)
+UNARY_EXPR(BVToBool)
+UNARY_EXPR(BoolToBV)
 
 #undef UNARY_EXPR
 
@@ -203,6 +220,7 @@ public:
 
 BINARY_EXPR(BVAdd)
 BINARY_EXPR(BVConcat)
+BINARY_EXPR(BVSgt)
 
 #undef BINARY_EXPR
 
