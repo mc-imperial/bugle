@@ -25,6 +25,13 @@ ref<Expr> PointerExpr::create(ref<Expr> array, ref<Expr> offset) {
   return new PointerExpr(array, offset);
 }
 
+ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset) {
+  assert(array->getType().kind == Type::ArrayId);
+  assert(offset->getType().kind == Type::BV);
+
+  return new LoadExpr(array, offset);
+}
+
 ref<Expr> VarRefExpr::create(Var *var) {
   return new VarRefExpr(var);
 }
@@ -105,4 +112,20 @@ ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
       return BVConstExpr::create(e1->getValue() + e2->getValue());
 
   return new BVAddExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+ref<Expr> BVConcatExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+
+  unsigned resWidth = lhsTy.width + rhsTy.width;
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs)) {
+      llvm::APInt Tmp = e1->getValue().zext(resWidth);
+      Tmp <<= rhsTy.width;
+      Tmp |= e2->getValue().zext(resWidth);
+      return BVConstExpr::create(Tmp);
+    }
+
+  return new BVConcatExpr(Type(Type::BV, resWidth), lhs, rhs);
 }

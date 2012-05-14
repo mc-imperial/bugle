@@ -10,7 +10,25 @@
 
 using namespace bugle;
 
-void BPLFunctionWriter::writeExpr(Expr *E) {
+namespace {
+
+struct ScopedParenPrinter {
+  llvm::raw_ostream &OS;
+  bool ParenRequired;
+  ScopedParenPrinter(llvm::raw_ostream &OS, unsigned Depth, unsigned RuleDepth)
+    : OS(OS), ParenRequired(RuleDepth < Depth) {
+    if (ParenRequired)
+      OS << "(";
+  }
+  ~ScopedParenPrinter() {
+    if (ParenRequired)
+      OS << ")";
+  }
+};
+
+}
+
+void BPLFunctionWriter::writeExpr(Expr *E, unsigned Depth = 0) {
   auto id = SSAVarIds.find(E);
   if (id != SSAVarIds.end()) {
     OS << "v" << id->second;
@@ -21,12 +39,27 @@ void BPLFunctionWriter::writeExpr(Expr *E) {
     auto &Val = CE->getValue();
     Val.print(OS, /*isSigned=*/false);
     OS << "bv" << Val.getBitWidth();
+  } else if (auto EE = dyn_cast<BVExtractExpr>(E)) {
+    ScopedParenPrinter X(OS, Depth, 8);
+    writeExpr(EE->getSubExpr().get(), 9);
+    OS << "[" << (EE->getOffset() + EE->getType().width) << ":"
+       << EE->getOffset() << "]";
   } else if (auto AddE = dyn_cast<BVAddExpr>(E)) {
     OS << "BV" << AddE->getType().width << "_ADD(";
     writeExpr(AddE->getLHS().get());
     OS << ", ";
     writeExpr(AddE->getRHS().get());
     OS << ")";
+  } else if (auto LE = dyn_cast<LoadExpr>(E)) {
+    ref<Expr> PtrArr = LE->getArray();
+    if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
+      ScopedParenPrinter X(OS, Depth, 8);
+      OS << ArrE->getArray()->getName() << "[";
+      writeExpr(LE->getOffset().get(), 9);
+      OS << "]";
+    } else {
+      assert(0 && "TODO case split");
+    }
   } else if (auto PtrE = dyn_cast<PointerExpr>(E)) {
     OS << "POINTER(";
     writeExpr(PtrE->getArray().get());
@@ -37,6 +70,11 @@ void BPLFunctionWriter::writeExpr(Expr *E) {
     OS << VarE->getVar()->getName();
   } else if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(E)) {
     OS << "ARRAY(" << ArrE->getArray()->getName() << ")";
+  } else if (auto ConcatE = dyn_cast<BVConcatExpr>(E)) {
+    ScopedParenPrinter X(OS, Depth, 4);
+    writeExpr(ConcatE->getLHS().get(), 4);
+    OS << " ++ ";
+    writeExpr(ConcatE->getRHS().get(), 5);
   } else {
     assert(0 && "Unsupported expression");
   }

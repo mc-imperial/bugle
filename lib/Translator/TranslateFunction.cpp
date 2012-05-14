@@ -45,6 +45,14 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V) {
   assert(0 && "Unsupported value");
 }
 
+template <typename T, typename I, typename F>
+T fold(T init, I begin, I end, F func) {
+  T value = init;
+  for (I i = begin; i != end; ++i)
+    value = func(value, *i);
+  return value;
+}
+
 void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                                              Instruction *I) {
   ref<Expr> E;
@@ -62,6 +70,23 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     GlobalArray *GA = TM->BM->addGlobal(AI->getName());
     E = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
+  } else if (auto LI = dyn_cast<LoadInst>(I)) {
+    ref<Expr> Ptr = translateValue(LI->getPointerOperand()),
+              PtrArr = ArrayIdExpr::create(Ptr),
+              PtrOfs = ArrayOffsetExpr::create(Ptr);
+    std::vector<ref<Expr> > BytesLoaded;
+    Type LoadTy = TM->translateType(LI->getType());
+    assert(LoadTy.width % 8 == 0);
+    for (unsigned i = 0; i != LoadTy.width / 8; ++i) {
+      ref<Expr> PtrByteOfs =
+        BVAddExpr::create(PtrOfs,
+                          BVConstExpr::create(PtrOfs->getType().width, i));
+      ref<Expr> ValByte = LoadExpr::create(PtrArr, PtrByteOfs);
+      BytesLoaded.push_back(ValByte);
+      BBB->addStmt(new EvalStmt(ValByte));
+    }
+    E = fold(BytesLoaded.back(), BytesLoaded.rbegin()+1, BytesLoaded.rend(),
+             BVConcatExpr::create);
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
     ref<Expr> Ptr = translateValue(SI->getPointerOperand()),
               Val = translateValue(SI->getValueOperand()),

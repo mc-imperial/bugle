@@ -25,6 +25,7 @@ public:
     BVConst,
     GlobalArrayRef,
     Pointer,
+    Load,
     VarRef,
     Call,
     BVExtract,
@@ -42,9 +43,10 @@ public:
 
     // Binary
     BVAdd,
+    BVConcat,
 
     BinaryFirst = BVAdd,
-    BinaryLast = BVAdd
+    BinaryLast = BVConcat
   };
 
   unsigned refCount;
@@ -104,6 +106,20 @@ public:
   static ref<Expr> create(ref<Expr> array, ref<Expr> offset);
 
   EXPR_KIND(Pointer)
+  ref<Expr> getArray() const { return array; }
+  ref<Expr> getOffset() const { return offset; }
+};
+
+class LoadExpr : public Expr {
+  LoadExpr(ref<Expr> array, ref<Expr> offset) :
+    Expr(Type(Type::BV, 8)),
+    array(array), offset(offset) {}
+  ref<Expr> array, offset;
+
+public:
+  static ref<Expr> create(ref<Expr> array, ref<Expr> offset);
+
+  EXPR_KIND(Load)
   ref<Expr> getArray() const { return array; }
   ref<Expr> getOffset() const { return offset; }
 };
@@ -186,6 +202,7 @@ public:
   };
 
 BINARY_EXPR(BVAdd)
+BINARY_EXPR(BVConcat)
 
 #undef BINARY_EXPR
 

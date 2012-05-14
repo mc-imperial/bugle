@@ -25,7 +25,7 @@ class BPLFunctionWriter {
   llvm::DenseMap<Expr *, unsigned> SSAVarIds;
 
   void writeVar(Var *V);
-  void writeExpr(Expr *E);
+  void writeExpr(Expr *E, unsigned Depth);
   void writeStmt(Stmt *S);
   void writeBasicBlock(BasicBlock *BB);
 
