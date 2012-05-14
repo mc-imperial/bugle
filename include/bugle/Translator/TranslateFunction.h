@@ -9,6 +9,7 @@ namespace llvm {
 class BasicBlock;
 class Function;
 class Instruction;
+class PHINode;
 class Value;
 
 }
@@ -27,11 +28,15 @@ class TranslateFunction {
   llvm::Function *F;
   llvm::DenseMap<llvm::BasicBlock *, BasicBlock *> BasicBlockMap;
   llvm::DenseMap<llvm::Value *, ref<Expr> > ValueExprMap;
+  llvm::DenseMap<llvm::PHINode *, Var *> PhiVarMap;
   Var *ReturnVar;
 
   ref<Expr> translateValue(llvm::Value *V);
   void translateBasicBlock(BasicBlock *BBB, llvm::BasicBlock *BB);
   void translateInstruction(BasicBlock *BBB, llvm::Instruction *I);
+  Var *getPhiVariable(llvm::PHINode *PN);
+  void addPhiAssigns(BasicBlock *BBB, llvm::BasicBlock *Pred,
+                     llvm::BasicBlock *Succ);
 
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF,

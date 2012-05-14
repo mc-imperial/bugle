@@ -53,6 +53,30 @@ T fold(T init, I begin, I end, F func) {
   return value;
 }
 
+Var *TranslateFunction::getPhiVariable(llvm::PHINode *PN) {
+  auto &i = PhiVarMap[PN];
+  if (i)
+    return i;
+
+  i = BF->addLocal(TM->translateType(PN->getType()), PN->getName());
+  return i;
+}
+
+void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
+                                      llvm::BasicBlock *Pred,
+                                      llvm::BasicBlock *Succ) {
+  for (auto i = Succ->begin(), e = Succ->end(); i != e && isa<PHINode>(i); ++i){
+    PHINode *PN = cast<PHINode>(i);
+    int idx = PN->getBasicBlockIndex(Pred);
+    assert(idx != -1 && "No phi index?");
+
+    Var *PV = getPhiVariable(PN);
+    ref<Expr> E = translateValue(PN->getIncomingValue(idx));
+
+    BBB->addStmt(new VarAssignStmt(PV, E));
+  }
+}
+
 void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                                              Instruction *I) {
   ref<Expr> E;
@@ -140,6 +164,28 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     }
     BBB->addStmt(new ReturnStmt);
     return;
+  } else if (auto BI = dyn_cast<BranchInst>(I)) {
+    if (BI->isConditional()) {
+      ref<Expr> Cond = BVToBoolExpr::create(translateValue(BI->getCondition()));
+
+      bugle::BasicBlock *TrueBB = BF->addBasicBlock("truebb");
+      TrueBB->addStmt(new AssumeStmt(Cond));
+      addPhiAssigns(TrueBB, I->getParent(), BI->getSuccessor(0));
+      TrueBB->addStmt(new GotoStmt(BasicBlockMap[BI->getSuccessor(0)]));
+
+      bugle::BasicBlock *FalseBB = BF->addBasicBlock("falsebb");
+      FalseBB->addStmt(new AssumeStmt(NotExpr::create(Cond)));
+      addPhiAssigns(FalseBB, I->getParent(), BI->getSuccessor(1));
+      FalseBB->addStmt(new GotoStmt(BasicBlockMap[BI->getSuccessor(1)]));
+
+      BBB->addStmt(new GotoStmt({TrueBB, FalseBB}));
+    } else {
+      addPhiAssigns(BBB, I->getParent(), BI->getSuccessor(0));
+      BBB->addStmt(new GotoStmt(BasicBlockMap[BI->getSuccessor(0)]));
+    }
+    return;
+  } else if (auto PN = dyn_cast<PHINode>(I)) {
+    E = VarRefExpr::create(getPhiVariable(PN));
   } else {
     assert(0 && "Unsupported instruction");
   }
