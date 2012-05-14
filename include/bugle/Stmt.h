@@ -70,6 +70,8 @@ class GotoStmt : public Stmt {
   std::vector<BasicBlock *> blocks;
 
 public:
+  GotoStmt(const std::vector<BasicBlock *> &blocks) : blocks(blocks) {}
+  GotoStmt(BasicBlock *block) : blocks(1, block) {}
   STMT_KIND(Goto)
   const std::vector<BasicBlock *> &getBlocks() { return blocks; }
 };
