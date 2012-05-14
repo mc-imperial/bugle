@@ -28,7 +28,8 @@ struct ScopedParenPrinter {
 
 }
 
-void BPLFunctionWriter::writeExpr(Expr *E, unsigned Depth = 0) {
+void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
+                                  unsigned Depth = 0) {
   auto id = SSAVarIds.find(E);
   if (id != SSAVarIds.end()) {
     OS << "v" << id->second;
@@ -41,30 +42,30 @@ void BPLFunctionWriter::writeExpr(Expr *E, unsigned Depth = 0) {
     OS << "bv" << Val.getBitWidth();
   } else if (auto EE = dyn_cast<BVExtractExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 8);
-    writeExpr(EE->getSubExpr().get(), 9);
+    writeExpr(OS, EE->getSubExpr().get(), 9);
     OS << "[" << (EE->getOffset() + EE->getType().width) << ":"
        << EE->getOffset() << "]";
   } else if (auto AddE = dyn_cast<BVAddExpr>(E)) {
     OS << "BV" << AddE->getType().width << "_ADD(";
-    writeExpr(AddE->getLHS().get());
+    writeExpr(OS, AddE->getLHS().get());
     OS << ", ";
-    writeExpr(AddE->getRHS().get());
+    writeExpr(OS, AddE->getRHS().get());
     OS << ")";
   } else if (auto LE = dyn_cast<LoadExpr>(E)) {
     ref<Expr> PtrArr = LE->getArray();
     if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
       ScopedParenPrinter X(OS, Depth, 8);
       OS << ArrE->getArray()->getName() << "[";
-      writeExpr(LE->getOffset().get(), 9);
+      writeExpr(OS, LE->getOffset().get(), 9);
       OS << "]";
     } else {
       assert(0 && "TODO case split");
     }
   } else if (auto PtrE = dyn_cast<PointerExpr>(E)) {
     OS << "POINTER(";
-    writeExpr(PtrE->getArray().get());
+    writeExpr(OS, PtrE->getArray().get());
     OS << ", ";
-    writeExpr(PtrE->getOffset().get());
+    writeExpr(OS, PtrE->getOffset().get());
     OS << ")";
   } else if (auto VarE = dyn_cast<VarRefExpr>(E)) {
     OS << VarE->getVar()->getName();
@@ -72,35 +73,35 @@ void BPLFunctionWriter::writeExpr(Expr *E, unsigned Depth = 0) {
     OS << "ARRAY(" << ArrE->getArray()->getName() << ")";
   } else if (auto ConcatE = dyn_cast<BVConcatExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
-    writeExpr(ConcatE->getLHS().get(), 4);
+    writeExpr(OS, ConcatE->getLHS().get(), 4);
     OS << " ++ ";
-    writeExpr(ConcatE->getRHS().get(), 5);
+    writeExpr(OS, ConcatE->getRHS().get(), 5);
   } else {
     assert(0 && "Unsupported expression");
   }
 }
 
-void BPLFunctionWriter::writeStmt(Stmt *S) {
+void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   if (auto ES = dyn_cast<EvalStmt>(S)) {
     unsigned id = SSAVarIds.size();
     OS << "  v" << id << " := ";
-    writeExpr(ES->getExpr().get());
+    writeExpr(OS, ES->getExpr().get());
     OS << ";\n";
     SSAVarIds[ES->getExpr().get()] = id;
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     ref<Expr> PtrArr = SS->getArray();
     if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
       OS << "  " << ArrE->getArray()->getName() << "[";
-      writeExpr(SS->getOffset().get());
+      writeExpr(OS, SS->getOffset().get());
       OS << "] := ";
-      writeExpr(SS->getValue().get());
+      writeExpr(OS, SS->getValue().get());
       OS << ";\n";
     } else {
       assert(0 && "TODO case split");
     }
   } else if (auto VAS = dyn_cast<VarAssignStmt>(S)) {
     OS << "  " << VAS->getVar()->getName() << " := ";
-    writeExpr(VAS->getValue().get());
+    writeExpr(OS, VAS->getValue().get());
     OS << ";\n";
   } else if (isa<ReturnStmt>(S)) {
     OS << "  return;\n";
@@ -109,13 +110,13 @@ void BPLFunctionWriter::writeStmt(Stmt *S) {
   }
 }
 
-void BPLFunctionWriter::writeBasicBlock(BasicBlock *BB) {
+void BPLFunctionWriter::writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB) {
   OS << BB->getName() << ":\n";
   for (auto i = BB->begin(), e = BB->end(); i != e; ++i)
-    writeStmt(*i);
+    writeStmt(OS, *i);
 }
 
-void BPLFunctionWriter::writeVar(Var *V) {
+void BPLFunctionWriter::writeVar(llvm::raw_ostream &OS, Var *V) {
   OS << V->getName() << ":";
   MW->writeType(OS, V->getType());
 }
@@ -125,7 +126,7 @@ void BPLFunctionWriter::write() {
   for (auto b = F->arg_begin(), i = b, e = F->arg_end(); i != e; ++i) {
     if (i != b)
       OS << ", ";
-    writeVar(*i);
+    writeVar(OS, *i);
   }
   OS << ")";
 
@@ -134,7 +135,7 @@ void BPLFunctionWriter::write() {
     for (auto b = F->return_begin(), i = b, e = F->return_end(); i != e; ++i) {
       if (i != b)
         OS << ", ";
-      writeVar(*i);
+      writeVar(OS, *i);
     }
     OS << ")";
   }
@@ -143,8 +144,19 @@ void BPLFunctionWriter::write() {
     OS << ";\n";
   } else {
     OS << " {\n";
+
+    std::string Body;
+    llvm::raw_string_ostream BodyOS(Body);
     std::for_each(F->begin(), F->end(),
-                  [this](BasicBlock *BB){ writeBasicBlock(BB); });
+                  [&](BasicBlock *BB){ writeBasicBlock(BodyOS, BB); });
+
+    for (auto i = SSAVarIds.begin(), e = SSAVarIds.end(); i != e; ++i) {
+      OS << "  var v" << i->second << ":";
+      MW->writeType(OS, i->first->getType());
+      OS << ";\n";
+    }
+
+    OS << BodyOS.str();
     OS << "}\n";
   }
 }

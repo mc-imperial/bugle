@@ -24,10 +24,10 @@ class BPLFunctionWriter {
   bugle::Function *F;
   llvm::DenseMap<Expr *, unsigned> SSAVarIds;
 
-  void writeVar(Var *V);
-  void writeExpr(Expr *E, unsigned Depth);
-  void writeStmt(Stmt *S);
-  void writeBasicBlock(BasicBlock *BB);
+  void writeVar(llvm::raw_ostream &OS, Var *V);
+  void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth);
+  void writeStmt(llvm::raw_ostream &OS, Stmt *S);
+  void writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB);
 
 public:
   BPLFunctionWriter(BPLModuleWriter *MW, llvm::raw_ostream &OS,
