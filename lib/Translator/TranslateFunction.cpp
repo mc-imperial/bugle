@@ -114,6 +114,12 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     }
     BBB->addStmt(new EvalStmt(E));
     E = BoolToBVExpr::create(E);
+  } else if (auto ZEI = dyn_cast<ZExtInst>(I)) {
+    ref<Expr> Op = translateValue(ZEI->getOperand(0));
+    E = BVZExtExpr::create(cast<IntegerType>(ZEI->getType())->getBitWidth(),Op);
+  } else if (auto SEI = dyn_cast<SExtInst>(I)) {
+    ref<Expr> Op = translateValue(SEI->getOperand(0));
+    E = BVSExtExpr::create(cast<IntegerType>(SEI->getType())->getBitWidth(),Op);
   } else if (auto RI = dyn_cast<ReturnInst>(I)) {
     if (auto V = RI->getReturnValue()) {
       assert(ReturnVar && "Returning value without return variable?");

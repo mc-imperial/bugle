@@ -65,6 +65,36 @@ ref<Expr> ArrayOffsetExpr::create(ref<Expr> pointer) {
   return new ArrayOffsetExpr(Type(Type::BV, pointer->getType().width), pointer);
 }
 
+ref<Expr> BVZExtExpr::create(unsigned width, ref<Expr> bv) {
+  const Type &ty = bv->getType();
+  assert(ty.kind == Type::BV);
+
+  if (width == ty.width)
+    return bv;
+  if (width < ty.width)
+    return BVExtractExpr::create(bv, 0, width);
+
+  if (auto e = dyn_cast<BVConstExpr>(bv))
+    return BVConstExpr::create(e->getValue().zext(width));
+
+  return new BVZExtExpr(width, bv);
+}
+
+ref<Expr> BVSExtExpr::create(unsigned width, ref<Expr> bv) {
+  const Type &ty = bv->getType();
+  assert(ty.kind == Type::BV);
+
+  if (width == ty.width)
+    return bv;
+  if (width < ty.width)
+    return BVExtractExpr::create(bv, 0, width);
+
+  if (auto e = dyn_cast<BVConstExpr>(bv))
+    return BVConstExpr::create(e->getValue().sext(width));
+
+  return new BVSExtExpr(width, bv);
+}
+
 ref<Expr> BVToFloatExpr::create(ref<Expr> bv) {
   const Type &ty = bv->getType();
   assert(ty.kind == Type::BV);

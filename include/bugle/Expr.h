@@ -30,6 +30,8 @@ public:
     VarRef,
     Call,
     BVExtract,
+    BVZExt,
+    BVSExt,
 
     // Unary
     ArrayId,
@@ -163,6 +165,28 @@ public:
   EXPR_KIND(BVExtract)
   ref<Expr> getSubExpr() const { return expr; }
   unsigned getOffset() const { return offset; }
+};
+
+class BVZExtExpr : public Expr {
+  BVZExtExpr(unsigned width, ref<Expr> expr) :
+    Expr(Type(Type::BV, width)), expr(expr) {}
+  ref<Expr> expr;
+
+public:
+  static ref<Expr> create(unsigned width, ref<Expr> expr);
+  EXPR_KIND(BVZExt)
+  ref<Expr> getSubExpr() const { return expr; }
+};
+
+class BVSExtExpr : public Expr {
+  BVSExtExpr(unsigned width, ref<Expr> expr) :
+    Expr(Type(Type::BV, width)), expr(expr) {}
+  ref<Expr> expr;
+
+public:
+  static ref<Expr> create(unsigned width, ref<Expr> expr);
+  EXPR_KIND(BVSExt)
+  ref<Expr> getSubExpr() const { return expr; }
 };
 
 class UnaryExpr : public Expr {

@@ -50,6 +50,15 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, AddE->getLHS().get());
     OS << ", ";
     writeExpr(OS, AddE->getRHS().get());
+  } else if (auto ZEE = dyn_cast<BVZExtExpr>(E)) {
+    OS << "BV" << ZEE->getSubExpr()->getType().width
+       << "_ZEXT" << ZEE->getType().width << "(";
+    writeExpr(OS, ZEE->getSubExpr().get());
+    OS << ")";
+  } else if (auto SEE = dyn_cast<BVSExtExpr>(E)) {
+    OS << "BV" << SEE->getSubExpr()->getType().width
+       << "_SEXT" << SEE->getType().width << "(";
+    writeExpr(OS, SEE->getSubExpr().get());
     OS << ")";
   } else if (auto LE = dyn_cast<LoadExpr>(E)) {
     ref<Expr> PtrArr = LE->getArray();
