@@ -33,6 +33,8 @@ bugle::Type TranslateModule::translateType(llvm::Type *T) {
 }
 
 void TranslateModule::translate() {
+   BM->setPointerWidth(TD.getPointerSizeInBits());
+
   for (auto i = M->begin(), e = M->end(); i != e; ++i)
     FunctionMap[&*i] = BM->addFunction(i->getName());
 

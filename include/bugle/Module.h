@@ -10,6 +10,7 @@ namespace bugle {
 class Module {
   OwningPtrVector<Function> functions;
   OwningPtrVector<GlobalArray> globals;
+  unsigned pointerWidth;
 
 public:
   Function *addFunction(const std::string &name) {
@@ -37,6 +38,9 @@ public:
   OwningPtrVector<GlobalArray>::const_iterator global_end() const {
     return globals.end();
   }
+
+  unsigned getPointerWidth() const { return pointerWidth; }
+  void setPointerWidth(unsigned pw) { pointerWidth = pw; }
 };
 
 }

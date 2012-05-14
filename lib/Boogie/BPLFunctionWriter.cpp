@@ -82,7 +82,7 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       assert(0 && "TODO case split");
     }
   } else if (auto PtrE = dyn_cast<PointerExpr>(E)) {
-    OS << "POINTER(";
+    OS << "MKPTR(";
     writeExpr(OS, PtrE->getArray().get());
     OS << ", ";
     writeExpr(OS, PtrE->getOffset().get());
@@ -90,7 +90,7 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   } else if (auto VarE = dyn_cast<VarRefExpr>(E)) {
     OS << VarE->getVar()->getName();
   } else if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(E)) {
-    OS << "ARRAY(" << ArrE->getArray()->getName() << ")";
+    OS << "arrayId_" << ArrE->getArray()->getName();
   } else if (auto ConcatE = dyn_cast<BVConcatExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
     writeExpr(OS, ConcatE->getLHS().get(), 4);
@@ -145,6 +145,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     ref<Expr> PtrArr = SS->getArray();
     if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
+      ModifiesSet.insert(ArrE->getArray());
       OS << "  " << ArrE->getArray()->getName() << "[";
       writeExpr(OS, SS->getOffset().get());
       OS << "] := ";
@@ -197,12 +198,22 @@ void BPLFunctionWriter::write() {
   if (F->begin() == F->end()) {
     OS << ";\n";
   } else {
-    OS << " {\n";
-
     std::string Body;
     llvm::raw_string_ostream BodyOS(Body);
     std::for_each(F->begin(), F->end(),
                   [&](BasicBlock *BB){ writeBasicBlock(BodyOS, BB); });
+    if (!ModifiesSet.empty()) {
+      OS << " modifies ";
+      for (auto b = ModifiesSet.begin(), i = b, e = ModifiesSet.end(); i != e;
+           ++i) {
+        if (i != b)
+          OS << ", ";
+        OS << (*i)->getName();
+      }
+      OS << ";";
+    }
+
+    OS << " {\n";
 
     for (auto i = SSAVarIds.begin(), e = SSAVarIds.end(); i != e; ++i) {
       OS << "  var v" << i->second << ":";
