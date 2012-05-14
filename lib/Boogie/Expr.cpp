@@ -254,6 +254,102 @@ ref<Expr> BVUDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new BVUDivExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
 }
 
+ref<Expr> BVSRemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue().srem(e2->getValue()));
+
+  return new BVSRemExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+ref<Expr> BVURemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue().urem(e2->getValue()));
+
+  return new BVURemExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+ref<Expr> BVShlExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue().shl(e2->getValue()));
+
+  return new BVShlExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+ref<Expr> BVAShrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue().ashr(e2->getValue()));
+
+  return new BVAShrExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+ref<Expr> BVLShrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue().lshr(e2->getValue()));
+
+  return new BVLShrExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+ref<Expr> BVAndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue() & e2->getValue());
+
+  return new BVAndExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+ref<Expr> BVOrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue() | e2->getValue());
+
+  return new BVOrExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+ref<Expr> BVXorExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.width == rhsTy.width);
+
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+      return BVConstExpr::create(e1->getValue() ^ e2->getValue());
+
+  return new BVXorExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
 ref<Expr> BVConcatExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
   assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);

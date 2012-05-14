@@ -99,6 +99,30 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     case BinaryOperator::UDiv:
       E = BVUDivExpr::create(LHS, RHS);
       break;
+    case BinaryOperator::SRem:
+      E = BVSRemExpr::create(LHS, RHS);
+      break;
+    case BinaryOperator::URem:
+      E = BVURemExpr::create(LHS, RHS);
+      break;
+    case BinaryOperator::Shl:
+      E = BVShlExpr::create(LHS, RHS);
+      break;
+    case BinaryOperator::AShr:
+      E = BVAShrExpr::create(LHS, RHS);
+      break;
+    case BinaryOperator::LShr:
+      E = BVLShrExpr::create(LHS, RHS);
+      break;
+    case BinaryOperator::And:
+      E = BVAndExpr::create(LHS, RHS);
+      break;
+    case BinaryOperator::Or:
+      E = BVOrExpr::create(LHS, RHS);
+      break;
+    case BinaryOperator::Xor:
+      E = BVXorExpr::create(LHS, RHS);
+      break;
     default:
       assert(0 && "Unsupported binary operator");
     }

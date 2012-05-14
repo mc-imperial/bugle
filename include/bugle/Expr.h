@@ -55,6 +55,14 @@ public:
     BVMul,
     BVSDiv,
     BVUDiv,
+    BVSRem,
+    BVURem,
+    BVShl,
+    BVAShr,
+    BVLShr,
+    BVAnd,
+    BVOr,
+    BVXor,
     BVConcat,
     BVUgt,
     BVUge,
@@ -274,6 +282,14 @@ BINARY_EXPR(BVSub)
 BINARY_EXPR(BVMul)
 BINARY_EXPR(BVSDiv)
 BINARY_EXPR(BVUDiv)
+BINARY_EXPR(BVSRem)
+BINARY_EXPR(BVURem)
+BINARY_EXPR(BVShl)
+BINARY_EXPR(BVAShr)
+BINARY_EXPR(BVLShr)
+BINARY_EXPR(BVAnd)
+BINARY_EXPR(BVOr)
+BINARY_EXPR(BVXor)
 BINARY_EXPR(BVConcat)
 BINARY_EXPR(BVUgt)
 BINARY_EXPR(BVUge)

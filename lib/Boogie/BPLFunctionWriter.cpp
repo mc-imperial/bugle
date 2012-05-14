@@ -119,7 +119,15 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     case Expr::BVSub:
     case Expr::BVMul:
     case Expr::BVSDiv:
-    case Expr::BVUDiv: {
+    case Expr::BVUDiv:
+    case Expr::BVSRem:
+    case Expr::BVURem:
+    case Expr::BVShl:
+    case Expr::BVAShr:
+    case Expr::BVLShr:
+    case Expr::BVAnd:
+    case Expr::BVOr:
+    case Expr::BVXor: {
       const char *IntName, *SMTName;
       switch (BinE->getKind()) {
       case Expr::BVAdd:  IntName = "ADD";  SMTName = "bvadd";  break;
@@ -127,6 +135,14 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::BVMul:  IntName = "MUL";  SMTName = "bvmul";  break;
       case Expr::BVSDiv: IntName = "SDIV"; SMTName = "bvsdiv"; break;
       case Expr::BVUDiv: IntName = "UDIV"; SMTName = "bvudiv"; break;
+      case Expr::BVSRem: IntName = "SREM"; SMTName = "bvsrem"; break;
+      case Expr::BVURem: IntName = "UREM"; SMTName = "bvurem"; break;
+      case Expr::BVShl:  IntName = "SHL";  SMTName = "bvshl";  break;
+      case Expr::BVAShr: IntName = "ASHR"; SMTName = "bvashr"; break;
+      case Expr::BVLShr: IntName = "LSHR"; SMTName = "bvlshr"; break;
+      case Expr::BVAnd:  IntName = "AND";  SMTName = "bvand";  break;
+      case Expr::BVOr:   IntName = "OR";   SMTName = "bvor";   break;
+      case Expr::BVXor:  IntName = "XOR";  SMTName = "bvxor";  break;
       default: assert(0 && "huh?");
       }
       OS << "BV" << BinE->getType().width << "_" << IntName;
