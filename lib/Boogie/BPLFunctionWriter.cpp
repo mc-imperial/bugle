@@ -45,11 +45,6 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, EE->getSubExpr().get(), 9);
     OS << "[" << (EE->getOffset() + EE->getType().width) << ":"
        << EE->getOffset() << "]";
-  } else if (auto AddE = dyn_cast<BVAddExpr>(E)) {
-    OS << "BV" << AddE->getType().width << "_ADD(";
-    writeExpr(OS, AddE->getLHS().get());
-    OS << ", ";
-    writeExpr(OS, AddE->getRHS().get());
   } else if (auto ZEE = dyn_cast<BVZExtExpr>(E)) {
     OS << "BV" << ZEE->getSubExpr()->getType().width
        << "_ZEXT" << ZEE->getType().width << "(";
@@ -85,6 +80,27 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, ConcatE->getLHS().get(), 4);
     OS << " ++ ";
     writeExpr(OS, ConcatE->getRHS().get(), 5);
+  } else if (auto B2BVE = dyn_cast<BoolToBVExpr>(E)) {
+    OS << "(if ";
+    writeExpr(OS, B2BVE->getSubExpr().get());
+    OS  << " then 1bv1 else 0bv1)";
+  } else if (auto BinE = dyn_cast<BinaryExpr>(E)) {
+    switch (BinE->getKind()) {
+    case Expr::BVAdd:
+      OS << "BV" << BinE->getType().width << "_ADD";
+      break;
+    case Expr::BVSgt:
+      OS << "BV" << BinE->getLHS()->getType().width << "_SGT";
+      break;
+    default:
+      assert(0 && "Unsupported binary expr");
+      break;
+    }
+    OS << "(";
+    writeExpr(OS, BinE->getLHS().get());
+    OS << ", ";
+    writeExpr(OS, BinE->getRHS().get());
+    OS << ")";
   } else {
     assert(0 && "Unsupported expression");
   }
