@@ -8,6 +8,9 @@ using namespace bugle;
 
 void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
   switch (t.kind) {
+  case Type::Bool:
+    OS << "bool";
+    break;
   case Type::BV:
     OS << "bv" << t.width;
     break;
