@@ -6,6 +6,7 @@
 #include "bugle/Expr.h"
 #include "bugle/Function.h"
 #include "bugle/GlobalArray.h"
+#include "bugle/Module.h"
 #include "bugle/Stmt.h"
 
 using namespace bugle;
@@ -272,7 +273,19 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       writeExpr(OS, SS->getValue().get());
       OS << ";\n";
     } else {
-      assert(0 && "TODO case split");
+      OS << "  ";
+      for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
+           ++i) {
+        OS << "if (";
+        writeExpr(OS, PtrArr.get());
+        OS << " == arrayId_" << (*i)->getName() << ") {\n   "
+           << (*i)->getName() << "[";
+        writeExpr(OS, SS->getOffset().get());
+        OS << "] := ";
+        writeExpr(OS, SS->getValue().get());
+        OS << ";\n  } else ";
+      }
+      OS << "{\n    assume false;\n  }\n";
     }
   } else if (auto VAS = dyn_cast<VarAssignStmt>(S)) {
     OS << "  " << VAS->getVar()->getName() << " := ";
