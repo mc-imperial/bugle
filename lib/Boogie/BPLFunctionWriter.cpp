@@ -100,6 +100,50 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << "(if ";
     writeExpr(OS, B2BVE->getSubExpr().get());
     OS  << " then 1bv1 else 0bv1)";
+  } else if (auto BV2BE = dyn_cast<BVToBoolExpr>(E)) {
+    ScopedParenPrinter X(OS, Depth, 4);
+    writeExpr(OS, BV2BE->getSubExpr().get(), 4);
+    OS << " == 1bv1";
+  } else if (auto F2BVE = dyn_cast<FloatToBVExpr>(E)) {
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "function FLOAT" << F2BVE->getType().width << "_TO_BV(";
+      MW->writeType(OS, F2BVE->getSubExpr()->getType());
+      OS << ") : bv" << F2BVE->getType().width;
+    });
+    OS << "FLOAT" << F2BVE->getType().width << "_TO_BV(";
+    writeExpr(OS, F2BVE->getSubExpr().get());
+    OS << ")";
+  } else if (auto BV2FE = dyn_cast<BVToFloatExpr>(E)) {
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "function BV" << BV2FE->getType().width << "_TO_FLOAT(bv"
+         << BV2FE->getType().width << ") : ";
+      MW->writeType(OS, BV2FE->getSubExpr()->getType());
+    });
+    OS << "BV" << BV2FE->getType().width << "_TO_FLOAT(";
+    writeExpr(OS, BV2FE->getSubExpr().get());
+    OS << ")";
+  } else if (auto P2BVE = dyn_cast<PtrToBVExpr>(E)) {
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "function PTR_TO_BV(ptr) : bv" << P2BVE->getType().width;
+    });
+    OS << "PTR_TO_BV(";
+    writeExpr(OS, P2BVE->getSubExpr().get());
+    OS << ")";
+  } else if (auto BV2PE = dyn_cast<BVToPtrExpr>(E)) {
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "function BV_TO_PTR(bv" << BV2PE->getType().width << ") : ptr";
+    });
+    OS << "BV_TO_PTR(";
+    writeExpr(OS, BV2PE->getSubExpr().get());
+    OS << ")";
+  } else if (auto AIE = dyn_cast<ArrayIdExpr>(E)) {
+    OS << "base#MKPTR(";
+    writeExpr(OS, AIE->getSubExpr().get());
+    OS << ")";
+  } else if (auto AOE = dyn_cast<ArrayOffsetExpr>(E)) {
+    OS << "offset#MKPTR(";
+    writeExpr(OS, AOE->getSubExpr().get());
+    OS << ")";
   } else if (auto NotE = dyn_cast<NotExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 7);
     OS << "!";
