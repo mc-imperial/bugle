@@ -65,14 +65,19 @@ add_library(bugleTranslator STATIC
   lib/Translator/TranslateFunction.cpp
 )
 
+add_library(bugleUtil STATIC
+  lib/Util/UniqueNameSet.cpp
+)
+
 add_executable(bugle
   tools/bugle.cpp
 )
 
-set_target_properties(bugle bugleAnalysis bugleBoogie bugleTranslator
+set_target_properties(bugle bugleAnalysis bugleBoogie bugleTranslator bugleUtil
     PROPERTIES COMPILE_FLAGS "${CFLAGS_CXX11} ${LLVM_CFLAGS}")
 set_target_properties(bugle
     PROPERTIES LINK_FLAGS "${LLVM_LDFLAGS}")
 
 target_link_libraries(bugleTranslator bugleBoogie)
-target_link_libraries(bugle bugleAnalysis bugleBoogie bugleTranslator ${LLVM_LIBS})
+target_link_libraries(bugleBoogie bugleUtil)
+target_link_libraries(bugle bugleAnalysis bugleBoogie bugleTranslator bugleUtil ${LLVM_LIBS})
