@@ -4,6 +4,7 @@
 #include "bugle/Ref.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
+#include <vector>
 
 namespace llvm {
 

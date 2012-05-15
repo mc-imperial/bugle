@@ -53,6 +53,7 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V) {
     return TM->translateConstant(C);
 
   assert(0 && "Unsupported value");
+  return 0;
 }
 
 template <typename T, typename I, typename F>
@@ -313,7 +314,10 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       addPhiAssigns(FalseBB, I->getParent(), BI->getSuccessor(1));
       FalseBB->addStmt(new GotoStmt(BasicBlockMap[BI->getSuccessor(1)]));
 
-      BBB->addStmt(new GotoStmt({TrueBB, FalseBB}));
+      std::vector<bugle::BasicBlock *> BBs;
+      BBs.push_back(TrueBB);
+      BBs.push_back(FalseBB);
+      BBB->addStmt(new GotoStmt(BBs));
     } else {
       addPhiAssigns(BBB, I->getParent(), BI->getSuccessor(0));
       BBB->addStmt(new GotoStmt(BasicBlockMap[BI->getSuccessor(0)]));
