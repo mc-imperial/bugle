@@ -231,6 +231,12 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto SEI = dyn_cast<SExtInst>(I)) {
     ref<Expr> Op = translateValue(SEI->getOperand(0));
     E = BVSExtExpr::create(cast<IntegerType>(SEI->getType())->getBitWidth(),Op);
+  } else if (auto I2PI = dyn_cast<IntToPtrInst>(I)) {
+    ref<Expr> Op = translateValue(I2PI->getOperand(0));
+    E = BVToPtrExpr::create(Op);
+  } else if (auto P2II = dyn_cast<PtrToIntInst>(I)) {
+    ref<Expr> Op = translateValue(P2II->getOperand(0));
+    E = PtrToBVExpr::create(Op);
   } else if (auto CI = dyn_cast<CallInst>(I)) {
     auto F = CI->getCalledFunction();
     assert(F && "Only direct calls for now");
