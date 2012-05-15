@@ -174,6 +174,14 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto II = dyn_cast<ICmpInst>(I)) {
     ref<Expr> LHS = translateValue(II->getOperand(0)),
               RHS = translateValue(II->getOperand(1));
+    if (II->getPredicate() != ICmpInst::ICMP_EQ &&
+        II->getPredicate() != ICmpInst::ICMP_NE) {
+      // TODO: handle pointers with different bases
+      if (LHS->getType().kind == Type::Pointer)
+        LHS = ArrayOffsetExpr::create(LHS);
+      if (RHS->getType().kind == Type::Pointer)
+        RHS = ArrayOffsetExpr::create(RHS);
+    }
     switch (II->getPredicate()) {
     case ICmpInst::ICMP_EQ:  E = EqExpr::create(LHS, RHS);    break;
     case ICmpInst::ICMP_NE:  E = NeExpr::create(LHS, RHS);    break;
