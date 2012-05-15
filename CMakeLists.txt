@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
+project(Bugle)
 
 if (NOT WIN32 OR MSYS OR CYGWIN)
   find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config DOC "llvm-config executable")
