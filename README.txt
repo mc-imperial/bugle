@@ -22,7 +22,7 @@ Compiling on Windows
 2. Run CMake from a build directory:
      $ mkdir C:\path\to\bugle-build
      $ cd C:\path\to\bugle-build
-     $ cmake -DLLVM_SRC=C:\path\to\llvm-source -DLLVM_BUILD=C:\path\to\llvm-build -DLLVM_BUILD_TYPE=Release C:\path\to\bugle
+     $ cmake -G "Visual Studio 10" -DLLVM_SRC=C:\path\to\llvm-source -DLLVM_BUILD=C:\path\to\llvm-build -DLLVM_BUILD_TYPE=Release C:\path\to\bugle
    Be sure to select the same build type (LLVM_BUILD_TYPE) used when compiling
    LLVM.
 
