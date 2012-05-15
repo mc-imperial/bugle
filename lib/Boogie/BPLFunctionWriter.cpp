@@ -76,7 +76,7 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     ref<Expr> PtrArr = LE->getArray();
     if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
       ScopedParenPrinter X(OS, Depth, 8);
-      OS << ArrE->getArray()->getName() << "[";
+      OS << "$$" << ArrE->getArray()->getName() << "[";
       writeExpr(OS, LE->getOffset().get(), 9);
       OS << "]";
     } else {
@@ -89,9 +89,9 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, PtrE->getOffset().get());
     OS << ")";
   } else if (auto VarE = dyn_cast<VarRefExpr>(E)) {
-    OS << VarE->getVar()->getName();
+    OS << "$" << VarE->getVar()->getName();
   } else if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(E)) {
-    OS << "arrayId_" << ArrE->getArray()->getName();
+    OS << "$arrayId$" << ArrE->getArray()->getName();
   } else if (auto ConcatE = dyn_cast<BVConcatExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
     writeExpr(OS, ConcatE->getLHS().get(), 4);
@@ -160,7 +160,7 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << "!";
     writeExpr(OS, NotE->getSubExpr().get(), 8);
   } else if (auto CE = dyn_cast<CallExpr>(E)) {
-    OS << CE->getCallee()->getName() << "(";
+    OS << "$" << CE->getCallee()->getName() << "(";
     for (auto b = CE->getArgs().begin(), i = b, e = CE->getArgs().end();
          i != e; ++i) {
       if (i != b)
@@ -265,7 +265,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
     SSAVarIds[ES->getExpr().get()] = id;
   } else if (auto CS = dyn_cast<CallStmt>(S)) {
-    OS << "  call " << CS->getCallee()->getName() << "(";
+    OS << "  call $" << CS->getCallee()->getName() << "(";
     for (auto b = CS->getArgs().begin(), i = b, e = CS->getArgs().end();
          i != e; ++i) {
       if (i != b)
@@ -277,7 +277,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     ref<Expr> PtrArr = SS->getArray();
     if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
       ModifiesSet.insert(ArrE->getArray());
-      OS << "  " << ArrE->getArray()->getName() << "[";
+      OS << "  $$" << ArrE->getArray()->getName() << "[";
       writeExpr(OS, SS->getOffset().get());
       OS << "] := ";
       writeExpr(OS, SS->getValue().get());
@@ -288,7 +288,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
            ++i) {
         OS << "if (";
         writeExpr(OS, PtrArr.get());
-        OS << " == arrayId_" << (*i)->getName() << ") {\n   "
+        OS << " == $arrayId$" << (*i)->getName() << ") {\n   $$"
            << (*i)->getName() << "[";
         writeExpr(OS, SS->getOffset().get());
         OS << "] := ";
@@ -298,7 +298,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       OS << "{\n    assume false;\n  }\n";
     }
   } else if (auto VAS = dyn_cast<VarAssignStmt>(S)) {
-    OS << "  " << VAS->getVar()->getName() << " := ";
+    OS << "  $" << VAS->getVar()->getName() << " := ";
     writeExpr(OS, VAS->getValue().get());
     OS << ";\n";
   } else if (auto GS = dyn_cast<GotoStmt>(S)) { 
@@ -307,7 +307,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
          i != e; ++i) {
       if (i != b)
         OS << ", ";
-      OS << (*i)->getName();
+      OS << "$" << (*i)->getName();
     }
     OS << ";\n";
   } else if (auto AS = dyn_cast<AssumeStmt>(S)) {
@@ -326,18 +326,18 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
 }
 
 void BPLFunctionWriter::writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB) {
-  OS << BB->getName() << ":\n";
+  OS << "$" << BB->getName() << ":\n";
   for (auto i = BB->begin(), e = BB->end(); i != e; ++i)
     writeStmt(OS, *i);
 }
 
 void BPLFunctionWriter::writeVar(llvm::raw_ostream &OS, Var *V) {
-  OS << V->getName() << ":";
+  OS << "$" << V->getName() << ":";
   MW->writeType(OS, V->getType());
 }
 
 void BPLFunctionWriter::write() {
-  OS << "procedure " << F->getName() << "(";
+  OS << "procedure $" << F->getName() << "(";
   for (auto b = F->arg_begin(), i = b, e = F->arg_end(); i != e; ++i) {
     if (i != b)
       OS << ", ";
@@ -368,7 +368,7 @@ void BPLFunctionWriter::write() {
            ++i) {
         if (i != b)
           OS << ", ";
-        OS << (*i)->getName();
+        OS << "$$" << (*i)->getName();
       }
       OS << ";";
     }

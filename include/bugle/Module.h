@@ -4,23 +4,25 @@
 #include "bugle/Function.h"
 #include "bugle/GlobalArray.h"
 #include "bugle/OwningPtrVector.h"
+#include "bugle/util/UniqueNameSet.h"
 
 namespace bugle {
 
 class Module {
   OwningPtrVector<Function> functions;
   OwningPtrVector<GlobalArray> globals;
+  UniqueNameSet functionNames, globalNames;
   unsigned pointerWidth;
 
 public:
   Function *addFunction(const std::string &name) {
-    Function *F = new Function(name);
+    Function *F = new Function(functionNames.makeName(name));
     functions.push_back(F);
     return F;
   }
 
   GlobalArray *addGlobal(const std::string &name) {
-    GlobalArray *GA = new GlobalArray(name);
+    GlobalArray *GA = new GlobalArray(globalNames.makeName(name));
     globals.push_back(GA);
     return GA;
   }

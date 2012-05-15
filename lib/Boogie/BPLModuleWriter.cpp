@@ -51,13 +51,14 @@ void BPLModuleWriter::write() {
   }
 
   OS << "type {:datatype} ptr;\n"
-        "function {:constructor} MKPTR(base: arrayId, offset: bv" << M->getPointerWidth() << ") : ptr;\n"
+        "function {:constructor} MKPTR(base: arrayId, offset: bv"
+     << M->getPointerWidth() << ") : ptr;\n"
         "type arrayId;\n\n";
 
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
-    OS << "var " << (*i)->getName() << " : [bv" << M->getPointerWidth()
+    OS << "var $$" << (*i)->getName() << " : [bv" << M->getPointerWidth()
        << "]bv8;\n";
-    OS << "const unique arrayId_" << (*i)->getName() << " : arrayId;\n\n";
+    OS << "const unique $arrayId$" << (*i)->getName() << " : arrayId;\n\n";
   }
 
   for (auto i = IntrinsicSet.begin(), e = IntrinsicSet.end(); i != e; ++i) {

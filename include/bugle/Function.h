@@ -4,6 +4,7 @@
 #include <string>
 #include "bugle/BasicBlock.h"
 #include "bugle/OwningPtrVector.h"
+#include "bugle/util/UniqueNameSet.h"
 
 namespace bugle {
 
@@ -11,26 +12,27 @@ class Function {
   std::string name;
   OwningPtrVector<BasicBlock> blocks;
   OwningPtrVector<Var> args, returns, locals;
+  UniqueNameSet bbNames, varNames;
   
 public:
   Function(const std::string &name) : name(name) {}
   BasicBlock *addBasicBlock(const std::string &name) {
-    BasicBlock *BB = new BasicBlock(name);
+    BasicBlock *BB = new BasicBlock(bbNames.makeName(name));
     blocks.push_back(BB);
     return BB;
   }
   Var *addArgument(Type t, const std::string &name) {
-    Var *V = new Var(t, name);
+    Var *V = new Var(t, varNames.makeName(name));
     args.push_back(V);
     return V;
   }
   Var *addReturn(Type t, const std::string &name) {
-    Var *V = new Var(t, name);
+    Var *V = new Var(t, varNames.makeName(name));
     returns.push_back(V);
     return V;
   }
   Var *addLocal(Type t, const std::string &name) {
-    Var *V = new Var(t, name);
+    Var *V = new Var(t, varNames.makeName(name));
     locals.push_back(V);
     return V;
   }
