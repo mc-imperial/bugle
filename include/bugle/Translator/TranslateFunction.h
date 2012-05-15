@@ -3,6 +3,7 @@
 
 #include "bugle/Ref.h"
 #include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/StringMap.h"
 
 namespace llvm {
 
@@ -29,7 +30,15 @@ class TranslateFunction {
   llvm::DenseMap<llvm::BasicBlock *, BasicBlock *> BasicBlockMap;
   llvm::DenseMap<llvm::Value *, ref<Expr> > ValueExprMap;
   llvm::DenseMap<llvm::PHINode *, Var *> PhiVarMap;
+
+  typedef ref<Expr> SpecialFnHandler(BasicBlock *,
+                                     const std::vector<klee::ref<Expr>> &);
+  static llvm::StringMap<SpecialFnHandler TranslateFunction::*>
+    SpecialFunctionMap;
+
   Var *ReturnVar;
+
+  SpecialFnHandler handleAssert, handleAssertFail, handleAssume;
 
   ref<Expr> translateValue(llvm::Value *V);
   void translateBasicBlock(BasicBlock *BBB, llvm::BasicBlock *BB);

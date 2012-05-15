@@ -19,6 +19,7 @@ public:
     Goto,
     Return,
     Assume,
+    Assert,
     Call
   };
 
@@ -91,6 +92,16 @@ public:
   AssumeStmt(ref<Expr> pred) : pred(pred) {}
 
   STMT_KIND(Assume)
+  ref<Expr> getPredicate() const { return pred; }
+};
+
+class AssertStmt : public Stmt {
+  ref<Expr> pred;
+
+public:
+  AssertStmt(ref<Expr> pred) : pred(pred) {}
+
+  STMT_KIND(Assert)
   ref<Expr> getPredicate() const { return pred; }
 };
 

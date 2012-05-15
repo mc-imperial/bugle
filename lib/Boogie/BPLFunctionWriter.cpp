@@ -54,11 +54,11 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, ZEE->getSubExpr().get());
     OS << ")";
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << "function {:bvbuiltin \"zero_extend\"} BV"
-         << ZEE->getSubExpr()->getType().width
-         << "_ZEXT" << ZEE->getType().width
-         << "(bv" << ZEE->getSubExpr()->getType().width
-         << ") : bv" << ZEE->getType().width;
+      unsigned FromWidth = ZEE->getSubExpr()->getType().width,
+               ToWidth = ZEE->getType().width;
+      OS << "function {:bvbuiltin \"zero_extend " << (ToWidth - FromWidth)
+         << "\"} BV" << FromWidth << "_ZEXT" << ToWidth << "(bv" << FromWidth
+         << ") : bv" << ToWidth;
     });
   } else if (auto SEE = dyn_cast<BVSExtExpr>(E)) {
     OS << "BV" << SEE->getSubExpr()->getType().width
@@ -66,11 +66,11 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, SEE->getSubExpr().get());
     OS << ")";
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << "function {:bvbuiltin \"sign_extend\"} BV"
-         << SEE->getSubExpr()->getType().width
-         << "_SEXT" << SEE->getType().width
-         << "(bv" << SEE->getSubExpr()->getType().width
-         << ") : bv" << SEE->getType().width;
+      unsigned FromWidth = SEE->getSubExpr()->getType().width,
+               ToWidth = SEE->getType().width;
+      OS << "function {:bvbuiltin \"sign_extend " << (ToWidth - FromWidth)
+         << "\"} BV" << FromWidth << "_SEXT" << ToWidth << "(bv" << FromWidth
+         << ") : bv" << ToWidth;
     });
   } else if (auto LE = dyn_cast<LoadExpr>(E)) {
     ref<Expr> PtrArr = LE->getArray();
@@ -97,6 +97,16 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, ConcatE->getLHS().get(), 4);
     OS << " ++ ";
     writeExpr(OS, ConcatE->getRHS().get(), 5);
+  } else if (auto EE = dyn_cast<EqExpr>(E)) {
+    ScopedParenPrinter X(OS, Depth, 4);
+    writeExpr(OS, EE->getLHS().get(), 4);
+    OS << " == ";
+    writeExpr(OS, EE->getRHS().get(), 4);
+  } else if (auto NE = dyn_cast<NeExpr>(E)) {
+    ScopedParenPrinter X(OS, Depth, 4);
+    writeExpr(OS, NE->getLHS().get(), 4);
+    OS << " != ";
+    writeExpr(OS, NE->getRHS().get(), 4);
   } else if (auto B2BVE = dyn_cast<BoolToBVExpr>(E)) {
     OS << "(if ";
     writeExpr(OS, B2BVE->getSubExpr().get());
@@ -303,6 +313,10 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   } else if (auto AS = dyn_cast<AssumeStmt>(S)) {
     OS << "  assume ";
     writeExpr(OS, AS->getPredicate().get());
+    OS << ";\n";
+  } else if (auto AtS = dyn_cast<AssertStmt>(S)) {
+    OS << "  assert ";
+    writeExpr(OS, AtS->getPredicate().get());
     OS << ";\n";
   } else if (isa<ReturnStmt>(S)) {
     OS << "  return;\n";

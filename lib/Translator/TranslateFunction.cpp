@@ -17,7 +17,16 @@
 using namespace bugle;
 using namespace llvm;
 
+llvm::StringMap<TranslateFunction::SpecialFnHandler TranslateFunction::*>
+  TranslateFunction::SpecialFunctionMap;
+
 void TranslateFunction::translate() {
+  if (SpecialFunctionMap.empty()) {
+    SpecialFunctionMap["bugle_assert"] = &TranslateFunction::handleAssert;
+    SpecialFunctionMap["bugle_assume"] = &TranslateFunction::handleAssume;
+    SpecialFunctionMap["__assert_fail"] = &TranslateFunction::handleAssertFail;
+  }
+
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
     Var *V = BF->addArgument(TM->translateType(i->getType()), i->getName());
     ValueExprMap[&*i] = VarRefExpr::create(V);
@@ -76,6 +85,28 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
 
     BBB->addStmt(new VarAssignStmt(PV, E));
   }
+}
+
+ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
+                                          const std::vector<ref<Expr>> &Args) {
+  BBB->addStmt(new AssertStmt(
+    NeExpr::create(Args[0],
+                   BVConstExpr::createZero(Args[0]->getType().width))));
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
+                                           const std::vector<ref<Expr>> &Args) {
+  BBB->addStmt(new AssertStmt(BoolConstExpr::create(false)));
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
+                                          const std::vector<ref<Expr>> &Args) {
+  BBB->addStmt(new AssumeStmt(
+    NeExpr::create(Args[0],
+                   BVConstExpr::createZero(Args[0]->getType().width))));
+  return 0;
 }
 
 void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
@@ -248,7 +279,13 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     std::transform(CS.arg_begin(), CS.arg_end(), std::back_inserter(Args),
                    [&](Value *V) { return translateValue(V); });
 
-    if (CI->getType()->isVoidTy()) {
+    auto SFI = SpecialFunctionMap.find(F->getName());
+    if (SFI != SpecialFunctionMap.end()) {
+      E = (this->*SFI->second)(BBB, Args);
+      assert(E.isNull() == CI->getType()->isVoidTy());
+      if (E.isNull())
+        return;
+    } else if (CI->getType()->isVoidTy()) {
       BBB->addStmt(new CallStmt(FI->second, Args));
       return;
     } else {
