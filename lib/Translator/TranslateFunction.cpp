@@ -147,12 +147,21 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     }
     E = fold(BytesLoaded.back(), BytesLoaded.rbegin()+1, BytesLoaded.rend(),
              BVConcatExpr::create);
+    if (LoadTy.kind == Type::Pointer)
+      E = BVToPtrExpr::create(E);
+    else if (LoadTy.kind == Type::Float)
+      E = BVToFloatExpr::create(E);
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
     ref<Expr> Ptr = translateValue(SI->getPointerOperand()),
               Val = translateValue(SI->getValueOperand()),
               PtrArr = ArrayIdExpr::create(Ptr),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
-    assert(Val->getType().width % 8 == 0);
+    Type StoreTy = Val->getType();
+    assert(StoreTy.width % 8 == 0);
+    if (StoreTy.kind == Type::Pointer)
+      Val = PtrToBVExpr::create(Val);
+    else if (StoreTy.kind == Type::Float)
+      Val = FloatToBVExpr::create(Val);
     for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
       ref<Expr> PtrByteOfs =
         BVAddExpr::create(PtrOfs,
