@@ -11,6 +11,7 @@
 #include "llvm/Support/PrettyStackTrace.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/SourceMgr.h"
+#include "llvm/Support/ToolOutputFile.h"
 #include "llvm/Support/raw_ostream.h"
 
 #include "bugle/BPLModuleWriter.h"
@@ -25,7 +26,7 @@ InputFilename(cl::Positional, cl::desc("<input bitcode file>"),
 
 static cl::opt<std::string>
 OutputFilename("o", cl::desc("Override output filename"),
-    cl::init("-"), cl::value_desc("filename"));
+    cl::init(""), cl::value_desc("filename"));
 
 int main(int argc, char **argv) {
   sys::PrintStackTraceOnErrorSignal();
@@ -71,8 +72,23 @@ int main(int argc, char **argv) {
   bugle::TranslateModule TM(&BM, M.get());
   TM.translate();
 
-  bugle::BPLModuleWriter MW(llvm::outs(), &BM);
+  std::string OutFile = OutputFilename;
+  if (OutFile.empty()) {
+    SmallString<128> Path(InputFilename);
+    sys::path::replace_extension(Path, "bpl");
+    OutFile = sys::path::filename(Path);
+  }
+
+  std::string ErrorInfo;
+  tool_output_file F(OutFile.c_str(), ErrorInfo);
+  if (!ErrorInfo.empty()) {
+    errs() << ErrorInfo << '\n';
+    return 1;
+  }
+
+  bugle::BPLModuleWriter MW(F.os(), &BM);
   MW.write();
 
+  F.keep();
   return 0;
 }
