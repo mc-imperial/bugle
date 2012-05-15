@@ -12,6 +12,7 @@
 #include "llvm/Instructions.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/raw_ostream.h"
+#include "klee/util/GetElementPtrTypeIterator.h"
 
 using namespace bugle;
 using namespace llvm;
@@ -126,6 +127,32 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     default:
       assert(0 && "Unsupported binary operator");
     }
+  } else if (auto GEPI = dyn_cast<GetElementPtrInst>(I)) {
+    ref<Expr> Ptr = translateValue(GEPI->getPointerOperand()),
+              PtrArr = ArrayIdExpr::create(Ptr),
+              PtrOfs = ArrayOffsetExpr::create(Ptr);
+    for (auto i = klee::gep_type_begin(GEPI), e = klee::gep_type_end(GEPI);
+         i != e; ++i) {
+      if (StructType *st = dyn_cast<StructType>(*i)) {
+        const StructLayout *sl = TM->TD.getStructLayout(st);
+        const ConstantInt *ci = cast<ConstantInt>(i.getOperand());
+        uint64_t addend = sl->getElementOffset((unsigned) ci->getZExtValue());
+        PtrOfs = BVAddExpr::create(PtrOfs,
+                   BVConstExpr::create(TM->BM->getPointerWidth(), addend));
+      } else {
+        const SequentialType *set = cast<SequentialType>(*i);
+        uint64_t elementSize = 
+          TM->TD.getTypeStoreSize(set->getElementType());
+        Value *operand = i.getOperand();
+        ref<Expr> index = translateValue(operand);
+        index = BVSExtExpr::create(TM->BM->getPointerWidth(), index);
+        ref<Expr> addend =
+          BVMulExpr::create(index,
+            BVConstExpr::create(TM->BM->getPointerWidth(), elementSize));
+        PtrOfs = BVAddExpr::create(PtrOfs, addend);
+      }
+    }
+    E = PointerExpr::create(PtrArr, PtrOfs);
   } else if (auto AI = dyn_cast<AllocaInst>(I)) {
     GlobalArray *GA = TM->BM->addGlobal(AI->getName());
     E = PointerExpr::create(GlobalArrayRefExpr::create(GA),
