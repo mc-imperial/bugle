@@ -199,9 +199,16 @@ ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
   assert(lhsTy.width == rhsTy.width);
 
-  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs)) {
+    if (e1->getValue().isMinValue())
+      return rhs;
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
       return BVConstExpr::create(e1->getValue() + e2->getValue());
+  }
+
+  if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+    if (e2->getValue().isMinValue())
+      return lhs;
 
   return new BVAddExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
 }
@@ -215,6 +222,10 @@ ref<Expr> BVSubExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
       return BVConstExpr::create(e1->getValue() - e2->getValue());
 
+  if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+    if (e2->getValue().isMinValue())
+      return lhs;
+
   return new BVSubExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
 }
 
@@ -223,9 +234,16 @@ ref<Expr> BVMulExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
   assert(lhsTy.width == rhsTy.width);
 
-  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
+  if (auto e1 = dyn_cast<BVConstExpr>(lhs)) {
+    if (e1->getValue().getLimitedValue() == 1)
+      return rhs;
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
       return BVConstExpr::create(e1->getValue() * e2->getValue());
+  }
+
+  if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+    if (e2->getValue().getLimitedValue() == 1)
+      return lhs;
 
   return new BVMulExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
 }
