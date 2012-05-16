@@ -43,8 +43,19 @@ ref<Expr> VarRefExpr::create(Var *var) {
 
 ref<Expr> BVExtractExpr::create(ref<Expr> expr, unsigned offset,
                                 unsigned width) {
+  if (offset == 0 && width == expr->getType().width)
+    return expr;
+
   if (auto e = dyn_cast<BVConstExpr>(expr))
     return BVConstExpr::create(e->getValue().ashr(offset).zextOrTrunc(width));
+
+  if (auto e = dyn_cast<BVConcatExpr>(expr)) {
+    unsigned RHSWidth = e->getRHS()->getType().width;
+    if (offset + width <= RHSWidth)
+      return BVExtractExpr::create(e->getRHS(), offset, width);
+    if (offset >= RHSWidth)
+      return BVExtractExpr::create(e->getLHS(), offset-RHSWidth, width);
+  }
 
   return new BVExtractExpr(expr, offset, width);
 }
