@@ -5,6 +5,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
 #include <vector>
+#include <functional>
 
 namespace llvm {
 
@@ -12,6 +13,7 @@ class BasicBlock;
 class Function;
 class Instruction;
 class PHINode;
+class Type;
 class Value;
 
 }
@@ -41,6 +43,10 @@ class TranslateFunction {
 
   SpecialFnHandler handleAssert, handleAssertFail, handleAssume;
 
+  ref<Expr> maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
+                               llvm::Type *OpType,
+                               std::function<ref<Expr>(ref<Expr>, ref<Expr>)> F,
+                               ref<Expr> LHS, ref<Expr> RHS);
   ref<Expr> translateValue(llvm::Value *V);
   void translateBasicBlock(BasicBlock *BBB, llvm::BasicBlock *BB);
   void translateInstruction(BasicBlock *BBB, llvm::Instruction *I);

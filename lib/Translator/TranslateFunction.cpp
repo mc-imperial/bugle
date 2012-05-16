@@ -113,6 +113,36 @@ ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
   return 0;
 }
 
+ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
+                               llvm::Type *OpType,
+                               std::function<ref<Expr>(ref<Expr>, ref<Expr>)> F,
+                               ref<Expr> LHS, ref<Expr> RHS) {
+  if (!isa<VectorType>(OpType))
+    return F(LHS, RHS);
+
+  auto VT = cast<VectorType>(OpType);
+  unsigned NumElems = VT->getNumElements();
+  unsigned ElemWidth = LHS->getType().width / NumElems;
+  std::vector<ref<Expr>> Elems;
+  for (unsigned i = 0; i < NumElems; ++i) {
+    ref<Expr> LHSi = BVExtractExpr::create(LHS, i*ElemWidth, ElemWidth);
+    ref<Expr> RHSi = BVExtractExpr::create(RHS, i*ElemWidth, ElemWidth);
+    if (VT->getElementType()->isFloatingPointTy()) {
+      LHSi = BVToFloatExpr::create(LHSi);
+      RHSi = BVToFloatExpr::create(RHSi);
+    }
+    ref<Expr> Elem = F(LHSi, RHSi);
+    BBB->addStmt(new EvalStmt(Elem));
+    if (VT->getElementType()->isFloatingPointTy()) {
+      Elem = FloatToBVExpr::create(Elem);
+      BBB->addStmt(new EvalStmt(Elem));
+    }
+    Elems.push_back(Elem);
+  }
+  return fold(Elems.back(), Elems.rbegin()+1, Elems.rend(),
+              BVConcatExpr::create);
+}
+
 void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                                              Instruction *I) {
   ref<Expr> E;
