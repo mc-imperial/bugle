@@ -53,6 +53,7 @@ void BPLModuleWriter::write() {
   OS << "type {:datatype} ptr;\n"
         "function {:constructor} MKPTR(base: arrayId, offset: bv"
      << M->getPointerWidth() << ") : ptr;\n"
+        "function PTR_LT(lhs: ptr, rhs: ptr) : bool;\n"
         "type arrayId;\n\n";
 
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {

@@ -176,6 +176,18 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       writeExpr(OS, i->get());
     }
     OS << ")";
+  } else if (auto PLTE = dyn_cast<PtrLtExpr>(E)) {
+    OS << "PTR_LT(";
+    writeExpr(OS, PLTE->getLHS().get());
+    OS << ", ";
+    writeExpr(OS, PLTE->getRHS().get());
+    OS << ")";
+  } else if (auto PLEE = dyn_cast<PtrLeExpr>(E)) {
+    OS << "PTR_LE(";
+    writeExpr(OS, PLEE->getLHS().get());
+    OS << ", ";
+    writeExpr(OS, PLEE->getRHS().get());
+    OS << ")";
   } else if (auto BinE = dyn_cast<BinaryExpr>(E)) {
     switch (BinE->getKind()) {
     case Expr::BVAdd:

@@ -425,6 +425,36 @@ ICMP_EXPR_CREATE(BVSgeExpr, sge)
 ICMP_EXPR_CREATE(BVSltExpr, slt)
 ICMP_EXPR_CREATE(BVSleExpr, sle)
 
+ref<Expr> Expr::createPtrLt(ref<Expr> lhs, ref<Expr> rhs) {
+  return IfThenElseExpr::create(EqExpr::create(ArrayIdExpr::create(lhs),
+                                               ArrayIdExpr::create(rhs)),
+                                BVSltExpr::create(ArrayOffsetExpr::create(lhs),
+                                                  ArrayOffsetExpr::create(rhs)),
+                                PtrLtExpr::create(lhs, rhs));
+}
+
+ref<Expr> Expr::createPtrLe(ref<Expr> lhs, ref<Expr> rhs) {
+  return IfThenElseExpr::create(EqExpr::create(ArrayIdExpr::create(lhs),
+                                               ArrayIdExpr::create(rhs)),
+                                BVSleExpr::create(ArrayOffsetExpr::create(lhs),
+                                                  ArrayOffsetExpr::create(rhs)),
+                                PtrLtExpr::create(lhs, rhs));
+}
+
+ref<Expr> PtrLtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().kind == Type::Pointer);
+  assert(rhs->getType().kind == Type::Pointer);
+
+  return new PtrLtExpr(Type(Type::Bool), lhs, rhs);
+}
+
+ref<Expr> PtrLeExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().kind == Type::Pointer);
+  assert(rhs->getType().kind == Type::Pointer);
+
+  return new PtrLeExpr(Type(Type::Bool), lhs, rhs);
+}
+
 ref<Expr> CallExpr::create(Function *f, const std::vector<ref<Expr>> &args) {
   assert(f->return_begin()+1 == f->return_end());
   return new CallExpr((*f->return_begin())->getType(), f, args);

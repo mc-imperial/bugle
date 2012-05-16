@@ -73,12 +73,17 @@ public:
     BVSge,
     BVSlt,
     BVSle,
+    PtrLt,
+    PtrLe,
 
     BinaryFirst = Eq,
-    BinaryLast = BVSle
+    BinaryLast = PtrLe
   };
 
   unsigned refCount;
+
+  static ref<Expr> createPtrLt(ref<Expr> lhs, ref<Expr> rhs);
+  static ref<Expr> createPtrLe(ref<Expr> lhs, ref<Expr> rhs);
 
 private:
   Type type;
@@ -315,6 +320,8 @@ BINARY_EXPR(BVSgt)
 BINARY_EXPR(BVSge)
 BINARY_EXPR(BVSlt)
 BINARY_EXPR(BVSle)
+BINARY_EXPR(PtrLt)
+BINARY_EXPR(PtrLe)
 
 #undef BINARY_EXPR
 

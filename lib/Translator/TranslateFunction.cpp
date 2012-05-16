@@ -236,27 +236,38 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto II = dyn_cast<ICmpInst>(I)) {
     ref<Expr> LHS = translateValue(II->getOperand(0)),
               RHS = translateValue(II->getOperand(1));
-    if (II->getPredicate() != ICmpInst::ICMP_EQ &&
-        II->getPredicate() != ICmpInst::ICMP_NE) {
-      // TODO: handle pointers with different bases
-      if (LHS->getType().kind == Type::Pointer)
-        LHS = ArrayOffsetExpr::create(LHS);
-      if (RHS->getType().kind == Type::Pointer)
-        RHS = ArrayOffsetExpr::create(RHS);
-    }
-    switch (II->getPredicate()) {
-    case ICmpInst::ICMP_EQ:  E = EqExpr::create(LHS, RHS);    break;
-    case ICmpInst::ICMP_NE:  E = NeExpr::create(LHS, RHS);    break;
-    case ICmpInst::ICMP_UGT: E = BVUgtExpr::create(LHS, RHS); break;
-    case ICmpInst::ICMP_UGE: E = BVUgeExpr::create(LHS, RHS); break;
-    case ICmpInst::ICMP_ULT: E = BVUltExpr::create(LHS, RHS); break;
-    case ICmpInst::ICMP_ULE: E = BVUleExpr::create(LHS, RHS); break;
-    case ICmpInst::ICMP_SGT: E = BVSgtExpr::create(LHS, RHS); break;
-    case ICmpInst::ICMP_SGE: E = BVSgeExpr::create(LHS, RHS); break;
-    case ICmpInst::ICMP_SLT: E = BVSltExpr::create(LHS, RHS); break;
-    case ICmpInst::ICMP_SLE: E = BVSleExpr::create(LHS, RHS); break;
-    default:
-      assert(0 && "Unsupported icmp");
+    if (II->getPredicate() == ICmpInst::ICMP_EQ)
+      E = EqExpr::create(LHS, RHS);
+    else if (II->getPredicate() == ICmpInst::ICMP_NE)
+      E = NeExpr::create(LHS, RHS);
+    else if (LHS->getType().kind == Type::Pointer) {
+      assert(RHS->getType().kind == Type::Pointer);
+      switch (II->getPredicate()) {
+      case ICmpInst::ICMP_ULT:
+      case ICmpInst::ICMP_SLT: E = Expr::createPtrLt(LHS, RHS); break;
+      case ICmpInst::ICMP_ULE:
+      case ICmpInst::ICMP_SLE: E = Expr::createPtrLe(LHS, RHS); break;
+      case ICmpInst::ICMP_UGT:
+      case ICmpInst::ICMP_SGT: E = Expr::createPtrLt(RHS, LHS); break;
+      case ICmpInst::ICMP_UGE:
+      case ICmpInst::ICMP_SGE: E = Expr::createPtrLe(RHS, LHS); break;
+      default:
+        assert(0 && "Unsupported ptr icmp");
+      }
+    } else {
+      assert(RHS->getType().kind == Type::BV);
+      switch (II->getPredicate()) {
+      case ICmpInst::ICMP_UGT: E = BVUgtExpr::create(LHS, RHS); break;
+      case ICmpInst::ICMP_UGE: E = BVUgeExpr::create(LHS, RHS); break;
+      case ICmpInst::ICMP_ULT: E = BVUltExpr::create(LHS, RHS); break;
+      case ICmpInst::ICMP_ULE: E = BVUleExpr::create(LHS, RHS); break;
+      case ICmpInst::ICMP_SGT: E = BVSgtExpr::create(LHS, RHS); break;
+      case ICmpInst::ICMP_SGE: E = BVSgeExpr::create(LHS, RHS); break;
+      case ICmpInst::ICMP_SLT: E = BVSltExpr::create(LHS, RHS); break;
+      case ICmpInst::ICMP_SLE: E = BVSleExpr::create(LHS, RHS); break;
+      default:
+        assert(0 && "Unsupported icmp");
+      }
     }
     BBB->addStmt(new EvalStmt(E));
     E = BoolToBVExpr::create(E);
