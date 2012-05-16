@@ -120,45 +120,19 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     ref<Expr> LHS = translateValue(BO->getOperand(0)),
               RHS = translateValue(BO->getOperand(1));
     switch (BO->getOpcode()) {
-    case BinaryOperator::Add:
-      E = BVAddExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::Sub:
-      E = BVSubExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::Mul:
-      E = BVMulExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::SDiv:
-      E = BVSDivExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::UDiv:
-      E = BVUDivExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::SRem:
-      E = BVSRemExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::URem:
-      E = BVURemExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::Shl:
-      E = BVShlExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::AShr:
-      E = BVAShrExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::LShr:
-      E = BVLShrExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::And:
-      E = BVAndExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::Or:
-      E = BVOrExpr::create(LHS, RHS);
-      break;
-    case BinaryOperator::Xor:
-      E = BVXorExpr::create(LHS, RHS);
-      break;
+    case BinaryOperator::Add:  E = BVAddExpr::create(LHS, RHS);  break;
+    case BinaryOperator::Sub:  E = BVSubExpr::create(LHS, RHS);  break;
+    case BinaryOperator::Mul:  E = BVMulExpr::create(LHS, RHS);  break;
+    case BinaryOperator::SDiv: E = BVSDivExpr::create(LHS, RHS); break;
+    case BinaryOperator::UDiv: E = BVUDivExpr::create(LHS, RHS); break;
+    case BinaryOperator::SRem: E = BVSRemExpr::create(LHS, RHS); break;
+    case BinaryOperator::URem: E = BVURemExpr::create(LHS, RHS); break;
+    case BinaryOperator::Shl:  E = BVShlExpr::create(LHS, RHS);  break;
+    case BinaryOperator::AShr: E = BVAShrExpr::create(LHS, RHS); break;
+    case BinaryOperator::LShr: E = BVLShrExpr::create(LHS, RHS); break;
+    case BinaryOperator::And:  E = BVAndExpr::create(LHS, RHS);  break;
+    case BinaryOperator::Or:   E = BVOrExpr::create(LHS, RHS);   break;
+    case BinaryOperator::Xor:  E = BVXorExpr::create(LHS, RHS);  break;
     default:
       assert(0 && "Unsupported binary operator");
     }
@@ -220,10 +194,13 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               PtrOfs = ArrayOffsetExpr::create(Ptr);
     Type StoreTy = Val->getType();
     assert(StoreTy.width % 8 == 0);
-    if (StoreTy.kind == Type::Pointer)
+    if (StoreTy.kind == Type::Pointer) {
       Val = PtrToBVExpr::create(Val);
-    else if (StoreTy.kind == Type::Float)
+      BBB->addStmt(new EvalStmt(Val));
+    } else if (StoreTy.kind == Type::Float) {
       Val = FloatToBVExpr::create(Val);
+      BBB->addStmt(new EvalStmt(Val));
+    }
     for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
       ref<Expr> PtrByteOfs =
         BVAddExpr::create(PtrOfs,
