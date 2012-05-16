@@ -260,6 +260,18 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto P2II = dyn_cast<PtrToIntInst>(I)) {
     ref<Expr> Op = translateValue(P2II->getOperand(0));
     E = PtrToBVExpr::create(Op);
+  } else if (auto BCI = dyn_cast<BitCastInst>(I)) {
+    ref<Expr> Op = translateValue(BCI->getOperand(0));
+    if (BCI->getSrcTy()->isPointerTy() && BCI->getDestTy()->isPointerTy()) {
+      ValueExprMap[I] = Op;
+      return;
+    } else if (BCI->getSrcTy()->isFloatTy() && BCI->getDestTy()->isIntegerTy()) {
+      E = FloatToBVExpr::create(Op);
+    } else if (BCI->getSrcTy()->isIntegerTy() && BCI->getDestTy()->isFloatTy()) {
+      E = BVToFloatExpr::create(Op);
+    } else {
+      assert(0 && "Unsupported bitcast");
+    }
   } else if (auto SI = dyn_cast<SelectInst>(I)) {
     ref<Expr> Cond = translateValue(SI->getCondition()),
               TrueVal = translateValue(SI->getTrueValue()),
