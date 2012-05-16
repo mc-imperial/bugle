@@ -306,8 +306,20 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       OS << "{\n    assume false;\n  }\n";
     }
   } else if (auto VAS = dyn_cast<VarAssignStmt>(S)) {
-    OS << "  $" << VAS->getVar()->getName() << " := ";
-    writeExpr(OS, VAS->getValue().get());
+    OS << "  ";
+    for (auto b = VAS->getVars().begin(), i = b, e = VAS->getVars().end();
+         i != e; ++i) {
+      if (i != b)
+        OS << ", ";
+      OS << "$" << (*i)->getName();
+    }
+    OS << " := ";
+    for (auto b = VAS->getValues().begin(), i = b, e = VAS->getValues().end();
+         i != e; ++i) {
+      if (i != b)
+        OS << ", ";
+      writeExpr(OS, i->get());
+    }
     OS << ";\n";
   } else if (auto GS = dyn_cast<GotoStmt>(S)) { 
     OS << "  goto ";

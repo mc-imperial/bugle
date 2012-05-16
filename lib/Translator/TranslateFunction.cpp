@@ -76,16 +76,19 @@ Var *TranslateFunction::getPhiVariable(llvm::PHINode *PN) {
 void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
                                       llvm::BasicBlock *Pred,
                                       llvm::BasicBlock *Succ) {
+  std::vector<Var *> Vars;
+  std::vector<ref<Expr>> Exprs;
   for (auto i = Succ->begin(), e = Succ->end(); i != e && isa<PHINode>(i); ++i){
     PHINode *PN = cast<PHINode>(i);
     int idx = PN->getBasicBlockIndex(Pred);
     assert(idx != -1 && "No phi index?");
 
-    Var *PV = getPhiVariable(PN);
-    ref<Expr> E = translateValue(PN->getIncomingValue(idx));
-
-    BBB->addStmt(new VarAssignStmt(PV, E));
+    Vars.push_back(getPhiVariable(PN));
+    Exprs.push_back(translateValue(PN->getIncomingValue(idx)));
   }
+
+  if (!Vars.empty())
+    BBB->addStmt(new VarAssignStmt(Vars, Exprs));
 }
 
 ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,

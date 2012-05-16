@@ -58,15 +58,20 @@ public:
 };
 
 class VarAssignStmt : public Stmt {
-  Var *var;
-  ref<Expr> value;
+  std::vector<Var *> vars;
+  std::vector<ref<Expr>> values;
 
 public:
-  VarAssignStmt(Var *var, ref<Expr> value) : var(var), value(value) {}
+  VarAssignStmt(Var *var, ref<Expr> value) : vars(1, var), values(1, value) {}
+  VarAssignStmt(const std::vector<Var *> &vars,
+                const std::vector<ref<Expr>> &values)
+    : vars(vars), values(values) {
+    assert(!vars.empty() && vars.size() == values.size());
+  }
 
   STMT_KIND(VarAssign)
-  Var *getVar() const { return var; }
-  ref<Expr> getValue() const { return value; }
+  const std::vector<Var *> &getVars() const { return vars; }
+  const std::vector<ref<Expr>> &getValues() const { return values; }
 };
 
 class GotoStmt : public Stmt {
