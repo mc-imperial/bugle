@@ -12,11 +12,36 @@ using namespace llvm;
 using namespace bugle;
 
 ref<Expr> TranslateModule::translateConstant(Constant *C) {
-  if (ConstantInt *CI = dyn_cast<ConstantInt>(C))
+  ref<Expr> &E = ConstantMap[C];
+  if (E.isNull())
+    E = doTranslateConstant(C);
+  return E;
+}
+
+ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
+  if (auto CI = dyn_cast<ConstantInt>(C))
     return BVConstExpr::create(CI->getValue());
-  if (ConstantFP *CF = dyn_cast<ConstantFP>(C))
+  if (auto CF = dyn_cast<ConstantFP>(C))
     return BVToFloatExpr::create(
              BVConstExpr::create(CF->getValueAPF().bitcastToAPInt()));
+  if (auto CE = dyn_cast<ConstantExpr>(C)) {
+    switch (CE->getOpcode()) {
+    case Instruction::GetElementPtr: {
+      ref<Expr> Op = translateConstant(CE->getOperand(0));
+      return translateGEP(Op, klee::gep_type_begin(CE), klee::gep_type_end(CE),
+                          [&](Value *V) {
+                            return translateConstant(cast<Constant>(V));
+                          });
+    }
+    default:
+      assert(0 && "Unhandled ConstantExpr");
+    }
+  }
+  if (auto GV = dyn_cast<GlobalVariable>(C)) {
+    GlobalArray *GA = BM->addGlobal(GV->getName());
+    return PointerExpr::create(GlobalArrayRefExpr::create(GA),
+                            BVConstExpr::createZero(TD.getPointerSizeInBits()));
+  }
   assert(0 && "Unhandled constant");
 }
 
@@ -30,6 +55,35 @@ bugle::Type TranslateModule::translateType(llvm::Type *T) {
     K = Type::BV;
 
   return Type(K, TD.getTypeSizeInBits(T));
+}
+
+ref<Expr> TranslateModule::translateGEP(ref<Expr> Ptr,
+                                        klee::gep_type_iterator begin,
+                                        klee::gep_type_iterator end,
+                                      std::function<ref<Expr>(Value *)> xlate) {
+  ref<Expr> PtrArr = ArrayIdExpr::create(Ptr),
+            PtrOfs = ArrayOffsetExpr::create(Ptr);
+  for (auto i = begin; i != end; ++i) {
+    if (StructType *st = dyn_cast<StructType>(*i)) {
+      const StructLayout *sl = TD.getStructLayout(st);
+      const ConstantInt *ci = cast<ConstantInt>(i.getOperand());
+      uint64_t addend = sl->getElementOffset((unsigned) ci->getZExtValue());
+      PtrOfs = BVAddExpr::create(PtrOfs,
+                 BVConstExpr::create(BM->getPointerWidth(), addend));
+    } else {
+      const SequentialType *set = cast<SequentialType>(*i);
+      uint64_t elementSize = 
+        TD.getTypeStoreSize(set->getElementType());
+      Value *operand = i.getOperand();
+      ref<Expr> index = xlate(operand);
+      index = BVSExtExpr::create(BM->getPointerWidth(), index);
+      ref<Expr> addend =
+        BVMulExpr::create(index,
+          BVConstExpr::create(BM->getPointerWidth(), elementSize));
+      PtrOfs = BVAddExpr::create(PtrOfs, addend);
+    }
+  }
+  return PointerExpr::create(PtrArr, PtrOfs);
 }
 
 void TranslateModule::translate() {
