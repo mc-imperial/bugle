@@ -27,7 +27,15 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
+  execute_process(
+    COMMAND ${LLVM_CONFIG_EXECUTABLE} --bindir
+    OUTPUT_VARIABLE LLVM_BINDIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
   set(CFLAGS_CXX11 "-std=c++0x")
+
+  configure_file(${CMAKE_SOURCE_DIR}/blang.sh ${CMAKE_BINARY_DIR}/blang)
 else()
   set(LLVM_SRC "" CACHE PATH "LLVM source directory")
   set(LLVM_BUILD "" CACHE PATH "LLVM build directory")
