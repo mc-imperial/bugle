@@ -109,6 +109,9 @@ ref<Expr> IfThenElseExpr::create(ref<Expr> cond, ref<Expr> trueExpr,
   assert(cond->getType().kind == Type::Bool);
   assert(trueExpr->getType() == falseExpr->getType());
 
+  if (auto e = dyn_cast<BoolConstExpr>(cond))
+    return e->getValue() ? trueExpr : falseExpr;
+
   return new IfThenElseExpr(cond, trueExpr, falseExpr);
 }
 
@@ -185,6 +188,10 @@ ref<Expr> EqExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
     if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
       return BoolConstExpr::create(e1->getValue() == e2->getValue());
 
+  if (auto e1 = dyn_cast<GlobalArrayRefExpr>(lhs))
+    if (auto e2 = dyn_cast<GlobalArrayRefExpr>(rhs))
+      return BoolConstExpr::create(e1->getArray() == e2->getArray());
+
   return new EqExpr(Type(Type::Bool), lhs, rhs);
 }
 
@@ -198,6 +205,10 @@ ref<Expr> NeExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
     if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
       return BoolConstExpr::create(e1->getValue() != e2->getValue());
+
+  if (auto e1 = dyn_cast<GlobalArrayRefExpr>(lhs))
+    if (auto e2 = dyn_cast<GlobalArrayRefExpr>(rhs))
+      return BoolConstExpr::create(e1->getArray() != e2->getArray());
 
   return new NeExpr(Type(Type::Bool), lhs, rhs);
 }
