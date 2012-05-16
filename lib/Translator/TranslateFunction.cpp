@@ -149,23 +149,25 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   if (auto BO = dyn_cast<BinaryOperator>(I)) {
     ref<Expr> LHS = translateValue(BO->getOperand(0)),
               RHS = translateValue(BO->getOperand(1));
+    ref<Expr> (*F)(ref<Expr>, ref<Expr>);
     switch (BO->getOpcode()) {
-    case BinaryOperator::Add:  E = BVAddExpr::create(LHS, RHS);  break;
-    case BinaryOperator::Sub:  E = BVSubExpr::create(LHS, RHS);  break;
-    case BinaryOperator::Mul:  E = BVMulExpr::create(LHS, RHS);  break;
-    case BinaryOperator::SDiv: E = BVSDivExpr::create(LHS, RHS); break;
-    case BinaryOperator::UDiv: E = BVUDivExpr::create(LHS, RHS); break;
-    case BinaryOperator::SRem: E = BVSRemExpr::create(LHS, RHS); break;
-    case BinaryOperator::URem: E = BVURemExpr::create(LHS, RHS); break;
-    case BinaryOperator::Shl:  E = BVShlExpr::create(LHS, RHS);  break;
-    case BinaryOperator::AShr: E = BVAShrExpr::create(LHS, RHS); break;
-    case BinaryOperator::LShr: E = BVLShrExpr::create(LHS, RHS); break;
-    case BinaryOperator::And:  E = BVAndExpr::create(LHS, RHS);  break;
-    case BinaryOperator::Or:   E = BVOrExpr::create(LHS, RHS);   break;
-    case BinaryOperator::Xor:  E = BVXorExpr::create(LHS, RHS);  break;
+    case BinaryOperator::Add:  F = BVAddExpr::create;  break;
+    case BinaryOperator::Sub:  F = BVSubExpr::create;  break;
+    case BinaryOperator::Mul:  F = BVMulExpr::create;  break;
+    case BinaryOperator::SDiv: F = BVSDivExpr::create; break;
+    case BinaryOperator::UDiv: F = BVUDivExpr::create; break;
+    case BinaryOperator::SRem: F = BVSRemExpr::create; break;
+    case BinaryOperator::URem: F = BVURemExpr::create; break;
+    case BinaryOperator::Shl:  F = BVShlExpr::create;  break;
+    case BinaryOperator::AShr: F = BVAShrExpr::create; break;
+    case BinaryOperator::LShr: F = BVLShrExpr::create; break;
+    case BinaryOperator::And:  F = BVAndExpr::create;  break;
+    case BinaryOperator::Or:   F = BVOrExpr::create;   break;
+    case BinaryOperator::Xor:  F = BVXorExpr::create;  break;
     default:
       assert(0 && "Unsupported binary operator");
     }
+    E = maybeTranslateSIMDInst(BBB, BO->getOperand(0)->getType(), F, LHS, RHS);
   } else if (auto GEPI = dyn_cast<GetElementPtrInst>(I)) {
     ref<Expr> Ptr = translateValue(GEPI->getPointerOperand());
     E = TM->translateGEP(Ptr, klee::gep_type_begin(GEPI),
