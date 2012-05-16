@@ -104,6 +104,14 @@ ref<Expr> BVSExtExpr::create(unsigned width, ref<Expr> bv) {
   return new BVSExtExpr(width, bv);
 }
 
+ref<Expr> IfThenElseExpr::create(ref<Expr> cond, ref<Expr> trueExpr,
+                                 ref<Expr> falseExpr) {
+  assert(cond->getType().kind == Type::Bool);
+  assert(trueExpr->getType() == falseExpr->getType());
+
+  return new IfThenElseExpr(cond, trueExpr, falseExpr);
+}
+
 ref<Expr> BVToFloatExpr::create(ref<Expr> bv) {
   const Type &ty = bv->getType();
   assert(ty.kind == Type::BV);

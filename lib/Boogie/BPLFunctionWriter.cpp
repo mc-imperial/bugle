@@ -107,6 +107,14 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, NE->getLHS().get(), 4);
     OS << " != ";
     writeExpr(OS, NE->getRHS().get(), 4);
+  } else if (auto ITEE = dyn_cast<IfThenElseExpr>(E)) {
+    OS << "(if ";
+    writeExpr(OS, ITEE->getCond().get());
+    OS << " then ";
+    writeExpr(OS, ITEE->getTrueExpr().get());
+    OS << " else ";
+    writeExpr(OS, ITEE->getFalseExpr().get());
+    OS << ")";
   } else if (auto B2BVE = dyn_cast<BoolToBVExpr>(E)) {
     OS << "(if ";
     writeExpr(OS, B2BVE->getSubExpr().get());

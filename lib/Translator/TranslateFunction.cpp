@@ -269,6 +269,12 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto P2II = dyn_cast<PtrToIntInst>(I)) {
     ref<Expr> Op = translateValue(P2II->getOperand(0));
     E = PtrToBVExpr::create(Op);
+  } else if (auto SI = dyn_cast<SelectInst>(I)) {
+    ref<Expr> Cond = translateValue(SI->getCondition()),
+              TrueVal = translateValue(SI->getTrueValue()),
+              FalseVal = translateValue(SI->getFalseValue());
+    Cond = BVToBoolExpr::create(Cond);
+    E = IfThenElseExpr::create(Cond, TrueVal, FalseVal);
   } else if (auto CI = dyn_cast<CallInst>(I)) {
     auto F = CI->getCalledFunction();
     assert(F && "Only direct calls for now");

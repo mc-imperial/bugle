@@ -32,6 +32,7 @@ public:
     BVExtract,
     BVZExt,
     BVSExt,
+    IfThenElse,
 
     // Unary
     Not,
@@ -209,6 +210,21 @@ public:
   static ref<Expr> create(unsigned width, ref<Expr> expr);
   EXPR_KIND(BVSExt)
   ref<Expr> getSubExpr() const { return expr; }
+};
+
+class IfThenElseExpr : public Expr {
+  IfThenElseExpr(ref<Expr> cond, ref<Expr> trueExpr, ref<Expr> falseExpr) :
+    Expr(trueExpr->getType()), cond(cond), trueExpr(trueExpr),
+    falseExpr(falseExpr) {}
+  ref<Expr> cond, trueExpr, falseExpr;
+
+public:
+  static ref<Expr> create(ref<Expr> cond, ref<Expr> trueExpr,
+                          ref<Expr> falseExpr);
+  EXPR_KIND(IfThenElse)
+  ref<Expr> getCond() const { return cond; }
+  ref<Expr> getTrueExpr() const { return trueExpr; }
+  ref<Expr> getFalseExpr() const { return falseExpr; }
 };
 
 class UnaryExpr : public Expr {
