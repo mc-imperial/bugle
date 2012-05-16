@@ -333,7 +333,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     }
     return;
   } else if (auto PN = dyn_cast<PHINode>(I)) {
-    E = VarRefExpr::create(getPhiVariable(PN));
+    ValueExprMap[I] = VarRefExpr::create(getPhiVariable(PN));
+    return;
   } else {
     assert(0 && "Unsupported instruction");
   }
