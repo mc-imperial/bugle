@@ -24,6 +24,8 @@ public:
 
   OwningPtrVector<Stmt>::const_iterator begin() const { return stmts.begin(); }
   OwningPtrVector<Stmt>::const_iterator end() const   { return stmts.end(); }
+
+  OwningPtrVector<Stmt> &getStmtVector() { return stmts; }
 };
 
 }

@@ -16,6 +16,7 @@
 
 #include "bugle/BPLModuleWriter.h"
 #include "bugle/Module.h"
+#include "bugle/Transform/SimplifyStmt.h"
 #include "bugle/Translator/TranslateModule.h"
 
 using namespace llvm;
@@ -71,6 +72,8 @@ int main(int argc, char **argv) {
   bugle::Module BM;
   bugle::TranslateModule TM(&BM, M.get());
   TM.translate();
+
+  bugle::simplifyStmt(&BM);
 
   std::string OutFile = OutputFilename;
   if (OutFile.empty()) {

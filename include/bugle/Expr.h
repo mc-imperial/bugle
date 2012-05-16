@@ -83,7 +83,7 @@ private:
   Type type;
 
 protected:
-  Expr(Type type) : type(type) {}
+  Expr(Type type) : refCount(0), type(type) {}
 
 public:
   virtual ~Expr() {}
