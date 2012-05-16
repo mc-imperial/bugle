@@ -248,9 +248,11 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     if (BCI->getSrcTy()->isPointerTy() && BCI->getDestTy()->isPointerTy()) {
       ValueExprMap[I] = Op;
       return;
-    } else if (BCI->getSrcTy()->isFloatTy() && BCI->getDestTy()->isIntegerTy()) {
+    } else if (BCI->getSrcTy()->isFloatingPointTy() &&
+               BCI->getDestTy()->isIntegerTy()) {
       E = FloatToBVExpr::create(Op);
-    } else if (BCI->getSrcTy()->isIntegerTy() && BCI->getDestTy()->isFloatTy()) {
+    } else if (BCI->getSrcTy()->isIntegerTy() &&
+               BCI->getDestTy()->isFloatingPointTy()) {
       E = BVToFloatExpr::create(Op);
     } else {
       assert(0 && "Unsupported bitcast");
