@@ -359,6 +359,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     OS << "  ";
     maybeWriteCaseSplit(OS, SS->getArray().get(), [&](GlobalArray *GA) {
+      ModifiesSet.insert(GA);
       OS << "$$" << GA->getName() << "[";
       writeExpr(OS, SS->getOffset().get());
       OS << "] := ";
