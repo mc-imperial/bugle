@@ -107,20 +107,21 @@ ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
-                               llvm::Type *OpType,
-                               std::function<ref<Expr>(ref<Expr>, ref<Expr>)> F,
-                               ref<Expr> LHS, ref<Expr> RHS) {
-  if (!isa<VectorType>(OpType))
+                             llvm::Type *Ty, llvm::Type *OpTy,
+                             ref<Expr> LHS, ref<Expr> RHS,
+                             std::function<ref<Expr>(ref<Expr>, ref<Expr>)> F) {
+  if (!isa<VectorType>(Ty))
     return F(LHS, RHS);
 
-  auto VT = cast<VectorType>(OpType);
+  auto VT = cast<VectorType>(Ty), OpVT = cast<VectorType>(OpTy);
   unsigned NumElems = VT->getNumElements();
+  assert(OpVT->getNumElements() == NumElems);
   unsigned ElemWidth = LHS->getType().width / NumElems;
   std::vector<ref<Expr>> Elems;
   for (unsigned i = 0; i < NumElems; ++i) {
     ref<Expr> LHSi = BVExtractExpr::create(LHS, i*ElemWidth, ElemWidth);
     ref<Expr> RHSi = BVExtractExpr::create(RHS, i*ElemWidth, ElemWidth);
-    if (VT->getElementType()->isFloatingPointTy()) {
+    if (OpVT->getElementType()->isFloatingPointTy()) {
       LHSi = BVToFloatExpr::create(LHSi);
       RHSi = BVToFloatExpr::create(RHSi);
     }
@@ -163,7 +164,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     default:
       assert(0 && "Unsupported binary operator");
     }
-    E = maybeTranslateSIMDInst(BBB, BO->getOperand(0)->getType(), F, LHS, RHS);
+    E = maybeTranslateSIMDInst(BBB, BO->getType(), BO->getType(), LHS, RHS, F);
   } else if (auto GEPI = dyn_cast<GetElementPtrInst>(I)) {
     ref<Expr> Ptr = translateValue(GEPI->getPointerOperand());
     E = TM->translateGEP(Ptr, klee::gep_type_begin(GEPI),
@@ -219,55 +220,64 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto II = dyn_cast<ICmpInst>(I)) {
     ref<Expr> LHS = translateValue(II->getOperand(0)),
               RHS = translateValue(II->getOperand(1));
-    if (II->getPredicate() == ICmpInst::ICMP_EQ)
-      E = EqExpr::create(LHS, RHS);
-    else if (II->getPredicate() == ICmpInst::ICMP_NE)
-      E = NeExpr::create(LHS, RHS);
-    else if (LHS->getType().kind == Type::Pointer) {
-      assert(RHS->getType().kind == Type::Pointer);
-      switch (II->getPredicate()) {
-      case ICmpInst::ICMP_ULT:
-      case ICmpInst::ICMP_SLT: E = Expr::createPtrLt(LHS, RHS); break;
-      case ICmpInst::ICMP_ULE:
-      case ICmpInst::ICMP_SLE: E = Expr::createPtrLe(LHS, RHS); break;
-      case ICmpInst::ICMP_UGT:
-      case ICmpInst::ICMP_SGT: E = Expr::createPtrLt(RHS, LHS); break;
-      case ICmpInst::ICMP_UGE:
-      case ICmpInst::ICMP_SGE: E = Expr::createPtrLe(RHS, LHS); break;
-      default:
-        assert(0 && "Unsupported ptr icmp");
+    E = maybeTranslateSIMDInst(BBB, II->getType(), II->getOperand(0)->getType(),
+                               LHS, RHS,
+                               [&](ref<Expr> LHS, ref<Expr> RHS) -> ref<Expr> {
+      ref<Expr> E;
+      if (II->getPredicate() == ICmpInst::ICMP_EQ)
+        E = EqExpr::create(LHS, RHS);
+      else if (II->getPredicate() == ICmpInst::ICMP_NE)
+        E = NeExpr::create(LHS, RHS);
+      else if (LHS->getType().kind == Type::Pointer) {
+        assert(RHS->getType().kind == Type::Pointer);
+        switch (II->getPredicate()) {
+        case ICmpInst::ICMP_ULT:
+        case ICmpInst::ICMP_SLT: E = Expr::createPtrLt(LHS, RHS); break;
+        case ICmpInst::ICMP_ULE:
+        case ICmpInst::ICMP_SLE: E = Expr::createPtrLe(LHS, RHS); break;
+        case ICmpInst::ICMP_UGT:
+        case ICmpInst::ICMP_SGT: E = Expr::createPtrLt(RHS, LHS); break;
+        case ICmpInst::ICMP_UGE:
+        case ICmpInst::ICMP_SGE: E = Expr::createPtrLe(RHS, LHS); break;
+        default:
+          assert(0 && "Unsupported ptr icmp");
+        }
+      } else {
+        assert(RHS->getType().kind == Type::BV);
+        switch (II->getPredicate()) {
+        case ICmpInst::ICMP_UGT: E = BVUgtExpr::create(LHS, RHS); break;
+        case ICmpInst::ICMP_UGE: E = BVUgeExpr::create(LHS, RHS); break;
+        case ICmpInst::ICMP_ULT: E = BVUltExpr::create(LHS, RHS); break;
+        case ICmpInst::ICMP_ULE: E = BVUleExpr::create(LHS, RHS); break;
+        case ICmpInst::ICMP_SGT: E = BVSgtExpr::create(LHS, RHS); break;
+        case ICmpInst::ICMP_SGE: E = BVSgeExpr::create(LHS, RHS); break;
+        case ICmpInst::ICMP_SLT: E = BVSltExpr::create(LHS, RHS); break;
+        case ICmpInst::ICMP_SLE: E = BVSleExpr::create(LHS, RHS); break;
+        default:
+          assert(0 && "Unsupported icmp");
+        }
       }
-    } else {
-      assert(RHS->getType().kind == Type::BV);
-      switch (II->getPredicate()) {
-      case ICmpInst::ICMP_UGT: E = BVUgtExpr::create(LHS, RHS); break;
-      case ICmpInst::ICMP_UGE: E = BVUgeExpr::create(LHS, RHS); break;
-      case ICmpInst::ICMP_ULT: E = BVUltExpr::create(LHS, RHS); break;
-      case ICmpInst::ICMP_ULE: E = BVUleExpr::create(LHS, RHS); break;
-      case ICmpInst::ICMP_SGT: E = BVSgtExpr::create(LHS, RHS); break;
-      case ICmpInst::ICMP_SGE: E = BVSgeExpr::create(LHS, RHS); break;
-      case ICmpInst::ICMP_SLT: E = BVSltExpr::create(LHS, RHS); break;
-      case ICmpInst::ICMP_SLE: E = BVSleExpr::create(LHS, RHS); break;
-      default:
-        assert(0 && "Unsupported icmp");
-      }
-    }
-    BBB->addStmt(new EvalStmt(E));
-    E = BoolToBVExpr::create(E);
+      BBB->addStmt(new EvalStmt(E));
+      return BoolToBVExpr::create(E);
+    });
   } else if (auto FI = dyn_cast<FCmpInst>(I)) {
     ref<Expr> LHS = translateValue(FI->getOperand(0)),
               RHS = translateValue(FI->getOperand(1));
-    E = BoolConstExpr::create(false);
-    if (FI->getPredicate() & FCmpInst::FCMP_OEQ)
-      E = OrExpr::create(E, FEqExpr::create(LHS, RHS));
-    if (FI->getPredicate() & FCmpInst::FCMP_OGT)
-      E = OrExpr::create(E, FLtExpr::create(RHS, LHS));
-    if (FI->getPredicate() & FCmpInst::FCMP_OLT)
-      E = OrExpr::create(E, FLtExpr::create(LHS, RHS));
-    if (FI->getPredicate() & FCmpInst::FCMP_UNO)
-      E = OrExpr::create(E, FUnoExpr::create(LHS, RHS));
-    BBB->addStmt(new EvalStmt(E));
-    E = BoolToBVExpr::create(E);
+    E = maybeTranslateSIMDInst(BBB, FI->getType(), FI->getOperand(0)->getType(),
+                               LHS, RHS,
+                               [&](ref<Expr> LHS, ref<Expr> RHS) -> ref<Expr> {
+      ref<Expr> E = BoolConstExpr::create(false);
+      if (FI->getPredicate() & FCmpInst::FCMP_OEQ)
+        E = OrExpr::create(E, FEqExpr::create(LHS, RHS));
+      if (FI->getPredicate() & FCmpInst::FCMP_OGT)
+        E = OrExpr::create(E, FLtExpr::create(RHS, LHS));
+      if (FI->getPredicate() & FCmpInst::FCMP_OLT)
+        E = OrExpr::create(E, FLtExpr::create(LHS, RHS));
+      if (FI->getPredicate() & FCmpInst::FCMP_UNO)
+        E = OrExpr::create(E, FUnoExpr::create(LHS, RHS));
+      BBB->addStmt(new EvalStmt(E));
+      return BoolToBVExpr::create(E);
+    });
   } else if (auto ZEI = dyn_cast<ZExtInst>(I)) {
     ref<Expr> Op = translateValue(ZEI->getOperand(0));
     E = BVZExtExpr::create(cast<IntegerType>(ZEI->getType())->getBitWidth(),Op);
