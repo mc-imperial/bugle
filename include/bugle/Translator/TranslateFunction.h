@@ -44,6 +44,10 @@ class TranslateFunction {
   SpecialFnHandler handleAssert, handleAssertFail, handleAssume;
 
   ref<Expr> maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
+                           llvm::Type *Ty, llvm::Type *OpTy,
+                           ref<Expr> Op,
+                           std::function<ref<Expr>(llvm::Type *, ref<Expr>)> F);
+  ref<Expr> maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
                               llvm::Type *Ty, llvm::Type *OpTy,
                               ref<Expr> LHS, ref<Expr> RHS,
                               std::function<ref<Expr>(ref<Expr>, ref<Expr>)> F);
