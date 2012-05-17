@@ -309,6 +309,22 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     BVConstExpr *CEIdx = cast<BVConstExpr>(Idx);
     unsigned UIdx = CEIdx->getValue().getZExtValue();
     E = BVExtractExpr::create(Vec, EltBits*UIdx, EltBits);
+  } else if (auto IEI = dyn_cast<InsertElementInst>(I)) {
+    ref<Expr> Vec = translateValue(IEI->getOperand(0)),
+              NewElt = translateValue(IEI->getOperand(1)),
+              Idx = translateValue(IEI->getOperand(2));
+    unsigned EltBits = TM->TD.getTypeSizeInBits(
+        IEI->getType()->getElementType());
+    unsigned ElemCount = IEI->getType()->getNumElements();
+    BVConstExpr *CEIdx = cast<BVConstExpr>(Idx);
+    unsigned UIdx = CEIdx->getValue().getZExtValue();
+    std::vector<ref<Expr>> Elems;
+    for (unsigned i = 0; i != ElemCount; ++i) {
+      Elems.push_back(i == UIdx ? NewElt
+                              : BVExtractExpr::create(Vec, EltBits*i, EltBits));
+    }
+    E = fold(Elems.back(), Elems.rbegin()+1, Elems.rend(),
+             BVConcatExpr::create);
   } else if (auto SVI = dyn_cast<ShuffleVectorInst>(I)) {
     ref<Expr> Vec1 = translateValue(SVI->getOperand(0)),
               Vec2 = translateValue(SVI->getOperand(1));
