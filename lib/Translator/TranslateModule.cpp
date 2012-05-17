@@ -42,6 +42,12 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     return PointerExpr::create(GlobalArrayRefExpr::create(GA),
                             BVConstExpr::createZero(TD.getPointerSizeInBits()));
   }
+  if (auto UV = dyn_cast<UndefValue>(C)) {
+    ref<Expr> CE = BVConstExpr::createZero(TD.getTypeSizeInBits(UV->getType()));
+    if (UV->getType()->isFloatingPointTy())
+      CE = BVToFloatExpr::create(CE);
+    return CE;
+  }
   assert(0 && "Unhandled constant");
 }
 
