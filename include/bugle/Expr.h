@@ -88,6 +88,7 @@ public:
   };
 
   unsigned refCount;
+  bool isDerivedFromConstant;
 
   static ref<Expr> createPtrLt(ref<Expr> lhs, ref<Expr> rhs);
   static ref<Expr> createPtrLe(ref<Expr> lhs, ref<Expr> rhs);
@@ -97,7 +98,7 @@ private:
   Type type;
 
 protected:
-  Expr(Type type) : refCount(0), type(type) {}
+  Expr(Type type) : refCount(0), isDerivedFromConstant(false), type(type) {}
 
 public:
   virtual ~Expr() {}

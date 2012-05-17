@@ -331,6 +331,8 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
 
 void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   if (auto ES = dyn_cast<EvalStmt>(S)) {
+    if (ES->getExpr()->isDerivedFromConstant)
+      return;
     auto i = SSAVarIds.find(ES->getExpr().get());
     if (i != SSAVarIds.end())
       return;

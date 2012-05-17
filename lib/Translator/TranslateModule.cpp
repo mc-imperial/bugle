@@ -15,6 +15,7 @@ ref<Expr> TranslateModule::translateConstant(Constant *C) {
   ref<Expr> &E = ConstantMap[C];
   if (E.isNull())
     E = doTranslateConstant(C);
+  E->isDerivedFromConstant = true;
   return E;
 }
 
