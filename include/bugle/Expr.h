@@ -30,9 +30,6 @@ public:
     VarRef,
     Call,
     BVExtract,
-    BVZExt,
-    BVSExt,
-    FPConv,
     IfThenElse,
 
     // Unary
@@ -45,9 +42,16 @@ public:
     PtrToBV,
     BVToBool,
     BoolToBV,
+    BVZExt,
+    BVSExt,
+    FPConv,
+    FPToSI,
+    FPToUI,
+    SIToFP,
+    UIToFP,
 
     UnaryFirst = Not,
-    UnaryLast = BoolToBV,
+    UnaryLast = UIToFP,
 
     // Binary
     Eq,
@@ -204,39 +208,6 @@ public:
   unsigned getOffset() const { return offset; }
 };
 
-class BVZExtExpr : public Expr {
-  BVZExtExpr(unsigned width, ref<Expr> expr) :
-    Expr(Type(Type::BV, width)), expr(expr) {}
-  ref<Expr> expr;
-
-public:
-  static ref<Expr> create(unsigned width, ref<Expr> expr);
-  EXPR_KIND(BVZExt)
-  ref<Expr> getSubExpr() const { return expr; }
-};
-
-class BVSExtExpr : public Expr {
-  BVSExtExpr(unsigned width, ref<Expr> expr) :
-    Expr(Type(Type::BV, width)), expr(expr) {}
-  ref<Expr> expr;
-
-public:
-  static ref<Expr> create(unsigned width, ref<Expr> expr);
-  EXPR_KIND(BVSExt)
-  ref<Expr> getSubExpr() const { return expr; }
-};
-
-class FPConvExpr : public Expr {
-  FPConvExpr(unsigned width, ref<Expr> expr) :
-    Expr(Type(Type::Float, width)), expr(expr) {}
-  ref<Expr> expr;
-
-public:
-  static ref<Expr> create(unsigned width, ref<Expr> expr);
-  EXPR_KIND(FPConv)
-  ref<Expr> getSubExpr() const { return expr; }
-};
-
 class IfThenElseExpr : public Expr {
   IfThenElseExpr(ref<Expr> cond, ref<Expr> trueExpr, ref<Expr> falseExpr) :
     Expr(trueExpr->getType()), cond(cond), trueExpr(trueExpr),
@@ -286,6 +257,23 @@ UNARY_EXPR(BVToPtr)
 UNARY_EXPR(PtrToBV)
 UNARY_EXPR(BVToBool)
 UNARY_EXPR(BoolToBV)
+
+#define UNARY_CONV_EXPR(kind) \
+  class kind##Expr : public UnaryExpr { \
+    kind##Expr(Type type, ref<Expr> expr) : UnaryExpr(type, expr) {} \
+\
+  public: \
+    static ref<Expr> create(unsigned width, ref<Expr> var); \
+    EXPR_KIND(kind) \
+  };
+
+UNARY_CONV_EXPR(BVSExt)
+UNARY_CONV_EXPR(BVZExt)
+UNARY_CONV_EXPR(FPConv)
+UNARY_CONV_EXPR(FPToSI)
+UNARY_CONV_EXPR(FPToUI)
+UNARY_CONV_EXPR(SIToFP)
+UNARY_CONV_EXPR(UIToFP)
 
 #undef UNARY_EXPR
 

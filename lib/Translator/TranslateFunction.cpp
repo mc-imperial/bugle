@@ -260,6 +260,20 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto SEI = dyn_cast<SExtInst>(I)) {
     ref<Expr> Op = translateValue(SEI->getOperand(0));
     E = BVSExtExpr::create(cast<IntegerType>(SEI->getType())->getBitWidth(),Op);
+  } else if (auto FPSII = dyn_cast<FPToSIInst>(I)) {
+    ref<Expr> Op = translateValue(FPSII->getOperand(0));
+    E = FPToSIExpr::create(cast<IntegerType>(FPSII->getType())->getBitWidth(),
+                           Op);
+  } else if (auto FPUII = dyn_cast<FPToUIInst>(I)) {
+    ref<Expr> Op = translateValue(FPUII->getOperand(0));
+    E = FPToUIExpr::create(cast<IntegerType>(FPUII->getType())->getBitWidth(),
+                           Op);
+  } else if (auto SIFPI = dyn_cast<SIToFPInst>(I)) {
+    ref<Expr> Op = translateValue(SIFPI->getOperand(0));
+    E = SIToFPExpr::create(TM->TD.getTypeSizeInBits(SIFPI->getType()), Op);
+  } else if (auto UIFPI = dyn_cast<UIToFPInst>(I)) {
+    ref<Expr> Op = translateValue(UIFPI->getOperand(0));
+    E = UIToFPExpr::create(TM->TD.getTypeSizeInBits(UIFPI->getType()), Op);
   } else if (isa<FPExtInst>(I) || isa<FPTruncInst>(I)) {
     auto CI = cast<CastInst>(I);
     ref<Expr> Op = translateValue(CI->getOperand(0));
@@ -295,17 +309,20 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto EEI = dyn_cast<ExtractElementInst>(I)) {
     ref<Expr> Vec = translateValue(EEI->getVectorOperand()),
               Idx = translateValue(EEI->getIndexOperand());
-    unsigned EltBits = TM->TD.getTypeSizeInBits(
-        EEI->getVectorOperandType()->getElementType());
+    unsigned EltBits = TM->TD.getTypeSizeInBits(EEI->getType());
     BVConstExpr *CEIdx = cast<BVConstExpr>(Idx);
     unsigned UIdx = CEIdx->getValue().getZExtValue();
     E = BVExtractExpr::create(Vec, EltBits*UIdx, EltBits);
+    if (EEI->getType()->isFloatingPointTy())
+      E = BVToFloatExpr::create(E);
   } else if (auto IEI = dyn_cast<InsertElementInst>(I)) {
     ref<Expr> Vec = translateValue(IEI->getOperand(0)),
               NewElt = translateValue(IEI->getOperand(1)),
               Idx = translateValue(IEI->getOperand(2));
-    unsigned EltBits = TM->TD.getTypeSizeInBits(
-        IEI->getType()->getElementType());
+    llvm::Type *EltType = IEI->getType()->getElementType();
+    if (EltType->isFloatingPointTy())
+      NewElt = FloatToBVExpr::create(NewElt);
+    unsigned EltBits = TM->TD.getTypeSizeInBits(EltType);
     unsigned ElemCount = IEI->getType()->getNumElements();
     BVConstExpr *CEIdx = cast<BVConstExpr>(Idx);
     unsigned UIdx = CEIdx->getValue().getZExtValue();

@@ -85,6 +85,54 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       OS << ") : ";
       MW->writeType(OS, FPCE->getType());
     });
+  } else if (auto FPSIE = dyn_cast<FPToSIExpr>(E)) {
+    OS << "FP" << FPSIE->getSubExpr()->getType().width
+       << "_TO_SI" << FPSIE->getType().width << "(";
+    writeExpr(OS, FPSIE->getSubExpr().get());
+    OS << ")";
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      unsigned FromWidth = FPSIE->getSubExpr()->getType().width,
+               ToWidth = FPSIE->getType().width;
+      OS << "function FP" << FromWidth << "_TO_SI" << ToWidth << "(";
+      MW->writeType(OS, FPSIE->getSubExpr()->getType());
+      OS << ") : bv" << ToWidth;
+    });
+  } else if (auto FPUIE = dyn_cast<FPToUIExpr>(E)) {
+    OS << "FP" << FPUIE->getSubExpr()->getType().width
+       << "_TO_UI" << FPUIE->getType().width << "(";
+    writeExpr(OS, FPUIE->getSubExpr().get());
+    OS << ")";
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      unsigned FromWidth = FPUIE->getSubExpr()->getType().width,
+               ToWidth = FPUIE->getType().width;
+      OS << "function FP" << FromWidth << "_TO_UI" << ToWidth << "(";
+      MW->writeType(OS, FPUIE->getSubExpr()->getType());
+      OS << ") : bv" << ToWidth;
+    });
+  } else if (auto SIFPE = dyn_cast<SIToFPExpr>(E)) {
+    OS << "SI" << SIFPE->getSubExpr()->getType().width
+       << "_TO_FP" << SIFPE->getType().width << "(";
+    writeExpr(OS, SIFPE->getSubExpr().get());
+    OS << ")";
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      unsigned FromWidth = SIFPE->getSubExpr()->getType().width,
+               ToWidth = SIFPE->getType().width;
+      OS << "function SI" << FromWidth << "_TO_FP" << ToWidth << "(bv"
+         << FromWidth << ") : ";
+      MW->writeType(OS, SIFPE->getType());
+    });
+  } else if (auto UIFPE = dyn_cast<UIToFPExpr>(E)) {
+    OS << "UI" << UIFPE->getSubExpr()->getType().width
+       << "_TO_FP" << UIFPE->getType().width << "(";
+    writeExpr(OS, UIFPE->getSubExpr().get());
+    OS << ")";
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      unsigned FromWidth = UIFPE->getSubExpr()->getType().width,
+               ToWidth = UIFPE->getType().width;
+      OS << "function UI" << FromWidth << "_TO_FP" << ToWidth << "(bv"
+         << FromWidth << ") : ";
+      MW->writeType(OS, UIFPE->getType());
+    });
   } else if (auto PtrE = dyn_cast<PointerExpr>(E)) {
     OS << "MKPTR(";
     writeExpr(OS, PtrE->getArray().get());
