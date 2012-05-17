@@ -239,12 +239,10 @@ ref<Expr> AndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhsTy.kind == Type::Bool && rhsTy.kind == Type::Bool);
 
   if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
-    if (!e1->getValue())
-      return e1;
+    return e1->getValue() ? rhs : lhs;
 
   if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
-    if (!e2->getValue())
-      return e2;
+    return e2->getValue() ? lhs : rhs;
 
   return new AndExpr(Type(Type::Bool), lhs, rhs);
 }
@@ -254,12 +252,10 @@ ref<Expr> OrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhsTy.kind == Type::Bool && rhsTy.kind == Type::Bool);
 
   if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
-    if (e1->getValue())
-      return e1;
+    return e1->getValue() ? lhs : rhs;
 
   if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
-    if (e2->getValue())
-      return e2;
+    return e2->getValue() ? rhs : lhs;
 
   return new OrExpr(Type(Type::Bool), lhs, rhs);
 }
