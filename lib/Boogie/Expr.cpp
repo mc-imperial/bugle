@@ -234,6 +234,36 @@ ref<Expr> NeExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new NeExpr(Type(Type::Bool), lhs, rhs);
 }
 
+ref<Expr> AndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::Bool && rhsTy.kind == Type::Bool);
+
+  if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
+    if (!e1->getValue())
+      return e1;
+
+  if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
+    if (!e2->getValue())
+      return e2;
+
+  return new AndExpr(Type(Type::Bool), lhs, rhs);
+}
+
+ref<Expr> OrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
+  assert(lhsTy.kind == Type::Bool && rhsTy.kind == Type::Bool);
+
+  if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
+    if (e1->getValue())
+      return e1;
+
+  if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
+    if (e2->getValue())
+      return e2;
+
+  return new OrExpr(Type(Type::Bool), lhs, rhs);
+}
+
 ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
   assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);

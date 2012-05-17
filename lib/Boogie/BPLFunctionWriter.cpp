@@ -110,6 +110,16 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, NE->getLHS().get(), 4);
     OS << " != ";
     writeExpr(OS, NE->getRHS().get(), 4);
+  } else if (auto AE = dyn_cast<AndExpr>(E)) {
+    ScopedParenPrinter X(OS, Depth, 2);
+    writeExpr(OS, AE->getLHS().get(), 3);
+    OS << " && ";
+    writeExpr(OS, AE->getRHS().get(), 3);
+  } else if (auto OE = dyn_cast<OrExpr>(E)) {
+    ScopedParenPrinter X(OS, Depth, 2);
+    writeExpr(OS, OE->getLHS().get(), 3);
+    OS << " || ";
+    writeExpr(OS, OE->getRHS().get(), 3);
   } else if (auto ITEE = dyn_cast<IfThenElseExpr>(E)) {
     OS << "(if ";
     writeExpr(OS, ITEE->getCond().get());

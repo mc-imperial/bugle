@@ -52,6 +52,8 @@ public:
     // Binary
     Eq,
     Ne,
+    And,
+    Or,
     BVAdd,
     BVSub,
     BVMul,
@@ -314,6 +316,8 @@ public:
 
 BINARY_EXPR(Eq)
 BINARY_EXPR(Ne)
+BINARY_EXPR(And)
+BINARY_EXPR(Or)
 BINARY_EXPR(BVAdd)
 BINARY_EXPR(BVSub)
 BINARY_EXPR(BVMul)
