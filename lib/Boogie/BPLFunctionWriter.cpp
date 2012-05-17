@@ -85,16 +85,6 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       OS << ") : ";
       MW->writeType(OS, FPCE->getType());
     });
-  } else if (auto LE = dyn_cast<LoadExpr>(E)) {
-    ref<Expr> PtrArr = LE->getArray();
-    if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
-      ScopedParenPrinter X(OS, Depth, 8);
-      OS << "$$" << ArrE->getArray()->getName() << "[";
-      writeExpr(OS, LE->getOffset().get(), 9);
-      OS << "]";
-    } else {
-      assert(0 && "TODO case split");
-    }
   } else if (auto PtrE = dyn_cast<PointerExpr>(E)) {
     OS << "MKPTR(";
     writeExpr(OS, PtrE->getArray().get());
@@ -310,15 +300,42 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   }
 }
 
+void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
+                                            Expr *PtrArr,
+                                         std::function<void(GlobalArray *)> F) {
+  if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
+    F(ArrE->getArray());
+    OS << "\n";
+  } else {
+    for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
+         ++i) {
+      OS << "if (";
+      writeExpr(OS, PtrArr);
+      OS << " == $arrayId$" << (*i)->getName() << ") {\n    ";
+      F(*i);
+      OS << "\n  } else ";
+    }
+    OS << "{\n    assume false;\n  }\n";
+  }
+}
+
 void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   if (auto ES = dyn_cast<EvalStmt>(S)) {
     unsigned id = SSAVarIds.size();
     OS << "  ";
     if (isa<CallExpr>(ES->getExpr()))
       OS << "call ";
-    OS << "v" << id << " := ";
-    writeExpr(OS, ES->getExpr().get());
-    OS << ";\n";
+    if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
+      maybeWriteCaseSplit(OS, LE->getArray().get(), [&](GlobalArray *GA) {
+        OS << "v" << id << " := $$" << GA->getName() << "[";
+        writeExpr(OS, LE->getOffset().get());
+        OS << "];";
+      });
+    } else {
+      OS << "v" << id << " := ";
+      writeExpr(OS, ES->getExpr().get());
+      OS << ";\n";
+    }
     SSAVarIds[ES->getExpr().get()] = id;
   } else if (auto CS = dyn_cast<CallStmt>(S)) {
     OS << "  call $" << CS->getCallee()->getName() << "(";
@@ -330,29 +347,14 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     }
     OS << ");\n";
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
-    ref<Expr> PtrArr = SS->getArray();
-    if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
-      ModifiesSet.insert(ArrE->getArray());
-      OS << "  $$" << ArrE->getArray()->getName() << "[";
+    OS << "  ";
+    maybeWriteCaseSplit(OS, SS->getArray().get(), [&](GlobalArray *GA) {
+      OS << "$$" << GA->getName() << "[";
       writeExpr(OS, SS->getOffset().get());
       OS << "] := ";
       writeExpr(OS, SS->getValue().get());
-      OS << ";\n";
-    } else {
-      OS << "  ";
-      for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
-           ++i) {
-        OS << "if (";
-        writeExpr(OS, PtrArr.get());
-        OS << " == $arrayId$" << (*i)->getName() << ") {\n   $$"
-           << (*i)->getName() << "[";
-        writeExpr(OS, SS->getOffset().get());
-        OS << "] := ";
-        writeExpr(OS, SS->getValue().get());
-        OS << ";\n  } else ";
-      }
-      OS << "{\n    assume false;\n  }\n";
-    }
+      OS << ";";
+    });
   } else if (auto VAS = dyn_cast<VarAssignStmt>(S)) {
     OS << "  ";
     for (auto b = VAS->getVars().begin(), i = b, e = VAS->getVars().end();
