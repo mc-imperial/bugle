@@ -61,6 +61,12 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     }
     return Expr::createBVConcatN(Elems);
   }
+  if (auto CAZ = dyn_cast<ConstantAggregateZero>(C)) {
+    ref<Expr> CE = BVConstExpr::createZero(TD.getTypeSizeInBits(CAZ->getType()));
+    if (CAZ->getType()->isFloatingPointTy())
+      CE = BVToFloatExpr::create(CE);
+    return CE;
+  }
   assert(0 && "Unhandled constant");
 }
 
