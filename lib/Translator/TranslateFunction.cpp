@@ -301,6 +301,29 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               FalseVal = translateValue(SI->getFalseValue());
     Cond = BVToBoolExpr::create(Cond);
     E = IfThenElseExpr::create(Cond, TrueVal, FalseVal);
+  } else if (auto SVI = dyn_cast<ShuffleVectorInst>(I)) {
+    ref<Expr> Vec1 = translateValue(SVI->getOperand(0)),
+              Vec2 = translateValue(SVI->getOperand(1));
+    unsigned EltBits =
+      TM->TD.getTypeSizeInBits(SVI->getType()->getElementType());
+    unsigned ElemCount = SVI->getType()->getNumElements();
+    std::vector<ref<Expr>> Elems;
+    for (unsigned i = 0; i != ElemCount; ++i) {
+      ref<Expr> L;
+      int MaskValI = SVI->getMaskValue(i);
+      if (MaskValI < 0)
+        L = BVConstExpr::create(EltBits, 0);
+      else {
+        unsigned MaskVal = (unsigned) MaskValI;
+        if (MaskVal < ElemCount)
+          L = BVExtractExpr::create(Vec1, EltBits*MaskVal, EltBits);
+        else
+          L = BVExtractExpr::create(Vec2, EltBits*(MaskVal-ElemCount), EltBits);
+      }
+      Elems.push_back(L);
+    }
+    E = fold(Elems.back(), Elems.rbegin()+1, Elems.rend(),
+             BVConcatExpr::create);
   } else if (auto CI = dyn_cast<CallInst>(I)) {
     auto F = CI->getCalledFunction();
     assert(F && "Only direct calls for now");
