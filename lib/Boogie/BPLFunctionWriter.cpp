@@ -72,6 +72,19 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
          << "\"} BV" << FromWidth << "_SEXT" << ToWidth << "(bv" << FromWidth
          << ") : bv" << ToWidth;
     });
+  } else if (auto FPCE = dyn_cast<FPConvExpr>(E)) {
+    OS << "FP" << FPCE->getSubExpr()->getType().width
+       << "_CONV" << FPCE->getType().width << "(";
+    writeExpr(OS, FPCE->getSubExpr().get());
+    OS << ")";
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      unsigned FromWidth = FPCE->getSubExpr()->getType().width,
+               ToWidth = FPCE->getType().width;
+      OS << "function FP" << FromWidth << "_CONV" << ToWidth << "(";
+      MW->writeType(OS, FPCE->getSubExpr()->getType());
+      OS << ") : ";
+      MW->writeType(OS, FPCE->getType());
+    });
   } else if (auto LE = dyn_cast<LoadExpr>(E)) {
     ref<Expr> PtrArr = LE->getArray();
     if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {

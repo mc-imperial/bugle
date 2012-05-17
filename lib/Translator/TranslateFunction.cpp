@@ -269,6 +269,10 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto SEI = dyn_cast<SExtInst>(I)) {
     ref<Expr> Op = translateValue(SEI->getOperand(0));
     E = BVSExtExpr::create(cast<IntegerType>(SEI->getType())->getBitWidth(),Op);
+  } else if (isa<FPExtInst>(I) || isa<FPTruncInst>(I)) {
+    auto CI = cast<CastInst>(I);
+    ref<Expr> Op = translateValue(CI->getOperand(0));
+    E = FPConvExpr::create(TM->TD.getTypeSizeInBits(CI->getType()), Op);
   } else if (auto TI = dyn_cast<TruncInst>(I)) {
     ref<Expr> Op = translateValue(TI->getOperand(0));
     unsigned Width = cast<IntegerType>(TI->getType())->getBitWidth();

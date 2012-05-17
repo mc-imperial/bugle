@@ -32,6 +32,7 @@ public:
     BVExtract,
     BVZExt,
     BVSExt,
+    FPConv,
     IfThenElse,
 
     // Unary
@@ -218,6 +219,17 @@ class BVSExtExpr : public Expr {
 public:
   static ref<Expr> create(unsigned width, ref<Expr> expr);
   EXPR_KIND(BVSExt)
+  ref<Expr> getSubExpr() const { return expr; }
+};
+
+class FPConvExpr : public Expr {
+  FPConvExpr(unsigned width, ref<Expr> expr) :
+    Expr(Type(Type::Float, width)), expr(expr) {}
+  ref<Expr> expr;
+
+public:
+  static ref<Expr> create(unsigned width, ref<Expr> expr);
+  EXPR_KIND(FPConv)
   ref<Expr> getSubExpr() const { return expr; }
 };
 
