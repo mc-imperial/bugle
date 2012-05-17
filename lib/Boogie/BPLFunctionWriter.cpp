@@ -331,6 +331,9 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
 
 void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   if (auto ES = dyn_cast<EvalStmt>(S)) {
+    auto i = SSAVarIds.find(ES->getExpr().get());
+    if (i != SSAVarIds.end())
+      return;
     unsigned id = SSAVarIds.size();
     OS << "  ";
     if (isa<CallExpr>(ES->getExpr()))
