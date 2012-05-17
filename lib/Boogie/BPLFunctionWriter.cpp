@@ -261,11 +261,15 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       break;
     }
     case Expr::FAdd:
-    case Expr::FMul: {
+    case Expr::FSub:
+    case Expr::FMul:
+    case Expr::FDiv: {
       const char *IntName;
       switch (BinE->getKind()) {
       case Expr::FAdd: IntName = "FADD"; break;
+      case Expr::FSub: IntName = "FSUB"; break;
       case Expr::FMul: IntName = "FMUL"; break;
+      case Expr::FDiv: IntName = "FDIV"; break;
       default: assert(0 && "huh?");
       }
       OS << IntName << BinE->getType().width;

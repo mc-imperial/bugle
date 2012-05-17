@@ -154,10 +154,12 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     case BinaryOperator::Add:  F = BVAddExpr::create;  break;
     case BinaryOperator::FAdd: F = FAddExpr::create;   break;
     case BinaryOperator::Sub:  F = BVSubExpr::create;  break;
+    case BinaryOperator::FSub: F = FSubExpr::create;   break;
     case BinaryOperator::Mul:  F = BVMulExpr::create;  break;
     case BinaryOperator::FMul: F = FMulExpr::create;   break;
     case BinaryOperator::SDiv: F = BVSDivExpr::create; break;
     case BinaryOperator::UDiv: F = BVUDivExpr::create; break;
+    case BinaryOperator::FDiv: F = FDivExpr::create;   break;
     case BinaryOperator::SRem: F = BVSRemExpr::create; break;
     case BinaryOperator::URem: F = BVURemExpr::create; break;
     case BinaryOperator::Shl:  F = BVShlExpr::create;  break;

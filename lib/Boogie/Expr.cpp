@@ -443,11 +443,25 @@ ref<Expr> FAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new FAddExpr(lhs->getType(), lhs, rhs);
 }
 
+ref<Expr> FSubExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType() == rhs->getType());
+
+  return new FSubExpr(lhs->getType(), lhs, rhs);
+}
+
 ref<Expr> FMulExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhs->getType().kind == Type::Float);
   assert(lhs->getType() == rhs->getType());
 
   return new FMulExpr(lhs->getType(), lhs, rhs);
+}
+
+ref<Expr> FDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType() == rhs->getType());
+
+  return new FDivExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> Expr::createPtrLt(ref<Expr> lhs, ref<Expr> rhs) {
