@@ -344,6 +344,26 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       });
       break;
     }
+    case Expr::FLt:
+    case Expr::FEq:
+    case Expr::FUno: {
+      const char *IntName;
+      switch (BinE->getKind()) {
+      case Expr::FLt:  IntName = "FLT";  break;
+      case Expr::FEq:  IntName = "FEQ";  break;
+      case Expr::FUno: IntName = "FUNO"; break;
+      default: assert(0 && "huh?");
+      }
+      OS << IntName << BinE->getLHS()->getType().width;
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function " << IntName << BinE->getLHS()->getType().width << "(";
+        MW->writeType(OS, BinE->getLHS()->getType());
+        OS << ", ";
+        MW->writeType(OS, BinE->getLHS()->getType());
+        OS << ") : bool";
+      });
+      break;
+    }
     default:
       assert(0 && "Unsupported binary expr");
       break;

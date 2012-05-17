@@ -84,6 +84,9 @@ public:
     FSub,
     FMul,
     FDiv,
+    FLt,
+    FEq,
+    FUno,
     PtrLt,
     PtrLe,
 
@@ -334,6 +337,9 @@ BINARY_EXPR(FAdd)
 BINARY_EXPR(FSub)
 BINARY_EXPR(FMul)
 BINARY_EXPR(FDiv)
+BINARY_EXPR(FLt)
+BINARY_EXPR(FEq)
+BINARY_EXPR(FUno)
 BINARY_EXPR(PtrLt)
 BINARY_EXPR(PtrLe)
 

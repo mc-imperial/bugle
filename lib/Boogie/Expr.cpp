@@ -535,6 +535,27 @@ ref<Expr> FDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new FDivExpr(lhs->getType(), lhs, rhs);
 }
 
+ref<Expr> FLtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType() == rhs->getType());
+
+  return new FLtExpr(Type(Type::Bool), lhs, rhs);
+}
+
+ref<Expr> FEqExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType() == rhs->getType());
+
+  return new FEqExpr(Type(Type::Bool), lhs, rhs);
+}
+
+ref<Expr> FUnoExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType() == rhs->getType());
+
+  return new FUnoExpr(Type(Type::Bool), lhs, rhs);
+}
+
 ref<Expr> Expr::createPtrLt(ref<Expr> lhs, ref<Expr> rhs) {
   return IfThenElseExpr::create(EqExpr::create(ArrayIdExpr::create(lhs),
                                                ArrayIdExpr::create(rhs)),

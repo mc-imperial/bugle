@@ -254,6 +254,20 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     }
     BBB->addStmt(new EvalStmt(E));
     E = BoolToBVExpr::create(E);
+  } else if (auto FI = dyn_cast<FCmpInst>(I)) {
+    ref<Expr> LHS = translateValue(FI->getOperand(0)),
+              RHS = translateValue(FI->getOperand(1));
+    E = BoolConstExpr::create(false);
+    if (FI->getPredicate() & FCmpInst::FCMP_OEQ)
+      E = OrExpr::create(E, FEqExpr::create(LHS, RHS));
+    if (FI->getPredicate() & FCmpInst::FCMP_OGT)
+      E = OrExpr::create(E, FLtExpr::create(RHS, LHS));
+    if (FI->getPredicate() & FCmpInst::FCMP_OLT)
+      E = OrExpr::create(E, FLtExpr::create(LHS, RHS));
+    if (FI->getPredicate() & FCmpInst::FCMP_UNO)
+      E = OrExpr::create(E, FUnoExpr::create(LHS, RHS));
+    BBB->addStmt(new EvalStmt(E));
+    E = BoolToBVExpr::create(E);
   } else if (auto ZEI = dyn_cast<ZExtInst>(I)) {
     ref<Expr> Op = translateValue(ZEI->getOperand(0));
     E = BVZExtExpr::create(cast<IntegerType>(ZEI->getType())->getBitWidth(),Op);
