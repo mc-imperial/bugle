@@ -6,6 +6,7 @@
 #include "bugle/Expr.h"
 #include "bugle/GlobalArray.h"
 #include "bugle/Module.h"
+#include "bugle/util/Functional.h"
 #include "llvm/BasicBlock.h"
 #include "llvm/Function.h"
 #include "llvm/InstrTypes.h"
@@ -54,14 +55,6 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V) {
 
   assert(0 && "Unsupported value");
   return 0;
-}
-
-template <typename T, typename I, typename F>
-T fold(T init, I begin, I end, F func) {
-  T value = init;
-  for (I i = begin; i != end; ++i)
-    value = func(value, *i);
-  return value;
 }
 
 Var *TranslateFunction::getPhiVariable(llvm::PHINode *PN) {
