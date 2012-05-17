@@ -309,17 +309,20 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto EEI = dyn_cast<ExtractElementInst>(I)) {
     ref<Expr> Vec = translateValue(EEI->getVectorOperand()),
               Idx = translateValue(EEI->getIndexOperand());
-    unsigned EltBits = TM->TD.getTypeSizeInBits(
-        EEI->getVectorOperandType()->getElementType());
+    unsigned EltBits = TM->TD.getTypeSizeInBits(EEI->getType());
     BVConstExpr *CEIdx = cast<BVConstExpr>(Idx);
     unsigned UIdx = CEIdx->getValue().getZExtValue();
     E = BVExtractExpr::create(Vec, EltBits*UIdx, EltBits);
+    if (EEI->getType()->isFloatingPointTy())
+      E = BVToFloatExpr::create(E);
   } else if (auto IEI = dyn_cast<InsertElementInst>(I)) {
     ref<Expr> Vec = translateValue(IEI->getOperand(0)),
               NewElt = translateValue(IEI->getOperand(1)),
               Idx = translateValue(IEI->getOperand(2));
-    unsigned EltBits = TM->TD.getTypeSizeInBits(
-        IEI->getType()->getElementType());
+    llvm::Type *EltType = IEI->getType()->getElementType();
+    if (EltType->isFloatingPointTy())
+      NewElt = FloatToBVExpr::create(NewElt);
+    unsigned EltBits = TM->TD.getTypeSizeInBits(EltType);
     unsigned ElemCount = IEI->getType()->getNumElements();
     BVConstExpr *CEIdx = cast<BVConstExpr>(Idx);
     unsigned UIdx = CEIdx->getValue().getZExtValue();
