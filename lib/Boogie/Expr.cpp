@@ -436,6 +436,20 @@ ICMP_EXPR_CREATE(BVSgeExpr, sge)
 ICMP_EXPR_CREATE(BVSltExpr, slt)
 ICMP_EXPR_CREATE(BVSleExpr, sle)
 
+ref<Expr> FAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType() == rhs->getType());
+
+  return new FAddExpr(lhs->getType(), lhs, rhs);
+}
+
+ref<Expr> FMulExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType() == rhs->getType());
+
+  return new FMulExpr(lhs->getType(), lhs, rhs);
+}
+
 ref<Expr> Expr::createPtrLt(ref<Expr> lhs, ref<Expr> rhs) {
   return IfThenElseExpr::create(EqExpr::create(ArrayIdExpr::create(lhs),
                                                ArrayIdExpr::create(rhs)),

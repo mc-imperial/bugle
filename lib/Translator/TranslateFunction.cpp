@@ -152,8 +152,10 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     ref<Expr> (*F)(ref<Expr>, ref<Expr>);
     switch (BO->getOpcode()) {
     case BinaryOperator::Add:  F = BVAddExpr::create;  break;
+    case BinaryOperator::FAdd: F = FAddExpr::create;   break;
     case BinaryOperator::Sub:  F = BVSubExpr::create;  break;
     case BinaryOperator::Mul:  F = BVMulExpr::create;  break;
+    case BinaryOperator::FMul: F = FMulExpr::create;   break;
     case BinaryOperator::SDiv: F = BVSDivExpr::create; break;
     case BinaryOperator::UDiv: F = BVUDivExpr::create; break;
     case BinaryOperator::SRem: F = BVSRemExpr::create; break;

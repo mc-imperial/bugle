@@ -136,7 +136,7 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
       OS << "function BV" << BV2FE->getType().width << "_TO_FLOAT(bv"
          << BV2FE->getType().width << ") : ";
-      MW->writeType(OS, BV2FE->getSubExpr()->getType());
+      MW->writeType(OS, BV2FE->getType());
     });
     OS << "BV" << BV2FE->getType().width << "_TO_FLOAT(";
     writeExpr(OS, BV2FE->getSubExpr().get());
@@ -257,6 +257,25 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
            << "_" << IntName << "(bv" << BinE->getLHS()->getType().width
            << ", bv" << BinE->getLHS()->getType().width
            << ") : bool";
+      });
+      break;
+    }
+    case Expr::FAdd:
+    case Expr::FMul: {
+      const char *IntName;
+      switch (BinE->getKind()) {
+      case Expr::FAdd: IntName = "FADD"; break;
+      case Expr::FMul: IntName = "FMUL"; break;
+      default: assert(0 && "huh?");
+      }
+      OS << IntName << BinE->getType().width;
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function " << IntName << BinE->getType().width << "(";
+        MW->writeType(OS, BinE->getType());
+        OS << ", ";
+        MW->writeType(OS, BinE->getType());
+        OS << ") : ";
+        MW->writeType(OS, BinE->getType());
       });
       break;
     }

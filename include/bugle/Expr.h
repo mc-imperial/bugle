@@ -73,6 +73,8 @@ public:
     BVSge,
     BVSlt,
     BVSle,
+    FAdd,
+    FMul,
     PtrLt,
     PtrLe,
 
@@ -320,6 +322,8 @@ BINARY_EXPR(BVSgt)
 BINARY_EXPR(BVSge)
 BINARY_EXPR(BVSlt)
 BINARY_EXPR(BVSle)
+BINARY_EXPR(FAdd)
+BINARY_EXPR(FMul)
 BINARY_EXPR(PtrLt)
 BINARY_EXPR(PtrLe)
 
