@@ -1,5 +1,6 @@
 #include "bugle/Expr.h"
 #include "bugle/Function.h"
+#include "bugle/util/Functional.h"
 
 using namespace bugle;
 
@@ -448,6 +449,12 @@ ref<Expr> BVConcatExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
     }
 
   return new BVConcatExpr(Type(Type::BV, resWidth), lhs, rhs);
+}
+
+ref<Expr> Expr::createBVConcatN(const std::vector<ref<Expr>> &exprs) {
+  assert(!exprs.empty());
+  return fold(exprs.back(), exprs.rbegin()+1, exprs.rend(),
+              BVConcatExpr::create);
 }
 
 #define ICMP_EXPR_CREATE(cls, method) \

@@ -132,8 +132,7 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
     }
     Elems.push_back(Elem);
   }
-  return fold(Elems.back(), Elems.rbegin()+1, Elems.rend(),
-              BVConcatExpr::create);
+  return Expr::createBVConcatN(Elems);
 }
 
 void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
@@ -189,8 +188,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       BytesLoaded.push_back(ValByte);
       BBB->addStmt(new EvalStmt(ValByte));
     }
-    E = fold(BytesLoaded.back(), BytesLoaded.rbegin()+1, BytesLoaded.rend(),
-             BVConcatExpr::create);
+    E = Expr::createBVConcatN(BytesLoaded);
     if (LoadTy.kind == Type::Pointer)
       E = BVToPtrExpr::create(E);
     else if (LoadTy.kind == Type::Float)
@@ -316,8 +314,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       Elems.push_back(i == UIdx ? NewElt
                               : BVExtractExpr::create(Vec, EltBits*i, EltBits));
     }
-    E = fold(Elems.back(), Elems.rbegin()+1, Elems.rend(),
-             BVConcatExpr::create);
+    E = Expr::createBVConcatN(Elems);
   } else if (auto SVI = dyn_cast<ShuffleVectorInst>(I)) {
     ref<Expr> Vec1 = translateValue(SVI->getOperand(0)),
               Vec2 = translateValue(SVI->getOperand(1));
@@ -339,8 +336,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       }
       Elems.push_back(L);
     }
-    E = fold(Elems.back(), Elems.rbegin()+1, Elems.rend(),
-             BVConcatExpr::create);
+    E = Expr::createBVConcatN(Elems);
   } else if (auto CI = dyn_cast<CallInst>(I)) {
     auto F = CI->getCalledFunction();
     assert(F && "Only direct calls for now");
