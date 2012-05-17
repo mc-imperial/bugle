@@ -357,6 +357,31 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       BBB->addStmt(new GotoStmt(BasicBlockMap[BI->getSuccessor(0)]));
     }
     return;
+  } else if (auto SI = dyn_cast<SwitchInst>(I)) {
+    ref<Expr> Cond = translateValue(SI->getCondition());
+    ref<Expr> DefaultExpr = BoolConstExpr::create(true);
+    std::vector<bugle::BasicBlock *> Succs;
+
+    for (auto i = SI->case_begin(), e = SI->case_end(); i != e; ++i) {
+      ref<Expr> Val = TM->translateConstant(i.getCaseValue());
+      bugle::BasicBlock *BB = BF->addBasicBlock("casebb");
+      Succs.push_back(BB);
+      BB->addStmt(new AssumeStmt(EqExpr::create(Cond, Val)));
+      addPhiAssigns(BB, SI->getParent(), i.getCaseSuccessor());
+      BB->addStmt(new GotoStmt(BasicBlockMap[i.getCaseSuccessor()]));
+      DefaultExpr = AndExpr::create(DefaultExpr, NeExpr::create(Cond, Val));
+    }
+
+    bugle::BasicBlock *DefaultBB = BF->addBasicBlock("defaultbb");
+    Succs.push_back(DefaultBB);
+    DefaultBB->addStmt(new AssumeStmt(DefaultExpr));
+    addPhiAssigns(DefaultBB, SI->getParent(),
+                  SI->case_default().getCaseSuccessor());
+    DefaultBB->addStmt(
+      new GotoStmt(BasicBlockMap[SI->case_default().getCaseSuccessor()]));
+
+    BBB->addStmt(new GotoStmt(Succs));
+    return;
   } else if (auto PN = dyn_cast<PHINode>(I)) {
     ValueExprMap[I] = VarRefExpr::create(getPhiVariable(PN));
     return;
