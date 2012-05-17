@@ -301,6 +301,14 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               FalseVal = translateValue(SI->getFalseValue());
     Cond = BVToBoolExpr::create(Cond);
     E = IfThenElseExpr::create(Cond, TrueVal, FalseVal);
+  } else if (auto EEI = dyn_cast<ExtractElementInst>(I)) {
+    ref<Expr> Vec = translateValue(EEI->getVectorOperand()),
+              Idx = translateValue(EEI->getIndexOperand());
+    unsigned EltBits = TM->TD.getTypeSizeInBits(
+        EEI->getVectorOperandType()->getElementType());
+    BVConstExpr *CEIdx = cast<BVConstExpr>(Idx);
+    unsigned UIdx = CEIdx->getValue().getZExtValue();
+    E = BVExtractExpr::create(Vec, EltBits*UIdx, EltBits);
   } else if (auto SVI = dyn_cast<ShuffleVectorInst>(I)) {
     ref<Expr> Vec1 = translateValue(SVI->getOperand(0)),
               Vec2 = translateValue(SVI->getOperand(1));
