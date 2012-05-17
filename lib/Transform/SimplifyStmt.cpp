@@ -17,6 +17,8 @@ bool isTemporal(Expr *e) {
 
 void ProcessBasicBlock(BasicBlock *BB) {
   OwningPtrVector<Stmt> &V = BB->getStmtVector();
+  if (V.empty())
+    return;
   for (auto i = V.end()-1;;) {
     if (auto ES = dyn_cast<EvalStmt>(*i)) {
       Expr *E = ES->getExpr().get();
