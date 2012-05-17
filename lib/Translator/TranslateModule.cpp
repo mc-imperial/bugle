@@ -48,6 +48,18 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
       CE = BVToFloatExpr::create(CE);
     return CE;
   }
+  if (auto CDV = dyn_cast<ConstantDataVector>(C)) {
+    std::vector<ref<Expr>> Elems;
+    for (unsigned i = 0; i != CDV->getNumElements(); ++i) {
+      if (CDV->getElementType()->isFloatingPointTy())
+        Elems.push_back(
+          BVConstExpr::create(CDV->getElementAsAPFloat(i).bitcastToAPInt()));
+      else
+        Elems.push_back(BVConstExpr::create(CDV->getElementByteSize()*8,
+                                            CDV->getElementAsInteger(i)));
+    }
+    return Expr::createBVConcatN(Elems);
+  }
   assert(0 && "Unhandled constant");
 }
 
