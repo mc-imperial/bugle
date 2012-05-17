@@ -6,6 +6,7 @@
 #include "klee/util/GetElementPtrTypeIterator.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/Target/TargetData.h"
+#include <functional>
 
 namespace llvm {
 
