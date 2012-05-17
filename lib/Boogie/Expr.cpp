@@ -98,7 +98,7 @@ ref<Expr> BVZExtExpr::create(unsigned width, ref<Expr> bv) {
   if (auto e = dyn_cast<BVConstExpr>(bv))
     return BVConstExpr::create(e->getValue().zext(width));
 
-  return new BVZExtExpr(width, bv);
+  return new BVZExtExpr(Type(Type::BV, width), bv);
 }
 
 ref<Expr> BVSExtExpr::create(unsigned width, ref<Expr> bv) {
@@ -113,7 +113,7 @@ ref<Expr> BVSExtExpr::create(unsigned width, ref<Expr> bv) {
   if (auto e = dyn_cast<BVConstExpr>(bv))
     return BVConstExpr::create(e->getValue().sext(width));
 
-  return new BVSExtExpr(width, bv);
+  return new BVSExtExpr(Type(Type::BV, width), bv);
 }
 
 ref<Expr> FPConvExpr::create(unsigned width, ref<Expr> expr) {
@@ -123,7 +123,35 @@ ref<Expr> FPConvExpr::create(unsigned width, ref<Expr> expr) {
   if (width == ty.width)
     return expr;
 
-  return new FPConvExpr(width, expr);
+  return new FPConvExpr(Type(Type::Float, width), expr);
+}
+
+ref<Expr> FPToSIExpr::create(unsigned width, ref<Expr> expr) {
+  const Type &ty = expr->getType();
+  assert(ty.kind == Type::Float);
+
+  return new FPToSIExpr(Type(Type::BV, width), expr);
+}
+
+ref<Expr> FPToUIExpr::create(unsigned width, ref<Expr> expr) {
+  const Type &ty = expr->getType();
+  assert(ty.kind == Type::Float);
+
+  return new FPToUIExpr(Type(Type::BV, width), expr);
+}
+
+ref<Expr> SIToFPExpr::create(unsigned width, ref<Expr> expr) {
+  const Type &ty = expr->getType();
+  assert(ty.kind == Type::BV);
+
+  return new SIToFPExpr(Type(Type::Float, width), expr);
+}
+
+ref<Expr> UIToFPExpr::create(unsigned width, ref<Expr> expr) {
+  const Type &ty = expr->getType();
+  assert(ty.kind == Type::BV);
+
+  return new UIToFPExpr(Type(Type::Float, width), expr);
 }
 
 ref<Expr> IfThenElseExpr::create(ref<Expr> cond, ref<Expr> trueExpr,

@@ -260,6 +260,20 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto SEI = dyn_cast<SExtInst>(I)) {
     ref<Expr> Op = translateValue(SEI->getOperand(0));
     E = BVSExtExpr::create(cast<IntegerType>(SEI->getType())->getBitWidth(),Op);
+  } else if (auto FPSII = dyn_cast<FPToSIInst>(I)) {
+    ref<Expr> Op = translateValue(FPSII->getOperand(0));
+    E = FPToSIExpr::create(cast<IntegerType>(FPSII->getType())->getBitWidth(),
+                           Op);
+  } else if (auto FPUII = dyn_cast<FPToUIInst>(I)) {
+    ref<Expr> Op = translateValue(FPUII->getOperand(0));
+    E = FPToUIExpr::create(cast<IntegerType>(FPUII->getType())->getBitWidth(),
+                           Op);
+  } else if (auto SIFPI = dyn_cast<SIToFPInst>(I)) {
+    ref<Expr> Op = translateValue(SIFPI->getOperand(0));
+    E = SIToFPExpr::create(TM->TD.getTypeSizeInBits(SIFPI->getType()), Op);
+  } else if (auto UIFPI = dyn_cast<UIToFPInst>(I)) {
+    ref<Expr> Op = translateValue(UIFPI->getOperand(0));
+    E = UIToFPExpr::create(TM->TD.getTypeSizeInBits(UIFPI->getType()), Op);
   } else if (isa<FPExtInst>(I) || isa<FPTruncInst>(I)) {
     auto CI = cast<CastInst>(I);
     ref<Expr> Op = translateValue(CI->getOperand(0));
