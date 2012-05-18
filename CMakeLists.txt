@@ -39,6 +39,7 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
 
   configure_file(${CMAKE_SOURCE_DIR}/blang.sh ${CMAKE_BINARY_DIR}/blang)
   configure_file(${CMAKE_SOURCE_DIR}/clblang.sh ${CMAKE_BINARY_DIR}/clblang)
+  configure_file(${CMAKE_SOURCE_DIR}/cublang.sh ${CMAKE_BINARY_DIR}/cublang)
 else()
   set(LLVM_SRC "" CACHE PATH "LLVM source directory")
   set(LLVM_BUILD "" CACHE PATH "LLVM build directory")
