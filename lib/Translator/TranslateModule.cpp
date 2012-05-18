@@ -79,6 +79,7 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     return CE;
   }
   assert(0 && "Unhandled constant");
+  return 0;
 }
 
 bugle::Type TranslateModule::translateType(llvm::Type *T) {
