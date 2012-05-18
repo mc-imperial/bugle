@@ -11,6 +11,7 @@
 #include "llvm/Function.h"
 #include "llvm/InstrTypes.h"
 #include "llvm/Instructions.h"
+#include "llvm/Support/CFG.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/raw_ostream.h"
 #include "klee/util/GetElementPtrTypeIterator.h"
@@ -20,6 +21,34 @@ using namespace llvm;
 
 llvm::StringMap<TranslateFunction::SpecialFnHandler TranslateFunction::*>
   TranslateFunction::SpecialFunctionMap;
+
+// Appends at least the given basic block to the given list BBList (if not
+// already present), so as to maintain the invariants that:
+//  1) Each element of BBList is also a member of BBSet and vice versa;
+//  2) Each element of BBList with a single predecessor must appear after
+//     that predecessor.
+// This invariant is important when translating basic blocks so that we do not
+// see a use of an instruction in a basic block other than that currently
+// being processed (i.e., in a phi node) before its definition.
+static void AddBasicBlockInOrder(std::set<llvm::BasicBlock *> &BBSet,
+                                 std::vector<llvm::BasicBlock *> &BBList,
+                                 llvm::BasicBlock *BB) {
+  if (BBSet.find(BB) != BBSet.end())
+    return;
+
+  // If the basic block has one predecessor, ...
+  auto PredB = pred_begin(BB), PredI = PredB, PredE = pred_end(BB);
+  if (PredI != PredE) {
+    ++PredI;
+    if (PredI == PredE) {
+      // ... add that predecessor first.
+      AddBasicBlockInOrder(BBSet, BBList, *PredB);
+    }
+  }
+
+  BBSet.insert(BB);
+  BBList.push_back(BB);
+}
 
 void TranslateFunction::translate() {
   if (SpecialFunctionMap.empty()) {
@@ -36,11 +65,16 @@ void TranslateFunction::translate() {
   if (BF->return_begin() != BF->return_end())
     ReturnVar = *BF->return_begin();
 
-  for (auto i = F->begin(), e = F->end(); i != e; ++i)
-    BasicBlockMap[&*i] = BF->addBasicBlock(i->getName());
+  std::set<llvm::BasicBlock *> BBSet;
+  std::vector<llvm::BasicBlock *> BBList;
 
-  for (auto i = F->begin(), e = F->end(); i != e; ++i)
-    translateBasicBlock(BasicBlockMap[&*i], &*i);
+  for (auto i = F->begin(), e = F->end(); i != e; ++i) {
+    AddBasicBlockInOrder(BBSet, BBList, &*i);
+    BasicBlockMap[&*i] = BF->addBasicBlock(i->getName());
+  }
+
+  for (auto i = BBList.begin(), e = BBList.end(); i != e; ++i)
+    translateBasicBlock(BasicBlockMap[*i], *i);
 }
 
 ref<Expr> TranslateFunction::translateValue(llvm::Value *V) {
