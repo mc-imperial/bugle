@@ -411,9 +411,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto BCI = dyn_cast<BitCastInst>(I)) {
     ref<Expr> Op = translateValue(BCI->getOperand(0));
     if (BCI->getSrcTy()->isFloatingPointTy() &&
-        BCI->getDestTy()->isIntegerTy()) {
+        !BCI->getDestTy()->isFloatingPointTy()) {
       E = FloatToBVExpr::create(Op);
-    } else if (BCI->getSrcTy()->isIntegerTy() &&
+    } else if (!BCI->getSrcTy()->isFloatingPointTy() &&
                BCI->getDestTy()->isFloatingPointTy()) {
       E = BVToFloatExpr::create(Op);
     } else {
