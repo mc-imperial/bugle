@@ -61,6 +61,17 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     }
     return Expr::createBVConcatN(Elems);
   }
+  if (auto CV = dyn_cast<ConstantVector>(C)) {
+    std::vector<ref<Expr>> Elems;
+    std::transform(CV->op_begin(), CV->op_end(), std::back_inserter(Elems),
+                   [&](Use &U) -> ref<Expr> {
+      ref<Expr> E = translateConstant(cast<Constant>(U.get()));
+      if (U.get()->getType()->isFloatingPointTy())
+        E = FloatToBVExpr::create(E);
+      return E;
+    });
+    return Expr::createBVConcatN(Elems);
+  }
   if (auto CAZ = dyn_cast<ConstantAggregateZero>(C)) {
     ref<Expr> CE = BVConstExpr::createZero(TD.getTypeSizeInBits(CAZ->getType()));
     if (CAZ->getType()->isFloatingPointTy())
