@@ -3,6 +3,7 @@
 
 #include <string>
 #include "bugle/BasicBlock.h"
+#include "bugle/Ident.h"
 #include "bugle/OwningPtrVector.h"
 #include "bugle/util/UniqueNameSet.h"
 
@@ -17,22 +18,22 @@ class Function {
 public:
   Function(const std::string &name) : name(name) {}
   BasicBlock *addBasicBlock(const std::string &name) {
-    BasicBlock *BB = new BasicBlock(bbNames.makeName(name));
+    BasicBlock *BB = new BasicBlock(bbNames.makeName(makeBoogieIdent(name)));
     blocks.push_back(BB);
     return BB;
   }
   Var *addArgument(Type t, const std::string &name) {
-    Var *V = new Var(t, varNames.makeName(name));
+    Var *V = new Var(t, varNames.makeName(makeBoogieIdent(name)));
     args.push_back(V);
     return V;
   }
   Var *addReturn(Type t, const std::string &name) {
-    Var *V = new Var(t, varNames.makeName(name));
+    Var *V = new Var(t, varNames.makeName(makeBoogieIdent(name)));
     returns.push_back(V);
     return V;
   }
   Var *addLocal(Type t, const std::string &name) {
-    Var *V = new Var(t, varNames.makeName(name));
+    Var *V = new Var(t, varNames.makeName(makeBoogieIdent(name)));
     locals.push_back(V);
     return V;
   }
