@@ -75,8 +75,18 @@ int main(int argc, char **argv) {
 
   bugle::Module BM;
   bugle::TranslateModule TM(&BM, M.get());
+
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
     TM.addGPUEntryPoint(&*i);
+
+  if (NamedMDNode *NMDN = M->getNamedMetadata("opencl.kernels")) {
+    MDNode *MDN = NMDN->getOperand(0);
+    for (unsigned i = 0; i < MDN->getNumOperands(); ++i) {
+      Function *F = cast<Function>(MDN->getOperand(i));
+      TM.addGPUEntryPoint(F->getName());
+    }
+  }
+
   TM.translate();
 
   bugle::simplifyStmt(&BM);
