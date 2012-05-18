@@ -62,6 +62,8 @@ public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF,
                     llvm::Function *F)
     : TM(TM), BF(BF), F(F), ReturnVar(0) {}
+  bool isGPUEntryPoint;
+
   void translate();
 };
 

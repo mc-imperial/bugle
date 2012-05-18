@@ -58,8 +58,14 @@ void TranslateFunction::translate() {
   }
 
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
-    Var *V = BF->addArgument(TM->translateType(i->getType()), i->getName());
-    ValueExprMap[&*i] = VarRefExpr::create(V);
+    if (isGPUEntryPoint && i->getType()->isPointerTy()) {
+      GlobalArray *GA = TM->BM->addGlobal(i->getName());
+      ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
+                        BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
+    } else {
+      Var *V = BF->addArgument(TM->translateType(i->getType()), i->getName());
+      ValueExprMap[&*i] = VarRefExpr::create(V);
+    }
   }
 
   if (BF->return_begin() != BF->return_end())

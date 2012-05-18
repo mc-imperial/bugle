@@ -29,6 +29,10 @@ static cl::opt<std::string>
 OutputFilename("o", cl::desc("Override output filename"),
     cl::init(""), cl::value_desc("filename"));
 
+static cl::opt<std::string>
+GPUEntryPoints("k", cl::ZeroOrMore, cl::desc("GPU entry point function name"),
+    cl::value_desc("function"));
+
 int main(int argc, char **argv) {
   sys::PrintStackTraceOnErrorSignal();
   llvm::PrettyStackTraceProgram X(argc, argv);
@@ -71,6 +75,8 @@ int main(int argc, char **argv) {
 
   bugle::Module BM;
   bugle::TranslateModule TM(&BM, M.get());
+  for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
+    TM.addGPUEntryPoint(&*i);
   TM.translate();
 
   bugle::simplifyStmt(&BM);

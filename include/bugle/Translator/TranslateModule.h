@@ -7,6 +7,7 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/Target/TargetData.h"
 #include <functional>
+#include <set>
 
 namespace llvm {
 
@@ -29,6 +30,8 @@ class TranslateModule {
   llvm::DenseMap<llvm::Function *, bugle::Function *> FunctionMap;
   llvm::DenseMap<llvm::Constant *, ref<Expr>> ConstantMap;
 
+  std::set<std::string> GPUEntryPoints;
+
   ref<Expr> translateConstant(llvm::Constant *C);
   ref<Expr> doTranslateConstant(llvm::Constant *C);
 
@@ -40,6 +43,7 @@ class TranslateModule {
 
 public:
   TranslateModule(bugle::Module *BM, llvm::Module *M) : BM(BM), M(M), TD(M) {}
+  void addGPUEntryPoint(llvm::StringRef Name);
   void translate();
 
   friend class TranslateFunction;

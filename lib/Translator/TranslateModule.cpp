@@ -122,6 +122,10 @@ ref<Expr> TranslateModule::translateGEP(ref<Expr> Ptr,
   return PointerExpr::create(PtrArr, PtrOfs);
 }
 
+void TranslateModule::addGPUEntryPoint(StringRef Name) {
+  GPUEntryPoints.insert(Name);
+}
+
 void TranslateModule::translate() {
    BM->setPointerWidth(TD.getPointerSizeInBits());
 
@@ -135,6 +139,8 @@ void TranslateModule::translate() {
 
   for (auto i = M->begin(), e = M->end(); i != e; ++i) {
     TranslateFunction TF(this, FunctionMap[&*i], &*i);
+    TF.isGPUEntryPoint =
+      (GPUEntryPoints.find(i->getName()) != GPUEntryPoints.end());
     TF.translate();
   }
 }
