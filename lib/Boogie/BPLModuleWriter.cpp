@@ -42,6 +42,10 @@ void BPLModuleWriter::writeIntrinsic(std::function<void(llvm::raw_ostream&)> F){
   IntrinsicSet.insert(SS.str());
 }
 
+BPLModuleWriter *BPLModuleWriter::getModuleWriter() {
+  return this;
+}
+
 void BPLModuleWriter::write() {
   std::string S;
   llvm::raw_string_ostream SS(S);

@@ -1,6 +1,7 @@
 #ifndef BUGLE_BPLFUNCTIONWRITER_H
 #define BUGLE_BPLFUNCTIONWRITER_H
 
+#include "bugle/BPLExprWriter.h"
 #include "llvm/ADT/DenseMap.h"
 #include <set>
 #include <functional>
@@ -21,7 +22,7 @@ class GlobalArray;
 class Stmt;
 class Var;
 
-class BPLFunctionWriter {
+class BPLFunctionWriter : BPLExprWriter {
   BPLModuleWriter *MW;
   llvm::raw_ostream &OS;
   bugle::Function *F;
@@ -31,7 +32,8 @@ class BPLFunctionWriter {
   void maybeWriteCaseSplit(llvm::raw_ostream &OS, Expr *PtrArr,
                            std::function<void(GlobalArray *)> F);
   void writeVar(llvm::raw_ostream &OS, Var *V);
-  void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth);
+  BPLModuleWriter *getModuleWriter();
+  void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0);
   void writeStmt(llvm::raw_ostream &OS, Stmt *S);
   void writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB);
 

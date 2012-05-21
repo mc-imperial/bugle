@@ -1,6 +1,7 @@
 #ifndef BUGLE_BPLMODULEWRITER_H
 #define BUGLE_BPLMODULEWRITER_H
 
+#include "bugle/BPLExprWriter.h"
 #include <functional>
 #include <set>
 #include <string>
@@ -16,11 +17,12 @@ namespace bugle {
 class Module;
 struct Type;
 
-class BPLModuleWriter {
+class BPLModuleWriter : BPLExprWriter {
   llvm::raw_ostream &OS;
   bugle::Module *M;
   std::set<std::string> IntrinsicSet;
 
+  BPLModuleWriter *getModuleWriter();
   void writeType(llvm::raw_ostream &OS, const bugle::Type &t);
   void writeIntrinsic(std::function<void(llvm::raw_ostream &)> F);
 
@@ -29,6 +31,7 @@ public:
 
   void write();
 
+  friend class BPLExprWriter;
   friend class BPLFunctionWriter;
 };
 

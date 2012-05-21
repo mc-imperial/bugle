@@ -68,6 +68,7 @@ add_library(bugleAnalysis STATIC
 )
 
 add_library(bugleBoogie STATIC
+  lib/Boogie/BPLExprWriter.cpp
   lib/Boogie/BPLFunctionWriter.cpp
   lib/Boogie/BPLModuleWriter.cpp
   lib/Boogie/Expr.cpp
