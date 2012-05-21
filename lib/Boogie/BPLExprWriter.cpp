@@ -135,6 +135,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << ")";
   } else if (auto VarE = dyn_cast<VarRefExpr>(E)) {
     OS << "$" << VarE->getVar()->getName();
+  } else if (auto SVarE = dyn_cast<SpecialVarRefExpr>(E)) {
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "const {:" << SVarE->getAttr() << "} " << SVarE->getAttr() << " : ";
+      MW->writeType(OS, SVarE->getType());
+    });
+    OS << SVarE->getAttr();
   } else if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(E)) {
     OS << "$arrayId$" << ArrE->getArray()->getName();
   } else if (auto ConcatE = dyn_cast<BVConcatExpr>(E)) {

@@ -55,6 +55,12 @@ void TranslateFunction::translate() {
     SpecialFunctionMap["bugle_assert"] = &TranslateFunction::handleAssert;
     SpecialFunctionMap["bugle_assume"] = &TranslateFunction::handleAssume;
     SpecialFunctionMap["__assert_fail"] = &TranslateFunction::handleAssertFail;
+    SpecialFunctionMap["get_local_id"] = &TranslateFunction::handleGetLocalId;
+    SpecialFunctionMap["get_group_id"] = &TranslateFunction::handleGetGroupId;
+    SpecialFunctionMap["get_local_size"] = &TranslateFunction::handleGetLocalSize;
+    SpecialFunctionMap["get_num_groups"] = &TranslateFunction::handleGetNumGroups;
+    SpecialFunctionMap["get_global_id"] = &TranslateFunction::handleGetGlobalId;
+    SpecialFunctionMap["get_global_size"] = &TranslateFunction::handleGetGlobalSize;
   }
 
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
@@ -125,21 +131,88 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
+                                          Type retType,
                                           const std::vector<ref<Expr>> &Args) {
   BBB->addStmt(new AssertStmt(Expr::createNeZero(Args[0])));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
+                                           Type retType,
                                            const std::vector<ref<Expr>> &Args) {
   BBB->addStmt(new AssertStmt(BoolConstExpr::create(false)));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
+                                          Type retType,
                                           const std::vector<ref<Expr>> &Args) {
   BBB->addStmt(new AssumeStmt(Expr::createNeZero(Args[0])));
   return 0;
+}
+
+static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {
+  auto CE = dyn_cast<BVConstExpr>(dim);
+  switch (CE->getValue().getZExtValue()) {
+  case 0: return prefix + "_x";
+  case 1: return prefix + "_y";
+  case 2: return prefix + "_z";
+  default: assert(0 && "Unsupported dimension!");
+  }
+}
+
+static ref<Expr> mkLocalId(bugle::Type t, ref<Expr> dim) {
+  return SpecialVarRefExpr::create(t, mkDimName("local_id", dim));
+}
+
+static ref<Expr> mkGroupId(bugle::Type t, ref<Expr> dim) {
+  return SpecialVarRefExpr::create(t, mkDimName("group_id", dim));
+}
+
+static ref<Expr> mkLocalSize(bugle::Type t, ref<Expr> dim) {
+  return SpecialVarRefExpr::create(t, mkDimName("group_size", dim));
+}
+
+static ref<Expr> mkNumGroups(bugle::Type t, ref<Expr> dim) {
+  return SpecialVarRefExpr::create(t, mkDimName("num_groups", dim));
+}
+
+ref<Expr> TranslateFunction::handleGetLocalId(bugle::BasicBlock *BBB,
+                                          Type t,
+                                          const std::vector<ref<Expr>> &Args) {
+  return mkLocalId(t, Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleGetGroupId(bugle::BasicBlock *BBB,
+                                          Type t,
+                                          const std::vector<ref<Expr>> &Args) {
+  return mkGroupId(t, Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleGetLocalSize(bugle::BasicBlock *BBB,
+                                          Type t,
+                                          const std::vector<ref<Expr>> &Args) {
+  return mkLocalSize(t, Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleGetNumGroups(bugle::BasicBlock *BBB,
+                                          Type t,
+                                          const std::vector<ref<Expr>> &Args) {
+  return mkNumGroups(t, Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleGetGlobalId(bugle::BasicBlock *BBB,
+                                          Type t,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BVAddExpr::create(BVMulExpr::create(mkGroupId(t, Args[0]),
+                                             mkLocalSize(t, Args[0])),
+                           mkLocalId(t, Args[0]));
+}
+
+ref<Expr> TranslateFunction::handleGetGlobalSize(bugle::BasicBlock *BBB,
+                                          Type t,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BVMulExpr::create(mkNumGroups(t, Args[0]), mkLocalSize(t, Args[0]));
 }
 
 ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
@@ -483,7 +556,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
 
     auto SFI = SpecialFunctionMap.find(F->getName());
     if (SFI != SpecialFunctionMap.end()) {
-      E = (this->*SFI->second)(BBB, Args);
+      E = (this->*SFI->second)(BBB, (*FI->second->return_begin())->getType(),
+                               Args);
       assert(E.isNull() == CI->getType()->isVoidTy());
       if (E.isNull())
         return;

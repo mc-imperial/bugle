@@ -42,6 +42,10 @@ ref<Expr> VarRefExpr::create(Var *var) {
   return new VarRefExpr(var);
 }
 
+ref<Expr> SpecialVarRefExpr::create(Type t, const std::string &attr) {
+  return new SpecialVarRefExpr(t, attr);
+}
+
 ref<Expr> BVExtractExpr::create(ref<Expr> expr, unsigned offset,
                                 unsigned width) {
   if (offset == 0 && width == expr->getType().width)

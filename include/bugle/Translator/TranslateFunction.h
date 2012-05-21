@@ -24,6 +24,7 @@ class BasicBlock;
 class Expr;
 class Function;
 class TranslateModule;
+class Type;
 class Var;
 
 class TranslateFunction {
@@ -35,6 +36,7 @@ class TranslateFunction {
   llvm::DenseMap<llvm::PHINode *, Var *> PhiVarMap;
 
   typedef ref<Expr> SpecialFnHandler(BasicBlock *,
+                                     Type,
                                      const std::vector<klee::ref<Expr>> &);
   static llvm::StringMap<SpecialFnHandler TranslateFunction::*>
     SpecialFunctionMap;
@@ -42,6 +44,9 @@ class TranslateFunction {
   Var *ReturnVar;
 
   SpecialFnHandler handleAssert, handleAssertFail, handleAssume;
+
+  SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
+                   handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize;
 
   ref<Expr> maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
                            llvm::Type *Ty, llvm::Type *OpTy,
