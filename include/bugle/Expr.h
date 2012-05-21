@@ -100,6 +100,7 @@ public:
   static ref<Expr> createPtrLt(ref<Expr> lhs, ref<Expr> rhs);
   static ref<Expr> createPtrLe(ref<Expr> lhs, ref<Expr> rhs);
   static ref<Expr> createBVConcatN(const std::vector<ref<Expr>> &args);
+  static ref<Expr> createNeZero(ref<Expr> bv);
 
 private:
   Type type;

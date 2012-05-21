@@ -3,6 +3,7 @@
 #include "bugle/Expr.h"
 #include "bugle/Function.h"
 #include "bugle/Module.h"
+#include "bugle/Stmt.h"
 #include "llvm/Constant.h"
 #include "llvm/Constants.h"
 #include "llvm/DerivedTypes.h"
@@ -127,10 +128,17 @@ void TranslateModule::addGPUEntryPoint(StringRef Name) {
   GPUEntryPoints.insert(Name);
 }
 
+static bool isAxiomFunction(StringRef Name) {
+  return Name.startswith("__axiom");
+}
+
 void TranslateModule::translate() {
    BM->setPointerWidth(TD.getPointerSizeInBits());
 
   for (auto i = M->begin(), e = M->end(); i != e; ++i) {
+    if (isAxiomFunction(i->getName()))
+      continue;
+
     auto BF = FunctionMap[&*i] = BM->addFunction(i->getName());
 
     auto RT = i->getFunctionType()->getReturnType();
@@ -139,9 +147,22 @@ void TranslateModule::translate() {
   }
 
   for (auto i = M->begin(), e = M->end(); i != e; ++i) {
-    TranslateFunction TF(this, FunctionMap[&*i], &*i);
-    TF.isGPUEntryPoint =
-      (GPUEntryPoints.find(i->getName()) != GPUEntryPoints.end());
-    TF.translate();
+    if (isAxiomFunction(i->getName())) {
+      bugle::Function F("");
+      Type RT = translateType(i->getFunctionType()->getReturnType());
+      Var *RV = F.addReturn(RT, "ret");
+      TranslateFunction TF(this, &F, &*i);
+      TF.translate();
+      assert(F.begin()+1 == F.end() && "Expected one basic block");
+      bugle::BasicBlock *BB = *F.begin();
+      VarAssignStmt *S = cast<VarAssignStmt>(*(BB->end()-2));
+      assert(S->getVars()[0] == RV);
+      BM->addAxiom(Expr::createNeZero(S->getValues()[0]));
+    } else {
+      TranslateFunction TF(this, FunctionMap[&*i], &*i);
+      TF.isGPUEntryPoint =
+        (GPUEntryPoints.find(i->getName()) != GPUEntryPoints.end());
+      TF.translate();
+    }
   }
 }

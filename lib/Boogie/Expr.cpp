@@ -263,6 +263,10 @@ ref<Expr> NeExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new NeExpr(Type(Type::Bool), lhs, rhs);
 }
 
+ref<Expr> Expr::createNeZero(ref<Expr> bv) {
+  return NeExpr::create(bv, BVConstExpr::createZero(bv->getType().width));
+}
+
 ref<Expr> AndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
   assert(lhsTy.kind == Type::Bool && rhsTy.kind == Type::Bool);

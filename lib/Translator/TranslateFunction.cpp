@@ -126,9 +126,7 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
 
 ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
                                           const std::vector<ref<Expr>> &Args) {
-  BBB->addStmt(new AssertStmt(
-    NeExpr::create(Args[0],
-                   BVConstExpr::createZero(Args[0]->getType().width))));
+  BBB->addStmt(new AssertStmt(Expr::createNeZero(Args[0])));
   return 0;
 }
 
@@ -140,9 +138,7 @@ ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
 
 ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
                                           const std::vector<ref<Expr>> &Args) {
-  BBB->addStmt(new AssumeStmt(
-    NeExpr::create(Args[0],
-                   BVConstExpr::createZero(Args[0]->getType().width))));
+  BBB->addStmt(new AssumeStmt(Expr::createNeZero(Args[0])));
   return 0;
 }
 

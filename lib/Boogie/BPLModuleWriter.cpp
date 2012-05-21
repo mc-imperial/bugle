@@ -53,6 +53,11 @@ void BPLModuleWriter::write() {
     BPLFunctionWriter FW(this, SS, *i);
     FW.write();
   }
+  for (auto i = M->axiom_begin(), e = M->axiom_end(); i != e; ++i) {
+    SS << "axiom ";
+    writeExpr(SS, i->get());
+    SS << ";\n";
+  }
 
   OS << "type {:datatype} ptr;\n"
         "type arrayId;\n"

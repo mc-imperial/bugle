@@ -6,10 +6,14 @@
 #include "bugle/Ident.h"
 #include "bugle/OwningPtrVector.h"
 #include "bugle/util/UniqueNameSet.h"
+#include "bugle/Ref.h"
 
 namespace bugle {
 
+class Expr;
+
 class Module {
+  std::vector<ref<Expr>> axioms;
   OwningPtrVector<Function> functions;
   OwningPtrVector<GlobalArray> globals;
   UniqueNameSet functionNames, globalNames;
@@ -43,8 +47,17 @@ public:
     return globals.end();
   }
 
+  std::vector<ref<Expr>>::const_iterator axiom_begin() const {
+    return axioms.begin();
+  }
+  std::vector<ref<Expr>>::const_iterator axiom_end() const {
+    return axioms.end();
+  }
+
   unsigned getPointerWidth() const { return pointerWidth; }
   void setPointerWidth(unsigned pw) { pointerWidth = pw; }
+
+  void addAxiom(ref<Expr> axiom) { axioms.push_back(axiom); }
 };
 
 }
