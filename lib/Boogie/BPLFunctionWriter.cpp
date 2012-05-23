@@ -164,7 +164,12 @@ void BPLFunctionWriter::write() {
     std::for_each(F->begin(), F->end(),
                   [&](BasicBlock *BB){ writeBasicBlock(BodyOS, BB); });
 
-    OS << " {\n";
+    if (F->isEntryPoint()) {
+      OS << "\n" << MW->getGlobalInitRequires();
+    } else {
+      OS << " ";
+    }
+    OS << "{\n";
 
     for (auto i = F->local_begin(), e = F->local_end(); i != e; ++i) {
       OS << "  var ";

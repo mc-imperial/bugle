@@ -20,6 +20,36 @@ ref<Expr> TranslateModule::translateConstant(Constant *C) {
   return E;
 }
 
+void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned Offset,
+                                          Constant *Init) {
+  if (auto CS = dyn_cast<ConstantStruct>(Init)) {
+    auto SL = TD.getStructLayout(CS->getType());
+    for (unsigned i = 0; i < CS->getNumOperands(); ++i)
+      translateGlobalInit(GA, Offset + SL->getElementOffset(i),
+                          CS->getOperand(i));
+  } else if (auto CA = dyn_cast<ConstantArray>(Init)) {
+    uint64_t ElemSize = TD.getTypeStoreSize(CA->getType()->getElementType());
+    for (unsigned i = 0; i < CA->getNumOperands(); ++i)
+      translateGlobalInit(GA, Offset + i*ElemSize, CA->getOperand(i));
+  } else {
+    ref<Expr> Const = translateConstant(Init);
+    if (Init->getType()->isFloatingPointTy())
+      Const = FloatToBVExpr::create(Const);
+    if (Init->getType()->isPointerTy())
+      Const = PtrToBVExpr::create(Const);
+
+    for (unsigned i = 0; i < Const->getType().width/8; ++i)
+      BM->addGlobalInit(GA, Offset+i, BVExtractExpr::create(Const, i*8, 8));
+  }
+}
+
+GlobalArray *TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
+  GlobalArray *GA = BM->addGlobal(GV->getName());
+  if (GV->hasInitializer())
+    translateGlobalInit(GA, 0, GV->getInitializer());
+  return GA;
+}
+
 ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
   if (auto CI = dyn_cast<ConstantInt>(C))
     return BVConstExpr::create(CI->getValue());
@@ -40,7 +70,7 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     }
   }
   if (auto GV = dyn_cast<GlobalVariable>(C)) {
-    GlobalArray *GA = BM->addGlobal(GV->getName());
+    GlobalArray *GA = translateGlobalVariable(GV);
     return PointerExpr::create(GlobalArrayRefExpr::create(GA),
                             BVConstExpr::createZero(TD.getPointerSizeInBits()));
   }

@@ -63,6 +63,9 @@ void TranslateFunction::translate() {
     SpecialFunctionMap["get_global_size"] = &TranslateFunction::handleGetGlobalSize;
   }
 
+  if (isGPUEntryPoint || F->getName() == "main")
+    BF->setEntryPoint(true);
+
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
     if (isGPUEntryPoint && i->getType()->isPointerTy()) {
       GlobalArray *GA = TM->BM->addGlobal(i->getName());
