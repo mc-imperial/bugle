@@ -50,15 +50,15 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
       CE = BVToFloatExpr::create(CE);
     return CE;
   }
-  if (auto CDV = dyn_cast<ConstantDataVector>(C)) {
+  if (auto CDS = dyn_cast<ConstantDataSequential>(C)) {
     std::vector<ref<Expr>> Elems;
-    for (unsigned i = 0; i != CDV->getNumElements(); ++i) {
-      if (CDV->getElementType()->isFloatingPointTy())
+    for (unsigned i = 0; i != CDS->getNumElements(); ++i) {
+      if (CDS->getElementType()->isFloatingPointTy())
         Elems.push_back(
-          BVConstExpr::create(CDV->getElementAsAPFloat(i).bitcastToAPInt()));
+          BVConstExpr::create(CDS->getElementAsAPFloat(i).bitcastToAPInt()));
       else
-        Elems.push_back(BVConstExpr::create(CDV->getElementByteSize()*8,
-                                            CDV->getElementAsInteger(i)));
+        Elems.push_back(BVConstExpr::create(CDS->getElementByteSize()*8,
+                                            CDS->getElementAsInteger(i)));
     }
     return Expr::createBVConcatN(Elems);
   }
