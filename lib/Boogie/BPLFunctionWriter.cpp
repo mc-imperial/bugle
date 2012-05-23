@@ -80,7 +80,6 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     OS << "  ";
     maybeWriteCaseSplit(OS, SS->getArray().get(), [&](GlobalArray *GA) {
-      ModifiesSet.insert(GA);
       OS << "$$" << GA->getName() << "[";
       writeExpr(OS, SS->getOffset().get());
       OS << "] := ";
@@ -164,16 +163,6 @@ void BPLFunctionWriter::write() {
     llvm::raw_string_ostream BodyOS(Body);
     std::for_each(F->begin(), F->end(),
                   [&](BasicBlock *BB){ writeBasicBlock(BodyOS, BB); });
-    if (!ModifiesSet.empty()) {
-      OS << " modifies ";
-      for (auto b = ModifiesSet.begin(), i = b, e = ModifiesSet.end(); i != e;
-           ++i) {
-        if (i != b)
-          OS << ", ";
-        OS << "$$" << (*i)->getName();
-      }
-      OS << ";";
-    }
 
     OS << " {\n";
 
