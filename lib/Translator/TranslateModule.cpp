@@ -79,6 +79,10 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
       CE = BVToFloatExpr::create(CE);
     return CE;
   }
+  if (isa<ConstantPointerNull>(C)) {
+    return PointerExpr::create(NullArrayRefExpr::create(), 
+                            BVConstExpr::createZero(TD.getPointerSizeInBits()));
+  }
   assert(0 && "Unhandled constant");
   return 0;
 }

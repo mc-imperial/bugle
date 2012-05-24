@@ -73,6 +73,8 @@ void BPLModuleWriter::write() {
     OS << "const unique $arrayId$" << (*i)->getName() << " : arrayId;\n\n";
   }
 
+  OS << "const unique $arrayId$$null : arrayId;\n\n";
+
   for (auto i = IntrinsicSet.begin(), e = IntrinsicSet.end(); i != e; ++i) {
     OS << *i << ";\n";
   }

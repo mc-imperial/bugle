@@ -17,6 +17,9 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
   if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
     F(ArrE->getArray());
     OS << "\n";
+  } else if (isa<NullArrayRefExpr>(PtrArr) ||
+             MW->M->global_begin() == MW->M->global_end()) {
+    OS << "assume false;\n";
   } else {
     for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
          ++i) {

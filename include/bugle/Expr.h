@@ -25,6 +25,7 @@ public:
     BVConst,
     BoolConst,
     GlobalArrayRef,
+    NullArrayRef,
     Pointer,
     Load,
     VarRef,
@@ -157,6 +158,15 @@ public:
 
   EXPR_KIND(GlobalArrayRef)
   GlobalArray *getArray() const { return array; }
+};
+
+class NullArrayRefExpr : public Expr {
+  NullArrayRefExpr() : Expr(Type(Type::ArrayId)) {}
+
+public:
+  static ref<Expr> create();
+
+  EXPR_KIND(NullArrayRef)
 };
 
 class PointerExpr : public Expr {

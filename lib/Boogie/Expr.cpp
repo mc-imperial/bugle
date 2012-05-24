@@ -24,6 +24,10 @@ ref<Expr> GlobalArrayRefExpr::create(GlobalArray *global) {
   return new GlobalArrayRefExpr(global);
 }
 
+ref<Expr> NullArrayRefExpr::create() {
+  return new NullArrayRefExpr();
+}
+
 ref<Expr> PointerExpr::create(ref<Expr> array, ref<Expr> offset) {
   assert(array->getType().kind == Type::ArrayId);
   assert(offset->getType().kind == Type::BV);
