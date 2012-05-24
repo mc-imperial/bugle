@@ -12,10 +12,19 @@ namespace bugle {
 
 class Expr;
 
+struct GlobalInit {
+  GlobalArray *array;
+  uint64_t offset;
+  ref<Expr> init;
+  GlobalInit(GlobalArray *array, uint64_t offset, ref<Expr> init) :
+    array(array), offset(offset), init(init) {}
+};
+
 class Module {
   std::vector<ref<Expr>> axioms;
   OwningPtrVector<Function> functions;
   OwningPtrVector<GlobalArray> globals;
+  std::vector<GlobalInit> globalInits;
   UniqueNameSet functionNames, globalNames;
   unsigned pointerWidth;
 
@@ -47,6 +56,13 @@ public:
     return globals.end();
   }
 
+  std::vector<GlobalInit>::const_iterator global_init_begin() const {
+    return globalInits.begin();
+  }
+  std::vector<GlobalInit>::const_iterator global_init_end() const {
+    return globalInits.end();
+  }
+
   std::vector<ref<Expr>>::const_iterator axiom_begin() const {
     return axioms.begin();
   }
@@ -58,6 +74,9 @@ public:
   void setPointerWidth(unsigned pw) { pointerWidth = pw; }
 
   void addAxiom(ref<Expr> axiom) { axioms.push_back(axiom); }
+  void addGlobalInit(GlobalArray *array, uint64_t offset, ref<Expr> init) {
+    globalInits.emplace_back(array, offset, init);
+  }
 };
 
 }

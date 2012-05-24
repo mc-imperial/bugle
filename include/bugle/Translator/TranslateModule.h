@@ -12,6 +12,7 @@
 namespace llvm {
 
 class Constant;
+class GlobalVariable;
 class Module;
 
 }
@@ -20,6 +21,7 @@ namespace bugle {
 
 class Expr;
 class Function;
+class GlobalArray;
 class Module;
 
 class TranslateModule {
@@ -31,6 +33,10 @@ class TranslateModule {
   llvm::DenseMap<llvm::Constant *, ref<Expr>> ConstantMap;
 
   std::set<std::string> GPUEntryPoints;
+
+  void translateGlobalInit(GlobalArray *GA, unsigned Offset,
+                           llvm::Constant *Init);
+  GlobalArray *translateGlobalVariable(llvm::GlobalVariable *GV);
 
   ref<Expr> translateConstant(llvm::Constant *C);
   ref<Expr> doTranslateConstant(llvm::Constant *C);

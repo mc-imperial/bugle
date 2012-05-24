@@ -11,12 +11,13 @@ namespace bugle {
 
 class Function {
   std::string name;
+  bool entryPoint;
   OwningPtrVector<BasicBlock> blocks;
   OwningPtrVector<Var> args, returns, locals;
   UniqueNameSet bbNames, varNames;
   
 public:
-  Function(const std::string &name) : name(name) {}
+  Function(const std::string &name) : name(name), entryPoint(false) {}
   BasicBlock *addBasicBlock(const std::string &name) {
     BasicBlock *BB = new BasicBlock(bbNames.makeName(makeBoogieIdent(name)));
     blocks.push_back(BB);
@@ -39,6 +40,8 @@ public:
   }
 
   const std::string &getName() { return name; }
+  bool isEntryPoint() const { return entryPoint; }
+  void setEntryPoint(bool ep) { entryPoint = ep; }
 
   OwningPtrVector<BasicBlock>::const_iterator begin() const {
     return blocks.begin();

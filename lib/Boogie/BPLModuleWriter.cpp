@@ -46,6 +46,24 @@ BPLModuleWriter *BPLModuleWriter::getModuleWriter() {
   return this;
 }
 
+const std::string &BPLModuleWriter::getGlobalInitRequires() {
+  if (GlobalInitRequires.empty() &&
+      M->global_init_begin() != M->global_init_end()) {
+    llvm::raw_string_ostream SS(GlobalInitRequires);
+    SS << "requires ";
+    for (auto i = M->global_init_begin(), e = M->global_init_end();
+         i != e; ++i) {
+      if (i != M->global_init_begin())
+        SS << " &&\n         ";
+      SS << "$$" << i->array->getName() << "[" << i->offset << "bv"
+         << M->getPointerWidth() << "] == ";
+      writeExpr(SS, i->init.get());
+    }
+    SS << ";\n";
+  }
+  return GlobalInitRequires;
+}
+
 void BPLModuleWriter::write() {
   std::string S;
   llvm::raw_string_ostream SS(S);
