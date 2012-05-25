@@ -87,6 +87,14 @@ void TranslateFunction::translate() {
   if (isGPUEntryPoint || F->getName() == "main")
     BF->setEntryPoint(true);
 
+  if (isGPUEntryPoint)
+    BF->addAttribute("kernel");
+
+  if (TM->SL == TranslateModule::SL_OpenCL) {
+    if (F->getName() == "barrier")
+      BF->addAttribute("barrier");
+  }
+
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
     if (isGPUEntryPoint && i->getType()->isPointerTy()) {
       GlobalArray *GA = TM->BM->addGlobal(i->getName());
