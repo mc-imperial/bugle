@@ -1,6 +1,7 @@
 #ifndef BUGLE_FUNCTION_H
 #define BUGLE_FUNCTION_H
 
+#include <set>
 #include <string>
 #include "bugle/BasicBlock.h"
 #include "bugle/Ident.h"
@@ -11,6 +12,7 @@ namespace bugle {
 
 class Function {
   std::string name;
+  std::set<std::string> attributes;
   bool entryPoint;
   OwningPtrVector<BasicBlock> blocks;
   OwningPtrVector<Var> args, returns, locals;
@@ -37,6 +39,9 @@ public:
     Var *V = new Var(t, varNames.makeName(makeBoogieIdent(name)));
     locals.push_back(V);
     return V;
+  }
+  void addAttribute(const std::string &attrib) {
+    attributes.insert(attrib);
   }
 
   const std::string &getName() { return name; }
@@ -69,6 +74,13 @@ public:
   }
   OwningPtrVector<Var>::const_iterator local_end() const {
     return locals.end();
+  }
+
+  std::set<std::string>::const_iterator attrib_begin() const {
+    return attributes.begin();
+  }
+  std::set<std::string>::const_iterator attrib_end() const {
+    return attributes.end();
   }
 };
 

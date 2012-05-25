@@ -141,7 +141,12 @@ void BPLFunctionWriter::writeVar(llvm::raw_ostream &OS, Var *V) {
 }
 
 void BPLFunctionWriter::write() {
-  OS << "procedure $" << F->getName() << "(";
+  OS << "procedure ";
+  for (auto i = F->attrib_begin(), e = F->attrib_end(); i != e; ++i) {
+    OS << "{:" << *i << "} ";
+  }
+
+  OS << "$" << F->getName() << "(";
   for (auto b = F->arg_begin(), i = b, e = F->arg_end(); i != e; ++i) {
     if (i != b)
       OS << ", ";
