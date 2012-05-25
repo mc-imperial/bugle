@@ -167,10 +167,11 @@ static bool isAxiomFunction(StringRef Name) {
 }
 
 void TranslateModule::translate() {
-   BM->setPointerWidth(TD.getPointerSizeInBits());
+  BM->setPointerWidth(TD.getPointerSizeInBits());
 
   for (auto i = M->begin(), e = M->end(); i != e; ++i) {
-    if (isAxiomFunction(i->getName()))
+    if (isAxiomFunction(i->getName()) ||
+        TranslateFunction::isSpecialFunction(SL, i->getName()))
       continue;
 
     auto BF = FunctionMap[&*i] = BM->addFunction(i->getName());
@@ -192,7 +193,7 @@ void TranslateModule::translate() {
       VarAssignStmt *S = cast<VarAssignStmt>(*(BB->end()-2));
       assert(S->getVars()[0] == RV);
       BM->addAxiom(Expr::createNeZero(S->getValues()[0]));
-    } else {
+    } else if (!TranslateFunction::isSpecialFunction(SL, i->getName())) {
       TranslateFunction TF(this, FunctionMap[&*i], &*i);
       TF.isGPUEntryPoint =
         (GPUEntryPoints.find(i->getName()) != GPUEntryPoints.end());

@@ -50,12 +50,20 @@ static void AddBasicBlockInOrder(std::set<llvm::BasicBlock *> &BBSet,
   BBList.push_back(BB);
 }
 
-void TranslateFunction::translate() {
+bool TranslateFunction::isSpecialFunction(TranslateModule::SourceLanguage SL,
+                                          const std::string &fnName) {
+  SpecialFnMapTy &SpecialFunctionMap = initSpecialFunctionMap(SL);
+  return SpecialFunctionMap.find(fnName) != SpecialFunctionMap.end();
+}
+
+TranslateFunction::SpecialFnMapTy &
+TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
+  SpecialFnMapTy &SpecialFunctionMap = SpecialFunctionMaps[SL];
   if (SpecialFunctionMap.empty()) {
     SpecialFunctionMap["bugle_assert"] = &TranslateFunction::handleAssert;
     SpecialFunctionMap["bugle_assume"] = &TranslateFunction::handleAssume;
     SpecialFunctionMap["__assert_fail"] = &TranslateFunction::handleAssertFail;
-    if (TM->SL == TranslateModule::SL_OpenCL) {
+    if (SL == TranslateModule::SL_OpenCL) {
       SpecialFunctionMap["get_local_id"] =
         &TranslateFunction::handleGetLocalId;
       SpecialFunctionMap["get_group_id"] =
@@ -70,6 +78,11 @@ void TranslateFunction::translate() {
         &TranslateFunction::handleGetGlobalSize;
     }
   }
+  return SpecialFunctionMap;
+}
+
+void TranslateFunction::translate() {
+  initSpecialFunctionMap(TM->SL);
 
   if (isGPUEntryPoint || F->getName() == "main")
     BF->setEntryPoint(true);
@@ -557,8 +570,6 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto CI = dyn_cast<CallInst>(I)) {
     auto F = CI->getCalledFunction();
     assert(F && "Only direct calls for now");
-    auto FI = TM->FunctionMap.find(F);
-    assert(FI != TM->FunctionMap.end() && "Could not find function in map!");
 
     CallSite CS(CI);
     std::vector<ref<Expr>> Args;
@@ -567,16 +578,22 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
 
     auto SFI = SpecialFunctionMap.find(F->getName());
     if (SFI != SpecialFunctionMap.end()) {
-      E = (this->*SFI->second)(BBB, (*FI->second->return_begin())->getType(),
-                               Args);
+      Type RetType =
+        CI->getType()->isVoidTy() ? Type(Type::BV, 0)
+                                  : TM->translateType(CI->getType());
+      E = (this->*SFI->second)(BBB, RetType, Args);
       assert(E.isNull() == CI->getType()->isVoidTy());
       if (E.isNull())
         return;
-    } else if (CI->getType()->isVoidTy()) {
-      BBB->addStmt(new CallStmt(FI->second, Args));
-      return;
     } else {
-      E = CallExpr::create(FI->second, Args);
+      auto FI = TM->FunctionMap.find(F);
+      assert(FI != TM->FunctionMap.end() && "Could not find function in map!");
+      if (CI->getType()->isVoidTy()) {
+        BBB->addStmt(new CallStmt(FI->second, Args));
+        return;
+      } else {
+        E = CallExpr::create(FI->second, Args);
+      }
     }
   } else if (auto RI = dyn_cast<ReturnInst>(I)) {
     if (auto V = RI->getReturnValue()) {

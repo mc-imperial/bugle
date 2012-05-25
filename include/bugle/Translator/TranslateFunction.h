@@ -40,16 +40,18 @@ class TranslateFunction {
   llvm::DenseMap<llvm::BasicBlock *, BasicBlock *> BasicBlockMap;
   llvm::DenseMap<llvm::Value *, ref<Expr> > ValueExprMap;
   llvm::DenseMap<llvm::PHINode *, Var *> PhiVarMap;
+  Var *ReturnVar;
 
   SpecialFnMapTy &SpecialFunctionMap;
   static SpecialFnMapTy SpecialFunctionMaps[TranslateModule::SL_Count];
-
-  Var *ReturnVar;
 
   SpecialFnHandler handleAssert, handleAssertFail, handleAssume;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize;
+
+  static SpecialFnMapTy &initSpecialFunctionMap(
+                                            TranslateModule::SourceLanguage SL);
 
   ref<Expr> maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
                            llvm::Type *Ty, llvm::Type *OpTy,
@@ -69,10 +71,12 @@ class TranslateFunction {
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF,
                     llvm::Function *F)
-    : TM(TM), BF(BF), F(F), SpecialFunctionMap(SpecialFunctionMaps[TM->SL]),
-      ReturnVar(0) {}
+    : TM(TM), BF(BF), F(F), ReturnVar(0),
+      SpecialFunctionMap(initSpecialFunctionMap(TM->SL)) {}
   bool isGPUEntryPoint;
 
+  static bool isSpecialFunction(TranslateModule::SourceLanguage SL,
+                                const std::string &fnName);
   void translate();
 };
 
