@@ -51,9 +51,11 @@ public:
     FPToUI,
     SIToFP,
     UIToFP,
+    FSqrt,
+    FExp,
 
     UnaryFirst = Not,
-    UnaryLast = UIToFP,
+    UnaryLast = FExp,
 
     // Binary
     Eq,
@@ -283,6 +285,8 @@ UNARY_EXPR(BVToPtr)
 UNARY_EXPR(PtrToBV)
 UNARY_EXPR(BVToBool)
 UNARY_EXPR(BoolToBV)
+UNARY_EXPR(FSqrt)
+UNARY_EXPR(FExp)
 
 #define UNARY_CONV_EXPR(kind) \
   class kind##Expr : public UnaryExpr { \

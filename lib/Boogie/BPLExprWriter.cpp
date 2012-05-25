@@ -251,6 +251,32 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << ", ";
     writeExpr(OS, PLEE->getRHS().get());
     OS << ")";
+  } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
+    switch (UnE->getKind()) {
+    case Expr::FSqrt:
+    case Expr::FExp: {
+      const char *IntName;
+      switch (UnE->getKind()) {
+      case Expr::FSqrt: IntName = "FSQRT"; break;
+      case Expr::FExp:  IntName = "FEXP";  break;
+      default: assert(0 && "huh?");
+      }
+      OS << IntName << UnE->getType().width;
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function " << IntName << UnE->getType().width << "(";
+        MW->writeType(OS, UnE->getSubExpr()->getType());
+        OS << ") : ";
+        MW->writeType(OS, UnE->getType());
+      });
+      break;
+    }
+    default:
+      assert(0 && "Unsupported unary expr");
+      break;
+    }
+    OS << "(";
+    writeExpr(OS, UnE->getSubExpr().get());
+    OS << ")";
   } else if (auto BinE = dyn_cast<BinaryExpr>(E)) {
     switch (BinE->getKind()) {
     case Expr::BVAdd:

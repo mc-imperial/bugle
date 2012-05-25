@@ -162,6 +162,16 @@ ref<Expr> UIToFPExpr::create(unsigned width, ref<Expr> expr) {
   return new UIToFPExpr(Type(Type::Float, width), expr);
 }
 
+ref<Expr> FSqrtExpr::create(ref<Expr> expr) {
+  assert(expr->getType().kind == Type::Float);
+  return new FSqrtExpr(expr->getType(), expr);
+}
+
+ref<Expr> FExpExpr::create(ref<Expr> expr) {
+  assert(expr->getType().kind == Type::Float);
+  return new FExpExpr(expr->getType(), expr);
+}
+
 ref<Expr> IfThenElseExpr::create(ref<Expr> cond, ref<Expr> trueExpr,
                                  ref<Expr> falseExpr) {
   assert(cond->getType().kind == Type::Bool);
