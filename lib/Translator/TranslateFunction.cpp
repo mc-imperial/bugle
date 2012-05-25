@@ -19,8 +19,8 @@
 using namespace bugle;
 using namespace llvm;
 
-llvm::StringMap<TranslateFunction::SpecialFnHandler TranslateFunction::*>
-  TranslateFunction::SpecialFunctionMap;
+TranslateFunction::SpecialFnMapTy
+  TranslateFunction::SpecialFunctionMaps[TranslateModule::SL_Count];
 
 // Appends at least the given basic block to the given list BBList (if not
 // already present), so as to maintain the invariants that:
@@ -55,12 +55,20 @@ void TranslateFunction::translate() {
     SpecialFunctionMap["bugle_assert"] = &TranslateFunction::handleAssert;
     SpecialFunctionMap["bugle_assume"] = &TranslateFunction::handleAssume;
     SpecialFunctionMap["__assert_fail"] = &TranslateFunction::handleAssertFail;
-    SpecialFunctionMap["get_local_id"] = &TranslateFunction::handleGetLocalId;
-    SpecialFunctionMap["get_group_id"] = &TranslateFunction::handleGetGroupId;
-    SpecialFunctionMap["get_local_size"] = &TranslateFunction::handleGetLocalSize;
-    SpecialFunctionMap["get_num_groups"] = &TranslateFunction::handleGetNumGroups;
-    SpecialFunctionMap["get_global_id"] = &TranslateFunction::handleGetGlobalId;
-    SpecialFunctionMap["get_global_size"] = &TranslateFunction::handleGetGlobalSize;
+    if (TM->SL == TranslateModule::SL_OpenCL) {
+      SpecialFunctionMap["get_local_id"] =
+        &TranslateFunction::handleGetLocalId;
+      SpecialFunctionMap["get_group_id"] =
+        &TranslateFunction::handleGetGroupId;
+      SpecialFunctionMap["get_local_size"] =
+        &TranslateFunction::handleGetLocalSize;
+      SpecialFunctionMap["get_num_groups"] =
+        &TranslateFunction::handleGetNumGroups;
+      SpecialFunctionMap["get_global_id"] =
+        &TranslateFunction::handleGetGlobalId;
+      SpecialFunctionMap["get_global_size"] =
+        &TranslateFunction::handleGetGlobalSize;
+    }
   }
 
   if (isGPUEntryPoint || F->getName() == "main")

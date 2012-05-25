@@ -25,9 +25,20 @@ class GlobalArray;
 class Module;
 
 class TranslateModule {
+public:
+  enum SourceLanguage {
+    SL_C,
+    SL_CUDA,
+    SL_OpenCL,
+
+    SL_Count
+  };
+
+private:
   bugle::Module *BM;
   llvm::Module *M;
   llvm::TargetData TD;
+  SourceLanguage SL;
 
   llvm::DenseMap<llvm::Function *, bugle::Function *> FunctionMap;
   llvm::DenseMap<llvm::Constant *, ref<Expr>> ConstantMap;
@@ -48,7 +59,8 @@ class TranslateModule {
                          std::function<ref<Expr>(llvm::Value *)> xlate);
 
 public:
-  TranslateModule(bugle::Module *BM, llvm::Module *M) : BM(BM), M(M), TD(M) {}
+  TranslateModule(bugle::Module *BM, llvm::Module *M, SourceLanguage SL) :
+    BM(BM), M(M), TD(M), SL(SL) {}
   void addGPUEntryPoint(llvm::StringRef Name);
   void translate();
 

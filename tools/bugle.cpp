@@ -33,6 +33,10 @@ static cl::opt<std::string>
 GPUEntryPoints("k", cl::ZeroOrMore, cl::desc("GPU entry point function name"),
     cl::value_desc("function"));
 
+static cl::opt<std::string>
+SourceLanguage("l", cl::desc("Module source language (c, cu, cl; default c)"),
+    cl::value_desc("language"));
+
 int main(int argc, char **argv) {
   sys::PrintStackTraceOnErrorSignal();
   llvm::PrettyStackTraceProgram X(argc, argv);
@@ -73,8 +77,20 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  bugle::TranslateModule::SourceLanguage SL;
+  if (SourceLanguage.empty() || SourceLanguage == "c")
+    SL = bugle::TranslateModule::SL_C;
+  else if (SourceLanguage == "cu")
+    SL = bugle::TranslateModule::SL_CUDA;
+  else if (SourceLanguage == "cl")
+    SL = bugle::TranslateModule::SL_OpenCL;
+  else {
+    errs() << "Unsupported source language: " << SourceLanguage << "\n";
+    return 1;
+  }
+
   bugle::Module BM;
-  bugle::TranslateModule TM(&BM, M.get());
+  bugle::TranslateModule TM(&BM, M.get(), SL);
 
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
     TM.addGPUEntryPoint(&*i);

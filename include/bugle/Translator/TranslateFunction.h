@@ -2,6 +2,7 @@
 #define BUGLE_TRANSLATOR_TRANSLATEFUNCTION_H
 
 #include "bugle/Ref.h"
+#include "bugle/Translator/TranslateModule.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
 #include <vector>
@@ -28,6 +29,11 @@ class Type;
 class Var;
 
 class TranslateFunction {
+  typedef ref<Expr> SpecialFnHandler(BasicBlock *,
+                                     Type,
+                                     const std::vector<klee::ref<Expr>> &);
+  typedef llvm::StringMap<SpecialFnHandler TranslateFunction::*> SpecialFnMapTy;
+
   TranslateModule *TM;
   Function *BF;
   llvm::Function *F;
@@ -35,11 +41,8 @@ class TranslateFunction {
   llvm::DenseMap<llvm::Value *, ref<Expr> > ValueExprMap;
   llvm::DenseMap<llvm::PHINode *, Var *> PhiVarMap;
 
-  typedef ref<Expr> SpecialFnHandler(BasicBlock *,
-                                     Type,
-                                     const std::vector<klee::ref<Expr>> &);
-  static llvm::StringMap<SpecialFnHandler TranslateFunction::*>
-    SpecialFunctionMap;
+  SpecialFnMapTy &SpecialFunctionMap;
+  static SpecialFnMapTy SpecialFunctionMaps[TranslateModule::SL_Count];
 
   Var *ReturnVar;
 
@@ -66,7 +69,8 @@ class TranslateFunction {
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF,
                     llvm::Function *F)
-    : TM(TM), BF(BF), F(F), ReturnVar(0) {}
+    : TM(TM), BF(BF), F(F), SpecialFunctionMap(SpecialFunctionMaps[TM->SL]),
+      ReturnVar(0) {}
   bool isGPUEntryPoint;
 
   void translate();
