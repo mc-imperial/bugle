@@ -25,7 +25,7 @@ class BasicBlock;
 class Expr;
 class Function;
 class TranslateModule;
-class Type;
+struct Type;
 class Var;
 
 class TranslateFunction {
