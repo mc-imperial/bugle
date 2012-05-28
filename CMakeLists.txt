@@ -36,9 +36,11 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
   set(CFLAGS_CXX11 "-std=c++0x")
 
   set(GPUVERIFY_BENCHMARKING_DIR "" CACHE PATH "Path to GPUVerifyBenchmarking")
+  set(LIBCLC_DIR "" CACHE PATH "Path to libclc")
 
   configure_file(${CMAKE_SOURCE_DIR}/blang.sh ${CMAKE_BINARY_DIR}/blang)
   configure_file(${CMAKE_SOURCE_DIR}/clblang.sh ${CMAKE_BINARY_DIR}/clblang)
+  configure_file(${CMAKE_SOURCE_DIR}/clblang-libclc.sh ${CMAKE_BINARY_DIR}/clblang-libclc)
   configure_file(${CMAKE_SOURCE_DIR}/cublang.sh ${CMAKE_BINARY_DIR}/cublang)
 else()
   set(LLVM_SRC "" CACHE PATH "LLVM source directory")
