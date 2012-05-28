@@ -60,6 +60,8 @@ TranslateFunction::SpecialFnMapTy &
 TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
   SpecialFnMapTy &SpecialFunctionMap = SpecialFunctionMaps[SL];
   if (SpecialFunctionMap.empty()) {
+    SpecialFunctionMap["llvm.lifetime.start"] = &TranslateFunction::handleNoop;
+    SpecialFunctionMap["llvm.lifetime.end"] = &TranslateFunction::handleNoop;
     SpecialFunctionMap["bugle_assert"] = &TranslateFunction::handleAssert;
     SpecialFunctionMap["bugle_assume"] = &TranslateFunction::handleAssume;
     SpecialFunctionMap["__assert_fail"] = &TranslateFunction::handleAssertFail;
@@ -162,6 +164,12 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
 
   if (!Vars.empty())
     BBB->addStmt(new VarAssignStmt(Vars, Exprs));
+}
+
+ref<Expr> TranslateFunction::handleNoop(bugle::BasicBlock *BBB,
+                                        llvm::Type *Ty,
+                                        const std::vector<ref<Expr>> &Args) {
+  return 0;
 }
 
 ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
