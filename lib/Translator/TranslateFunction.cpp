@@ -65,6 +65,10 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     SpecialFunctionMap["bugle_assert"] = &TranslateFunction::handleAssert;
     SpecialFunctionMap["bugle_assume"] = &TranslateFunction::handleAssume;
     SpecialFunctionMap["__assert_fail"] = &TranslateFunction::handleAssertFail;
+    SpecialFunctionMap["bugle_requires"] = &TranslateFunction::handleRequires;
+    SpecialFunctionMap["__requires"] = &TranslateFunction::handleRequires;
+    SpecialFunctionMap["bugle_ensures"] = &TranslateFunction::handleEnsures;
+    SpecialFunctionMap["__ensures"] = &TranslateFunction::handleEnsures;
     if (SL == TranslateModule::SL_OpenCL) {
       SpecialFunctionMap["get_local_id"] =
         &TranslateFunction::handleGetLocalId;
@@ -190,6 +194,20 @@ ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
   BBB->addStmt(new AssumeStmt(Expr::createNeZero(Args[0])));
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleRequires(bugle::BasicBlock *BBB,
+                                           llvm::Type *Ty,
+                                           const std::vector<ref<Expr>> &Args) {
+  BF->addRequires(Expr::createNeZero(Args[0]));
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleEnsures(bugle::BasicBlock *BBB,
+                                           llvm::Type *Ty,
+                                           const std::vector<ref<Expr>> &Args) {
+  BF->addEnsures(Expr::createNeZero(Args[0]));
   return 0;
 }
 

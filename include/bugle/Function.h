@@ -14,6 +14,7 @@ class Function {
   std::string name;
   std::set<std::string> attributes;
   bool entryPoint;
+  std::vector<ref<Expr>> requires, ensures;
   OwningPtrVector<BasicBlock> blocks;
   OwningPtrVector<Var> args, returns, locals;
   UniqueNameSet bbNames, varNames;
@@ -42,6 +43,12 @@ public:
   }
   void addAttribute(const std::string &attrib) {
     attributes.insert(attrib);
+  }
+  void addRequires(ref<Expr> e) {
+    requires.push_back(e);
+  }
+  void addEnsures(ref<Expr> e) {
+    ensures.push_back(e);
   }
 
   const std::string &getName() { return name; }
@@ -81,6 +88,20 @@ public:
   }
   std::set<std::string>::const_iterator attrib_end() const {
     return attributes.end();
+  }
+
+  std::vector<ref<Expr>>::const_iterator requires_begin() const {
+    return requires.begin();
+  }
+  std::vector<ref<Expr>>::const_iterator requires_end() const {
+    return requires.end();
+  }
+
+  std::vector<ref<Expr>>::const_iterator ensures_begin() const {
+    return ensures.begin();
+  }
+  std::vector<ref<Expr>>::const_iterator ensures_end() const {
+    return ensures.end();
   }
 };
 

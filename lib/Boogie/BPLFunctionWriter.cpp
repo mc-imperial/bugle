@@ -167,16 +167,29 @@ void BPLFunctionWriter::write() {
   if (F->begin() == F->end()) {
     OS << ";\n";
   } else {
+    OS << "\n";
+
+    if (F->isEntryPoint()) {
+      OS << MW->getGlobalInitRequires();
+    };
+
+    for (auto i = F->requires_begin(), e = F->requires_end(); i != e; ++i) {
+      OS << "requires ";
+      writeExpr(OS, i->get());
+      OS << ";\n";
+    }
+
+    for (auto i = F->ensures_begin(), e = F->ensures_end(); i != e; ++i) {
+      OS << "ensures ";
+      writeExpr(OS, i->get());
+      OS << ";\n";
+    }
+
     std::string Body;
     llvm::raw_string_ostream BodyOS(Body);
     std::for_each(F->begin(), F->end(),
                   [&](BasicBlock *BB){ writeBasicBlock(BodyOS, BB); });
 
-    if (F->isEntryPoint()) {
-      OS << "\n" << MW->getGlobalInitRequires();
-    } else {
-      OS << " ";
-    }
     OS << "{\n";
 
     for (auto i = F->local_begin(), e = F->local_end(); i != e; ++i) {
