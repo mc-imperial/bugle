@@ -9,6 +9,7 @@
 
 #include <clc/clc.h>
 
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
 
 /* Images */
 typedef struct image2d_s
