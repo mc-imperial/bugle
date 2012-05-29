@@ -99,7 +99,7 @@ void TranslateFunction::translate() {
     BF->addAttribute("kernel");
 
   if (TM->SL == TranslateModule::SL_OpenCL) {
-    if (F->getName() == "barrier")
+    if (F->getName() == "__barrier")
       BF->addAttribute("barrier");
   }
 
