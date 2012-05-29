@@ -12,13 +12,8 @@
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 
 /* Images */
-typedef struct image2d_s
-{
-} image2d_t;
-
-typedef struct image3d_s
-{
-} image3d_t;
+typedef __global void *image2d_t;
+typedef __global void *image3d_t;
 
 #define CLK_NORMALIZED_COORDS_TRUE  0
 #define CLK_NORMALIZED_COORDS_FALSE 1
@@ -32,13 +27,35 @@ typedef struct image3d_s
 
 typedef unsigned int sampler_t;
 
-float4 read_imagef(image2d_t image, sampler_t sampler, uint2 coord);
-int4 read_imagei(image2d_t image, sampler_t sampler, uint2 coord);
-uint4 read_imageui(image2d_t image, sampler_t sampler, uint2 coord);
+#pragma OPENCL EXTENSION cl_clang_storage_class_specifiers: enable
 
-void write_imagef(image2d_t image, uint2 coords, float4 color);
-void write_imagei(image2d_t image, uint2 coords, int4 color);
-void write_imageui(image2d_t image, uint2 coords, uint4 color);
+_CLC_INLINE float4 read_imagef(image2d_t image, sampler_t sampler, uint2 coord) {
+  __global float4 *img = image;
+  return img[coord.y*(2<<16) + coord.x];
+}
+_CLC_INLINE int4 read_imagei(image2d_t image, sampler_t sampler, uint2 coord) {
+  __global int4 *img = image;
+  return img[coord.y*(2<<16) + coord.x];
+}
+_CLC_INLINE uint4 read_imageui(image2d_t image, sampler_t sampler, uint2 coord) {
+  __global uint4 *img = image;
+  return img[coord.y*(2<<16) + coord.x];
+}
+
+_CLC_INLINE void write_imagef(image2d_t image, uint2 coord, float4 color) {
+  __global float4 *img = image;
+  img[coord.y*(2<<16) + coord.x] = color;
+}
+_CLC_INLINE void write_imagei(image2d_t image, uint2 coord, int4 color) {
+  __global int4 *img = image;
+  img[coord.y*(2<<16) + coord.x] = color;
+}
+_CLC_INLINE void write_imageui(image2d_t image, uint2 coord, uint4 color) {
+  __global uint4 *img = image;
+  img[coord.y*(2<<16) + coord.x] = color;
+}
+
+#pragma OPENCL EXTENSION cl_clang_storage_class_specifiers: disable
 
 int get_image_height (image2d_t image);
 int get_image_width (image2d_t image);
