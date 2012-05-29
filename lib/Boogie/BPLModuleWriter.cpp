@@ -86,7 +86,12 @@ void BPLModuleWriter::write() {
         "type double;\n\n";
 
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
-    OS << "var $$" << (*i)->getName() << " : [bv" << M->getPointerWidth()
+    OS << "var ";
+    for (auto ai = (*i)->attrib_begin(), ae = (*i)->attrib_end(); ai != ae;
+         ++ai) {
+      OS << "{:" << *ai << "} ";
+    }
+    OS << "$$" << (*i)->getName() << " : [bv" << M->getPointerWidth()
        << "]bv8;\n";
     OS << "const unique $arrayId$" << (*i)->getName() << " : arrayId;\n\n";
   }

@@ -14,6 +14,7 @@ namespace llvm {
 class Constant;
 class GlobalVariable;
 class Module;
+class PointerType;
 
 }
 
@@ -48,6 +49,7 @@ private:
   void translateGlobalInit(GlobalArray *GA, unsigned Offset,
                            llvm::Constant *Init);
   GlobalArray *translateGlobalVariable(llvm::GlobalVariable *GV);
+  void addGlobalArrayAttribs(GlobalArray *GA, llvm::PointerType *PT);
 
   ref<Expr> translateConstant(llvm::Constant *C);
   ref<Expr> doTranslateConstant(llvm::Constant *C);

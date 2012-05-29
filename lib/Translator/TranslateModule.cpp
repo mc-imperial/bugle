@@ -43,8 +43,19 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned Offset,
   }
 }
 
+void TranslateModule::addGlobalArrayAttribs(GlobalArray *GA, PointerType *PT) {
+  if (SL == SL_OpenCL) {
+    switch (PT->getAddressSpace()) {
+      case 1: GA->addAttribute("global");       break;
+      case 3: GA->addAttribute("group_shared"); break;
+      default: ;
+    }
+  }
+}
+
 GlobalArray *TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
   GlobalArray *GA = BM->addGlobal(GV->getName());
+  addGlobalArrayAttribs(GA, GV->getType());
   if (GV->hasInitializer())
     translateGlobalInit(GA, 0, GV->getInitializer());
   return GA;

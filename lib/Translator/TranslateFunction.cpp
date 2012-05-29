@@ -106,6 +106,7 @@ void TranslateFunction::translate() {
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
     if (isGPUEntryPoint && i->getType()->isPointerTy()) {
       GlobalArray *GA = TM->BM->addGlobal(i->getName());
+      TM->addGlobalArrayAttribs(GA, cast<PointerType>(i->getType()));
       ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
     } else {
