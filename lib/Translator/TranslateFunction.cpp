@@ -11,6 +11,8 @@
 #include "llvm/Function.h"
 #include "llvm/InstrTypes.h"
 #include "llvm/Instructions.h"
+#include "llvm/IntrinsicInst.h"
+#include "llvm/Intrinsics.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/raw_ostream.h"
@@ -53,38 +55,42 @@ static void AddBasicBlockInOrder(std::set<llvm::BasicBlock *> &BBSet,
 bool TranslateFunction::isSpecialFunction(TranslateModule::SourceLanguage SL,
                                           const std::string &fnName) {
   SpecialFnMapTy &SpecialFunctionMap = initSpecialFunctionMap(SL);
-  return SpecialFunctionMap.find(fnName) != SpecialFunctionMap.end();
+  return SpecialFunctionMap.Functions.find(fnName) !=
+         SpecialFunctionMap.Functions.end();
 }
 
 TranslateFunction::SpecialFnMapTy &
 TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
   SpecialFnMapTy &SpecialFunctionMap = SpecialFunctionMaps[SL];
-  if (SpecialFunctionMap.empty()) {
-    SpecialFunctionMap["llvm.lifetime.start"] = &TranslateFunction::handleNoop;
-    SpecialFunctionMap["llvm.lifetime.end"] = &TranslateFunction::handleNoop;
-    SpecialFunctionMap["bugle_assert"] = &TranslateFunction::handleAssert;
-    SpecialFunctionMap["bugle_assume"] = &TranslateFunction::handleAssume;
-    SpecialFunctionMap["__assert_fail"] = &TranslateFunction::handleAssertFail;
-    SpecialFunctionMap["bugle_requires"] = &TranslateFunction::handleRequires;
-    SpecialFunctionMap["__requires"] = &TranslateFunction::handleRequires;
-    SpecialFunctionMap["bugle_ensures"] = &TranslateFunction::handleEnsures;
-    SpecialFunctionMap["__ensures"] = &TranslateFunction::handleEnsures;
+  if (SpecialFunctionMap.Functions.empty()) {
+    auto &fns = SpecialFunctionMap.Functions;
+    fns["llvm.lifetime.start"] = &TranslateFunction::handleNoop;
+    fns["llvm.lifetime.end"] = &TranslateFunction::handleNoop;
+    fns["bugle_assert"] = &TranslateFunction::handleAssert;
+    fns["bugle_assume"] = &TranslateFunction::handleAssume;
+    fns["__assert_fail"] = &TranslateFunction::handleAssertFail;
+    fns["bugle_requires"] = &TranslateFunction::handleRequires;
+    fns["__requires"] = &TranslateFunction::handleRequires;
+    fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
+    fns["__ensures"] = &TranslateFunction::handleEnsures;
     if (SL == TranslateModule::SL_OpenCL) {
-      SpecialFunctionMap["get_local_id"] =
-        &TranslateFunction::handleGetLocalId;
-      SpecialFunctionMap["get_group_id"] =
-        &TranslateFunction::handleGetGroupId;
-      SpecialFunctionMap["get_local_size"] =
-        &TranslateFunction::handleGetLocalSize;
-      SpecialFunctionMap["get_num_groups"] =
-        &TranslateFunction::handleGetNumGroups;
-      SpecialFunctionMap["get_global_id"] =
-        &TranslateFunction::handleGetGlobalId;
-      SpecialFunctionMap["get_global_size"] =
-        &TranslateFunction::handleGetGlobalSize;
-      SpecialFunctionMap["_Z4sqrtDv4_f"] = &TranslateFunction::handleSqrt;
-      SpecialFunctionMap["_Z3expDv4_f"] = &TranslateFunction::handleExp;
+      fns["get_local_id"] = &TranslateFunction::handleGetLocalId;
+      fns["get_group_id"] = &TranslateFunction::handleGetGroupId;
+      fns["get_local_size"] = &TranslateFunction::handleGetLocalSize;
+      fns["get_num_groups"] = &TranslateFunction::handleGetNumGroups;
+      fns["get_global_id"] = &TranslateFunction::handleGetGlobalId;
+      fns["get_global_size"] = &TranslateFunction::handleGetGlobalSize;
     }
+
+    auto &ints = SpecialFunctionMap.Intrinsics;
+    ints[Intrinsic::cos] = &TranslateFunction::handleCos;
+    ints[Intrinsic::exp2] = &TranslateFunction::handleExp;
+    ints[Intrinsic::fabs] = &TranslateFunction::handleFabs;
+    ints[Intrinsic::fma] = &TranslateFunction::handleFma;
+    ints[Intrinsic::log2] = &TranslateFunction::handleLog;
+    ints[Intrinsic::pow] = &TranslateFunction::handlePow;
+    ints[Intrinsic::sin] = &TranslateFunction::handleSin;
+    ints[Intrinsic::sqrt] = &TranslateFunction::handleSqrt;
   }
   return SpecialFunctionMap;
 }
@@ -282,12 +288,12 @@ ref<Expr> TranslateFunction::handleGetGlobalSize(bugle::BasicBlock *BBB,
   return BVMulExpr::create(mkNumGroups(t, Args[0]), mkLocalSize(t, Args[0]));
 }
 
-ref<Expr> TranslateFunction::handleSqrt(bugle::BasicBlock *BBB,
+ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,
                                         llvm::Type *Ty,
                                         const std::vector<ref<Expr>> &Args) {
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
-    return FSqrtExpr::create(E);
+    return FCosExpr::create(E);
   });
 }
 
@@ -297,6 +303,60 @@ ref<Expr> TranslateFunction::handleExp(bugle::BasicBlock *BBB,
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
     return FExpExpr::create(E);
+  });
+}
+
+ref<Expr> TranslateFunction::handleFabs(bugle::BasicBlock *BBB,
+                                        llvm::Type *Ty,
+                                        const std::vector<ref<Expr>> &Args) {
+  return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
+                                [&](llvm::Type *T, ref<Expr> E) {
+    return FAbsExpr::create(E);
+  });
+}
+
+ref<Expr> TranslateFunction::handleFma(bugle::BasicBlock *BBB,
+                                       llvm::Type *Ty,
+                                       const std::vector<ref<Expr>> &Args) {
+  ref<Expr> M =
+    maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0], Args[1], FMulExpr::create);
+  return
+    maybeTranslateSIMDInst(BBB, Ty, Ty, M, Args[2], FAddExpr::create);
+}
+
+ref<Expr> TranslateFunction::handleLog(bugle::BasicBlock *BBB,
+                                       llvm::Type *Ty,
+                                       const std::vector<ref<Expr>> &Args) {
+  return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
+                                [&](llvm::Type *T, ref<Expr> E) {
+    return FLogExpr::create(E);
+  });
+}
+
+ref<Expr> TranslateFunction::handlePow(bugle::BasicBlock *BBB,
+                                       llvm::Type *Ty,
+                                       const std::vector<ref<Expr>> &Args) {
+  return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0], Args[1],
+                                [&](ref<Expr> LHS, ref<Expr> RHS) {
+    return FPowExpr::create(LHS, RHS);
+  });
+}
+
+ref<Expr> TranslateFunction::handleSin(bugle::BasicBlock *BBB,
+                                       llvm::Type *Ty,
+                                       const std::vector<ref<Expr>> &Args) {
+  return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
+                                [&](llvm::Type *T, ref<Expr> E) {
+    return FSinExpr::create(E);
+  });
+}
+
+ref<Expr> TranslateFunction::handleSqrt(bugle::BasicBlock *BBB,
+                                        llvm::Type *Ty,
+                                        const std::vector<ref<Expr>> &Args) {
+  return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
+                                [&](llvm::Type *T, ref<Expr> E) {
+    return FSqrtExpr::create(E);
   });
 }
 
@@ -637,20 +697,36 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     std::transform(CS.arg_begin(), CS.arg_end(), std::back_inserter(Args),
                    [&](Value *V) { return translateValue(V); });
 
-    auto SFI = SpecialFunctionMap.find(F->getName());
-    if (SFI != SpecialFunctionMap.end()) {
-      E = (this->*SFI->second)(BBB, CI->getType(), Args);
-      assert(E.isNull() == CI->getType()->isVoidTy());
-      if (E.isNull())
-        return;
-    } else {
-      auto FI = TM->FunctionMap.find(F);
-      assert(FI != TM->FunctionMap.end() && "Could not find function in map!");
-      if (CI->getType()->isVoidTy()) {
-        BBB->addStmt(new CallStmt(FI->second, Args));
-        return;
+    if (auto II = dyn_cast<IntrinsicInst>(CI)) {
+      auto ID = II->getIntrinsicID();
+      auto SFII = SpecialFunctionMap.Intrinsics.find(ID);
+      if (SFII != SpecialFunctionMap.Intrinsics.end()) {
+        E = (this->*SFII->second)(BBB, CI->getType(), Args);
+        assert(E.isNull() == CI->getType()->isVoidTy());
+        if (E.isNull())
+          return;
       } else {
-        E = CallExpr::create(FI->second, Args);
+        assert(CI->getType()->isVoidTy() && "Intrinsic unsupported, can't no-op");
+        llvm::errs() << "Warning: intrinsic " << Intrinsic::getName(ID)
+                     << " not supported, treating as no-op\n";
+        return;
+      }
+    } else {
+      auto SFI = SpecialFunctionMap.Functions.find(F->getName());
+      if (SFI != SpecialFunctionMap.Functions.end()) {
+        E = (this->*SFI->second)(BBB, CI->getType(), Args);
+        assert(E.isNull() == CI->getType()->isVoidTy());
+        if (E.isNull())
+          return;
+      } else {
+        auto FI = TM->FunctionMap.find(F);
+        assert(FI != TM->FunctionMap.end() && "Couldn't find function in map!");
+        if (CI->getType()->isVoidTy()) {
+          BBB->addStmt(new CallStmt(FI->second, Args));
+          return;
+        } else {
+          E = CallExpr::create(FI->second, Args);
+        }
       }
     }
   } else if (auto RI = dyn_cast<ReturnInst>(I)) {

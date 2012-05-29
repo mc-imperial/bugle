@@ -32,7 +32,10 @@ class TranslateFunction {
   typedef ref<Expr> SpecialFnHandler(BasicBlock *,
                                      llvm::Type *,
                                      const std::vector<klee::ref<Expr>> &);
-  typedef llvm::StringMap<SpecialFnHandler TranslateFunction::*> SpecialFnMapTy;
+  struct SpecialFnMapTy {
+    llvm::StringMap<SpecialFnHandler TranslateFunction::*> Functions;
+    std::map<unsigned, SpecialFnHandler TranslateFunction::*> Intrinsics;
+  };
 
   TranslateModule *TM;
   Function *BF;
@@ -51,7 +54,8 @@ class TranslateFunction {
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize;
 
-  SpecialFnHandler handleSqrt, handleExp;
+  SpecialFnHandler handleCos, handleExp, handleFabs, handleFma, handleSqrt,
+                   handleLog, handlePow, handleSin;
 
   static SpecialFnMapTy &initSpecialFunctionMap(
                                             TranslateModule::SourceLanguage SL);

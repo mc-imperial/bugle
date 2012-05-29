@@ -181,7 +181,7 @@ void TranslateModule::translate() {
   BM->setPointerWidth(TD.getPointerSizeInBits());
 
   for (auto i = M->begin(), e = M->end(); i != e; ++i) {
-    if (isAxiomFunction(i->getName()) ||
+    if (i->isIntrinsic() || isAxiomFunction(i->getName()) ||
         TranslateFunction::isSpecialFunction(SL, i->getName()))
       continue;
 
@@ -193,6 +193,9 @@ void TranslateModule::translate() {
   }
 
   for (auto i = M->begin(), e = M->end(); i != e; ++i) {
+    if (i->isIntrinsic())
+      continue;
+
     if (isAxiomFunction(i->getName())) {
       bugle::Function F("");
       Type RT = translateType(i->getFunctionType()->getReturnType());

@@ -51,11 +51,15 @@ public:
     FPToUI,
     SIToFP,
     UIToFP,
-    FSqrt,
+    FAbs,
+    FCos,
     FExp,
+    FLog,
+    FSin,
+    FSqrt,
 
     UnaryFirst = Not,
-    UnaryLast = FExp,
+    UnaryLast = FSqrt,
 
     // Binary
     Eq,
@@ -88,6 +92,7 @@ public:
     FSub,
     FMul,
     FDiv,
+    FPow,
     FLt,
     FEq,
     FUno,
@@ -285,8 +290,12 @@ UNARY_EXPR(BVToPtr)
 UNARY_EXPR(PtrToBV)
 UNARY_EXPR(BVToBool)
 UNARY_EXPR(BoolToBV)
-UNARY_EXPR(FSqrt)
+UNARY_EXPR(FAbs)
+UNARY_EXPR(FCos)
 UNARY_EXPR(FExp)
+UNARY_EXPR(FLog)
+UNARY_EXPR(FSin)
+UNARY_EXPR(FSqrt)
 
 #define UNARY_CONV_EXPR(kind) \
   class kind##Expr : public UnaryExpr { \
@@ -364,6 +373,7 @@ BINARY_EXPR(FAdd)
 BINARY_EXPR(FSub)
 BINARY_EXPR(FMul)
 BINARY_EXPR(FDiv)
+BINARY_EXPR(FPow)
 BINARY_EXPR(FLt)
 BINARY_EXPR(FEq)
 BINARY_EXPR(FUno)

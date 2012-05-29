@@ -253,12 +253,22 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << ")";
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
-    case Expr::FSqrt:
-    case Expr::FExp: {
+    case Expr::FAbs:
+    case Expr::FCos:
+    case Expr::FExp:
+    case Expr::FLog:
+    case Expr::FPow:
+    case Expr::FSin:
+    case Expr::FSqrt: {
       const char *IntName;
       switch (UnE->getKind()) {
-      case Expr::FSqrt: IntName = "FSQRT"; break;
+      case Expr::FAbs:  IntName = "FABS";  break;
+      case Expr::FCos:  IntName = "FCOS";  break;
       case Expr::FExp:  IntName = "FEXP";  break;
+      case Expr::FLog:  IntName = "FLOG";  break;
+      case Expr::FPow:  IntName = "FPOW";  break;
+      case Expr::FSin:  IntName = "FSIN";  break;
+      case Expr::FSqrt: IntName = "FSQRT"; break;
       default: assert(0 && "huh?");
       }
       OS << IntName << UnE->getType().width;
@@ -352,13 +362,15 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     case Expr::FAdd:
     case Expr::FSub:
     case Expr::FMul:
-    case Expr::FDiv: {
+    case Expr::FDiv:
+    case Expr::FPow: {
       const char *IntName;
       switch (BinE->getKind()) {
       case Expr::FAdd: IntName = "FADD"; break;
       case Expr::FSub: IntName = "FSUB"; break;
       case Expr::FMul: IntName = "FMUL"; break;
       case Expr::FDiv: IntName = "FDIV"; break;
+      case Expr::FPow: IntName = "FPOW"; break;
       default: assert(0 && "huh?");
       }
       OS << IntName << BinE->getType().width;

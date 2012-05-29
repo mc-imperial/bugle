@@ -162,14 +162,34 @@ ref<Expr> UIToFPExpr::create(unsigned width, ref<Expr> expr) {
   return new UIToFPExpr(Type(Type::Float, width), expr);
 }
 
-ref<Expr> FSqrtExpr::create(ref<Expr> expr) {
+ref<Expr> FAbsExpr::create(ref<Expr> expr) {
   assert(expr->getType().kind == Type::Float);
-  return new FSqrtExpr(expr->getType(), expr);
+  return new FAbsExpr(expr->getType(), expr);
+}
+
+ref<Expr> FCosExpr::create(ref<Expr> expr) {
+  assert(expr->getType().kind == Type::Float);
+  return new FCosExpr(expr->getType(), expr);
 }
 
 ref<Expr> FExpExpr::create(ref<Expr> expr) {
   assert(expr->getType().kind == Type::Float);
   return new FExpExpr(expr->getType(), expr);
+}
+
+ref<Expr> FLogExpr::create(ref<Expr> expr) {
+  assert(expr->getType().kind == Type::Float);
+  return new FLogExpr(expr->getType(), expr);
+}
+
+ref<Expr> FSinExpr::create(ref<Expr> expr) {
+  assert(expr->getType().kind == Type::Float);
+  return new FSinExpr(expr->getType(), expr);
+}
+
+ref<Expr> FSqrtExpr::create(ref<Expr> expr) {
+  assert(expr->getType().kind == Type::Float);
+  return new FSqrtExpr(expr->getType(), expr);
 }
 
 ref<Expr> IfThenElseExpr::create(ref<Expr> cond, ref<Expr> trueExpr,
@@ -555,6 +575,13 @@ ref<Expr> FDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhs->getType() == rhs->getType());
 
   return new FDivExpr(lhs->getType(), lhs, rhs);
+}
+
+ref<Expr> FPowExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType() == rhs->getType());
+
+  return new FPowExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> FLtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
