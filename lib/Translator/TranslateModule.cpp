@@ -56,7 +56,9 @@ void TranslateModule::addGlobalArrayAttribs(GlobalArray *GA, PointerType *PT) {
 GlobalArray *TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
   GlobalArray *GA = BM->addGlobal(GV->getName());
   addGlobalArrayAttribs(GA, GV->getType());
-  if (GV->hasInitializer())
+  if (GV->hasInitializer() &&
+      // OpenCL __local variables have bogus initialisers.
+      !(SL == SL_OpenCL && GV->getType()->getAddressSpace() == 3))
     translateGlobalInit(GA, 0, GV->getInitializer());
   return GA;
 }
