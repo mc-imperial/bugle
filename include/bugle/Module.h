@@ -75,7 +75,7 @@ public:
 
   void addAxiom(ref<Expr> axiom) { axioms.push_back(axiom); }
   void addGlobalInit(GlobalArray *array, uint64_t offset, ref<Expr> init) {
-    globalInits.emplace_back(array, offset, init);
+    globalInits.push_back(GlobalInit(array, offset, init));
   }
 };
 

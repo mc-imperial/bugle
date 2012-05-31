@@ -1,6 +1,7 @@
 #include "bugle/Ident.h"
 #include "llvm/ADT/StringRef.h"
 #include <algorithm>
+#include <iterator>
 
 using namespace bugle;
 
