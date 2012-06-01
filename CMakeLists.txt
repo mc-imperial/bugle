@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(Bugle)
 
+set(LIBCLC_DIR "" CACHE PATH "Path to libclc")
+
 if (NOT WIN32 OR MSYS OR CYGWIN)
   find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config DOC "llvm-config executable")
   if(LLVM_CONFIG_EXECUTABLE STREQUAL "LLVM_CONFIG_EXECUTABLE-NOTFOUND")
@@ -36,7 +38,6 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
   set(CFLAGS_CXX11 "-std=c++0x")
 
   set(GPUVERIFY_BENCHMARKING_DIR "" CACHE PATH "Path to GPUVerifyBenchmarking")
-  set(LIBCLC_DIR "" CACHE PATH "Path to libclc")
 
   configure_file(${CMAKE_SOURCE_DIR}/blang.sh ${CMAKE_BINARY_DIR}/blang)
   configure_file(${CMAKE_SOURCE_DIR}/clblang.sh ${CMAKE_BINARY_DIR}/clblang)
@@ -60,6 +61,8 @@ else()
   set(LLVM_LIBS "${LLVM_LIBDIR}/LLVMTarget.lib" "${LLVM_LIBDIR}/LLVMMC.lib" "${LLVM_LIBDIR}/LLVMObject.lib" "${LLVM_LIBDIR}/LLVMBitReader.lib" "${LLVM_LIBDIR}/LLVMCore.lib" "${LLVM_LIBDIR}/LLVMSupport.lib")
 
   set(CFLAGS_CXX11 "")
+
+  configure_file(${CMAKE_SOURCE_DIR}/clblang.bat.in ${CMAKE_BINARY_DIR}/clblang.bat)
 endif()
 
 include_directories(include)
