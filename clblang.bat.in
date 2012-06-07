@@ -1,5 +1,5 @@
 @echo off
 
-@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\clang -ccc-host-triple nvptx--nvidiacl -I@CMAKE_SOURCE_DIR@\include -I@CMAKE_SOURCE_DIR@\include-libclc -I@LIBCLC_DIR@\generic\include -Xclang -mlink-bitcode-file -Xclang @LIBCLC_DIR@\nvptx--nvidiacl\lib\builtins.bc -Dcl_khr_fp64 -Dcl_clang_storage_class_specifiers -emit-llvm -c -o %~n1.bc %*
+@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\clang -O0 -ccc-host-triple nvptx--nvidiacl -I@CMAKE_SOURCE_DIR@\include -I@CMAKE_SOURCE_DIR@\include-libclc -I@LIBCLC_DIR@\generic\include -Xclang -mlink-bitcode-file -Xclang @LIBCLC_DIR@\nvptx--nvidiacl\lib\builtins.bc -Dcl_khr_fp64 -Dcl_clang_storage_class_specifiers -emit-llvm -c -o %~n1.bc %*
 @LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\opt -mem2reg -o %~n1.opt.bc %~n1.bc
 @CMAKE_BINARY_DIR@\@LLVM_BUILD_TYPE@\bugle -l cl -o %~n1.bpl %~n1.opt.bc
