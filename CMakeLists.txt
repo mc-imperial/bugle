@@ -62,6 +62,7 @@ else()
 
   set(CFLAGS_CXX11 "")
 
+  configure_file(${CMAKE_SOURCE_DIR}/blang.bat.in ${CMAKE_BINARY_DIR}/blang.bat)
   configure_file(${CMAKE_SOURCE_DIR}/clblang.bat.in ${CMAKE_BINARY_DIR}/clblang.bat)
 endif()
 
