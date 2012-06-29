@@ -35,9 +35,9 @@ public:
     return F;
   }
 
-  GlobalArray *addGlobal(const std::string &name) {
+  GlobalArray *addGlobal(const std::string &name, Type rangeType) {
     GlobalArray *GA =
-      new GlobalArray(globalNames.makeName(makeBoogieIdent(name)));
+      new GlobalArray(globalNames.makeName(makeBoogieIdent(name)), rangeType);
     globals.push_back(GA);
     return GA;
   }

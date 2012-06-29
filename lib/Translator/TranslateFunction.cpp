@@ -124,8 +124,7 @@ void TranslateFunction::translate() {
 
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
     if (isGPUEntryPoint && i->getType()->isPointerTy()) {
-      GlobalArray *GA = TM->BM->addGlobal(i->getName());
-      TM->addGlobalArrayAttribs(GA, cast<PointerType>(i->getType()));
+      GlobalArray *GA = TM->addGlobalArray(&*i);
       ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
     } else {
@@ -519,50 +518,83 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                          klee::gep_type_end(GEPI),
                          [&](Value *V) { return translateValue(V); });
   } else if (auto AI = dyn_cast<AllocaInst>(I)) {
-    GlobalArray *GA = TM->BM->addGlobal(AI->getName());
+    GlobalArray *GA = TM->addGlobalArray(AI);
     E = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
   } else if (auto LI = dyn_cast<LoadInst>(I)) {
     ref<Expr> Ptr = translateValue(LI->getPointerOperand()),
               PtrArr = ArrayIdExpr::create(Ptr),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
-    std::vector<ref<Expr> > BytesLoaded;
+    GlobalArray *GA = 0;
+    if (auto AR = dyn_cast<GlobalArrayRefExpr>(PtrArr))
+      GA = AR->getArray();
     Type LoadTy = TM->translateType(LI->getType());
     assert(LoadTy.width % 8 == 0);
-    for (unsigned i = 0; i != LoadTy.width / 8; ++i) {
-      ref<Expr> PtrByteOfs =
-        BVAddExpr::create(PtrOfs,
-                          BVConstExpr::create(PtrOfs->getType().width, i));
-      ref<Expr> ValByte = LoadExpr::create(PtrArr, PtrByteOfs);
-      BytesLoaded.push_back(ValByte);
-      BBB->addStmt(new EvalStmt(ValByte));
+    ref<Expr> Div;
+    if (GA && GA->getRangeType() == LoadTy &&
+        !(Div = Expr::createExactBVUDiv(PtrOfs, LoadTy.width / 8)).isNull()) {
+      E = LoadExpr::create(PtrArr, Div);
+    } else if (TM->ModelAllAsByteArray ||
+               (GA && GA->getRangeType() == Type(Type::BV, 8))) {
+      std::vector<ref<Expr> > BytesLoaded;
+      for (unsigned i = 0; i != LoadTy.width / 8; ++i) {
+        ref<Expr> PtrByteOfs =
+          BVAddExpr::create(PtrOfs,
+                            BVConstExpr::create(PtrOfs->getType().width, i));
+        ref<Expr> ValByte = LoadExpr::create(PtrArr, PtrByteOfs);
+        BytesLoaded.push_back(ValByte);
+        BBB->addStmt(new EvalStmt(ValByte));
+      }
+      E = Expr::createBVConcatN(BytesLoaded);
+      if (LoadTy.kind == Type::Pointer)
+        E = BVToPtrExpr::create(E);
+      else if (LoadTy.kind == Type::Float)
+        E = BVToFloatExpr::create(E);
+    } else {
+      TM->NeedAdditionalByteArrayModels = true;
+      if (GA)
+        TM->ModelAsByteArray.insert(TM->GlobalValueMap[GA]);
+      else
+        TM->ModelAllAsByteArray = true;
+      E = TM->translateUndef(LoadTy);
     }
-    E = Expr::createBVConcatN(BytesLoaded);
-    if (LoadTy.kind == Type::Pointer)
-      E = BVToPtrExpr::create(E);
-    else if (LoadTy.kind == Type::Float)
-      E = BVToFloatExpr::create(E);
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
     ref<Expr> Ptr = translateValue(SI->getPointerOperand()),
               Val = translateValue(SI->getValueOperand()),
               PtrArr = ArrayIdExpr::create(Ptr),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
+    GlobalArray *GA = 0;
+    if (auto AR = dyn_cast<GlobalArrayRefExpr>(PtrArr))
+      GA = AR->getArray();
     Type StoreTy = Val->getType();
     assert(StoreTy.width % 8 == 0);
-    if (StoreTy.kind == Type::Pointer) {
-      Val = PtrToBVExpr::create(Val);
-      BBB->addStmt(new EvalStmt(Val));
-    } else if (StoreTy.kind == Type::Float) {
-      Val = FloatToBVExpr::create(Val);
-      BBB->addStmt(new EvalStmt(Val));
-    }
-    for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
-      ref<Expr> PtrByteOfs =
-        BVAddExpr::create(PtrOfs,
-                          BVConstExpr::create(PtrOfs->getType().width, i));
-      ref<Expr> ValByte =
-        BVExtractExpr::create(Val, i*8, 8); // Assumes little endian
-      BBB->addStmt(new StoreStmt(PtrArr, PtrByteOfs, ValByte));
+    ref<Expr> Div;
+    if (GA && GA->getRangeType() == StoreTy &&
+        !(Div = Expr::createExactBVUDiv(PtrOfs, StoreTy.width / 8)).isNull()) {
+      BBB->addStmt(new StoreStmt(PtrArr, Div, Val));
+    } else if (TM->ModelAllAsByteArray ||
+               (GA && GA->getRangeType() == Type(Type::BV, 8))) {
+      if (StoreTy.kind == Type::Pointer) {
+        Val = PtrToBVExpr::create(Val);
+        BBB->addStmt(new EvalStmt(Val));
+      } else if (StoreTy.kind == Type::Float) {
+        Val = FloatToBVExpr::create(Val);
+        BBB->addStmt(new EvalStmt(Val));
+      }
+      for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
+        ref<Expr> PtrByteOfs =
+          BVAddExpr::create(PtrOfs,
+                            BVConstExpr::create(PtrOfs->getType().width, i));
+        ref<Expr> ValByte =
+          BVExtractExpr::create(Val, i*8, 8); // Assumes little endian
+        BBB->addStmt(new StoreStmt(PtrArr, PtrByteOfs, ValByte));
+      }
+    } else {
+      TM->NeedAdditionalByteArrayModels = true;
+      if (GA)
+        TM->ModelAsByteArray.insert(TM->GlobalValueMap[GA]);
+      else
+        TM->ModelAllAsByteArray = true;
     }
     return;
   } else if (auto II = dyn_cast<ICmpInst>(I)) {
@@ -860,6 +892,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   }
   ValueExprMap[I] = E;
   BBB->addStmt(new EvalStmt(E));
+  return;
 }
 
 void TranslateFunction::translateBasicBlock(bugle::BasicBlock *BBB,

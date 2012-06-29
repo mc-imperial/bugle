@@ -1,6 +1,8 @@
 #ifndef BUGLE_GLOBALARRAY_H
 #define BUGLE_GLOBALARRAY_H
 
+#include "bugle/Type.h"
+
 #include <set>
 #include <string>
 
@@ -8,11 +10,14 @@ namespace bugle {
 
 class GlobalArray {
   std::string name;
+  Type rangeType;
   std::set<std::string> attributes;
 
 public:
-  GlobalArray(const std::string &name) : name(name) {}
-  const std::string &getName() { return name; }
+  GlobalArray(const std::string &name, Type rangeType)
+    : name(name), rangeType(rangeType) {}
+  const std::string &getName() const { return name; }
+  Type getRangeType() const { return rangeType; }
   void addAttribute(const std::string &attrib) {
     attributes.insert(attrib);
   }

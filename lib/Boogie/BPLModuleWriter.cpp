@@ -92,7 +92,9 @@ void BPLModuleWriter::write() {
       OS << "{:" << *ai << "} ";
     }
     OS << "$$" << (*i)->getName() << " : [bv" << M->getPointerWidth()
-       << "]bv8;\n";
+       << "]";
+    writeType(OS, (*i)->getRangeType());
+    OS << ";\n";
     OS << "const unique $arrayId$" << (*i)->getName() << " : arrayId;\n\n";
   }
 

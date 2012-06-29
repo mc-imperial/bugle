@@ -118,6 +118,7 @@ public:
   static ref<Expr> createPtrLe(ref<Expr> lhs, ref<Expr> rhs);
   static ref<Expr> createBVConcatN(const std::vector<ref<Expr>> &args);
   static ref<Expr> createNeZero(ref<Expr> bv);
+  static ref<Expr> createExactBVUDiv(ref<Expr> lhs, uint64_t rhs);
 
 private:
   Type type;
@@ -199,9 +200,8 @@ public:
 };
 
 class LoadExpr : public Expr {
-  LoadExpr(ref<Expr> array, ref<Expr> offset) :
-    Expr(Type(Type::BV, 8)),
-    array(array), offset(offset) {}
+  LoadExpr(Type t, ref<Expr> array, ref<Expr> offset) :
+    Expr(t), array(array), offset(offset) {}
   ref<Expr> array, offset;
 
 public:

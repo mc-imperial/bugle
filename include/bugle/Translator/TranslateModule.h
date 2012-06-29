@@ -46,25 +46,38 @@ private:
 
   std::set<std::string> GPUEntryPoints;
 
+  llvm::DenseMap<GlobalArray *, llvm::Value *> GlobalValueMap;
+
+  bool NeedAdditionalByteArrayModels;
+  std::set<llvm::Value *> ModelAsByteArray;
+  bool ModelAllAsByteArray;
+
   void translateGlobalInit(GlobalArray *GA, unsigned Offset,
                            llvm::Constant *Init);
   GlobalArray *translateGlobalVariable(llvm::GlobalVariable *GV);
   void addGlobalArrayAttribs(GlobalArray *GA, llvm::PointerType *PT);
+  bugle::GlobalArray *addGlobalArray(llvm::Value *V);
 
   ref<Expr> translateConstant(llvm::Constant *C);
   ref<Expr> doTranslateConstant(llvm::Constant *C);
 
   Type translateType(llvm::Type *T);
+  Type translateArrayRangeType(llvm::Type *T);
+
   ref<Expr> translateGEP(ref<Expr> Ptr,
                          klee::gep_type_iterator begin,
                          klee::gep_type_iterator end,
                          std::function<ref<Expr>(llvm::Value *)> xlate);
+  ref<Expr> translateUndef(Type t);
 
 public:
-  TranslateModule(bugle::Module *BM, llvm::Module *M, SourceLanguage SL) :
-    BM(BM), M(M), TD(M), SL(SL) {}
+  TranslateModule(llvm::Module *M, SourceLanguage SL) :
+    BM(0), M(M), TD(M), SL(SL),
+    NeedAdditionalByteArrayModels(false),
+    ModelAllAsByteArray(false) {}
   void addGPUEntryPoint(llvm::StringRef Name);
   void translate();
+  bugle::Module *takeModule() { return BM; }
 
   friend class TranslateFunction;
 };
