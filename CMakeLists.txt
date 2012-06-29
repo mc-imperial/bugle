@@ -83,6 +83,7 @@ add_library(bugleBoogie STATIC
 add_library(bugleTranslator STATIC
   lib/Translator/TranslateModule.cpp
   lib/Translator/TranslateFunction.cpp
+  include/bugle/Translator/TranslateFunction.h
 )
 
 add_library(bugleTransform STATIC

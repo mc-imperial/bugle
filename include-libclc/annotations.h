@@ -17,15 +17,15 @@ __DEVICE_QUALIFIER__ void __requires(bool expr);
 __DEVICE_QUALIFIER__ void __ensures(bool expr);
 
 /* Return value of function, for use in postconditions */
-__DEVICE_QUALIFIER__ int __return_val_int();
-__DEVICE_QUALIFIER__ bool __return_val_bool();
+__DEVICE_QUALIFIER__ int __return_val_int(void);
+__DEVICE_QUALIFIER__ bool __return_val_bool(void);
 #ifdef __OPENCL__
-__DEVICE_QUALIFIER__ int4 __return_val_int4();
+__DEVICE_QUALIFIER__ int4 __return_val_int4(void);
 #endif
 
 /* Old value of expression, for use in postconditions */
-__DEVICE_QUALIFIER__ int __old_int();
-__DEVICE_QUALIFIER__ bool __old_bool();
+__DEVICE_QUALIFIER__ int __old_int(void);
+__DEVICE_QUALIFIER__ bool __old_bool(void);
 
 /* Assumption */
 __DEVICE_QUALIFIER__ void __assume(bool expr);
@@ -34,7 +34,7 @@ __DEVICE_QUALIFIER__ void __assume(bool expr);
 __DEVICE_QUALIFIER__ void __assert(bool expr);
 
 /* Used to express whether a thread is enabled at a particuar point */
-__DEVICE_QUALIFIER__ bool __enabled();
+__DEVICE_QUALIFIER__ bool __enabled(void);
 
 /* Maps to ==> */
 __DEVICE_QUALIFIER__ bool __implies(bool expr1, bool expr2);

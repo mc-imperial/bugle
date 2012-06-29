@@ -57,9 +57,12 @@ public:
     FLog,
     FSin,
     FSqrt,
+	All,
+	UniformInt,
+	UniformBool,
 
     UnaryFirst = Not,
-    UnaryLast = FSqrt,
+    UnaryLast = UniformBool,
 
     // Binary
     Eq,
@@ -296,6 +299,9 @@ UNARY_EXPR(FExp)
 UNARY_EXPR(FLog)
 UNARY_EXPR(FSin)
 UNARY_EXPR(FSqrt)
+UNARY_EXPR(All)
+UNARY_EXPR(UniformInt)
+UNARY_EXPR(UniformBool)
 
 #define UNARY_CONV_EXPR(kind) \
   class kind##Expr : public UnaryExpr { \

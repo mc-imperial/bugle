@@ -639,3 +639,18 @@ ref<Expr> CallExpr::create(Function *f, const std::vector<ref<Expr>> &args) {
   assert(f->return_begin()+1 == f->return_end());
   return new CallExpr((*f->return_begin())->getType(), f, args);
 }
+
+ref<Expr> AllExpr::create(ref<Expr> op) {
+  assert(op->getType().kind == Type::Bool);
+  return new AllExpr(Type(Type::Bool), op);
+}
+
+ref<Expr> UniformIntExpr::create(ref<Expr> op) {
+  assert(op->getType().kind == Type::BV);
+  return new UniformIntExpr(Type(Type::BV), op);
+}
+
+ref<Expr> UniformBoolExpr::create(ref<Expr> op) {
+  assert(op->getType().kind == Type::Bool);
+  return new UniformBoolExpr(Type(Type::Bool), op);
+}

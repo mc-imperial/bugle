@@ -67,12 +67,19 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["llvm.lifetime.start"] = &TranslateFunction::handleNoop;
     fns["llvm.lifetime.end"] = &TranslateFunction::handleNoop;
     fns["bugle_assert"] = &TranslateFunction::handleAssert;
+    fns["__assert"] = &TranslateFunction::handleAssert;
+    fns["__invariant"] = &TranslateFunction::handleInvariant;
     fns["bugle_assume"] = &TranslateFunction::handleAssume;
+    fns["__assume"] = &TranslateFunction::handleAssume;
     fns["__assert_fail"] = &TranslateFunction::handleAssertFail;
     fns["bugle_requires"] = &TranslateFunction::handleRequires;
     fns["__requires"] = &TranslateFunction::handleRequires;
     fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
     fns["__ensures"] = &TranslateFunction::handleEnsures;
+	fns["__all"] = &TranslateFunction::handleAll;
+	fns["__uniform_int"] = &TranslateFunction::handleUniformInt;
+	fns["__uniform_bool"] = &TranslateFunction::handleUniformBool;
+	fns["__enabled"] = &TranslateFunction::handleEnabled;
     if (SL == TranslateModule::SL_OpenCL) {
       fns["get_local_id"] = &TranslateFunction::handleGetLocalId;
       fns["get_group_id"] = &TranslateFunction::handleGetGroupId;
@@ -190,6 +197,13 @@ ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
   return 0;
 }
 
+ref<Expr> TranslateFunction::handleInvariant(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  BBB->addStmt(new InvariantStmt(Expr::createNeZero(Args[0])));
+  return 0;
+}
+
 ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
                                            llvm::Type *Ty,
                                            const std::vector<ref<Expr>> &Args) {
@@ -216,6 +230,30 @@ ref<Expr> TranslateFunction::handleEnsures(bugle::BasicBlock *BBB,
                                            const std::vector<ref<Expr>> &Args) {
   BF->addEnsures(Expr::createNeZero(Args[0]));
   return 0;
+}
+
+ref<Expr> TranslateFunction::handleAll(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BoolToBVExpr::create(AllExpr::create(BVToBoolExpr::create(Args[0])));
+}
+
+ref<Expr> TranslateFunction::handleUniformInt(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BoolToBVExpr::create(UniformIntExpr::create(Args[0]));
+}
+
+ref<Expr> TranslateFunction::handleUniformBool(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BoolToBVExpr::create(UniformBoolExpr::create(BVToBoolExpr::create(Args[0])));
+}
+
+ref<Expr> TranslateFunction::handleEnabled(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BoolToBVExpr::create(SpecialVarRefExpr::create(bugle::Type(bugle::Type::Bool), "__enabled"));
 }
 
 static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {

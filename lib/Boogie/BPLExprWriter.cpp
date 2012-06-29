@@ -280,6 +280,27 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       });
       break;
     }
+	case Expr::All: {
+      OS << "__all";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function __all(e : bool) : bool";
+      });
+	  break;
+	}
+	case Expr::UniformInt: {
+      OS << "__uniform_bv32";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function __uniform_bv32(e : bv32) : bool";
+      });
+	  break;
+	}
+	case Expr::UniformBool: {
+      OS << "__uniform_bool";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function __uniform_bool(e : bool) : bool";
+      });
+	  break;
+	}
     default:
       assert(0 && "Unsupported unary expr");
       break;
