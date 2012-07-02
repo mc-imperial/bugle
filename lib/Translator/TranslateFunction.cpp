@@ -515,12 +515,32 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     GlobalArray *GA = 0;
     if (auto AR = dyn_cast<GlobalArrayRefExpr>(PtrArr))
       GA = AR->getArray();
-    Type LoadTy = TM->translateType(LI->getType());
+    Type LoadTy = TM->translateType(LI->getType()), LoadElTy = LoadTy;
+    auto VT = dyn_cast<VectorType>(LI->getType());
+    if (VT)
+      LoadElTy = TM->translateType(VT->getElementType());
     assert(LoadTy.width % 8 == 0);
     ref<Expr> Div;
-    if (GA && GA->getRangeType() == LoadTy &&
-        !(Div = Expr::createExactBVUDiv(PtrOfs, LoadTy.width / 8)).isNull()) {
-      E = LoadExpr::create(PtrArr, Div);
+    if (GA && GA->getRangeType() == LoadElTy &&
+        !(Div = Expr::createExactBVUDiv(PtrOfs, LoadElTy.width/8)).isNull()) {
+      if (VT) {
+        std::vector<ref<Expr>> ElemsLoaded;
+        for (unsigned i = 0; i != VT->getNumElements(); ++i) {
+          ref<Expr> ElemOfs =
+            BVAddExpr::create(Div,
+                              BVConstExpr::create(Div->getType().width, i));
+          ref<Expr> ValElem = LoadExpr::create(PtrArr, ElemOfs);
+          BBB->addStmt(new EvalStmt(ValElem));
+          if (LoadElTy.kind == Type::Pointer)
+            ValElem = PtrToBVExpr::create(ValElem);
+          else if (LoadElTy.kind == Type::Float)
+            ValElem = FloatToBVExpr::create(ValElem);
+          ElemsLoaded.push_back(ValElem);
+        }
+        E = Expr::createBVConcatN(ElemsLoaded);
+      } else {
+        E = LoadExpr::create(PtrArr, Div);
+      }
     } else if (TM->ModelAllAsByteArray ||
                (GA && GA->getRangeType() == Type(Type::BV, 8))) {
       std::vector<ref<Expr> > BytesLoaded;
@@ -553,12 +573,30 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     GlobalArray *GA = 0;
     if (auto AR = dyn_cast<GlobalArrayRefExpr>(PtrArr))
       GA = AR->getArray();
-    Type StoreTy = Val->getType();
+    Type StoreTy = Val->getType(), StoreElTy = StoreTy;
+    auto VT = dyn_cast<VectorType>(SI->getValueOperand()->getType());
+    if (VT)
+      StoreElTy = TM->translateType(VT->getElementType());
     assert(StoreTy.width % 8 == 0);
     ref<Expr> Div;
-    if (GA && GA->getRangeType() == StoreTy &&
-        !(Div = Expr::createExactBVUDiv(PtrOfs, StoreTy.width / 8)).isNull()) {
-      BBB->addStmt(new StoreStmt(PtrArr, Div, Val));
+    if (GA && GA->getRangeType() == StoreElTy &&
+        !(Div = Expr::createExactBVUDiv(PtrOfs, StoreElTy.width/8)).isNull()) {
+      if (VT) {
+        for (unsigned i = 0; i != VT->getNumElements(); ++i) {
+          ref<Expr> ElemOfs =
+            BVAddExpr::create(Div,
+                              BVConstExpr::create(Div->getType().width, i));
+          ref<Expr> ValElem =
+            BVExtractExpr::create(Val, i*StoreElTy.width, StoreElTy.width);
+          if (StoreTy.kind == Type::Pointer)
+            ValElem = BVToPtrExpr::create(ValElem);
+          else if (StoreTy.kind == Type::Float)
+            ValElem = BVToFloatExpr::create(ValElem);
+          BBB->addStmt(new StoreStmt(PtrArr, ElemOfs, ValElem));
+        }
+      } else {
+        BBB->addStmt(new StoreStmt(PtrArr, Div, Val));
+      }
     } else if (TM->ModelAllAsByteArray ||
                (GA && GA->getRangeType() == Type(Type::BV, 8))) {
       if (StoreTy.kind == Type::Pointer) {
