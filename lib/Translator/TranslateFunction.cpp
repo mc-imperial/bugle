@@ -68,17 +68,23 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["llvm.lifetime.end"] = &TranslateFunction::handleNoop;
     fns["bugle_assert"] = &TranslateFunction::handleAssert;
     fns["__assert"] = &TranslateFunction::handleAssert;
-    fns["__invariant"] = &TranslateFunction::handleInvariant;
+    fns["__invariant"] = &TranslateFunction::handleAssert;
     fns["bugle_assume"] = &TranslateFunction::handleAssume;
-    fns["__assume"] = &TranslateFunction::handleAssume;
+    fns["_assume"] = &TranslateFunction::handleAssume;
     fns["__assert_fail"] = &TranslateFunction::handleAssertFail;
     fns["bugle_requires"] = &TranslateFunction::handleRequires;
     fns["__requires"] = &TranslateFunction::handleRequires;
     fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
     fns["__ensures"] = &TranslateFunction::handleEnsures;
 	fns["__all"] = &TranslateFunction::handleAll;
+	fns["__exclusive"] = &TranslateFunction::handleExclusive;
 	fns["__uniform_int"] = &TranslateFunction::handleUniformInt;
 	fns["__uniform_bool"] = &TranslateFunction::handleUniformBool;
+	fns["__distinct_int"] = &TranslateFunction::handleDistinctInt;
+	fns["__distinct_bool"] = &TranslateFunction::handleDistinctBool;
+	fns["__old_int"] = &TranslateFunction::handleOld;
+	fns["__old_bool"] = &TranslateFunction::handleOld;
+	fns["__implies"] = &TranslateFunction::handleImplies;
 	fns["__enabled"] = &TranslateFunction::handleEnabled;
     if (SL == TranslateModule::SL_OpenCL) {
       fns["get_local_id"] = &TranslateFunction::handleGetLocalId;
@@ -197,13 +203,6 @@ ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
   return 0;
 }
 
-ref<Expr> TranslateFunction::handleInvariant(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
-                                          const std::vector<ref<Expr>> &Args) {
-  BBB->addStmt(new InvariantStmt(Expr::createNeZero(Args[0])));
-  return 0;
-}
-
 ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
                                            llvm::Type *Ty,
                                            const std::vector<ref<Expr>> &Args) {
@@ -238,6 +237,12 @@ ref<Expr> TranslateFunction::handleAll(bugle::BasicBlock *BBB,
   return BoolToBVExpr::create(AllExpr::create(BVToBoolExpr::create(Args[0])));
 }
 
+ref<Expr> TranslateFunction::handleExclusive(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BoolToBVExpr::create(ExclusiveExpr::create(BVToBoolExpr::create(Args[0])));
+}
+
 ref<Expr> TranslateFunction::handleUniformInt(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
@@ -248,6 +253,30 @@ ref<Expr> TranslateFunction::handleUniformBool(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
   return BoolToBVExpr::create(UniformBoolExpr::create(BVToBoolExpr::create(Args[0])));
+}
+
+ref<Expr> TranslateFunction::handleDistinctInt(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BoolToBVExpr::create(DistinctIntExpr::create(Args[0]));
+}
+
+ref<Expr> TranslateFunction::handleDistinctBool(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BoolToBVExpr::create(DistinctBoolExpr::create(BVToBoolExpr::create(Args[0])));
+}
+
+ref<Expr> TranslateFunction::handleOld(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return OldExpr::create(Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleImplies(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BoolToBVExpr::create(ImpliesExpr::create(BVToBoolExpr::create(Args[0]), BVToBoolExpr::create(Args[1])));
 }
 
 ref<Expr> TranslateFunction::handleEnabled(bugle::BasicBlock *BBB,

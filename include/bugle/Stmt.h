@@ -20,8 +20,7 @@ public:
     Return,
     Assume,
     Assert,
-    Call,
-	Invariant
+    Call
   };
 
   virtual ~Stmt() {}
@@ -108,16 +107,6 @@ public:
   AssertStmt(ref<Expr> pred) : pred(pred) {}
 
   STMT_KIND(Assert)
-  ref<Expr> getPredicate() const { return pred; }
-};
-
-class InvariantStmt : public Stmt {
-  ref<Expr> pred;
-
-public:
-	InvariantStmt(ref<Expr> pred) : pred(pred) {}
-
-  STMT_KIND(Invariant)
   ref<Expr> getPredicate() const { return pred; }
 };
 

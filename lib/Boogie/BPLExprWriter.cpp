@@ -251,6 +251,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << ", ";
     writeExpr(OS, PLEE->getRHS().get());
     OS << ")";
+  } else if (auto IMPLIESE = dyn_cast<ImpliesExpr>(E)) {
+	OS << "(";
+    writeExpr(OS, IMPLIESE->getLHS().get());
+    OS << " ==> ";
+    writeExpr(OS, IMPLIESE->getRHS().get());
+    OS << ")";
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
     case Expr::FAbs:
@@ -299,6 +305,24 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << "function __uniform_bool(e : bool) : bool";
       });
+	  break;
+	}
+	case Expr::DistinctInt: {
+      OS << "__distinct_bv32";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function __distinct_bv32(e : bv32) : bool";
+      });
+	  break;
+	}
+	case Expr::DistinctBool: {
+      OS << "__distinct_bool";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function __distinct_bool(e : bool) : bool";
+      });
+	  break;
+	}
+	case Expr::Old: {
+      OS << "old";
 	  break;
 	}
     default:

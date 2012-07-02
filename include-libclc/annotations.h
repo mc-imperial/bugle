@@ -24,11 +24,12 @@ __DEVICE_QUALIFIER__ int4 __return_val_int4(void);
 #endif
 
 /* Old value of expression, for use in postconditions */
-__DEVICE_QUALIFIER__ int __old_int(void);
-__DEVICE_QUALIFIER__ bool __old_bool(void);
+__DEVICE_QUALIFIER__ int __old_int(int);
+__DEVICE_QUALIFIER__ bool __old_bool(bool);
 
 /* Assumption */
-__DEVICE_QUALIFIER__ void __assume(bool expr);
+__DEVICE_QUALIFIER__ void bugle_assume(bool expr);
+#define __assume bugle_assume
 
 /* Assertion */
 __DEVICE_QUALIFIER__ void __assert(bool expr);
@@ -84,7 +85,7 @@ __DEVICE_QUALIFIER__ bool __distinct_bool(bool expr);
 __DEVICE_QUALIFIER__ bool __all(bool expr);
 
 /* 'expr' may hold for at most one thread */
-__DEVICE_QUALIFIER__ bool __at_most_one(bool expr);
+__DEVICE_QUALIFIER__ bool __exclusive(bool expr);
 
 
 /* Axioms */

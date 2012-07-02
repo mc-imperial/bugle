@@ -122,10 +122,6 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << "  assert ";
     writeExpr(OS, AtS->getPredicate().get());
     OS << ";\n";
-  } else if (auto AtS = dyn_cast<InvariantStmt>(S)) {
-    OS << "  assert {:do_not_predicate} ";
-	writeExpr(OS, AtS->getPredicate().get());
-	OS << ";\n";
   } else if (isa<ReturnStmt>(S)) {
     OS << "  return;\n";
   } else {
