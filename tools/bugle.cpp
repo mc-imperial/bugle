@@ -89,8 +89,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  bugle::Module BM;
-  bugle::TranslateModule TM(&BM, M.get(), SL);
+  bugle::TranslateModule TM(M.get(), SL);
 
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
     TM.addGPUEntryPoint(&*i);
@@ -104,8 +103,9 @@ int main(int argc, char **argv) {
   }
 
   TM.translate();
+  std::auto_ptr<bugle::Module> BM(TM.takeModule());
 
-  bugle::simplifyStmt(&BM);
+  bugle::simplifyStmt(BM.get());
 
   std::string OutFile = OutputFilename;
   if (OutFile.empty()) {
@@ -121,7 +121,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  bugle::BPLModuleWriter MW(F.os(), &BM);
+  bugle::BPLModuleWriter MW(F.os(), BM.get());
   MW.write();
 
   F.keep();

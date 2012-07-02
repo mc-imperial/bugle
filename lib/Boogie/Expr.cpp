@@ -1,5 +1,6 @@
 #include "bugle/Expr.h"
 #include "bugle/Function.h"
+#include "bugle/GlobalArray.h"
 #include "bugle/util/Functional.h"
 
 using namespace bugle;
@@ -39,7 +40,11 @@ ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset) {
   assert(array->getType().kind == Type::ArrayId);
   assert(offset->getType().kind == Type::BV);
 
-  return new LoadExpr(array, offset);
+  Type t(Type::BV, 8);
+  if (auto GE = dyn_cast<GlobalArrayRefExpr>(array))
+    t = GE->getArray()->getRangeType();
+
+  return new LoadExpr(t, array, offset);
 }
 
 ref<Expr> VarRefExpr::create(Var *var) {
@@ -407,6 +412,35 @@ ref<Expr> BVUDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
       return BVConstExpr::create(e1->getValue().udiv(e2->getValue()));
 
   return new BVUDivExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
+}
+
+static ref<Expr> createExactBVUDivMul(Expr *nonConstOp, BVConstExpr *constOp,
+                                      uint64_t div) {
+  uint64_t mul = constOp->getValue().getZExtValue();
+  if (mul % div == 0) {
+    return BVMulExpr::create(nonConstOp,
+                             BVConstExpr::create(nonConstOp->getType().width,
+                                                 mul / div));
+  }
+  return ref<Expr>();
+}
+
+ref<Expr> Expr::createExactBVUDiv(ref<Expr> lhs, uint64_t rhs) {
+  if ((rhs & (rhs-1)) != 0)
+    return ref<Expr>();
+
+  if (auto CE = dyn_cast<BVConstExpr>(lhs)) {
+    uint64_t val = CE->getValue().getZExtValue();
+    if (val % rhs == 0)
+      return BVConstExpr::create(CE->getType().width, val / rhs);
+  } else if (auto ME = dyn_cast<BVMulExpr>(lhs)) {
+    if (auto CE = dyn_cast<BVConstExpr>(ME->getLHS()))
+      return createExactBVUDivMul(ME->getRHS().get(), CE, rhs);
+    if (auto CE = dyn_cast<BVConstExpr>(ME->getRHS()))
+      return createExactBVUDivMul(ME->getLHS().get(), CE, rhs);
+  }
+
+  return ref<Expr>();
 }
 
 ref<Expr> BVSRemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
