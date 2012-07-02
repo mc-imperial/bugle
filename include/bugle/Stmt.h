@@ -20,6 +20,7 @@ public:
     Return,
     Assume,
     Assert,
+	GlobalAssert,
     Call
   };
 
@@ -107,6 +108,16 @@ public:
   AssertStmt(ref<Expr> pred) : pred(pred) {}
 
   STMT_KIND(Assert)
+  ref<Expr> getPredicate() const { return pred; }
+};
+
+class GlobalAssertStmt : public Stmt {
+  ref<Expr> pred;
+
+public:
+  GlobalAssertStmt(ref<Expr> pred) : pred(pred) {}
+
+  STMT_KIND(GlobalAssert)
   ref<Expr> getPredicate() const { return pred; }
 };
 

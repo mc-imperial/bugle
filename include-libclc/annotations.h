@@ -33,6 +33,7 @@ __DEVICE_QUALIFIER__ void bugle_assume(bool expr);
 
 /* Assertion */
 __DEVICE_QUALIFIER__ void __assert(bool expr);
+__DEVICE_QUALIFIER__ void __global_assert(bool expr);
 
 /* Used to express whether a thread is enabled at a particuar point */
 __DEVICE_QUALIFIER__ bool __enabled(void);
@@ -73,20 +74,17 @@ bool __points_to_private(const __private void* array, const char* array_name);
 
 /* Inter-thread predicates */
 
-/* 'expr' must be the same across all threads */
-__DEVICE_QUALIFIER__ bool __uniform_int(int expr);
-__DEVICE_QUALIFIER__ bool __uniform_bool(bool expr);
+__DEVICE_QUALIFIER__ int __other_int(int expr);
+__DEVICE_QUALIFIER__ bool __other_bool(int expr);
 
-/* 'expr' must be different across all threads */
-__DEVICE_QUALIFIER__ bool __distinct_int(int expr);
-__DEVICE_QUALIFIER__ bool __distinct_bool(bool expr);
+#define __uniform_int(X) ((X) == __other_int(X))
+#define __uniform_bool(X) ((X) == __other_bool(X))
 
-/* 'expr' must be true across all threads */
-__DEVICE_QUALIFIER__ bool __all(bool expr);
+#define __distinct_int(X) ((X) != __other_int(X))
+#define __distinct_bool(X) ((X) != __other_bool(X))
 
-/* 'expr' may hold for at most one thread */
-__DEVICE_QUALIFIER__ bool __exclusive(bool expr);
-
+#define __all(X) ((X) & __other_bool(X))
+#define __exclusive(X) (!(__all(X)))
 
 /* Axioms */
 #define __concatenate(x,y) x##y

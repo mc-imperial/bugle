@@ -286,41 +286,20 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       });
       break;
     }
-	case Expr::All: {
-      OS << "__all";
+    case Expr::OtherInt: {
+      OS << "__other_bv32";
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function __all(e : bool) : bool";
+       OS << "function __other_bv32(e : bv32) : bv32";
       });
-	  break;
+      break;
 	}
-	case Expr::UniformInt: {
-      OS << "__uniform_bv32";
+    case Expr::OtherBool: {
+      OS << "__other_bool";
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function __uniform_bv32(e : bv32) : bool";
+       OS << "function __other_bool(e : bool) : bool";
       });
-	  break;
-	}
-	case Expr::UniformBool: {
-      OS << "__uniform_bool";
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function __uniform_bool(e : bool) : bool";
-      });
-	  break;
-	}
-	case Expr::DistinctInt: {
-      OS << "__distinct_bv32";
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function __distinct_bv32(e : bv32) : bool";
-      });
-	  break;
-	}
-	case Expr::DistinctBool: {
-      OS << "__distinct_bool";
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function __distinct_bool(e : bool) : bool";
-      });
-	  break;
-	}
+      break;
+    }
 	case Expr::Old: {
       OS << "old";
 	  break;

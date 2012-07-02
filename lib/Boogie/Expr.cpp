@@ -647,36 +647,16 @@ ref<Expr> CallExpr::create(Function *f, const std::vector<ref<Expr>> &args) {
   return new CallExpr((*f->return_begin())->getType(), f, args);
 }
 
-ref<Expr> AllExpr::create(ref<Expr> op) {
-  assert(op->getType().kind == Type::Bool);
-  return new AllExpr(Type(Type::Bool), op);
-}
-
-ref<Expr> ExclusiveExpr::create(ref<Expr> op) {
-  assert(op->getType().kind == Type::Bool);
-  return new ExclusiveExpr(Type(Type::Bool), op);
-}
-
-ref<Expr> UniformIntExpr::create(ref<Expr> op) {
-  assert(op->getType().kind == Type::BV);
-  return new UniformIntExpr(Type(Type::BV), op);
-}
-
-ref<Expr> UniformBoolExpr::create(ref<Expr> op) {
-  assert(op->getType().kind == Type::Bool);
-  return new UniformBoolExpr(Type(Type::Bool), op);
-}
-
-ref<Expr> DistinctIntExpr::create(ref<Expr> op) {
-  assert(op->getType().kind == Type::BV);
-  return new DistinctIntExpr(Type(Type::BV), op);
-}
-
-ref<Expr> DistinctBoolExpr::create(ref<Expr> op) {
-  assert(op->getType().kind == Type::Bool);
-  return new DistinctBoolExpr(Type(Type::Bool), op);
-}
-
 ref<Expr> OldExpr::create(ref<Expr> op) {
   return new OldExpr(Type(Type::Bool), op);
+}
+
+ref<Expr> OtherBoolExpr::create(ref<Expr> op) {
+  assert(op->getType().kind == Type::Bool);
+  return new OtherBoolExpr(Type(Type::Bool), op);
+}
+
+ref<Expr> OtherIntExpr::create(ref<Expr> op) {
+  assert(op->getType().kind == Type::BV);
+  return new OtherIntExpr(Type(Type::BV), op);
 }

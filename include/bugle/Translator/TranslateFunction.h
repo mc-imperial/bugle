@@ -48,10 +48,10 @@ class TranslateFunction {
   SpecialFnMapTy &SpecialFunctionMap;
   static SpecialFnMapTy SpecialFunctionMaps[TranslateModule::SL_Count];
 
-  SpecialFnHandler handleNoop, handleAssert, handleAssertFail, handleAssume,
+  SpecialFnHandler handleNoop, handleAssert, handleAssertFail, handleAssume, handleGlobalAssert,
                    handleRequires, handleEnsures, handleAll, handleExclusive, handleEnabled,
 				   handleUniformInt, handleUniformBool, handleDistinctInt,
-				   handleDistinctBool, handleOld, handleImplies;
+				   handleDistinctBool, handleOtherInt, handleOtherBool, handleOld, handleImplies;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize;

@@ -57,12 +57,8 @@ public:
     FLog,
     FSin,
     FSqrt,
-	All,
-	Exclusive,
-	UniformInt,
-	UniformBool,
-	DistinctInt,
-	DistinctBool,
+	OtherInt,
+	OtherBool,
 	Old,
 
     UnaryFirst = Not,
@@ -304,12 +300,8 @@ UNARY_EXPR(FExp)
 UNARY_EXPR(FLog)
 UNARY_EXPR(FSin)
 UNARY_EXPR(FSqrt)
-UNARY_EXPR(All)
-UNARY_EXPR(Exclusive)
-UNARY_EXPR(UniformInt)
-UNARY_EXPR(UniformBool)
-UNARY_EXPR(DistinctInt)
-UNARY_EXPR(DistinctBool)
+UNARY_EXPR(OtherInt)
+UNARY_EXPR(OtherBool)
 UNARY_EXPR(Old)
 
 #define UNARY_CONV_EXPR(kind) \
