@@ -70,7 +70,7 @@ GlobalArray *TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
   return GA;
 }
 
-ref<Expr> TranslateModule::translateUndef(Type t) {
+ref<Expr> TranslateModule::translateUndef(bugle::Type t) {
   ref<Expr> E = BVConstExpr::createZero(t.width);
   if (t.kind == Type::Float)
     return BVToFloatExpr::create(E);
