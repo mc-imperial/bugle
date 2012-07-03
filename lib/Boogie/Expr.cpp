@@ -682,7 +682,7 @@ ref<Expr> CallExpr::create(Function *f, const std::vector<ref<Expr>> &args) {
 }
 
 ref<Expr> OldExpr::create(ref<Expr> op) {
-  return new OldExpr(Type(Type::Bool), op);
+  return new OldExpr(op->getType(), op);
 }
 
 ref<Expr> OtherBoolExpr::create(ref<Expr> op) {

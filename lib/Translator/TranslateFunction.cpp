@@ -76,6 +76,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__requires"] = &TranslateFunction::handleRequires;
     fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
     fns["__ensures"] = &TranslateFunction::handleEnsures;
+	fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
+	fns["__return_val_bool"] = &TranslateFunction::handleReturnVal;
 	fns["__old_int"] = &TranslateFunction::handleOld;
 	fns["__old_bool"] = &TranslateFunction::handleOld;
 	fns["__other_int"] = &TranslateFunction::handleOtherInt;
@@ -237,6 +239,12 @@ ref<Expr> TranslateFunction::handleOld(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
   return OldExpr::create(Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleReturnVal(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return VarRefExpr::create(ReturnVar);
 }
 
 ref<Expr> TranslateFunction::handleOtherInt(bugle::BasicBlock *BBB,

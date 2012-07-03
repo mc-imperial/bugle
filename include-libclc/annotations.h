@@ -75,7 +75,7 @@ bool __points_to_private(const __private void* array, const char* array_name);
 /* Inter-thread predicates */
 
 __DEVICE_QUALIFIER__ int __other_int(int expr);
-__DEVICE_QUALIFIER__ bool __other_bool(int expr);
+__DEVICE_QUALIFIER__ bool __other_bool(bool expr);
 
 #define __uniform_int(X) ((X) == __other_int(X))
 #define __uniform_bool(X) ((X) == __other_bool(X))
