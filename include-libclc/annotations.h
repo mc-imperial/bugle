@@ -42,28 +42,31 @@ __DEVICE_QUALIFIER__ bool __enabled(void);
 __DEVICE_QUALIFIER__ bool __implies(bool expr1, bool expr2);
 
 /* Read set is empty */
-__DEVICE_QUALIFIER__ bool __no_read(const char* array_name);
+__DEVICE_QUALIFIER__ bool __no_read_local(const __local void* p);
+__DEVICE_QUALIFIER__ bool __no_read_global(const __global void* p);
 
 /* Read set is non-empty */
-__DEVICE_QUALIFIER__ bool __read(const char* array_name);
+__DEVICE_QUALIFIER__ bool __read_local(const __local void* p);
+__DEVICE_QUALIFIER__ bool __read_global(const __global void* p);
 
 /* Write set is empty */
-__DEVICE_QUALIFIER__ bool __no_write(const char* array_name);
+__DEVICE_QUALIFIER__ bool __no_write_local(const __local void* p);
+__DEVICE_QUALIFIER__ bool __no_write_global(const __global void* p);
 
 /* Write set is non-empty */
-__DEVICE_QUALIFIER__ bool __write(const char* array_name);
+__DEVICE_QUALIFIER__ bool __write(const void* p);
 
 /* Read offset */
-__DEVICE_QUALIFIER__ int __read_offset(const char* array_name);
+__DEVICE_QUALIFIER__ int __read_offset(const void* p);
 
 /* Write set is empty */
-__DEVICE_QUALIFIER__ int __write_offset(const char* array_name);
+__DEVICE_QUALIFIER__ int __write_offset(const void* p);
 
-/* If a read has occurred to 'array_name' then 'expr' must hold */
-__DEVICE_QUALIFIER__ bool __read_implies(const char* array_name, bool expr);
+/* If a read has occurred to 'p' then 'expr' must hold */
+__DEVICE_QUALIFIER__ bool __read_implies(const void* p, bool expr);
 
-/* If a write has occurred to 'array_name' then 'expr' must hold */
-__DEVICE_QUALIFIER__ bool __write_implies(const char* array_name, bool expr);
+/* If a write has occurred to 'p' then 'expr' must hold */
+__DEVICE_QUALIFIER__ bool __write_implies(const void* p, bool expr);
 
 
 #ifdef __OPENCL__
