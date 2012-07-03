@@ -433,6 +433,13 @@ ref<Expr> Expr::createExactBVUDiv(ref<Expr> lhs, uint64_t rhs) {
     uint64_t val = CE->getValue().getZExtValue();
     if (val % rhs == 0)
       return BVConstExpr::create(CE->getType().width, val / rhs);
+  } else if (auto AE = dyn_cast<BVAddExpr>(lhs)) {
+    auto lhsDiv = createExactBVUDiv(AE->getLHS(), rhs);
+    if (lhsDiv.isNull())
+      return ref<Expr>();
+    auto rhsDiv = createExactBVUDiv(AE->getRHS(), rhs);
+    if (!rhsDiv.isNull())
+      return BVAddExpr::create(lhsDiv, rhsDiv);
   } else if (auto ME = dyn_cast<BVMulExpr>(lhs)) {
     if (auto CE = dyn_cast<BVConstExpr>(ME->getLHS()))
       return createExactBVUDivMul(ME->getRHS().get(), CE, rhs);
