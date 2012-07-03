@@ -336,6 +336,17 @@ ref<Expr> OrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new OrExpr(Type(Type::Bool), lhs, rhs);
 }
 
+static ref<Expr> reassociateConstAdd(BVAddExpr *nonConstOp,
+                                     BVConstExpr *constOp) {
+  if (auto clhs = dyn_cast<BVConstExpr>(nonConstOp->getLHS()))
+    return BVAddExpr::create(nonConstOp->getRHS(),
+                             BVAddExpr::create(clhs, constOp));
+  if (auto crhs = dyn_cast<BVConstExpr>(nonConstOp->getRHS()))
+    return BVAddExpr::create(nonConstOp->getLHS(),
+                             BVAddExpr::create(crhs, constOp));
+  return ref<Expr>();
+}
+
 ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
   assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
@@ -346,11 +357,22 @@ ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
       return rhs;
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
       return BVConstExpr::create(e1->getValue() + e2->getValue());
+    if (auto e2 = dyn_cast<BVAddExpr>(rhs)) {
+      auto ca = reassociateConstAdd(e2, e1);
+      if (!ca.isNull())
+        return ca;
+    }
   }
 
-  if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+  if (auto e2 = dyn_cast<BVConstExpr>(rhs)) {
     if (e2->getValue().isMinValue())
       return lhs;
+    if (auto e1 = dyn_cast<BVAddExpr>(lhs)) {
+      auto ca = reassociateConstAdd(e1, e2);
+      if (!ca.isNull())
+        return ca;
+    }
+  }
 
   return new BVAddExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
 }
