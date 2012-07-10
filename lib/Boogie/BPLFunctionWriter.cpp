@@ -19,7 +19,7 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
     OS << "\n";
   } else if (isa<NullArrayRefExpr>(PtrArr) ||
              MW->M->global_begin() == MW->M->global_end()) {
-    OS << "assume false;\n";
+    OS << "assert false;\n";
   } else {
     for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
          ++i) {
@@ -29,7 +29,7 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
       F(*i);
       OS << "\n  } else ";
     }
-    OS << "{\n    assume false;\n  }\n";
+    OS << "{\n    assert false;\n  }\n";
   }
 }
 
