@@ -818,19 +818,22 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               Vec2 = translateValue(SVI->getOperand(1));
     unsigned EltBits =
       TM->TD.getTypeSizeInBits(SVI->getType()->getElementType());
-    unsigned ElemCount = SVI->getType()->getNumElements();
+    unsigned VecElemCount = cast<VectorType>(SVI->getOperand(0)->getType())
+                              ->getNumElements();
+    unsigned ResElemCount = SVI->getType()->getNumElements();
     std::vector<ref<Expr>> Elems;
-    for (unsigned i = 0; i != ElemCount; ++i) {
+    for (unsigned i = 0; i != ResElemCount; ++i) {
       ref<Expr> L;
       int MaskValI = SVI->getMaskValue(i);
       if (MaskValI < 0)
         L = BVConstExpr::create(EltBits, 0);
       else {
         unsigned MaskVal = (unsigned) MaskValI;
-        if (MaskVal < ElemCount)
+        if (MaskVal < VecElemCount)
           L = BVExtractExpr::create(Vec1, EltBits*MaskVal, EltBits);
         else
-          L = BVExtractExpr::create(Vec2, EltBits*(MaskVal-ElemCount), EltBits);
+          L = BVExtractExpr::create(Vec2, EltBits*(MaskVal-VecElemCount),
+                                    EltBits);
       }
       Elems.push_back(L);
     }
