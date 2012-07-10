@@ -159,6 +159,8 @@ bugle::Type TranslateModule::translateType(llvm::Type *T) {
 bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
   if (auto AT = dyn_cast<ArrayType>(T))
     return translateArrayRangeType(AT->getElementType());
+  if (auto VT = dyn_cast<VectorType>(T))
+    return translateArrayRangeType(VT->getElementType());
   if (isa<StructType>(T))
     return Type(Type::BV, 8);
 
