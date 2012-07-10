@@ -15,11 +15,17 @@
 #include "llvm/Intrinsics.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/CallSite.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
 #include "klee/util/GetElementPtrTypeIterator.h"
 
 using namespace bugle;
 using namespace llvm;
+
+static cl::opt<bool>
+DumpTranslatedExprs("dump-translated-exprs", cl::Hidden, cl::init(false),
+  cl::desc("Dump each translated expression below the instruction which "
+           "generated it"));
 
 TranslateFunction::SpecialFnMapTy
   TranslateFunction::SpecialFunctionMaps[TranslateModule::SL_Count];
@@ -931,6 +937,10 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     return;
   } else {
     assert(0 && "Unsupported instruction");
+  }
+  if (DumpTranslatedExprs) {
+    I->dump();
+    E->dump();
   }
   ValueExprMap[I] = E;
   BBB->addStmt(new EvalStmt(E));
