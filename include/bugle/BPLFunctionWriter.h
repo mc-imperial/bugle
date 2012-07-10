@@ -23,7 +23,6 @@ class Stmt;
 class Var;
 
 class BPLFunctionWriter : BPLExprWriter {
-  BPLModuleWriter *MW;
   llvm::raw_ostream &OS;
   bugle::Function *F;
   llvm::DenseMap<Expr *, unsigned> SSAVarIds;
@@ -40,7 +39,7 @@ class BPLFunctionWriter : BPLExprWriter {
 public:
   BPLFunctionWriter(BPLModuleWriter *MW, llvm::raw_ostream &OS,
                     bugle::Function *F)
-    : MW(MW), OS(OS), F(F) {}
+    : BPLExprWriter(MW), OS(OS), F(F) {}
   void write();
 };
 

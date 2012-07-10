@@ -29,7 +29,8 @@ class BPLModuleWriter : BPLExprWriter {
   void writeIntrinsic(std::function<void(llvm::raw_ostream &)> F);
 
 public:
-  BPLModuleWriter(llvm::raw_ostream &OS, bugle::Module *M) : OS(OS), M(M) {}
+  BPLModuleWriter(llvm::raw_ostream &OS, bugle::Module *M) :
+    BPLExprWriter(this), OS(OS), M(M) {}
 
   void write();
 

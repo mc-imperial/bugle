@@ -30,8 +30,6 @@ BPLExprWriter::~BPLExprWriter() {}
 
 void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
                               unsigned Depth) {
-  BPLModuleWriter *MW = getModuleWriter();
-
   if (auto CE = dyn_cast<BVConstExpr>(E)) {
     auto &Val = CE->getValue();
     Val.print(OS, /*isSigned=*/false);
@@ -263,15 +261,19 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     if(auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
       OS << "_" << AHOE->getAccessKind() << "_HAS_OCCURRED_$$" << ArrE->getArray()->getName();
 	} else {
-      for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
-           ++i) {
-		if(i != MW->M->global_begin()) {
-		  OS << " && ";
-		}
-		OS << "(";
-        writeExpr(OS, PtrArr);
-        OS << " == $arrayId$" << (*i)->getName() << ") ==> _" << AHOE->getAccessKind() << "_HAS_OCCURRED_$$" << (*i)->getName();
-      }
+          if (MW) {
+            for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
+                ++i) {
+              if(i != MW->M->global_begin()) {
+                OS << " && ";
+              }
+              OS << "(";
+              writeExpr(OS, PtrArr);
+              OS << " == $arrayId$" << (*i)->getName() << ") ==> _" << AHOE->getAccessKind() << "_HAS_OCCURRED_$$" << (*i)->getName();
+            }
+          } else {
+            OS << "<access-has-occurred-case-split>";
+          }
 	}
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
@@ -457,6 +459,14 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << ", ";
     writeExpr(OS, BinE->getRHS().get());
     OS << ")";
+  } else if (auto LE = dyn_cast<LoadExpr>(E)) {
+    // This case is only accessible from the dumper, as we handle LoadExpr
+    // specially in BPLFunctionWriter::writeStmt to handle case splitting.
+    assert(!MW);
+    writeExpr(OS, LE->getArray().get(), 9);
+    OS << "[";
+    writeExpr(OS, LE->getOffset().get());
+    OS << "]";
   } else {
     assert(0 && "Unsupported expression");
   }

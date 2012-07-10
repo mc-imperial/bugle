@@ -13,9 +13,12 @@ class BPLModuleWriter;
 class Expr;
 
 class BPLExprWriter {
+protected:
+  BPLModuleWriter *MW;
+
 public:
+  BPLExprWriter(BPLModuleWriter *MW) : MW(MW) {}
   virtual ~BPLExprWriter();
-  virtual BPLModuleWriter *getModuleWriter() = 0;
   virtual void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0);
 };
 
