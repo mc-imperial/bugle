@@ -49,8 +49,7 @@ class StoreStmt : public Stmt {
   ref<Expr> value;
 
 public:
-  StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value) :
-    array(array), offset(offset), value(value) {}
+  StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value);
 
   STMT_KIND(Store)
   ref<Expr> getArray() const { return array; }
@@ -62,12 +61,16 @@ class VarAssignStmt : public Stmt {
   std::vector<Var *> vars;
   std::vector<ref<Expr>> values;
 
+  void check();
+
 public:
-  VarAssignStmt(Var *var, ref<Expr> value) : vars(1, var), values(1, value) {}
+  VarAssignStmt(Var *var, ref<Expr> value) : vars(1, var), values(1, value) {
+    check();
+  }
   VarAssignStmt(const std::vector<Var *> &vars,
                 const std::vector<ref<Expr>> &values)
     : vars(vars), values(values) {
-    assert(!vars.empty() && vars.size() == values.size());
+    check();
   }
 
   STMT_KIND(VarAssign)
