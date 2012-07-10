@@ -605,9 +605,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                               BVConstExpr::create(Div->getType().width, i));
           ref<Expr> ValElem =
             BVExtractExpr::create(Val, i*StoreElTy.width, StoreElTy.width);
-          if (StoreTy.kind == Type::Pointer)
+          if (StoreElTy.kind == Type::Pointer)
             ValElem = BVToPtrExpr::create(ValElem);
-          else if (StoreTy.kind == Type::Float)
+          else if (StoreElTy.kind == Type::Float)
             ValElem = BVToFloatExpr::create(ValElem);
           BBB->addStmt(new StoreStmt(PtrArr, ElemOfs, ValElem));
         }
