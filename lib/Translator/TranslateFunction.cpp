@@ -87,6 +87,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
 	fns["__enabled"] = &TranslateFunction::handleEnabled;
 	fns["__read_local"] = &TranslateFunction::handleReadHasOccurred;
 	fns["__read_global"] = &TranslateFunction::handleReadHasOccurred;
+	fns["__write_local"] = &TranslateFunction::handleWriteHasOccurred;
+	fns["__write_global"] = &TranslateFunction::handleWriteHasOccurred;
     if (SL == TranslateModule::SL_OpenCL) {
       fns["get_local_id"] = &TranslateFunction::handleGetLocalId;
       fns["get_group_id"] = &TranslateFunction::handleGetGroupId;
@@ -277,7 +279,13 @@ ref<Expr> TranslateFunction::handleEnabled(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleReadHasOccurred(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
-  return BoolToBVExpr::create(ReadHasOccurredExpr::create(ArrayIdExpr::create(Args[0])));
+  return BoolToBVExpr::create(AccessHasOccurredExpr::create(ArrayIdExpr::create(Args[0]), false));
+}
+
+ref<Expr> TranslateFunction::handleWriteHasOccurred(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BoolToBVExpr::create(AccessHasOccurredExpr::create(ArrayIdExpr::create(Args[0]), true));
 }
 
 static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {

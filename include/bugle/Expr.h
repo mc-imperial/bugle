@@ -33,7 +33,7 @@ public:
     Call,
     BVExtract,
     IfThenElse,
-	ReadHasOccurred,
+	AccessHasOccurred,
 
     // Unary
     Not,
@@ -405,16 +405,18 @@ public:
   const std::vector<ref<Expr>> &getArgs() const { return args; }
 };
 
-class ReadHasOccurredExpr : public Expr {
-  ReadHasOccurredExpr(ref<Expr> array) :
-    Expr(Type::Bool), array(array) {}
+class AccessHasOccurredExpr : public Expr {
+  AccessHasOccurredExpr(ref<Expr> array, bool isWrite) :
+    Expr(Type::Bool), array(array), isWrite(isWrite) {}
   ref<Expr> array;
+  bool isWrite;
 
 public:
-  static ref<Expr> create(ref<Expr> array);
+  static ref<Expr> create(ref<Expr> array, bool isWrite);
 
-  EXPR_KIND(ReadHasOccurred)
+  EXPR_KIND(AccessHasOccurred)
   ref<Expr> getArray() const { return array; }
+  std::string getAccessKind() { return isWrite ? "WRITE" : "READ"; }
 };
 
 }

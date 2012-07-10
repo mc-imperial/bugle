@@ -258,12 +258,10 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << " ==> ";
     writeExpr(OS, IMPLIESE->getRHS().get());
     OS << ")";
-  } else if (auto RHOE = dyn_cast<ReadHasOccurredExpr>(E)) {
-     Expr* PtrArr = RHOE->getArray().get();
+  } else if (auto AHOE = dyn_cast<AccessHasOccurredExpr>(E)) {
+     Expr* PtrArr = AHOE->getArray().get();
     if(auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
-		ArrE->getType().width;
-		ArrE->getArray()->getRangeType();
-	  OS << "__read_" << "" << "($$" << ArrE->getArray()->getName() << ")";
+      OS << "_" << AHOE->getAccessKind() << "_HAS_OCCURRED_$$" << ArrE->getArray()->getName();
 	} else {
       for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
            ++i) {
@@ -272,30 +270,9 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
 		}
 		OS << "(";
         writeExpr(OS, PtrArr);
-        OS << " == $arrayId$" << (*i)->getName() << ") ==> __read_" << "" << "($$" << (*i)->getName() << ")";
+        OS << " == $arrayId$" << (*i)->getName() << ") ==> _" << AHOE->getAccessKind() << "_HAS_OCCURRED_$$" << (*i)->getName();
       }
 	}
-
-/*  if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
-    F(ArrE->getArray());
-    OS << "\n";
-  } else if (isa<NullArrayRefExpr>(PtrArr) ||
-             MW->M->global_begin() == MW->M->global_end()) {
-    OS << "assume false;\n";
-  } else {
-    for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
-         ++i) {
-      OS << "if (";
-      writeExpr(OS, PtrArr);
-      OS << " == $arrayId$" << (*i)->getName() << ") {\n    ";
-      F(*i);
-      OS << "\n  } else ";
-    }
-    OS << "{\n    assume false;\n  }\n";
-  }
-*/
-
-
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
     case Expr::FAbs:

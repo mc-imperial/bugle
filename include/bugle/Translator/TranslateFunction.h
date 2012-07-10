@@ -51,7 +51,7 @@ class TranslateFunction {
   SpecialFnHandler handleNoop, handleAssert, handleAssertFail, handleAssume, handleGlobalAssert,
                    handleRequires, handleEnsures, handleAll, handleExclusive, handleEnabled,
 				   handleOtherInt, handleOtherBool, handleOld, handleReturnVal, handleImplies,
-				   handleReadHasOccurred;
+				   handleReadHasOccurred, handleWriteHasOccurred;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize;

@@ -724,7 +724,7 @@ ref<Expr> OtherIntExpr::create(ref<Expr> op) {
   return new OtherIntExpr(Type(Type::BV), op);
 }
 
-ref<Expr> ReadHasOccurredExpr::create(ref<Expr> array) {
+ref<Expr> AccessHasOccurredExpr::create(ref<Expr> array, bool isWrite) {
   assert(array->getType().kind == Type::ArrayId);
-  return new ReadHasOccurredExpr(array);
+  return new AccessHasOccurredExpr(array, isWrite);
 }

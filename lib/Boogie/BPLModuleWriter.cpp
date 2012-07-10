@@ -95,7 +95,9 @@ void BPLModuleWriter::write() {
        << "]";
     writeType(OS, (*i)->getRangeType());
     OS << ";\n";
-    OS << "const unique $arrayId$" << (*i)->getName() << " : arrayId;\n\n";
+	OS << "var {:race_checking} _READ_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
+	OS << "var {:race_checking} _WRITE_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
+	OS << "const unique $arrayId$" << (*i)->getName() << " : arrayId;\n\n";
   }
 
   OS << "const unique $arrayId$$null : arrayId;\n\n";
