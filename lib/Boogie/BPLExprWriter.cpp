@@ -1,5 +1,6 @@
 #include "bugle/BPLExprWriter.h"
 #include "bugle/BPLModuleWriter.h"
+#include "bugle/Module.h"
 #include "bugle/Expr.h"
 #include "bugle/Function.h"
 #include "bugle/GlobalArray.h"
@@ -257,6 +258,44 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << " ==> ";
     writeExpr(OS, IMPLIESE->getRHS().get());
     OS << ")";
+  } else if (auto RHOE = dyn_cast<ReadHasOccurredExpr>(E)) {
+     Expr* PtrArr = RHOE->getArray().get();
+    if(auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
+		ArrE->getType().width;
+		ArrE->getArray()->getRangeType();
+	  OS << "__read_" << "" << "($$" << ArrE->getArray()->getName() << ")";
+	} else {
+      for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
+           ++i) {
+		if(i != MW->M->global_begin()) {
+		  OS << " && ";
+		}
+		OS << "(";
+        writeExpr(OS, PtrArr);
+        OS << " == $arrayId$" << (*i)->getName() << ") ==> __read_" << "" << "($$" << (*i)->getName() << ")";
+      }
+	}
+
+/*  if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
+    F(ArrE->getArray());
+    OS << "\n";
+  } else if (isa<NullArrayRefExpr>(PtrArr) ||
+             MW->M->global_begin() == MW->M->global_end()) {
+    OS << "assume false;\n";
+  } else {
+    for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
+         ++i) {
+      OS << "if (";
+      writeExpr(OS, PtrArr);
+      OS << " == $arrayId$" << (*i)->getName() << ") {\n    ";
+      F(*i);
+      OS << "\n  } else ";
+    }
+    OS << "{\n    assume false;\n  }\n";
+  }
+*/
+
+
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
     case Expr::FAbs:
@@ -408,13 +447,17 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       });
       break;
     }
-    case Expr::FLt:
     case Expr::FEq:
+      assert(BinE->getKind() == Expr::FEq);
+      writeExpr(OS, BinE->getLHS().get());
+      OS << " == "; // TODO: deal with NaN
+      writeExpr(OS, BinE->getRHS().get());
+	  return; // This case does not conform to the pattern for other binaries, so we return
+	case Expr::FLt:
     case Expr::FUno: {
       const char *IntName;
       switch (BinE->getKind()) {
       case Expr::FLt:  IntName = "FLT";  break;
-      case Expr::FEq:  IntName = "FEQ";  break;
       case Expr::FUno: IntName = "FUNO"; break;
       default: assert(0 && "huh?");
       }

@@ -77,6 +77,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
     fns["__ensures"] = &TranslateFunction::handleEnsures;
 	fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
+	fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
 	fns["__return_val_bool"] = &TranslateFunction::handleReturnVal;
 	fns["__old_int"] = &TranslateFunction::handleOld;
 	fns["__old_bool"] = &TranslateFunction::handleOld;
@@ -84,6 +85,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
 	fns["__other_bool"] = &TranslateFunction::handleOtherBool;
 	fns["__implies"] = &TranslateFunction::handleImplies;
 	fns["__enabled"] = &TranslateFunction::handleEnabled;
+	fns["__read_local"] = &TranslateFunction::handleReadHasOccurred;
+	fns["__read_global"] = &TranslateFunction::handleReadHasOccurred;
     if (SL == TranslateModule::SL_OpenCL) {
       fns["get_local_id"] = &TranslateFunction::handleGetLocalId;
       fns["get_group_id"] = &TranslateFunction::handleGetGroupId;
@@ -269,6 +272,12 @@ ref<Expr> TranslateFunction::handleEnabled(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
   return BoolToBVExpr::create(SpecialVarRefExpr::create(bugle::Type(bugle::Type::Bool), "__enabled"));
+}
+
+ref<Expr> TranslateFunction::handleReadHasOccurred(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return BoolToBVExpr::create(ReadHasOccurredExpr::create(ArrayIdExpr::create(Args[0])));
 }
 
 static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {

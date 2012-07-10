@@ -723,3 +723,8 @@ ref<Expr> OtherIntExpr::create(ref<Expr> op) {
   assert(op->getType().kind == Type::BV);
   return new OtherIntExpr(Type(Type::BV), op);
 }
+
+ref<Expr> ReadHasOccurredExpr::create(ref<Expr> array) {
+  assert(array->getType().kind == Type::ArrayId);
+  return new ReadHasOccurredExpr(array);
+}

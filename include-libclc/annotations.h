@@ -41,20 +41,21 @@ __DEVICE_QUALIFIER__ bool __enabled(void);
 /* Maps to ==> */
 __DEVICE_QUALIFIER__ bool __implies(bool expr1, bool expr2);
 
-/* Read set is empty */
-__DEVICE_QUALIFIER__ bool __no_read_local(const __local void* p);
-__DEVICE_QUALIFIER__ bool __no_read_global(const __global void* p);
-
 /* Read set is non-empty */
 __DEVICE_QUALIFIER__ bool __read_local(const __local void* p);
 __DEVICE_QUALIFIER__ bool __read_global(const __global void* p);
 
-/* Write set is empty */
-__DEVICE_QUALIFIER__ bool __no_write_local(const __local void* p);
-__DEVICE_QUALIFIER__ bool __no_write_global(const __global void* p);
+/* Read set is empty */
+#define __no_read_local(p) !__read_local(p)
+#define __no_read_global(p) !__read_global(p)
 
 /* Write set is non-empty */
-__DEVICE_QUALIFIER__ bool __write(const void* p);
+__DEVICE_QUALIFIER__ bool __write_local(const __local void* p);
+__DEVICE_QUALIFIER__ bool __write_global(const __global void* p);
+
+/* Write set is empty */
+#define __no_write_local(p) !__write_local(p)
+#define __no_write_global(p) !__write_global(p)
 
 /* Read offset */
 __DEVICE_QUALIFIER__ int __read_offset(const void* p);
@@ -88,6 +89,10 @@ __DEVICE_QUALIFIER__ bool __other_bool(bool expr);
 
 #define __all(X) ((X) & __other_bool(X))
 #define __exclusive(X) (!(__all(X)))
+
+#define __same_group (get_group_id(0) == __other_int(get_group_id(0)) \
+                    & get_group_id(1) == __other_int(get_group_id(1)) \
+                    & get_group_id(2) == __other_int(get_group_id(2)))
 
 /* Axioms */
 #define __concatenate(x,y) x##y

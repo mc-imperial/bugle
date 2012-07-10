@@ -33,6 +33,7 @@ public:
     Call,
     BVExtract,
     IfThenElse,
+	ReadHasOccurred,
 
     // Unary
     Not,
@@ -402,6 +403,18 @@ public:
   EXPR_KIND(Call)
   Function *getCallee() const { return callee; }
   const std::vector<ref<Expr>> &getArgs() const { return args; }
+};
+
+class ReadHasOccurredExpr : public Expr {
+  ReadHasOccurredExpr(ref<Expr> array) :
+    Expr(Type::Bool), array(array) {}
+  ref<Expr> array;
+
+public:
+  static ref<Expr> create(ref<Expr> array);
+
+  EXPR_KIND(ReadHasOccurred)
+  ref<Expr> getArray() const { return array; }
 };
 
 }
