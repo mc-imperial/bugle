@@ -1,9 +1,21 @@
 #include "bugle/Expr.h"
+#include "bugle/BPLExprWriter.h"
 #include "bugle/Function.h"
 #include "bugle/GlobalArray.h"
 #include "bugle/util/Functional.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace bugle;
+
+void Expr::print(llvm::raw_ostream &OS) {
+  BPLExprWriter EW(0);
+  EW.writeExpr(OS, this);
+}
+
+void Expr::dump() {
+  print(llvm::errs());
+  llvm::errs() << "\n";
+}
 
 ref<Expr> BVConstExpr::create(const llvm::APInt &bv) {
   return new BVConstExpr(bv);
