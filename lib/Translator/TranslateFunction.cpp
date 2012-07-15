@@ -95,6 +95,10 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
 	fns["__read_global"] = &TranslateFunction::handleReadHasOccurred;
 	fns["__write_local"] = &TranslateFunction::handleWriteHasOccurred;
 	fns["__write_global"] = &TranslateFunction::handleWriteHasOccurred;
+	fns["__read_offset_local"] = &TranslateFunction::handleReadOffset;
+	fns["__read_offset_global"] = &TranslateFunction::handleReadOffset;
+	fns["__write_offset_local"] = &TranslateFunction::handleWriteOffset;
+	fns["__write_offset_global"] = &TranslateFunction::handleWriteOffset;
     if (SL == TranslateModule::SL_OpenCL) {
       fns["get_local_id"] = &TranslateFunction::handleGetLocalId;
       fns["get_group_id"] = &TranslateFunction::handleGetGroupId;
@@ -292,6 +296,18 @@ ref<Expr> TranslateFunction::handleWriteHasOccurred(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
   return BoolToBVExpr::create(AccessHasOccurredExpr::create(ArrayIdExpr::create(Args[0]), true));
+}
+
+ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return AccessOffsetExpr::create(ArrayIdExpr::create(Args[0]), false);
+}
+
+ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return AccessOffsetExpr::create(ArrayIdExpr::create(Args[0]), true);
 }
 
 static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {

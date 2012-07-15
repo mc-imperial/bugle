@@ -58,17 +58,12 @@ __DEVICE_QUALIFIER__ bool __write_global(const __global void* p);
 #define __no_write_global(p) !__write_global(p)
 
 /* Read offset */
-__DEVICE_QUALIFIER__ int __read_offset(const void* p);
+__DEVICE_QUALIFIER__ int __read_offset_local(const __local void* p);
+__DEVICE_QUALIFIER__ int __read_offset_global(const __global void* p);
 
-/* Write set is empty */
-__DEVICE_QUALIFIER__ int __write_offset(const void* p);
-
-/* If a read has occurred to 'p' then 'expr' must hold */
-__DEVICE_QUALIFIER__ bool __read_implies(const void* p, bool expr);
-
-/* If a write has occurred to 'p' then 'expr' must hold */
-__DEVICE_QUALIFIER__ bool __write_implies(const void* p, bool expr);
-
+/* Write offset */
+__DEVICE_QUALIFIER__ int __write_offset_local(const __local void* p);
+__DEVICE_QUALIFIER__ int __write_offset_global(const __global void* p);
 
 #ifdef __OPENCL__
 bool __points_to_global(const __global void* array, const char* array_name);

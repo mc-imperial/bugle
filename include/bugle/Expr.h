@@ -34,6 +34,7 @@ public:
     BVExtract,
     IfThenElse,
 	AccessHasOccurred,
+	AccessOffset,
 
     // Unary
     Not,
@@ -418,6 +419,20 @@ public:
   static ref<Expr> create(ref<Expr> array, bool isWrite);
 
   EXPR_KIND(AccessHasOccurred)
+  ref<Expr> getArray() const { return array; }
+  std::string getAccessKind() { return isWrite ? "WRITE" : "READ"; }
+};
+
+class AccessOffsetExpr : public Expr {
+  AccessOffsetExpr(ref<Expr> array, bool isWrite) :
+    Expr(Type(Type::BV, 32)), array(array), isWrite(isWrite) {}
+  ref<Expr> array;
+  bool isWrite;
+
+public:
+  static ref<Expr> create(ref<Expr> array, bool isWrite);
+
+  EXPR_KIND(AccessOffset)
   ref<Expr> getArray() const { return array; }
   std::string getAccessKind() { return isWrite ? "WRITE" : "READ"; }
 };

@@ -79,6 +79,8 @@ add_library(bugleBoogie STATIC
   lib/Boogie/Expr.cpp
   lib/Boogie/Ident.cpp
   lib/Boogie/Stmt.cpp
+  include/bugle/BPLExprWriter.h
+  include/bugle/BPLFunctionWriter.h
 )
 
 add_library(bugleTranslator STATIC

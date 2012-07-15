@@ -733,10 +733,15 @@ ref<Expr> OtherBoolExpr::create(ref<Expr> op) {
 
 ref<Expr> OtherIntExpr::create(ref<Expr> op) {
   assert(op->getType().kind == Type::BV);
-  return new OtherIntExpr(Type(Type::BV), op);
+  return new OtherIntExpr(Type(Type::BV, op->getType().width), op);
 }
 
 ref<Expr> AccessHasOccurredExpr::create(ref<Expr> array, bool isWrite) {
   assert(array->getType().kind == Type::ArrayId);
   return new AccessHasOccurredExpr(array, isWrite);
+}
+
+ref<Expr> AccessOffsetExpr::create(ref<Expr> array, bool isWrite) {
+  assert(array->getType().kind == Type::ArrayId);
+  return new AccessOffsetExpr(array, isWrite);
 }
