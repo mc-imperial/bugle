@@ -257,9 +257,9 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, IMPLIESE->getRHS().get());
     OS << ")";
   } else if (auto AHOE = dyn_cast<AccessHasOccurredExpr>(E)) {
-	writeAccessLoggingVar(OS, AHOE->getArray().get(), "HAS_OCCURRED", AHOE->getAccessKind());
+    writeAccessLoggingVar(OS, AHOE->getArray().get(), "HAS_OCCURRED", AHOE->getAccessKind());
   } else if (auto AOE = dyn_cast<AccessOffsetExpr>(E)) {
-    writeAccessLoggingVar(OS, AOE->getArray().get(), "OFFSET", AHOE->getAccessKind());
+    writeAccessLoggingVar(OS, AOE->getArray().get(), "OFFSET", AOE->getAccessKind());
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
     case Expr::FAbs:
