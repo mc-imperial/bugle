@@ -116,6 +116,8 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (auto AS = dyn_cast<AssumeStmt>(S)) {
     OS << "  assume ";
+    if (AS->isPartition())
+      OS << "{:partition} ";
     writeExpr(OS, AS->getPredicate().get());
     OS << ";\n";
   } else if (auto AtS = dyn_cast<AssertStmt>(S)) {
