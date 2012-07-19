@@ -316,7 +316,7 @@ static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {
   case 0: return prefix + "_x";
   case 1: return prefix + "_y";
   case 2: return prefix + "_z";
-  default: assert(0 && "Unsupported dimension!");
+  default: assert(0 && "Unsupported dimension!"); return 0;
   }
 }
 

@@ -257,9 +257,9 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, IMPLIESE->getRHS().get());
     OS << ")";
   } else if (auto AHOE = dyn_cast<AccessHasOccurredExpr>(E)) {
-    writeAccessLoggingVar(OS, AHOE->getArray().get(), "HAS_OCCURRED", AHOE->getAccessKind());
+    writeAccessLoggingVar(OS, AHOE->getArray().get(), "HAS_OCCURRED", AHOE->getAccessKind(), "false");
   } else if (auto AOE = dyn_cast<AccessOffsetExpr>(E)) {
-    writeAccessLoggingVar(OS, AOE->getArray().get(), "OFFSET", AOE->getAccessKind());
+    writeAccessLoggingVar(OS, AOE->getArray().get(), "OFFSET", AOE->getAccessKind(), "0bv32");
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
     case Expr::FAbs:
@@ -457,21 +457,22 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   }
 }
 
-void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS, bugle::Expr* PtrArr, std::string accessLoggingVar, std::string accessKind) {
+void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS, bugle::Expr* PtrArr, std::string accessLoggingVar, std::string accessKind, std::string unit) {
     if(auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
       OS << "_" << accessKind << "_" << accessLoggingVar << "_$$" << ArrE->getArray()->getName();
 	} else {
           if (MW) {
+			OS << "(";
             for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
                 ++i) {
-              if(i != MW->M->global_begin()) {
-                OS << " && ";
-              }
-              OS << "(";
+              OS << "if (";
               writeExpr(OS, PtrArr);
-              OS << " == $arrayId$" << (*i)->getName() << ") ==> _" << accessKind << 
-				  "_" << accessLoggingVar << "_$$" << (*i)->getName();
+              OS << " == $arrayId$" << (*i)->getName() << ") then _" << accessKind << 
+				  "_" << accessLoggingVar << "_$$" << (*i)->getName() << " else ";
             }
+
+			OS << unit << ")";
+
           } else {
             OS << "<" << accessLoggingVar << "-case-split>";
           }

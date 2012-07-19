@@ -81,20 +81,28 @@ add_library(bugleBoogie STATIC
   lib/Boogie/Stmt.cpp
   include/bugle/BPLExprWriter.h
   include/bugle/BPLFunctionWriter.h
+  include/bugle/BPLModuleWriter.h
+  include/bugle/Expr.h
+  include/bugle/Ident.h
+  include/bugle/Stmt.h
 )
 
 add_library(bugleTranslator STATIC
   lib/Translator/TranslateModule.cpp
   lib/Translator/TranslateFunction.cpp
+  include/bugle/Translator/TranslateModule.h
   include/bugle/Translator/TranslateFunction.h
 )
 
 add_library(bugleTransform STATIC
   lib/Transform/SimplifyStmt.cpp
+  include/bugle/Transform/SimplifyStmt.h
 )
 
 add_library(bugleUtil STATIC
   lib/Util/UniqueNameSet.cpp
+  include/bugle/util/UniqueNameSet.h
+  include/bugle/util/Functional.h
 )
 
 add_executable(bugle
