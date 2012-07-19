@@ -908,12 +908,13 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       ref<Expr> Cond = BVToBoolExpr::create(translateValue(BI->getCondition()));
 
       bugle::BasicBlock *TrueBB = BF->addBasicBlock("truebb");
-      TrueBB->addStmt(new AssumeStmt(Cond));
+      TrueBB->addStmt(new AssumeStmt(Cond, /*partition=*/true));
       addPhiAssigns(TrueBB, I->getParent(), BI->getSuccessor(0));
       TrueBB->addStmt(new GotoStmt(BasicBlockMap[BI->getSuccessor(0)]));
 
       bugle::BasicBlock *FalseBB = BF->addBasicBlock("falsebb");
-      FalseBB->addStmt(new AssumeStmt(NotExpr::create(Cond)));
+      FalseBB->addStmt(new AssumeStmt(NotExpr::create(Cond),
+                                      /*partition=*/true));
       addPhiAssigns(FalseBB, I->getParent(), BI->getSuccessor(1));
       FalseBB->addStmt(new GotoStmt(BasicBlockMap[BI->getSuccessor(1)]));
 
@@ -935,7 +936,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       ref<Expr> Val = TM->translateConstant(i.getCaseValue());
       bugle::BasicBlock *BB = BF->addBasicBlock("casebb");
       Succs.push_back(BB);
-      BB->addStmt(new AssumeStmt(EqExpr::create(Cond, Val)));
+      BB->addStmt(new AssumeStmt(EqExpr::create(Cond, Val),/*partition=*/true));
       addPhiAssigns(BB, SI->getParent(), i.getCaseSuccessor());
       BB->addStmt(new GotoStmt(BasicBlockMap[i.getCaseSuccessor()]));
       DefaultExpr = AndExpr::create(DefaultExpr, NeExpr::create(Cond, Val));
@@ -943,7 +944,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
 
     bugle::BasicBlock *DefaultBB = BF->addBasicBlock("defaultbb");
     Succs.push_back(DefaultBB);
-    DefaultBB->addStmt(new AssumeStmt(DefaultExpr));
+    DefaultBB->addStmt(new AssumeStmt(DefaultExpr, /*partition=*/true));
     addPhiAssigns(DefaultBB, SI->getParent(),
                   SI->case_default().getCaseSuccessor());
     DefaultBB->addStmt(

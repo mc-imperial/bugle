@@ -96,12 +96,15 @@ public:
 
 class AssumeStmt : public Stmt {
   ref<Expr> pred;
+  bool partition;
 
 public:
-  AssumeStmt(ref<Expr> pred) : pred(pred) {}
+  AssumeStmt(ref<Expr> pred, bool partition = false) :
+    pred(pred), partition(partition) {}
 
   STMT_KIND(Assume)
   ref<Expr> getPredicate() const { return pred; }
+  bool isPartition() const { return partition; }
 };
 
 class AssertStmt : public Stmt {
