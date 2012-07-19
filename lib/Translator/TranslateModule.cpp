@@ -95,7 +95,9 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
                             return translateConstant(cast<Constant>(V));
                           });
     }
-    default:
+	case Instruction::BitCast:
+      return doTranslateConstant(CE->getOperand(0));
+	default:
       assert(0 && "Unhandled ConstantExpr");
     }
   }
