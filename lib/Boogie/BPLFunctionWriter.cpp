@@ -25,7 +25,7 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
          ++i) {
       OS << "if (";
       writeExpr(OS, PtrArr);
-      OS << " == $arrayId$" << (*i)->getName() << ") {\n    ";
+      OS << " == $arrayId$$" << (*i)->getName() << ") {\n    ";
       F(*i);
       OS << "\n  } else ";
     }

@@ -141,7 +141,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     });
     OS << SVarE->getAttr();
   } else if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(E)) {
-    OS << "$arrayId$" << ArrE->getArray()->getName();
+    OS << "$arrayId$$" << ArrE->getArray()->getName();
   } else if (isa<NullArrayRefExpr>(E)) {
     OS << "$arrayId$$null";
   } else if (auto ConcatE = dyn_cast<BVConcatExpr>(E)) {
@@ -467,7 +467,7 @@ void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS, bugle::Expr* Pt
                 ++i) {
               OS << "if (";
               writeExpr(OS, PtrArr);
-              OS << " == $arrayId$" << (*i)->getName() << ") then _" << accessKind << 
+              OS << " == $arrayId$$" << (*i)->getName() << ") then _" << accessKind << 
 				  "_" << accessLoggingVar << "_$$" << (*i)->getName() << " else ";
             }
 
