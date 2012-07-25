@@ -95,9 +95,10 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
                             return translateConstant(cast<Constant>(V));
                           });
     }
-	case Instruction::BitCast:
-      return doTranslateConstant(CE->getOperand(0));
-	default:
+    case Instruction::BitCast:
+      return translateBitCast(CE->getOperand(0)->getType(), CE->getType(),
+                              translateConstant(CE->getOperand(0)));
+    default:
       assert(0 && "Unhandled ConstantExpr");
     }
   }
@@ -208,6 +209,18 @@ ref<Expr> TranslateModule::translateGEP(ref<Expr> Ptr,
     }
   }
   return PointerExpr::create(PtrArr, PtrOfs);
+}
+
+ref<Expr> TranslateModule::translateBitCast(llvm::Type *SrcTy,
+                                            llvm::Type *DestTy,
+                                            ref<Expr> Op) {
+  if (SrcTy->isFloatingPointTy() && !DestTy->isFloatingPointTy()) {
+    return FloatToBVExpr::create(Op);
+  } else if (!SrcTy->isFloatingPointTy() && DestTy->isFloatingPointTy()) {
+    return BVToFloatExpr::create(Op);
+  } else {
+    return Op;
+  }
 }
 
 void TranslateModule::addGPUEntryPoint(StringRef Name) {

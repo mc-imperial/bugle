@@ -68,6 +68,8 @@ private:
                          klee::gep_type_iterator begin,
                          klee::gep_type_iterator end,
                          std::function<ref<Expr>(llvm::Value *)> xlate);
+  ref<Expr> translateBitCast(llvm::Type *SrcTy, llvm::Type *DestTy,
+                             ref<Expr> Op);
   ref<Expr> translateUndef(Type t);
 
 public:
