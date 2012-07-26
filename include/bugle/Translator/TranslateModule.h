@@ -47,16 +47,22 @@ private:
   std::set<std::string> GPUEntryPoints;
 
   llvm::DenseMap<GlobalArray *, llvm::Value *> GlobalValueMap;
+  llvm::DenseMap<llvm::Value *, GlobalArray *> ValueGlobalMap;
 
   bool NeedAdditionalByteArrayModels;
   std::set<llvm::Value *> ModelAsByteArray;
-  bool ModelAllAsByteArray;
+  bool ModelAllAsByteArray, NextModelAllAsByteArray;
+
+  std::map<llvm::Function *, std::vector<const std::vector<ref<Expr>> *>>
+    CallSites;
+  bool NeedAdditionalGlobalOffsetModels;
+  std::map<llvm::Value *, llvm::Value *> ModelPtrAsGlobalOffset;
 
   void translateGlobalInit(GlobalArray *GA, unsigned Offset,
                            llvm::Constant *Init);
   GlobalArray *translateGlobalVariable(llvm::GlobalVariable *GV);
   void addGlobalArrayAttribs(GlobalArray *GA, llvm::PointerType *PT);
-  bugle::GlobalArray *addGlobalArray(llvm::Value *V);
+  bugle::GlobalArray *getGlobalArray(llvm::Value *V);
 
   ref<Expr> translateConstant(llvm::Constant *C);
   ref<Expr> doTranslateConstant(llvm::Constant *C);
@@ -76,7 +82,8 @@ public:
   TranslateModule(llvm::Module *M, SourceLanguage SL) :
     BM(0), M(M), TD(M), SL(SL),
     NeedAdditionalByteArrayModels(false),
-    ModelAllAsByteArray(false) {}
+    ModelAllAsByteArray(false),
+    NextModelAllAsByteArray(false) {}
   void addGPUEntryPoint(llvm::StringRef Name);
   void translate();
   bugle::Module *takeModule() { return BM; }

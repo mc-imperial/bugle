@@ -135,14 +135,26 @@ void TranslateFunction::translate() {
       BF->addAttribute("barrier");
   }
 
+  unsigned PtrSize = TM->TD.getPointerSizeInBits();
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
     if (isGPUEntryPoint && i->getType()->isPointerTy()) {
-      GlobalArray *GA = TM->addGlobalArray(&*i);
+      GlobalArray *GA = TM->getGlobalArray(&*i);
       ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
-                        BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
+                        BVConstExpr::createZero(PtrSize));
     } else {
-      Var *V = BF->addArgument(TM->translateType(i->getType()), i->getName());
-      ValueExprMap[&*i] = VarRefExpr::create(V);
+      auto OI = TM->ModelPtrAsGlobalOffset.find(&*i);
+      if (OI != TM->ModelPtrAsGlobalOffset.end()) {
+        Var *V = BF->addArgument(Type(Type::BV, PtrSize),
+                                 i->getName());
+        auto GA = TM->getGlobalArray(OI->second);
+        ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
+                              BVMulExpr::create(VarRefExpr::create(V),
+                                                BVConstExpr::create(PtrSize,
+                                                  GA->getRangeType().width/8)));
+      } else {
+        Var *V = BF->addArgument(TM->translateType(i->getType()), i->getName());
+        ValueExprMap[&*i] = VarRefExpr::create(V);
+      }
     }
   }
 
@@ -544,7 +556,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                          klee::gep_type_end(GEPI),
                          [&](Value *V) { return translateValue(V); });
   } else if (auto AI = dyn_cast<AllocaInst>(I)) {
-    GlobalArray *GA = TM->addGlobalArray(AI);
+    GlobalArray *GA = TM->getGlobalArray(AI);
     E = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
   } else if (auto LI = dyn_cast<LoadInst>(I)) {
@@ -601,7 +613,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       if (GA)
         TM->ModelAsByteArray.insert(TM->GlobalValueMap[GA]);
       else
-        TM->ModelAllAsByteArray = true;
+        TM->NextModelAllAsByteArray = true;
       E = TM->translateUndef(LoadTy);
     }
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
@@ -658,7 +670,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       if (GA)
         TM->ModelAsByteArray.insert(TM->GlobalValueMap[GA]);
       else
-        TM->ModelAllAsByteArray = true;
+        TM->NextModelAllAsByteArray = true;
     }
     return;
   } else if (auto II = dyn_cast<ICmpInst>(I)) {
@@ -855,8 +867,20 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
 
     CallSite CS(CI);
     std::vector<ref<Expr>> Args;
-    std::transform(CS.arg_begin(), CS.arg_end(), std::back_inserter(Args),
-                   [&](Value *V) { return translateValue(V); });
+    std::transform(CS.arg_begin(), CS.arg_end(), F->arg_begin(),
+                   std::back_inserter(Args),
+                   [&](Value *V, Argument &Arg) -> ref<Expr> {
+                      auto E = translateValue(V);
+                      auto OI = TM->ModelPtrAsGlobalOffset.find(&Arg);
+                      if (OI != TM->ModelPtrAsGlobalOffset.end()) {
+                        auto GA = TM->getGlobalArray(OI->second);
+                        E = ArrayOffsetExpr::create(E);
+                        E = Expr::createExactBVUDiv(E,
+                              GA->getRangeType().width/8);
+                        assert(!E.isNull() && "Couldn't create div this time!");
+                      }
+                      return E;
+                   });
 
     if (auto II = dyn_cast<IntrinsicInst>(CI)) {
       auto ID = II->getIntrinsicID();
@@ -883,10 +907,14 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         auto FI = TM->FunctionMap.find(F);
         assert(FI != TM->FunctionMap.end() && "Couldn't find function in map!");
         if (CI->getType()->isVoidTy()) {
-          BBB->addStmt(new CallStmt(FI->second, Args));
+          auto CS = new CallStmt(FI->second, Args);
+          BBB->addStmt(CS);
+          TM->CallSites[F].push_back(&CS->getArgs());
           return;
         } else {
           E = CallExpr::create(FI->second, Args);
+          if (auto CE = dyn_cast<CallExpr>(E))
+            TM->CallSites[F].push_back(&CE->getArgs());
         }
       }
     }

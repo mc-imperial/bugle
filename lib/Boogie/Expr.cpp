@@ -460,6 +460,8 @@ static ref<Expr> createExactBVUDivMul(Expr *nonConstOp, BVConstExpr *constOp,
 }
 
 ref<Expr> Expr::createExactBVUDiv(ref<Expr> lhs, uint64_t rhs) {
+  if (rhs == 1)
+    return lhs;
   if ((rhs & (rhs-1)) != 0)
     return ref<Expr>();
 

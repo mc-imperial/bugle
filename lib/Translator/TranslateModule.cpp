@@ -62,7 +62,7 @@ void TranslateModule::addGlobalArrayAttribs(GlobalArray *GA, PointerType *PT) {
 }
 
 GlobalArray *TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
-  GlobalArray *GA = addGlobalArray(GV);
+  GlobalArray *GA = getGlobalArray(GV);
   if (GV->hasInitializer() &&
       // OpenCL __local variables have bogus initialisers.
       !(SL == SL_OpenCL && GV->getType()->getAddressSpace() == 3))
@@ -170,13 +170,17 @@ bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
   return translateType(T);
 }
 
-bugle::GlobalArray *TranslateModule::addGlobalArray(llvm::Value *V) {
+bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
+  GlobalArray *&GA = ValueGlobalMap[V];
+  if (GA)
+    return GA;
+
   bugle::Type T(Type::BV, 8);
   auto PT = cast<PointerType>(V->getType());
   if (!(ModelAllAsByteArray ||
         ModelAsByteArray.find(V) != ModelAsByteArray.end()))
     T = translateArrayRangeType(PT->getElementType());
-  auto GA = BM->addGlobal(V->getName(), T);
+  GA = BM->addGlobal(V->getName(), T);
   addGlobalArrayAttribs(GA, PT);
   GlobalValueMap[GA] = V;
   return GA;
@@ -235,6 +239,7 @@ void TranslateModule::translate() {
 
   do {
     NeedAdditionalByteArrayModels = false;
+    NeedAdditionalGlobalOffsetModels = false;
 
     delete BM;
     BM = new bugle::Module;
@@ -242,6 +247,8 @@ void TranslateModule::translate() {
     FunctionMap.clear();
     ConstantMap.clear();
     GlobalValueMap.clear();
+    ValueGlobalMap.clear();
+    CallSites.clear();
 
     BM->setPointerWidth(TD.getPointerSizeInBits());
 
@@ -279,5 +286,61 @@ void TranslateModule::translate() {
         TF.translate();
       }
     }
-  } while (NeedAdditionalByteArrayModels);
+
+    // If this round gave us a case split, examine each pointer argument to
+    // each call site for each function to see if the argument always refers to
+    // the same global array, in which case we can model the parameter as an
+    // offset, and potentially avoid the case split.
+    if (!ModelAllAsByteArray && NextModelAllAsByteArray) {
+      for (auto i = CallSites.begin(), e = CallSites.end(); i != e; ++i) {
+             unsigned pidx = 0;
+        for (auto pi = i->first->arg_begin(), pe = i->first->arg_end();
+             pi != pe; ++pi, ++pidx) {
+          GlobalArray *GA = 0;
+          bool ModelGAAsByteArray = false;
+          if (!pi->getType()->isPointerTy())
+            continue;
+          if (ModelPtrAsGlobalOffset.find(pi) != ModelPtrAsGlobalOffset.end())
+            continue;
+
+          for (auto csi = i->second.begin(), cse = i->second.end(); csi != cse;
+               ++csi) {
+            auto Parm = (**csi)[pidx];
+            auto AId = ArrayIdExpr::create(Parm);
+            auto GARE = dyn_cast<GlobalArrayRefExpr>(AId);
+            if (!GARE)
+              goto nextParam;
+            if (GA && GARE->getArray() != GA)
+              goto nextParam;
+            GA = GARE->getArray();
+
+            auto AOfs = ArrayOffsetExpr::create(Parm);
+            if (Expr::createExactBVUDiv(AOfs, GA->getRangeType().width/8)
+                .isNull())
+              ModelGAAsByteArray = true;
+          }
+
+          if (GA) {
+            llvm::Value *V = GlobalValueMap[GA];
+            ModelPtrAsGlobalOffset[pi] = V;
+            NeedAdditionalGlobalOffsetModels = true;
+            if (ModelGAAsByteArray)
+              ModelAsByteArray.insert(V);
+          }
+
+          nextParam: ;
+        }
+      }
+    }
+
+    if (NeedAdditionalGlobalOffsetModels) {
+      // If we can model new pointers using global offsets, a previously
+      // observed case split may become unnecessary.  So when we recompute the
+      // fixed point, don't use byte array models for everything unless we're
+      // stuck.
+      ModelAllAsByteArray = NextModelAllAsByteArray = false;
+    } else {
+      ModelAllAsByteArray = NextModelAllAsByteArray;
+    }
+  } while (NeedAdditionalByteArrayModels || NeedAdditionalGlobalOffsetModels);
 }
