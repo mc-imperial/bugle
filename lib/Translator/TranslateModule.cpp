@@ -235,8 +235,44 @@ static bool isAxiomFunction(StringRef Name) {
   return Name.startswith("__axiom");
 }
 
-void TranslateModule::translate() {
+// Convert the given unmodelled expression E to modelled form.
+ref<Expr> TranslateModule::modelValue(Value *V, ref<Expr> E) {
+  auto OI = ModelPtrAsGlobalOffset.find(V);
+  if (OI != ModelPtrAsGlobalOffset.end() && OI->second.size() == 1) {
+    auto GA = getGlobalArray(*OI->second.begin());
+    E = ArrayOffsetExpr::create(E);
+    E = Expr::createExactBVUDiv(E, GA->getRangeType().width/8);
+    assert(!E.isNull() && "Couldn't create div this time!");
+  }
+  return E;
+}
 
+// If the given value is modelled, return its modelled type, else return
+// its conventional Boogie type (translateType).
+bugle::Type TranslateModule::getModelledType(Value *V) {
+  auto OI = ModelPtrAsGlobalOffset.find(V);
+  if (OI != ModelPtrAsGlobalOffset.end() && OI->second.size() == 1) {
+    return Type(Type::BV, TD.getPointerSizeInBits());
+  } else {
+    return translateType(V->getType());
+  }
+}
+
+// Convert the given modelled expression E to unmodelled form.
+ref<Expr> TranslateModule::unmodelValue(Value *V, ref<Expr> E) {
+  auto OI = ModelPtrAsGlobalOffset.find(V);
+  if (OI != ModelPtrAsGlobalOffset.end() && OI->second.size() == 1) {
+    auto GA = getGlobalArray(*OI->second.begin());
+    return PointerExpr::create(GlobalArrayRefExpr::create(GA),
+                          BVMulExpr::create(E,
+                            BVConstExpr::create(TD.getPointerSizeInBits(),
+                                                GA->getRangeType().width/8)));
+  } else {
+    return E;
+  }
+}
+
+void TranslateModule::translate() {
   do {
     NeedAdditionalByteArrayModels = false;
     NeedAdditionalGlobalOffsetModels = false;
@@ -322,7 +358,7 @@ void TranslateModule::translate() {
 
           if (GA) {
             llvm::Value *V = GlobalValueMap[GA];
-            ModelPtrAsGlobalOffset[pi] = V;
+            ModelPtrAsGlobalOffset[pi].insert(V);
             NeedAdditionalGlobalOffsetModels = true;
             if (ModelGAAsByteArray)
               ModelAsByteArray.insert(V);

@@ -56,7 +56,7 @@ private:
   std::map<llvm::Function *, std::vector<const std::vector<ref<Expr>> *>>
     CallSites;
   bool NeedAdditionalGlobalOffsetModels;
-  std::map<llvm::Value *, llvm::Value *> ModelPtrAsGlobalOffset;
+  std::map<llvm::Value *, std::set<llvm::Value *>> ModelPtrAsGlobalOffset;
 
   void translateGlobalInit(GlobalArray *GA, unsigned Offset,
                            llvm::Constant *Init);
@@ -77,6 +77,10 @@ private:
   ref<Expr> translateBitCast(llvm::Type *SrcTy, llvm::Type *DestTy,
                              ref<Expr> Op);
   ref<Expr> translateUndef(Type t);
+
+  ref<Expr> modelValue(llvm::Value *V, ref<Expr> E);
+  Type getModelledType(llvm::Value *V);
+  ref<Expr> unmodelValue(llvm::Value *V, ref<Expr> E);
 
 public:
   TranslateModule(llvm::Module *M, SourceLanguage SL) :

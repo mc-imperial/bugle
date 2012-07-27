@@ -28,6 +28,10 @@ struct Type {
   bool operator==(const Type &other) const {
     return kind == other.kind && width == other.width;
   }
+
+  bool operator!=(const Type &other) const {
+    return kind != other.kind || width != other.width;
+  }
 };
 
 }

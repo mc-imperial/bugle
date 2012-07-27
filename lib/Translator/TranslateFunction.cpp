@@ -121,6 +121,16 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
   return SpecialFunctionMap;
 }
 
+static bool computeArrayCandidates(std::set<GlobalArray *> &GlobalSet,
+                                   ref<Expr> AId) {
+  if (auto GARE = dyn_cast<GlobalArrayRefExpr>(AId)) {
+    GlobalSet.insert(GARE->getArray());
+    return true;
+  } else {
+    return false;
+  }
+}
+
 void TranslateFunction::translate() {
   initSpecialFunctionMap(TM->SL);
 
@@ -142,19 +152,8 @@ void TranslateFunction::translate() {
       ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                         BVConstExpr::createZero(PtrSize));
     } else {
-      auto OI = TM->ModelPtrAsGlobalOffset.find(&*i);
-      if (OI != TM->ModelPtrAsGlobalOffset.end()) {
-        Var *V = BF->addArgument(Type(Type::BV, PtrSize),
-                                 i->getName());
-        auto GA = TM->getGlobalArray(OI->second);
-        ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
-                              BVMulExpr::create(VarRefExpr::create(V),
-                                                BVConstExpr::create(PtrSize,
-                                                  GA->getRangeType().width/8)));
-      } else {
-        Var *V = BF->addArgument(TM->translateType(i->getType()), i->getName());
-        ValueExprMap[&*i] = VarRefExpr::create(V);
-      }
+      Var *V = BF->addArgument(TM->getModelledType(&*i), i->getName());
+      ValueExprMap[&*i] = TM->unmodelValue(&*i, VarRefExpr::create(V));
     }
   }
 
@@ -171,6 +170,88 @@ void TranslateFunction::translate() {
 
   for (auto i = BBList.begin(), e = BBList.end(); i != e; ++i)
     translateBasicBlock(BasicBlockMap[*i], *i);
+
+  // If we're modelling everything as a byte array, don't bother to model phis
+  // as offsets.
+  if (TM->ModelAllAsByteArray)
+    return;
+
+  // For each pointer phi we encountered in the function, see if we can model it
+  // as an offset.
+  for (auto i = PhiAssignsMap.begin(), e = PhiAssignsMap.end(); i != e; ++i) {
+    if (!i->first->getType()->isPointerTy())
+      continue;
+    if (TM->ModelPtrAsGlobalOffset.find(i->first) !=
+        TM->ModelPtrAsGlobalOffset.end())
+      continue;
+
+    Var *V = PhiVarMap[i->first];
+    std::set<GlobalArray *> GlobalSet;
+    bool doNextPhi = false;
+
+    for (auto ai = i->second.begin(), ae = i->second.end(); ai != ae; ++ai) {
+      if (computeArrayCandidates(GlobalSet, ArrayIdExpr::create(*ai))) {
+        continue;
+      } else {
+        // See if this assignment is simply referring back to the phi variable
+        // itself.
+        if (auto VRE = dyn_cast<VarRefExpr>(*ai)) {
+          if (VRE->getVar() == V)
+            continue;
+        }
+        if (auto PE = dyn_cast<PointerExpr>(*ai)) {
+          if (auto AIE = dyn_cast<ArrayIdExpr>(PE->getArray())) {
+            if (auto VRE = dyn_cast<VarRefExpr>(AIE->getSubExpr())) {
+              if (VRE->getVar() == V)
+                continue;
+            }
+          }
+        }
+      }
+
+      doNextPhi = true;
+      break;
+    }
+
+    if (doNextPhi)
+      continue;
+
+    assert(!GlobalSet.empty() && "GlobalSet is empty?");
+
+    // Now check that each array in GlobalSet has the same type.
+    auto gi = GlobalSet.begin();
+    Type GlobalsType = (*gi)->getRangeType();
+    ++gi;
+    for (auto ge = GlobalSet.end(); gi != ge; ++gi) {
+      if ((*gi)->getRangeType() != GlobalsType) {
+        doNextPhi = true;
+        break;
+      }
+    }
+
+    if (doNextPhi)
+      continue;
+
+    // Check that each offset is a multiple of the range type's byte width (or
+    // that if the offset refers to the phi variable, it maintains the invariant).
+    for (auto ai = i->second.begin(), ae = i->second.end(); ai != ae; ++ai) {
+      auto AOE = ArrayOffsetExpr::create(*ai);
+      if (Expr::createExactBVUDiv(AOE, GlobalsType.width/8, V).isNull()) {
+        doNextPhi = true;
+        break;
+      }
+    }
+
+    if (doNextPhi)
+      continue;
+
+    // Success!  Record the global set.
+    auto &GlobalValSet = TM->ModelPtrAsGlobalOffset[i->first];
+    std::transform(GlobalSet.begin(), GlobalSet.end(),
+                   std::inserter(GlobalValSet, GlobalValSet.begin()), 
+                   [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+    TM->NeedAdditionalGlobalOffsetModels = true;
+  }
 }
 
 ref<Expr> TranslateFunction::translateValue(llvm::Value *V) {
@@ -192,7 +273,7 @@ Var *TranslateFunction::getPhiVariable(llvm::PHINode *PN) {
   if (i)
     return i;
 
-  i = BF->addLocal(TM->translateType(PN->getType()), PN->getName());
+  i = BF->addLocal(TM->getModelledType(PN), PN->getName());
   return i;
 }
 
@@ -207,7 +288,9 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
     assert(idx != -1 && "No phi index?");
 
     Vars.push_back(getPhiVariable(PN));
-    Exprs.push_back(translateValue(PN->getIncomingValue(idx)));
+    auto Val = TM->modelValue(PN, translateValue(PN->getIncomingValue(idx)));
+    Exprs.push_back(Val);
+    PhiAssignsMap[PN].push_back(Val);
   }
 
   if (!Vars.empty())
@@ -869,17 +952,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     std::vector<ref<Expr>> Args;
     std::transform(CS.arg_begin(), CS.arg_end(), F->arg_begin(),
                    std::back_inserter(Args),
-                   [&](Value *V, Argument &Arg) -> ref<Expr> {
-                      auto E = translateValue(V);
-                      auto OI = TM->ModelPtrAsGlobalOffset.find(&Arg);
-                      if (OI != TM->ModelPtrAsGlobalOffset.end()) {
-                        auto GA = TM->getGlobalArray(OI->second);
-                        E = ArrayOffsetExpr::create(E);
-                        E = Expr::createExactBVUDiv(E,
-                              GA->getRangeType().width/8);
-                        assert(!E.isNull() && "Couldn't create div this time!");
-                      }
-                      return E;
+                   [&](Value *V, Argument &Arg) {
+                      return TM->modelValue(&Arg, translateValue(V));
                    });
 
     if (auto II = dyn_cast<IntrinsicInst>(CI)) {
@@ -976,7 +1050,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     BBB->addStmt(new GotoStmt(Succs));
     return;
   } else if (auto PN = dyn_cast<PHINode>(I)) {
-    ValueExprMap[I] = VarRefExpr::create(getPhiVariable(PN));
+    ValueExprMap[I] =
+      TM->unmodelValue(PN, VarRefExpr::create(getPhiVariable(PN)));
     return;
   } else {
     assert(0 && "Unsupported instruction");

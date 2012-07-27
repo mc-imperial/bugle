@@ -43,6 +43,7 @@ class TranslateFunction {
   llvm::DenseMap<llvm::BasicBlock *, BasicBlock *> BasicBlockMap;
   llvm::DenseMap<llvm::Value *, ref<Expr> > ValueExprMap;
   llvm::DenseMap<llvm::PHINode *, Var *> PhiVarMap;
+  llvm::DenseMap<llvm::PHINode *, std::vector<ref<Expr>>> PhiAssignsMap;
   Var *ReturnVar;
 
   SpecialFnMapTy &SpecialFunctionMap;
