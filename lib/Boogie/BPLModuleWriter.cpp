@@ -7,6 +7,10 @@
 using namespace bugle;
 
 void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
+  if (t.array) {
+    OS << "arrayId";
+    return;
+  }
   switch (t.kind) {
   case Type::Bool:
     OS << "bool";
@@ -28,9 +32,6 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
     break;
   case Type::Pointer:
     OS << "ptr";
-    break;
-  case Type::ArrayId:
-    OS << "arrayId";
     break;
   }
 }

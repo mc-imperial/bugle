@@ -14,22 +14,28 @@ using namespace bugle;
 void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
                                             Expr *PtrArr,
                                          std::function<void(GlobalArray *)> F) {
-  if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
-    F(ArrE->getArray());
-    OS << "\n";
-  } else if (isa<NullArrayRefExpr>(PtrArr) ||
-             MW->M->global_begin() == MW->M->global_end()) {
+  if (isa<NullArrayRefExpr>(PtrArr) ||
+      MW->M->global_begin() == MW->M->global_end()) {
     OS << "assert false;\n";
   } else {
-    for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
-         ++i) {
-      OS << "if (";
-      writeExpr(OS, PtrArr);
-      OS << " == $arrayId$$" << (*i)->getName() << ") {\n    ";
-      F(*i);
-      OS << "\n  } else ";
+    std::set<GlobalArray *> Globals;
+    if (!PtrArr->computeArrayCandidates(Globals)) {
+      Globals.insert(MW->M->global_begin(), MW->M->global_end());
     }
-    OS << "{\n    assert false;\n  }\n";
+
+    if (Globals.size() == 1) {
+      F(*Globals.begin());
+      OS << "\n";
+    } else {
+      for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
+        OS << "if (";
+        writeExpr(OS, PtrArr);
+        OS << " == $arrayId$$" << (*i)->getName() << ") {\n    ";
+        F(*i);
+        OS << "\n  } else ";
+      }
+      OS << "{\n    assert false;\n  }\n";
+    }
   }
 }
 

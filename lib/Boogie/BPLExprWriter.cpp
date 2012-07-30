@@ -452,6 +452,19 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << "[";
     writeExpr(OS, LE->getOffset().get());
     OS << "]";
+  } else if (auto MOE = dyn_cast<MemberOfExpr>(E)) {
+    // If this is the dumper, show the expression.  Otherwise, this is a no-op.
+    if (!MW) {
+      OS << "<<member-of";
+      for (auto i = MOE->getElems().begin(), e = MOE->getElems().end(); i != e;
+           ++i) {
+        OS << " " << (*i)->getName();
+      }
+      OS << ">>(";
+    }
+    writeExpr(OS, MOE->getSubExpr().get(), Depth);
+    if (!MW)
+      OS << ")";
   } else {
     assert(0 && "Unsupported expression");
   }

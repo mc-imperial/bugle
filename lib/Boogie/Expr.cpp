@@ -17,6 +17,25 @@ void Expr::dump() {
   llvm::errs() << "\n";
 }
 
+bool Expr::computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const {
+  if (auto GARE = dyn_cast<GlobalArrayRefExpr>(this)) {
+    GlobalSet.insert(GARE->getArray());
+    return true;
+  } else if (auto MOE = dyn_cast<MemberOfExpr>(this)) {
+    GlobalSet.insert(MOE->getElems().begin(), MOE->getElems().end());
+    return true;
+  } else if (auto ITE = dyn_cast<IfThenElseExpr>(this)) {
+    return ITE->getTrueExpr()->computeArrayCandidates(GlobalSet) &&
+           ITE->getFalseExpr()->computeArrayCandidates(GlobalSet);
+  } else if (auto AIE = dyn_cast<ArrayIdExpr>(this)) {
+    return AIE->getSubExpr()->computeArrayCandidates(GlobalSet);
+  } else if (auto PE = dyn_cast<PointerExpr>(this)) {
+    return PE->getArray()->computeArrayCandidates(GlobalSet);
+  } else {
+    return false;
+  }
+}
+
 ref<Expr> BVConstExpr::create(const llvm::APInt &bv) {
   return new BVConstExpr(bv);
 }
@@ -34,7 +53,8 @@ ref<Expr> BoolConstExpr::create(bool val) {
 }
 
 ref<Expr> GlobalArrayRefExpr::create(GlobalArray *global) {
-  return new GlobalArrayRefExpr(global);
+  return new GlobalArrayRefExpr(Type(Type::ArrayOf, global->getRangeType()),
+                                global);
 }
 
 ref<Expr> NullArrayRefExpr::create() {
@@ -42,21 +62,18 @@ ref<Expr> NullArrayRefExpr::create() {
 }
 
 ref<Expr> PointerExpr::create(ref<Expr> array, ref<Expr> offset) {
-  assert(array->getType().kind == Type::ArrayId);
-  assert(offset->getType().kind == Type::BV);
+  assert(array->getType().array);
+  assert(offset->getType().isKind(Type::BV));
 
   return new PointerExpr(array, offset);
 }
 
 ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset) {
-  assert(array->getType().kind == Type::ArrayId);
-  assert(offset->getType().kind == Type::BV);
+  Type at = array->getType();
+  assert(at.array);
+  assert(offset->getType().isKind(Type::BV));
 
-  Type t(Type::BV, 8);
-  if (auto GE = dyn_cast<GlobalArrayRefExpr>(array))
-    t = GE->getArray()->getRangeType();
-
-  return new LoadExpr(t, array, offset);
+  return new LoadExpr(at.range(), array, offset);
 }
 
 ref<Expr> VarRefExpr::create(Var *var) {
@@ -93,7 +110,7 @@ ref<Expr> BVExtractExpr::create(ref<Expr> expr, unsigned offset,
 }
 
 ref<Expr> NotExpr::create(ref<Expr> op) {
-  assert(op->getType().kind == Type::Bool);
+  assert(op->getType().isKind(Type::Bool));
   if (auto e = dyn_cast<BoolConstExpr>(op))
     return BoolConstExpr::create(!e->getValue());
 
@@ -101,15 +118,15 @@ ref<Expr> NotExpr::create(ref<Expr> op) {
 }
 
 ref<Expr> ArrayIdExpr::create(ref<Expr> pointer) {
-  assert(pointer->getType().kind == Type::Pointer);
+  assert(pointer->getType().isKind(Type::Pointer));
   if (auto e = dyn_cast<PointerExpr>(pointer))
     return e->getArray();
 
-  return new ArrayIdExpr(Type(Type::ArrayId), pointer);
+  return new ArrayIdExpr(Type(Type::ArrayOf, Type::BV, 8), pointer);
 }
 
 ref<Expr> ArrayOffsetExpr::create(ref<Expr> pointer) {
-  assert(pointer->getType().kind == Type::Pointer);
+  assert(pointer->getType().isKind(Type::Pointer));
 
   if (auto e = dyn_cast<PointerExpr>(pointer))
     return e->getOffset();
@@ -119,7 +136,7 @@ ref<Expr> ArrayOffsetExpr::create(ref<Expr> pointer) {
 
 ref<Expr> BVZExtExpr::create(unsigned width, ref<Expr> bv) {
   const Type &ty = bv->getType();
-  assert(ty.kind == Type::BV);
+  assert(ty.isKind(Type::BV));
 
   if (width == ty.width)
     return bv;
@@ -134,7 +151,7 @@ ref<Expr> BVZExtExpr::create(unsigned width, ref<Expr> bv) {
 
 ref<Expr> BVSExtExpr::create(unsigned width, ref<Expr> bv) {
   const Type &ty = bv->getType();
-  assert(ty.kind == Type::BV);
+  assert(ty.isKind(Type::BV));
 
   if (width == ty.width)
     return bv;
@@ -149,7 +166,7 @@ ref<Expr> BVSExtExpr::create(unsigned width, ref<Expr> bv) {
 
 ref<Expr> FPConvExpr::create(unsigned width, ref<Expr> expr) {
   const Type &ty = expr->getType();
-  assert(ty.kind == Type::Float);
+  assert(ty.isKind(Type::Float));
 
   if (width == ty.width)
     return expr;
@@ -159,65 +176,65 @@ ref<Expr> FPConvExpr::create(unsigned width, ref<Expr> expr) {
 
 ref<Expr> FPToSIExpr::create(unsigned width, ref<Expr> expr) {
   const Type &ty = expr->getType();
-  assert(ty.kind == Type::Float);
+  assert(ty.isKind(Type::Float));
 
   return new FPToSIExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> FPToUIExpr::create(unsigned width, ref<Expr> expr) {
   const Type &ty = expr->getType();
-  assert(ty.kind == Type::Float);
+  assert(ty.isKind(Type::Float));
 
   return new FPToUIExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> SIToFPExpr::create(unsigned width, ref<Expr> expr) {
   const Type &ty = expr->getType();
-  assert(ty.kind == Type::BV);
+  assert(ty.isKind(Type::BV));
 
   return new SIToFPExpr(Type(Type::Float, width), expr);
 }
 
 ref<Expr> UIToFPExpr::create(unsigned width, ref<Expr> expr) {
   const Type &ty = expr->getType();
-  assert(ty.kind == Type::BV);
+  assert(ty.isKind(Type::BV));
 
   return new UIToFPExpr(Type(Type::Float, width), expr);
 }
 
 ref<Expr> FAbsExpr::create(ref<Expr> expr) {
-  assert(expr->getType().kind == Type::Float);
+  assert(expr->getType().isKind(Type::Float));
   return new FAbsExpr(expr->getType(), expr);
 }
 
 ref<Expr> FCosExpr::create(ref<Expr> expr) {
-  assert(expr->getType().kind == Type::Float);
+  assert(expr->getType().isKind(Type::Float));
   return new FCosExpr(expr->getType(), expr);
 }
 
 ref<Expr> FExpExpr::create(ref<Expr> expr) {
-  assert(expr->getType().kind == Type::Float);
+  assert(expr->getType().isKind(Type::Float));
   return new FExpExpr(expr->getType(), expr);
 }
 
 ref<Expr> FLogExpr::create(ref<Expr> expr) {
-  assert(expr->getType().kind == Type::Float);
+  assert(expr->getType().isKind(Type::Float));
   return new FLogExpr(expr->getType(), expr);
 }
 
 ref<Expr> FSinExpr::create(ref<Expr> expr) {
-  assert(expr->getType().kind == Type::Float);
+  assert(expr->getType().isKind(Type::Float));
   return new FSinExpr(expr->getType(), expr);
 }
 
 ref<Expr> FSqrtExpr::create(ref<Expr> expr) {
-  assert(expr->getType().kind == Type::Float);
+  assert(expr->getType().isKind(Type::Float));
   return new FSqrtExpr(expr->getType(), expr);
 }
 
 ref<Expr> IfThenElseExpr::create(ref<Expr> cond, ref<Expr> trueExpr,
                                  ref<Expr> falseExpr) {
-  assert(cond->getType().kind == Type::Bool);
+  assert(cond->getType().isKind(Type::Bool));
   assert(trueExpr->getType() == falseExpr->getType());
 
   if (auto e = dyn_cast<BoolConstExpr>(cond))
@@ -226,9 +243,24 @@ ref<Expr> IfThenElseExpr::create(ref<Expr> cond, ref<Expr> trueExpr,
   return new IfThenElseExpr(cond, trueExpr, falseExpr);
 }
 
+ref<Expr> MemberOfExpr::create(ref<Expr> expr,
+                               const std::set<GlobalArray *> &elems) {
+  assert(expr->getType().array);
+  assert(!elems.empty());
+
+  Type t = (*elems.begin())->getRangeType();
+#ifndef NDEBUG
+  for (auto i = elems.begin(), e = elems.end(); i != e; ++i) {
+    assert((*i)->getRangeType() == t);
+  }
+#endif
+
+  return new MemberOfExpr(Type(Type::ArrayOf, t), expr, elems);
+}
+
 ref<Expr> BVToFloatExpr::create(ref<Expr> bv) {
   const Type &ty = bv->getType();
-  assert(ty.kind == Type::BV);
+  assert(ty.isKind(Type::BV));
   assert(ty.width == 32 || ty.width == 64);
 
   if (auto e = dyn_cast<FloatToBVExpr>(bv))
@@ -239,7 +271,7 @@ ref<Expr> BVToFloatExpr::create(ref<Expr> bv) {
 
 ref<Expr> FloatToBVExpr::create(ref<Expr> bv) {
   const Type &ty = bv->getType();
-  assert(ty.kind == Type::Float);
+  assert(ty.isKind(Type::Float));
 
   if (auto e = dyn_cast<BVToFloatExpr>(bv))
     return e->getSubExpr();
@@ -249,7 +281,7 @@ ref<Expr> FloatToBVExpr::create(ref<Expr> bv) {
 
 ref<Expr> BVToPtrExpr::create(ref<Expr> bv) {
   const Type &ty = bv->getType();
-  assert(ty.kind == Type::BV);
+  assert(ty.isKind(Type::BV));
 
   if (auto e = dyn_cast<PtrToBVExpr>(bv))
     return e->getSubExpr();
@@ -259,7 +291,7 @@ ref<Expr> BVToPtrExpr::create(ref<Expr> bv) {
 
 ref<Expr> PtrToBVExpr::create(ref<Expr> bv) {
   const Type &ty = bv->getType();
-  assert(ty.kind == Type::Pointer);
+  assert(ty.isKind(Type::Pointer));
 
   if (auto e = dyn_cast<BVToPtrExpr>(bv))
     return e->getSubExpr();
@@ -269,7 +301,7 @@ ref<Expr> PtrToBVExpr::create(ref<Expr> bv) {
 
 ref<Expr> BVToBoolExpr::create(ref<Expr> bv) {
   const Type &ty = bv->getType();
-  assert(ty.kind == Type::BV);
+  assert(ty.isKind(Type::BV));
   assert(ty.width == 1);
 
   if (auto e = dyn_cast<BoolToBVExpr>(bv))
@@ -280,7 +312,7 @@ ref<Expr> BVToBoolExpr::create(ref<Expr> bv) {
 
 ref<Expr> BoolToBVExpr::create(ref<Expr> bv) {
   const Type &ty = bv->getType();
-  assert(ty.kind == Type::Bool);
+  assert(ty.isKind(Type::Bool));
 
   if (auto e = dyn_cast<BVToBoolExpr>(bv))
     return e->getSubExpr();
@@ -330,7 +362,7 @@ ref<Expr> Expr::createNeZero(ref<Expr> bv) {
 
 ref<Expr> AndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::Bool && rhsTy.kind == Type::Bool);
+  assert(lhsTy.isKind(Type::Bool) && rhsTy.isKind(Type::Bool));
 
   if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
     return e1->getValue() ? rhs : lhs;
@@ -343,7 +375,7 @@ ref<Expr> AndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> OrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::Bool && rhsTy.kind == Type::Bool);
+  assert(lhsTy.isKind(Type::Bool) && rhsTy.isKind(Type::Bool));
 
   if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
     return e1->getValue() ? lhs : rhs;
@@ -367,7 +399,7 @@ static ref<Expr> reassociateConstAdd(BVAddExpr *nonConstOp,
 
 ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs)) {
@@ -397,7 +429,7 @@ ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVSubExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -413,7 +445,7 @@ ref<Expr> BVSubExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVMulExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs)) {
@@ -432,7 +464,7 @@ ref<Expr> BVMulExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVSDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -444,7 +476,7 @@ ref<Expr> BVSDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVUDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -501,7 +533,7 @@ ref<Expr> Expr::createExactBVUDiv(ref<Expr> lhs, uint64_t rhs, Var *base) {
 
 ref<Expr> BVSRemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -513,7 +545,7 @@ ref<Expr> BVSRemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVURemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -525,7 +557,7 @@ ref<Expr> BVURemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVShlExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -537,7 +569,7 @@ ref<Expr> BVShlExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVAShrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -549,7 +581,7 @@ ref<Expr> BVAShrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVLShrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -561,7 +593,7 @@ ref<Expr> BVLShrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVAndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -573,7 +605,7 @@ ref<Expr> BVAndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVOrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -585,7 +617,7 @@ ref<Expr> BVOrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVXorExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
   assert(lhsTy.width == rhsTy.width);
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -597,7 +629,7 @@ ref<Expr> BVXorExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> BVConcatExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV);
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
 
   unsigned resWidth = lhsTy.width + rhsTy.width;
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -620,7 +652,7 @@ ref<Expr> Expr::createBVConcatN(const std::vector<ref<Expr>> &exprs) {
 #define ICMP_EXPR_CREATE(cls, method) \
 ref<Expr> cls::create(ref<Expr> lhs, ref<Expr> rhs) { \
   auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType(); \
-  assert(lhsTy.kind == Type::BV && rhsTy.kind == Type::BV); \
+  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV)); \
   assert(lhsTy.width == rhsTy.width); \
  \
   if (auto e1 = dyn_cast<BVConstExpr>(lhs)) \
@@ -640,56 +672,56 @@ ICMP_EXPR_CREATE(BVSltExpr, slt)
 ICMP_EXPR_CREATE(BVSleExpr, sle)
 
 ref<Expr> FAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType().isKind(Type::Float));
   assert(lhs->getType() == rhs->getType());
 
   return new FAddExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> FSubExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType().isKind(Type::Float));
   assert(lhs->getType() == rhs->getType());
 
   return new FSubExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> FMulExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType().isKind(Type::Float));
   assert(lhs->getType() == rhs->getType());
 
   return new FMulExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> FDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType().isKind(Type::Float));
   assert(lhs->getType() == rhs->getType());
 
   return new FDivExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> FPowExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType().isKind(Type::Float));
   assert(lhs->getType() == rhs->getType());
 
   return new FPowExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> FLtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType().isKind(Type::Float));
   assert(lhs->getType() == rhs->getType());
 
   return new FLtExpr(Type(Type::Bool), lhs, rhs);
 }
 
 ref<Expr> FEqExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType().isKind(Type::Float));
   assert(lhs->getType() == rhs->getType());
 
   return new FEqExpr(Type(Type::Bool), lhs, rhs);
 }
 
 ref<Expr> FUnoExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().kind == Type::Float);
+  assert(lhs->getType().isKind(Type::Float));
   assert(lhs->getType() == rhs->getType());
 
   return new FUnoExpr(Type(Type::Bool), lhs, rhs);
@@ -712,22 +744,22 @@ ref<Expr> Expr::createPtrLe(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> PtrLtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().kind == Type::Pointer);
-  assert(rhs->getType().kind == Type::Pointer);
+  assert(lhs->getType().isKind(Type::Pointer));
+  assert(rhs->getType().isKind(Type::Pointer));
 
   return new PtrLtExpr(Type(Type::Bool), lhs, rhs);
 }
 
 ref<Expr> PtrLeExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().kind == Type::Pointer);
-  assert(rhs->getType().kind == Type::Pointer);
+  assert(lhs->getType().isKind(Type::Pointer));
+  assert(rhs->getType().isKind(Type::Pointer));
 
   return new PtrLeExpr(Type(Type::Bool), lhs, rhs);
 }
 
 ref<Expr> ImpliesExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().kind == Type::Bool);
-  assert(rhs->getType().kind == Type::Bool);
+  assert(lhs->getType().isKind(Type::Bool));
+  assert(rhs->getType().isKind(Type::Bool));
 
   return new ImpliesExpr(Type(Type::Bool), lhs, rhs);
 }
@@ -742,21 +774,21 @@ ref<Expr> OldExpr::create(ref<Expr> op) {
 }
 
 ref<Expr> OtherBoolExpr::create(ref<Expr> op) {
-  assert(op->getType().kind == Type::Bool);
+  assert(op->getType().isKind(Type::Bool));
   return new OtherBoolExpr(Type(Type::Bool), op);
 }
 
 ref<Expr> OtherIntExpr::create(ref<Expr> op) {
-  assert(op->getType().kind == Type::BV);
+  assert(op->getType().isKind(Type::BV));
   return new OtherIntExpr(Type(Type::BV, op->getType().width), op);
 }
 
 ref<Expr> AccessHasOccurredExpr::create(ref<Expr> array, bool isWrite) {
-  assert(array->getType().kind == Type::ArrayId);
+  assert(array->getType().array);
   return new AccessHasOccurredExpr(array, isWrite);
 }
 
 ref<Expr> AccessOffsetExpr::create(ref<Expr> array, bool isWrite) {
-  assert(array->getType().kind == Type::ArrayId);
+  assert(array->getType().array);
   return new AccessOffsetExpr(array, isWrite);
 }

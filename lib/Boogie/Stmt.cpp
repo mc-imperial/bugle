@@ -16,10 +16,8 @@ void VarAssignStmt::check() {
 
 StoreStmt::StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value) :
     array(array), offset(offset), value(value) {
-  assert(array->getType().kind == Type::ArrayId);
-  assert(offset->getType().kind == Type::BV);
-  if (auto GARE = dyn_cast<GlobalArrayRefExpr>(array))
-    assert(value->getType() == GARE->getArray()->getRangeType());
-  else
-    assert(value->getType() == Type(Type::BV, 8));
+  assert(array->getType().array);
+  assert(offset->getType().isKind(Type::BV));
+  assert(value->getType().isKind(array->getType().kind));
+  assert(value->getType().width == array->getType().width);
 }

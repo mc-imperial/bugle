@@ -2,6 +2,7 @@
 #include "bugle/Type.h"
 #include "bugle/Var.h"
 #include "llvm/ADT/APInt.h"
+#include <set>
 #include <vector>
 
 #ifndef BUGLE_EXPR_H
@@ -33,8 +34,9 @@ public:
     Call,
     BVExtract,
     IfThenElse,
-	AccessHasOccurred,
-	AccessOffset,
+    AccessHasOccurred,
+    AccessOffset,
+    MemberOf,
 
     // Unary
     Not,
@@ -119,6 +121,8 @@ public:
   static ref<Expr> createExactBVUDiv(ref<Expr> lhs, uint64_t rhs,
                                      Var *base = 0);
 
+  bool computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const;
+
 private:
   Type type;
 
@@ -167,8 +171,8 @@ public:
 };
 
 class GlobalArrayRefExpr : public Expr {
-  GlobalArrayRefExpr(GlobalArray *array) :
-    Expr(Type(Type::ArrayId)), array(array) {}
+  GlobalArrayRefExpr(Type t, GlobalArray *array) :
+    Expr(t), array(array) {}
   GlobalArray *array;
 
 public:
@@ -179,7 +183,7 @@ public:
 };
 
 class NullArrayRefExpr : public Expr {
-  NullArrayRefExpr() : Expr(Type(Type::ArrayId)) {}
+  NullArrayRefExpr() : Expr(Type(Type::ArrayOf, Type::BV, 8)) {}
 
 public:
   static ref<Expr> create();
@@ -264,6 +268,23 @@ public:
   ref<Expr> getCond() const { return cond; }
   ref<Expr> getTrueExpr() const { return trueExpr; }
   ref<Expr> getFalseExpr() const { return falseExpr; }
+};
+
+/// Expression which denotes that its subexpression is an arrayId and a member
+/// of the elems set.  This is an unusual expression in that it only shows
+/// up in the output indirectly via case splits.
+class MemberOfExpr : public Expr {
+  MemberOfExpr(Type t, ref<Expr> expr, const std::set<GlobalArray *> &elems) :
+    Expr(t), expr(expr), elems(elems) {}
+  ref<Expr> expr;
+  std::set<GlobalArray *> elems;
+
+public:
+  static ref<Expr> create(ref<Expr> expr, const std::set<GlobalArray *> &elems);
+
+  EXPR_KIND(MemberOf)
+  ref<Expr> getSubExpr() const { return expr; }
+  const std::set<GlobalArray *> &getElems() const { return elems; }
 };
 
 class UnaryExpr : public Expr {

@@ -6,31 +6,54 @@
 namespace bugle {
 
 struct Type {
+  enum ArrayKind {
+    ArrayOf
+  };
+
   enum Kind {
     Bool,
     BV,
     Float,
-    Pointer,
-    ArrayId
+    Pointer
   };
 
-  Kind kind;
+  bool array:1;
+  Kind kind:31;
   unsigned width;
 
-  Type(Kind kind) : kind(kind), width(0) {
-    assert(kind == ArrayId || kind == Bool);
+  Type(Kind kind) : array(false), kind(kind), width(0) {
+    assert(kind == Bool);
   }
 
-  Type(Kind kind, unsigned width) : kind(kind), width(width) {
-    assert(kind != ArrayId && kind != Bool);
+  Type(Kind kind, unsigned width) : array(false), kind(kind), width(width) {
+    assert(kind != Bool);
+  }
+
+  Type(ArrayKind ak, Kind kind, unsigned width) :
+    array(true), kind(kind), width(width) {
+    assert(kind != Bool);
+  }
+
+  Type(ArrayKind ak, Type subType) :
+    array(true), kind(subType.kind), width(subType.width) {
+    assert(!subType.array);
   }
 
   bool operator==(const Type &other) const {
-    return kind == other.kind && width == other.width;
+    return array == other.array && kind == other.kind && width == other.width;
   }
 
   bool operator!=(const Type &other) const {
-    return kind != other.kind || width != other.width;
+    return array != other.array || kind != other.kind || width != other.width;
+  }
+
+  bool isKind(Kind k) const {
+    return !array && kind == k;
+  }
+
+  Type range() const {
+    assert(array);
+    return Type(kind, width);
   }
 };
 

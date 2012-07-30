@@ -121,16 +121,6 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
   return SpecialFunctionMap;
 }
 
-static bool computeArrayCandidates(std::set<GlobalArray *> &GlobalSet,
-                                   ref<Expr> AId) {
-  if (auto GARE = dyn_cast<GlobalArrayRefExpr>(AId)) {
-    GlobalSet.insert(GARE->getArray());
-    return true;
-  } else {
-    return false;
-  }
-}
-
 void TranslateFunction::translate() {
   initSpecialFunctionMap(TM->SL);
 
@@ -190,7 +180,7 @@ void TranslateFunction::translate() {
     bool doNextPhi = false;
 
     for (auto ai = i->second.begin(), ae = i->second.end(); ai != ae; ++ai) {
-      if (computeArrayCandidates(GlobalSet, ArrayIdExpr::create(*ai))) {
+      if ((*ai)->computeArrayCandidates(GlobalSet)) {
         continue;
       } else {
         // See if this assignment is simply referring back to the phi variable
@@ -646,16 +636,14 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     ref<Expr> Ptr = translateValue(LI->getPointerOperand()),
               PtrArr = ArrayIdExpr::create(Ptr),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
-    GlobalArray *GA = 0;
-    if (auto AR = dyn_cast<GlobalArrayRefExpr>(PtrArr))
-      GA = AR->getArray();
+    Type ArrRangeTy = PtrArr->getType().range();
     Type LoadTy = TM->translateType(LI->getType()), LoadElTy = LoadTy;
     auto VT = dyn_cast<VectorType>(LI->getType());
     if (VT)
       LoadElTy = TM->translateType(VT->getElementType());
     assert(LoadTy.width % 8 == 0);
     ref<Expr> Div;
-    if (GA && GA->getRangeType() == LoadElTy &&
+    if (ArrRangeTy == LoadElTy &&
         !(Div = Expr::createExactBVUDiv(PtrOfs, LoadElTy.width/8)).isNull()) {
       if (VT) {
         std::vector<ref<Expr>> ElemsLoaded;
@@ -665,9 +653,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                               BVConstExpr::create(Div->getType().width, i));
           ref<Expr> ValElem = LoadExpr::create(PtrArr, ElemOfs);
           BBB->addStmt(new EvalStmt(ValElem));
-          if (LoadElTy.kind == Type::Pointer)
+          if (LoadElTy.isKind(Type::Pointer))
             ValElem = PtrToBVExpr::create(ValElem);
-          else if (LoadElTy.kind == Type::Float)
+          else if (LoadElTy.isKind(Type::Float))
             ValElem = FloatToBVExpr::create(ValElem);
           ElemsLoaded.push_back(ValElem);
         }
@@ -675,8 +663,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       } else {
         E = LoadExpr::create(PtrArr, Div);
       }
-    } else if (TM->ModelAllAsByteArray ||
-               (GA && GA->getRangeType() == Type(Type::BV, 8))) {
+    } else if (ArrRangeTy == Type(Type::BV, 8)) {
       std::vector<ref<Expr> > BytesLoaded;
       for (unsigned i = 0; i != LoadTy.width / 8; ++i) {
         ref<Expr> PtrByteOfs =
@@ -687,16 +674,20 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         BBB->addStmt(new EvalStmt(ValByte));
       }
       E = Expr::createBVConcatN(BytesLoaded);
-      if (LoadTy.kind == Type::Pointer)
+      if (LoadTy.isKind(Type::Pointer))
         E = BVToPtrExpr::create(E);
-      else if (LoadTy.kind == Type::Float)
+      else if (LoadTy.isKind(Type::Float))
         E = BVToFloatExpr::create(E);
     } else {
       TM->NeedAdditionalByteArrayModels = true;
-      if (GA)
-        TM->ModelAsByteArray.insert(TM->GlobalValueMap[GA]);
-      else
+      std::set<GlobalArray *> Globals;
+      if (PtrArr->computeArrayCandidates(Globals)) {
+        std::transform(Globals.begin(), Globals.end(),
+            std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
+            [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+      } else {
         TM->NextModelAllAsByteArray = true;
+      }
       E = TM->translateUndef(LoadTy);
     }
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
@@ -704,16 +695,14 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               Val = translateValue(SI->getValueOperand()),
               PtrArr = ArrayIdExpr::create(Ptr),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
-    GlobalArray *GA = 0;
-    if (auto AR = dyn_cast<GlobalArrayRefExpr>(PtrArr))
-      GA = AR->getArray();
+    Type ArrRangeTy = PtrArr->getType().range();
     Type StoreTy = Val->getType(), StoreElTy = StoreTy;
     auto VT = dyn_cast<VectorType>(SI->getValueOperand()->getType());
     if (VT)
       StoreElTy = TM->translateType(VT->getElementType());
     assert(StoreTy.width % 8 == 0);
     ref<Expr> Div;
-    if (GA && GA->getRangeType() == StoreElTy &&
+    if (ArrRangeTy == StoreElTy &&
         !(Div = Expr::createExactBVUDiv(PtrOfs, StoreElTy.width/8)).isNull()) {
       if (VT) {
         for (unsigned i = 0; i != VT->getNumElements(); ++i) {
@@ -722,21 +711,20 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                               BVConstExpr::create(Div->getType().width, i));
           ref<Expr> ValElem =
             BVExtractExpr::create(Val, i*StoreElTy.width, StoreElTy.width);
-          if (StoreElTy.kind == Type::Pointer)
+          if (StoreElTy.isKind(Type::Pointer))
             ValElem = BVToPtrExpr::create(ValElem);
-          else if (StoreElTy.kind == Type::Float)
+          else if (StoreElTy.isKind(Type::Float))
             ValElem = BVToFloatExpr::create(ValElem);
           BBB->addStmt(new StoreStmt(PtrArr, ElemOfs, ValElem));
         }
       } else {
         BBB->addStmt(new StoreStmt(PtrArr, Div, Val));
       }
-    } else if (TM->ModelAllAsByteArray ||
-               (GA && GA->getRangeType() == Type(Type::BV, 8))) {
-      if (StoreTy.kind == Type::Pointer) {
+    } else if (ArrRangeTy == Type(Type::BV, 8)) {
+      if (StoreTy.isKind(Type::Pointer)) {
         Val = PtrToBVExpr::create(Val);
         BBB->addStmt(new EvalStmt(Val));
-      } else if (StoreTy.kind == Type::Float) {
+      } else if (StoreTy.isKind(Type::Float)) {
         Val = FloatToBVExpr::create(Val);
         BBB->addStmt(new EvalStmt(Val));
       }
@@ -750,10 +738,14 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       }
     } else {
       TM->NeedAdditionalByteArrayModels = true;
-      if (GA)
-        TM->ModelAsByteArray.insert(TM->GlobalValueMap[GA]);
-      else
+      std::set<GlobalArray *> Globals;
+      if (PtrArr->computeArrayCandidates(Globals)) {
+        std::transform(Globals.begin(), Globals.end(),
+            std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
+            [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+      } else {
         TM->NextModelAllAsByteArray = true;
+      }
     }
     return;
   } else if (auto II = dyn_cast<ICmpInst>(I)) {
@@ -767,8 +759,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         E = EqExpr::create(LHS, RHS);
       else if (II->getPredicate() == ICmpInst::ICMP_NE)
         E = NeExpr::create(LHS, RHS);
-      else if (LHS->getType().kind == Type::Pointer) {
-        assert(RHS->getType().kind == Type::Pointer);
+      else if (LHS->getType().isKind(Type::Pointer)) {
+        assert(RHS->getType().isKind(Type::Pointer));
         switch (II->getPredicate()) {
         case ICmpInst::ICMP_ULT:
         case ICmpInst::ICMP_SLT: E = Expr::createPtrLt(LHS, RHS); break;
@@ -782,7 +774,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           assert(0 && "Unsupported ptr icmp");
         }
       } else {
-        assert(RHS->getType().kind == Type::BV);
+        assert(RHS->getType().isKind(Type::BV));
         switch (II->getPredicate()) {
         case ICmpInst::ICMP_UGT: E = BVUgtExpr::create(LHS, RHS); break;
         case ICmpInst::ICMP_UGE: E = BVUgeExpr::create(LHS, RHS); break;

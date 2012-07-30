@@ -72,9 +72,9 @@ GlobalArray *TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
 
 ref<Expr> TranslateModule::translateUndef(bugle::Type t) {
   ref<Expr> E = BVConstExpr::createZero(t.width);
-  if (t.kind == Type::Float)
+  if (t.isKind(Type::Float))
     return BVToFloatExpr::create(E);
-  else if (t.kind == Type::Pointer)
+  else if (t.isKind(Type::Pointer))
     return BVToPtrExpr::create(E);
   else
     return E;
@@ -237,13 +237,25 @@ static bool isAxiomFunction(StringRef Name) {
 
 // Convert the given unmodelled expression E to modelled form.
 ref<Expr> TranslateModule::modelValue(Value *V, ref<Expr> E) {
-  auto OI = ModelPtrAsGlobalOffset.find(V);
-  if (OI != ModelPtrAsGlobalOffset.end() && OI->second.size() == 1) {
-    auto GA = getGlobalArray(*OI->second.begin());
-    E = ArrayOffsetExpr::create(E);
-    E = Expr::createExactBVUDiv(E, GA->getRangeType().width/8);
-    assert(!E.isNull() && "Couldn't create div this time!");
+  if (E->getType().isKind(Type::Pointer)) {
+    auto OI = ModelPtrAsGlobalOffset.find(V);
+    if (OI != ModelPtrAsGlobalOffset.end()) {
+      auto GA = getGlobalArray(*OI->second.begin());
+      auto Ofs = ArrayOffsetExpr::create(E);
+      Ofs = Expr::createExactBVUDiv(Ofs, GA->getRangeType().width/8);
+      assert(!Ofs.isNull() && "Couldn't create div this time!");
+
+      if (OI->second.size() == 1) {
+        return Ofs;
+      } else {
+        return PointerExpr::create(ArrayIdExpr::create(E), Ofs);
+      }
+    } else if (!ModelAllAsByteArray) {
+      NeedAdditionalByteArrayModels = true;
+      NextModelAllAsByteArray = true;
+    }
   }
+
   return E;
 }
 
@@ -261,12 +273,24 @@ bugle::Type TranslateModule::getModelledType(Value *V) {
 // Convert the given modelled expression E to unmodelled form.
 ref<Expr> TranslateModule::unmodelValue(Value *V, ref<Expr> E) {
   auto OI = ModelPtrAsGlobalOffset.find(V);
-  if (OI != ModelPtrAsGlobalOffset.end() && OI->second.size() == 1) {
+  if (OI != ModelPtrAsGlobalOffset.end()) {
     auto GA = getGlobalArray(*OI->second.begin());
-    return PointerExpr::create(GlobalArrayRefExpr::create(GA),
-                          BVMulExpr::create(E,
-                            BVConstExpr::create(TD.getPointerSizeInBits(),
-                                                GA->getRangeType().width/8)));
+    auto WidthCst = BVConstExpr::create(TD.getPointerSizeInBits(),
+                                        GA->getRangeType().width/8);
+    if (OI->second.size() == 1) {
+      return PointerExpr::create(GlobalArrayRefExpr::create(GA),
+                                 BVMulExpr::create(E, WidthCst));
+    } else {
+      std::set<GlobalArray *> Globals;
+      std::transform(OI->second.begin(), OI->second.end(),
+                     std::inserter(Globals, Globals.begin()),
+                     [&](Value *V) { return getGlobalArray(V); });
+
+      return PointerExpr::create(MemberOfExpr::create(ArrayIdExpr::create(E),
+                                                      Globals),
+                                 BVMulExpr::create(ArrayOffsetExpr::create(E),
+                                                   WidthCst));
+    }
   } else {
     return E;
   }
