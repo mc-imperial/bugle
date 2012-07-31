@@ -1,0 +1,13 @@
+#!/bin/sh -e
+
+if [ "$1" = "-o" ] ; then
+  OUT=$2
+  shift 2
+fi
+
+BASE=`basename $1 @EXT@`
+OUT=${OUT:-$BASE.@OUTEXT@}
+
+@LLVM_BINDIR@/clang @CLANG_OPTS@ -I@CMAKE_SOURCE_DIR@/include -emit-llvm -c -o $BASE.bc "$@"
+@LLVM_BINDIR@/opt -mem2reg -globaldce -o $BASE.opt.bc $BASE.bc
+@CMAKE_BINARY_DIR@/bugle @BUGLE_OPTS@ -o $OUT $BASE.opt.bc

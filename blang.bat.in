@@ -1,5 +1,9 @@
 @echo off
 
-@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\clang -I@CMAKE_SOURCE_DIR@\include -emit-llvm -c -o %~n1.bc %*
-@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\opt -mem2reg -globaldce -o %~n1.opt.bc %~n1.bc
-@CMAKE_BINARY_DIR@\@LLVM_BUILD_TYPE@\bugle -o %~n1.bpl %~n1.opt.bc
+if %1 == -o set OUT=%2 & shift 2
+
+if (%OUT%) == () set OUT=%~n1.@OUTEXT@
+
+@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\clang @CLANG_OPTS@ -I@CMAKE_SOURCE_DIR@\include -emit-llvm -c -o %~n1.bc %* || exit /b 1
+@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\opt -mem2reg -globaldce -o %~n1.opt.bc %~n1.bc || exit /b 1
+@CMAKE_BINARY_DIR@\@LLVM_BUILD_TYPE@\bugle @BUGLE_OPTS@ -o %OUT% %~n1.opt.bc || exit /b 1

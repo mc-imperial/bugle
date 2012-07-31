@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 2.8)
 project(Bugle)
 
 set(LIBCLC_DIR "" CACHE PATH "Path to libclc")
+set(GPUVERIFY_BENCHMARKING_DIR "" CACHE PATH "Path to GPUVerifyBenchmarking")
+
+set(CLBLANG_CLANG_OPTS "-Xclang -cl-std=CL1.2 -O0 -ccc-host-triple nvptx--nvidiacl -I${CMAKE_SOURCE_DIR}/include-libclc -I${LIBCLC_DIR}/generic/include -Xclang -mlink-bitcode-file -Xclang ${LIBCLC_DIR}/nvptx--nvidiacl/lib/builtins.bc -Dcl_khr_fp64 -Dcl_clang_storage_class_specifiers")
+set(CLBLANG_BUGLE_OPTS "-l cl")
+
+set(CUBLANG_CLANG_OPTS "-I${GPUVERIFY_BENCHMARKING_DIR}/include_cl -emit-llvm -Xclang -fcuda-is-device")
+set(CUBLANG_BUGLE_OPTS "-l cu")
 
 if (NOT WIN32 OR MSYS OR CYGWIN)
   find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config DOC "llvm-config executable")
@@ -37,11 +44,23 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
 
   set(CFLAGS_CXX11 "-std=c++0x")
 
-  set(GPUVERIFY_BENCHMARKING_DIR "" CACHE PATH "Path to GPUVerifyBenchmarking")
+  set(EXT ".c")
+  set(OUTEXT "bpl")
+  set(CLANG_OPTS "")
+  set(BUGLE_OPTS "")
+  configure_file(${CMAKE_SOURCE_DIR}/blang.sh.in ${CMAKE_BINARY_DIR}/blang @ONLY)
 
-  configure_file(${CMAKE_SOURCE_DIR}/blang.sh ${CMAKE_BINARY_DIR}/blang)
-  configure_file(${CMAKE_SOURCE_DIR}/clblang.sh ${CMAKE_BINARY_DIR}/clblang)
-  configure_file(${CMAKE_SOURCE_DIR}/cublang.sh ${CMAKE_BINARY_DIR}/cublang)
+  set(EXT ".cl")
+  set(OUTEXT "gbpl")
+  set(CLANG_OPTS "${CLBLANG_CLANG_OPTS}")
+  set(BUGLE_OPTS "${CLBLANG_BUGLE_OPTS}")
+  configure_file(${CMAKE_SOURCE_DIR}/blang.sh.in ${CMAKE_BINARY_DIR}/clblang @ONLY)
+
+  set(EXT ".cu")
+  set(OUTEXT "gbpl")
+  set(CLANG_OPTS "${CUBLANG_CLANG_OPTS}")
+  set(BUGLE_OPTS "${CUBLANG_BUGLE_OPTS}")
+  configure_file(${CMAKE_SOURCE_DIR}/blang.sh.in ${CMAKE_BINARY_DIR}/cublang @ONLY)
 else()
   set(LLVM_SRC "" CACHE PATH "LLVM source directory")
   set(LLVM_BUILD "" CACHE PATH "LLVM build directory")
@@ -62,8 +81,20 @@ else()
 
   set(CFLAGS_CXX11 "")
 
+  set(OUTEXT "bpl")
+  set(CLANG_OPTS "")
+  set(BUGLE_OPTS "")
   configure_file(${CMAKE_SOURCE_DIR}/blang.bat.in ${CMAKE_BINARY_DIR}/blang.bat)
-  configure_file(${CMAKE_SOURCE_DIR}/clblang.bat.in ${CMAKE_BINARY_DIR}/clblang.bat)
+
+  set(OUTEXT "gbpl")
+  set(CLANG_OPTS "${CLBLANG_CLANG_OPTS}")
+  set(BUGLE_OPTS "${CLBLANG_BUGLE_OPTS}")
+  configure_file(${CMAKE_SOURCE_DIR}/blang.bat.in ${CMAKE_BINARY_DIR}/clblang.bat)
+
+  set(OUTEXT "gbpl")
+  set(CLANG_OPTS "${CUBLANG_CLANG_OPTS}")
+  set(BUGLE_OPTS "${CUBLANG_BUGLE_OPTS}")
+  configure_file(${CMAKE_SOURCE_DIR}/blang.bat.in ${CMAKE_BINARY_DIR}/cublang.bat)
 endif()
 
 include_directories(include)
