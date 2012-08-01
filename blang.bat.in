@@ -1,9 +1,27 @@
 @echo off
 
-if %1 == -o set OUT=%2 & shift 2
+setlocal
 
-if (%OUT%) == () set OUT=%~n1.@OUTEXT@
+rem Handle -o argument
+if [%1]==[-o] set OUT=%2
+if [%OUT%]==[] set OUT=%~n1.gbpl
 
-@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\clang @CLANG_OPTS@ -I@CMAKE_SOURCE_DIR@\include -emit-llvm -c -o %~n1.bc %* || exit /b 1
-@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\opt -mem2reg -globaldce -o %~n1.opt.bc %~n1.bc || exit /b 1
-@CMAKE_BINARY_DIR@\@LLVM_BUILD_TYPE@\bugle @BUGLE_OPTS@ -o %OUT% %~n1.opt.bc || exit /b 1
+rem If -o argument was supplied, ignore first two parameters
+if %1 == -o shift & shift
+
+set IN_PREFIX=%~n1
+
+rem Now build string containing remaining parameters
+set PARAMS=%1
+:loop
+shift
+if [%1]==[] goto afterloop
+set PARAMS=%PARAMS% %1
+goto loop
+:afterloop
+
+@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\clang @CLANG_OPTS@ -I@CMAKE_SOURCE_DIR@\include -emit-llvm -c -o %IN_PREFIX%.bc %PARAMS% || exit /b 1
+@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\opt -mem2reg -globaldce -o %IN_PREFIX%.opt.bc %IN_PREFIX%.bc || exit /b 1
+@CMAKE_BINARY_DIR@\@LLVM_BUILD_TYPE@\bugle @BUGLE_OPTS@ -o %OUT% %IN_PREFIX%.bc || exit /b 1
+
+endlocal
