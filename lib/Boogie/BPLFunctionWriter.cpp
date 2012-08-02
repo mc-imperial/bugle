@@ -61,6 +61,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       OS << "call ";
     if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, LE->getArray().get(), [&](GlobalArray *GA) {
+        assert(LE->getType() == GA->getRangeType());
         OS << "v" << id << " := $$" << GA->getName() << "[";
         writeExpr(OS, LE->getOffset().get());
         OS << "];";
@@ -83,6 +84,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     OS << "  ";
     maybeWriteCaseSplit(OS, SS->getArray().get(), [&](GlobalArray *GA) {
+      assert(SS->getValue()->getType() == GA->getRangeType());
       OS << "$$" << GA->getName() << "[";
       writeExpr(OS, SS->getOffset().get());
       OS << "] := ";
