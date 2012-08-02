@@ -83,6 +83,12 @@ ref<Expr> BVExtractExpr::create(ref<Expr> expr, unsigned offset,
       return BVExtractExpr::create(e->getLHS(), offset-RHSWidth, width);
   }
 
+  if (isa<BVZExtExpr>(expr) || isa<BVSExtExpr>(expr)) {
+    auto UE = cast<UnaryExpr>(expr);
+    if (offset + width <= UE->getSubExpr()->getType().width)
+      return BVExtractExpr::create(UE->getSubExpr(), offset, width);
+  }
+
   return new BVExtractExpr(expr, offset, width);
 }
 
