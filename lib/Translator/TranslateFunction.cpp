@@ -166,81 +166,9 @@ void TranslateFunction::translate() {
   if (TM->ModelAllAsByteArray)
     return;
 
-  // For each pointer phi we encountered in the function, see if we can model it
-  // as an offset.
+  // For each phi we encountered in the function, see if we can model it.
   for (auto i = PhiAssignsMap.begin(), e = PhiAssignsMap.end(); i != e; ++i) {
-    if (!i->first->getType()->isPointerTy())
-      continue;
-    if (TM->ModelPtrAsGlobalOffset.find(i->first) !=
-        TM->ModelPtrAsGlobalOffset.end())
-      continue;
-
-    Var *V = PhiVarMap[i->first];
-    std::set<GlobalArray *> GlobalSet;
-    bool doNextPhi = false;
-
-    for (auto ai = i->second.begin(), ae = i->second.end(); ai != ae; ++ai) {
-      if ((*ai)->computeArrayCandidates(GlobalSet)) {
-        continue;
-      } else {
-        // See if this assignment is simply referring back to the phi variable
-        // itself.
-        if (auto VRE = dyn_cast<VarRefExpr>(*ai)) {
-          if (VRE->getVar() == V)
-            continue;
-        }
-        if (auto PE = dyn_cast<PointerExpr>(*ai)) {
-          if (auto AIE = dyn_cast<ArrayIdExpr>(PE->getArray())) {
-            if (auto VRE = dyn_cast<VarRefExpr>(AIE->getSubExpr())) {
-              if (VRE->getVar() == V)
-                continue;
-            }
-          }
-        }
-      }
-
-      doNextPhi = true;
-      break;
-    }
-
-    if (doNextPhi)
-      continue;
-
-    assert(!GlobalSet.empty() && "GlobalSet is empty?");
-
-    // Now check that each array in GlobalSet has the same type.
-    auto gi = GlobalSet.begin();
-    Type GlobalsType = (*gi)->getRangeType();
-    ++gi;
-    for (auto ge = GlobalSet.end(); gi != ge; ++gi) {
-      if ((*gi)->getRangeType() != GlobalsType) {
-        doNextPhi = true;
-        break;
-      }
-    }
-
-    if (doNextPhi)
-      continue;
-
-    // Check that each offset is a multiple of the range type's byte width (or
-    // that if the offset refers to the phi variable, it maintains the invariant).
-    for (auto ai = i->second.begin(), ae = i->second.end(); ai != ae; ++ai) {
-      auto AOE = ArrayOffsetExpr::create(*ai);
-      if (Expr::createExactBVUDiv(AOE, GlobalsType.width/8, V).isNull()) {
-        doNextPhi = true;
-        break;
-      }
-    }
-
-    if (doNextPhi)
-      continue;
-
-    // Success!  Record the global set.
-    auto &GlobalValSet = TM->ModelPtrAsGlobalOffset[i->first];
-    std::transform(GlobalSet.begin(), GlobalSet.end(),
-                   std::inserter(GlobalValSet, GlobalValSet.begin()), 
-                   [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
-    TM->NeedAdditionalGlobalOffsetModels = true;
+    TM->computeValueModel(i->first, PhiVarMap[i->first], i->second);
   }
 }
 

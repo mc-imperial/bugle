@@ -296,6 +296,82 @@ ref<Expr> TranslateModule::unmodelValue(Value *V, ref<Expr> E) {
   }
 }
 
+/// Given a value and all possible Boogie expressions to which it may be
+/// assigned, compute a model for that value such that future invocations
+/// of modelValue/getModelledType/unmodelValue use that model.
+void TranslateModule::computeValueModel(Value *Val, Var *Var,
+                                        llvm::ArrayRef<ref<Expr>> Assigns) {
+  if (!Val->getType()->isPointerTy())
+    return;
+  if (ModelPtrAsGlobalOffset.find(Val) != ModelPtrAsGlobalOffset.end())
+    return;
+
+  std::set<GlobalArray *> GlobalSet;
+  for (auto ai = Assigns.begin(), ae = Assigns.end(); ai != ae; ++ai) {
+    if ((*ai)->computeArrayCandidates(GlobalSet)) {
+      continue;
+    } else {
+      // See if this assignment is simply referring back to the variable
+      // itself.
+      if (auto VRE = dyn_cast<VarRefExpr>(*ai)) {
+        if (VRE->getVar() == Var)
+          continue;
+      }
+      if (auto PE = dyn_cast<PointerExpr>(*ai)) {
+        if (auto AIE = dyn_cast<ArrayIdExpr>(PE->getArray())) {
+          if (auto VRE = dyn_cast<VarRefExpr>(AIE->getSubExpr())) {
+            if (VRE->getVar() == Var)
+              continue;
+          }
+        }
+      }
+    }
+
+    return;
+  }
+
+  assert(!GlobalSet.empty() && "GlobalSet is empty?");
+
+  bool ModelGlobalsAsByteArray = false;
+
+  // Now check that each array in GlobalSet has the same type.
+  auto gi = GlobalSet.begin();
+  Type GlobalsType = (*gi)->getRangeType();
+  ++gi;
+  for (auto ge = GlobalSet.end(); gi != ge; ++gi) {
+    if ((*gi)->getRangeType() != GlobalsType) {
+      ModelGlobalsAsByteArray = true;
+      break;
+    }
+  }
+
+  // Check that each offset is a multiple of the range type's byte width (or
+  // that if the offset refers to the variable, it maintains the invariant).
+  if (!ModelGlobalsAsByteArray) {
+    for (auto ai = Assigns.begin(), ae = Assigns.end(); ai != ae; ++ai) {
+      auto AOE = ArrayOffsetExpr::create(*ai);
+      if (Expr::createExactBVUDiv(AOE, GlobalsType.width/8, Var).isNull()) {
+        ModelGlobalsAsByteArray = true;
+        break;
+      }
+    }
+  }
+
+  // Success!  Record the global set.
+  auto &GlobalValSet = ModelPtrAsGlobalOffset[Val];
+  std::transform(GlobalSet.begin(), GlobalSet.end(),
+                 std::inserter(GlobalValSet, GlobalValSet.begin()), 
+                 [&](GlobalArray *A) { return GlobalValueMap[A]; });
+  NeedAdditionalGlobalOffsetModels = true;
+
+  if (ModelGlobalsAsByteArray) {
+    std::transform(GlobalSet.begin(), GlobalSet.end(),
+                   std::inserter(ModelAsByteArray, ModelAsByteArray.begin()), 
+                   [&](GlobalArray *A) { return GlobalValueMap[A]; });
+    NeedAdditionalByteArrayModels = true;
+  }
+}
+
 void TranslateModule::translate() {
   do {
     NeedAdditionalByteArrayModels = false;
@@ -356,39 +432,13 @@ void TranslateModule::translate() {
              unsigned pidx = 0;
         for (auto pi = i->first->arg_begin(), pe = i->first->arg_end();
              pi != pe; ++pi, ++pidx) {
-          GlobalArray *GA = 0;
-          bool ModelGAAsByteArray = false;
-          if (!pi->getType()->isPointerTy())
-            continue;
-          if (ModelPtrAsGlobalOffset.find(pi) != ModelPtrAsGlobalOffset.end())
-            continue;
-
-          for (auto csi = i->second.begin(), cse = i->second.end(); csi != cse;
-               ++csi) {
-            auto Parm = (**csi)[pidx];
-            auto AId = ArrayIdExpr::create(Parm);
-            auto GARE = dyn_cast<GlobalArrayRefExpr>(AId);
-            if (!GARE)
-              goto nextParam;
-            if (GA && GARE->getArray() != GA)
-              goto nextParam;
-            GA = GARE->getArray();
-
-            auto AOfs = ArrayOffsetExpr::create(Parm);
-            if (Expr::createExactBVUDiv(AOfs, GA->getRangeType().width/8)
-                .isNull())
-              ModelGAAsByteArray = true;
-          }
-
-          if (GA) {
-            llvm::Value *V = GlobalValueMap[GA];
-            ModelPtrAsGlobalOffset[pi].insert(V);
-            NeedAdditionalGlobalOffsetModels = true;
-            if (ModelGAAsByteArray)
-              ModelAsByteArray.insert(V);
-          }
-
-          nextParam: ;
+          std::vector<ref<Expr>> Parms;
+          std::transform(i->second.begin(), i->second.end(),
+                         std::back_inserter(Parms),
+                         [&](const std::vector<ref<Expr>> *cs) {
+                           return (*cs)[pidx];
+                         });
+          computeValueModel(pi, 0, Parms);
         }
       }
     }

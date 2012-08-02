@@ -4,6 +4,7 @@
 #include "bugle/Ref.h"
 #include "bugle/Type.h"
 #include "klee/util/GetElementPtrTypeIterator.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/Target/TargetData.h"
 #include <functional>
@@ -24,6 +25,7 @@ class Expr;
 class Function;
 class GlobalArray;
 class Module;
+class Var;
 
 class TranslateModule {
 public:
@@ -81,6 +83,8 @@ private:
   ref<Expr> modelValue(llvm::Value *V, ref<Expr> E);
   Type getModelledType(llvm::Value *V);
   ref<Expr> unmodelValue(llvm::Value *V, ref<Expr> E);
+  void computeValueModel(llvm::Value *Val, Var *Var,
+                         llvm::ArrayRef<ref<Expr>> Assigns);
 
 public:
   TranslateModule(llvm::Module *M, SourceLanguage SL) :
