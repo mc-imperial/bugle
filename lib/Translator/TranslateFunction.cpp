@@ -870,11 +870,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
 
     CallSite CS(CI);
     std::vector<ref<Expr>> Args;
-    std::transform(CS.arg_begin(), CS.arg_end(), F->arg_begin(),
-                   std::back_inserter(Args),
-                   [&](Value *V, Argument &Arg) {
-                      return TM->modelValue(&Arg, translateValue(V));
-                   });
+    std::transform(CS.arg_begin(), CS.arg_end(), std::back_inserter(Args),
+                   [&](Value *V) { return translateValue(V); });
 
     if (auto II = dyn_cast<IntrinsicInst>(CI)) {
       auto ID = II->getIntrinsicID();
@@ -898,6 +895,11 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         if (E.isNull())
           return;
       } else {
+        std::transform(Args.begin(), Args.end(), F->arg_begin(), Args.begin(),
+                       [&](ref<Expr> E, Argument &Arg) {
+                         return TM->modelValue(&Arg, E);
+                       });
+
         auto FI = TM->FunctionMap.find(F);
         assert(FI != TM->FunctionMap.end() && "Couldn't find function in map!");
         if (CI->getType()->isVoidTy()) {
