@@ -250,9 +250,6 @@ ref<Expr> TranslateModule::modelValue(Value *V, ref<Expr> E) {
       } else {
         return PointerExpr::create(ArrayIdExpr::create(E, defaultRange()), Ofs);
       }
-    } else if (!ModelAllAsByteArray) {
-      NeedAdditionalByteArrayModels = true;
-      NextModelAllAsByteArray = true;
     }
   }
 
