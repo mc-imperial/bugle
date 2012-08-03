@@ -302,25 +302,25 @@ ref<Expr> TranslateFunction::handleEnabled(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleReadHasOccurred(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
-  return BoolToBVExpr::create(AccessHasOccurredExpr::create(ArrayIdExpr::create(Args[0]), false));
+  return BoolToBVExpr::create(AccessHasOccurredExpr::create(ArrayIdExpr::create(Args[0], TM->defaultRange()), false));
 }
 
 ref<Expr> TranslateFunction::handleWriteHasOccurred(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
-  return BoolToBVExpr::create(AccessHasOccurredExpr::create(ArrayIdExpr::create(Args[0]), true));
+  return BoolToBVExpr::create(AccessHasOccurredExpr::create(ArrayIdExpr::create(Args[0], TM->defaultRange()), true));
 }
 
 ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
-  return AccessOffsetExpr::create(ArrayIdExpr::create(Args[0]), false);
+  return AccessOffsetExpr::create(ArrayIdExpr::create(Args[0], TM->defaultRange()), false);
 }
 
 ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
-  return AccessOffsetExpr::create(ArrayIdExpr::create(Args[0]), true);
+  return AccessOffsetExpr::create(ArrayIdExpr::create(Args[0], TM->defaultRange()), true);
 }
 
 static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {
@@ -562,7 +562,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
   } else if (auto LI = dyn_cast<LoadInst>(I)) {
     ref<Expr> Ptr = translateValue(LI->getPointerOperand()),
-              PtrArr = ArrayIdExpr::create(Ptr),
+              PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
     Type ArrRangeTy = PtrArr->getType().range();
     Type LoadTy = TM->translateType(LI->getType()), LoadElTy = LoadTy;
@@ -571,7 +571,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       LoadElTy = TM->translateType(VT->getElementType());
     assert(LoadTy.width % 8 == 0);
     ref<Expr> Div;
-    if (ArrRangeTy == LoadElTy &&
+    if ((ArrRangeTy == LoadElTy || ArrRangeTy == Type(Type::Any)) &&
         !(Div = Expr::createExactBVUDiv(PtrOfs, LoadElTy.width/8)).isNull()) {
       if (VT) {
         std::vector<ref<Expr>> ElemsLoaded;
@@ -621,7 +621,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
     ref<Expr> Ptr = translateValue(SI->getPointerOperand()),
               Val = translateValue(SI->getValueOperand()),
-              PtrArr = ArrayIdExpr::create(Ptr),
+              PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
     Type ArrRangeTy = PtrArr->getType().range();
     Type StoreTy = Val->getType(), StoreElTy = StoreTy;

@@ -86,6 +86,10 @@ private:
   void computeValueModel(llvm::Value *Val, Var *Var,
                          llvm::ArrayRef<ref<Expr>> Assigns);
 
+  Type defaultRange() {
+    return ModelAllAsByteArray ? Type(Type::BV, 8) : Type(Type::Unknown);
+  }
+
 public:
   TranslateModule(llvm::Module *M, SourceLanguage SL) :
     BM(0), M(M), TD(M), SL(SL),

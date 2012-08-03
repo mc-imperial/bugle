@@ -24,6 +24,9 @@ bool Expr::computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const {
   } else if (auto MOE = dyn_cast<MemberOfExpr>(this)) {
     GlobalSet.insert(MOE->getElems().begin(), MOE->getElems().end());
     return true;
+  } else if (isa<NullArrayRefExpr>(this)) {
+    GlobalSet.insert(0);
+    return true;
   } else if (auto ITE = dyn_cast<IfThenElseExpr>(this)) {
     return ITE->getTrueExpr()->computeArrayCandidates(GlobalSet) &&
            ITE->getFalseExpr()->computeArrayCandidates(GlobalSet);
@@ -117,12 +120,30 @@ ref<Expr> NotExpr::create(ref<Expr> op) {
   return new NotExpr(Type(Type::Bool), op);
 }
 
-ref<Expr> ArrayIdExpr::create(ref<Expr> pointer) {
+Type Expr::getArrayCandidateType(const std::set<GlobalArray *> &Globals) {
+  Type t(Type::Any);
+  for (auto gi = Globals.begin(), ge = Globals.end(); gi != ge; ++gi) {
+    if (*gi) {
+      if (t.kind == Type::Any)
+        t = (*gi)->getRangeType();
+      else if (t != (*gi)->getRangeType())
+        return Type(Type::Unknown);
+    }
+  }
+  return t;
+}
+
+ref<Expr> ArrayIdExpr::create(ref<Expr> pointer, Type defaultRange) {
   assert(pointer->getType().isKind(Type::Pointer));
   if (auto e = dyn_cast<PointerExpr>(pointer))
     return e->getArray();
 
-  return new ArrayIdExpr(Type(Type::ArrayOf, Type::BV, 8), pointer);
+  Type range = defaultRange;
+  std::set<GlobalArray *> Globals;
+  if (pointer->computeArrayCandidates(Globals))
+    range = getArrayCandidateType(Globals);
+
+  return new ArrayIdExpr(Type(Type::ArrayOf, range), pointer);
 }
 
 ref<Expr> ArrayOffsetExpr::create(ref<Expr> pointer) {
@@ -728,16 +749,18 @@ ref<Expr> FUnoExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> Expr::createPtrLt(ref<Expr> lhs, ref<Expr> rhs) {
-  return IfThenElseExpr::create(EqExpr::create(ArrayIdExpr::create(lhs),
-                                               ArrayIdExpr::create(rhs)),
+  return IfThenElseExpr::create(EqExpr::create(
+                                 ArrayIdExpr::create(lhs, Type(Type::Unknown)),
+                                 ArrayIdExpr::create(rhs, Type(Type::Unknown))),
                                 BVSltExpr::create(ArrayOffsetExpr::create(lhs),
                                                   ArrayOffsetExpr::create(rhs)),
                                 PtrLtExpr::create(lhs, rhs));
 }
 
 ref<Expr> Expr::createPtrLe(ref<Expr> lhs, ref<Expr> rhs) {
-  return IfThenElseExpr::create(EqExpr::create(ArrayIdExpr::create(lhs),
-                                               ArrayIdExpr::create(rhs)),
+  return IfThenElseExpr::create(EqExpr::create(
+                                 ArrayIdExpr::create(lhs, Type(Type::Unknown)),
+                                 ArrayIdExpr::create(rhs, Type(Type::Unknown))),
                                 BVSleExpr::create(ArrayOffsetExpr::create(lhs),
                                                   ArrayOffsetExpr::create(rhs)),
                                 PtrLtExpr::create(lhs, rhs));

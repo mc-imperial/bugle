@@ -14,24 +14,26 @@ struct Type {
     Bool,
     BV,
     Float,
-    Pointer
+    Pointer,
+
+    // The following two types are used by the translator as array range types
+    // during range deduction.  Unknown effectively means "bottom" and Any means
+    // "top" (used for nulls).
+    Unknown,
+    Any
   };
 
   bool array:1;
   Kind kind:31;
   unsigned width;
 
-  Type(Kind kind) : array(false), kind(kind), width(0) {
-    assert(kind == Bool);
+  Type(Kind kind, unsigned width = 0) : array(false), kind(kind), width(width) {
+    assert((kind != Bool && kind != Unknown) || width == 0);
   }
 
-  Type(Kind kind, unsigned width) : array(false), kind(kind), width(width) {
-    assert(kind != Bool);
-  }
-
-  Type(ArrayKind ak, Kind kind, unsigned width) :
+  Type(ArrayKind ak, Kind kind, unsigned width = 0) :
     array(true), kind(kind), width(width) {
-    assert(kind != Bool);
+    assert((kind != Bool && kind != Unknown) || width == 0);
   }
 
   Type(ArrayKind ak, Type subType) :

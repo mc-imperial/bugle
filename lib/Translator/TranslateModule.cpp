@@ -190,7 +190,7 @@ ref<Expr> TranslateModule::translateGEP(ref<Expr> Ptr,
                                         klee::gep_type_iterator begin,
                                         klee::gep_type_iterator end,
                                       std::function<ref<Expr>(Value *)> xlate) {
-  ref<Expr> PtrArr = ArrayIdExpr::create(Ptr),
+  ref<Expr> PtrArr = ArrayIdExpr::create(Ptr, defaultRange()),
             PtrOfs = ArrayOffsetExpr::create(Ptr);
   for (auto i = begin; i != end; ++i) {
     if (StructType *st = dyn_cast<StructType>(*i)) {
@@ -248,7 +248,7 @@ ref<Expr> TranslateModule::modelValue(Value *V, ref<Expr> E) {
       if (OI->second.size() == 1) {
         return Ofs;
       } else {
-        return PointerExpr::create(ArrayIdExpr::create(E), Ofs);
+        return PointerExpr::create(ArrayIdExpr::create(E, defaultRange()), Ofs);
       }
     } else if (!ModelAllAsByteArray) {
       NeedAdditionalByteArrayModels = true;
@@ -286,7 +286,8 @@ ref<Expr> TranslateModule::unmodelValue(Value *V, ref<Expr> E) {
                      std::inserter(Globals, Globals.begin()),
                      [&](Value *V) { return getGlobalArray(V); });
 
-      return PointerExpr::create(MemberOfExpr::create(ArrayIdExpr::create(E),
+      return PointerExpr::create(MemberOfExpr::create(ArrayIdExpr::create(E,
+                                                                defaultRange()),
                                                       Globals),
                                  BVMulExpr::create(ArrayOffsetExpr::create(E),
                                                    WidthCst));
@@ -332,22 +333,15 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
 
   assert(!GlobalSet.empty() && "GlobalSet is empty?");
 
-  bool ModelGlobalsAsByteArray = false;
-
   // Now check that each array in GlobalSet has the same type.
-  auto gi = GlobalSet.begin();
-  Type GlobalsType = (*gi)->getRangeType();
-  ++gi;
-  for (auto ge = GlobalSet.end(); gi != ge; ++gi) {
-    if ((*gi)->getRangeType() != GlobalsType) {
-      ModelGlobalsAsByteArray = true;
-      break;
-    }
-  }
+  Type GlobalsType = Expr::getArrayCandidateType(GlobalSet);
 
   // Check that each offset is a multiple of the range type's byte width (or
   // that if the offset refers to the variable, it maintains the invariant).
-  if (!ModelGlobalsAsByteArray) {
+  bool ModelGlobalsAsByteArray = false;
+  if (GlobalsType.isKind(Type::Any) || GlobalsType.isKind(Type::Unknown)) {
+    ModelGlobalsAsByteArray = true;
+  } else {
     for (auto ai = Assigns.begin(), ae = Assigns.end(); ai != ae; ++ai) {
       auto AOE = ArrayOffsetExpr::create(*ai);
       if (Expr::createExactBVUDiv(AOE, GlobalsType.width/8, Var).isNull()) {
@@ -358,6 +352,10 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
   }
 
   // Success!  Record the global set.
+  auto i = GlobalSet.find(0);
+  if (i != GlobalSet.end())
+    GlobalSet.erase(i);
+
   auto &GlobalValSet = ModelPtrAsGlobalOffset[Val];
   std::transform(GlobalSet.begin(), GlobalSet.end(),
                  std::inserter(GlobalValSet, GlobalValSet.begin()), 

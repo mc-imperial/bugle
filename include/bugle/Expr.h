@@ -121,6 +121,7 @@ public:
   static ref<Expr> createExactBVUDiv(ref<Expr> lhs, uint64_t rhs,
                                      Var *base = 0);
 
+  static Type getArrayCandidateType(const std::set<GlobalArray *> &Globals);
   bool computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const;
 
 private:
@@ -183,7 +184,7 @@ public:
 };
 
 class NullArrayRefExpr : public Expr {
-  NullArrayRefExpr() : Expr(Type(Type::ArrayOf, Type::BV, 8)) {}
+  NullArrayRefExpr() : Expr(Type(Type::ArrayOf, Type::Any)) {}
 
 public:
   static ref<Expr> create();
@@ -313,7 +314,15 @@ public:
   };
 
 UNARY_EXPR(Not)
-UNARY_EXPR(ArrayId)
+
+class ArrayIdExpr : public UnaryExpr {
+  ArrayIdExpr(Type type, ref<Expr> expr) : UnaryExpr(type, expr) {}
+
+public:
+  static ref<Expr> create(ref<Expr> var, Type defaultRange);
+  EXPR_KIND(ArrayId)
+};
+
 UNARY_EXPR(ArrayOffset)
 UNARY_EXPR(BVToFloat)
 UNARY_EXPR(FloatToBV)
