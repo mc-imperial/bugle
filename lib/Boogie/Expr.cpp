@@ -25,7 +25,7 @@ bool Expr::computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const {
     GlobalSet.insert(MOE->getElems().begin(), MOE->getElems().end());
     return true;
   } else if (isa<NullArrayRefExpr>(this)) {
-    GlobalSet.insert(0);
+    GlobalSet.insert((bugle::GlobalArray*)0);
     return true;
   } else if (auto ITE = dyn_cast<IfThenElseExpr>(this)) {
     return ITE->getTrueExpr()->computeArrayCandidates(GlobalSet) &&
