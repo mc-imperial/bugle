@@ -45,6 +45,7 @@ class TranslateFunction {
   llvm::DenseMap<llvm::PHINode *, Var *> PhiVarMap;
   llvm::DenseMap<llvm::PHINode *, std::vector<ref<Expr>>> PhiAssignsMap;
   Var *ReturnVar;
+  std::vector<ref<Expr>> ReturnVals;
 
   SpecialFnMapTy &SpecialFunctionMap;
   static SpecialFnMapTy SpecialFunctionMaps[TranslateModule::SL_Count];

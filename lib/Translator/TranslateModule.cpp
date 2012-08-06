@@ -263,7 +263,11 @@ bugle::Type TranslateModule::getModelledType(Value *V) {
   if (OI != ModelPtrAsGlobalOffset.end() && OI->second.size() == 1) {
     return Type(Type::BV, TD.getPointerSizeInBits());
   } else {
-    return translateType(V->getType());
+    llvm::Type *VTy = V->getType();
+    if (auto F = dyn_cast<llvm::Function>(V))
+      VTy = F->getReturnType();
+
+    return translateType(VTy);
   }
 }
 
@@ -299,7 +303,11 @@ ref<Expr> TranslateModule::unmodelValue(Value *V, ref<Expr> E) {
 /// of modelValue/getModelledType/unmodelValue use that model.
 void TranslateModule::computeValueModel(Value *Val, Var *Var,
                                         llvm::ArrayRef<ref<Expr>> Assigns) {
-  if (!Val->getType()->isPointerTy())
+  llvm::Type *VTy = Val->getType();
+  if (auto F = dyn_cast<llvm::Function>(Val))
+    VTy = F->getReturnType();
+
+  if (!VTy->isPointerTy())
     return;
   if (ModelPtrAsGlobalOffset.find(Val) != ModelPtrAsGlobalOffset.end())
     return;
@@ -353,7 +361,7 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
   if (i != GlobalSet.end())
     GlobalSet.erase(i);
 
-  auto &GlobalValSet = ModelPtrAsGlobalOffset[Val];
+  auto &GlobalValSet = NextModelPtrAsGlobalOffset[Val];
   std::transform(GlobalSet.begin(), GlobalSet.end(),
                  std::inserter(GlobalValSet, GlobalValSet.begin()), 
                  [&](GlobalArray *A) { return GlobalValueMap[A]; });
@@ -392,7 +400,7 @@ void TranslateModule::translate() {
 
       auto RT = i->getFunctionType()->getReturnType();
       if (!RT->isVoidTy())
-        BF->addReturn(translateType(RT), "ret");
+        BF->addReturn(getModelledType(i), "ret");
     }
 
     for (auto i = M->begin(), e = M->end(); i != e; ++i) {
@@ -447,5 +455,7 @@ void TranslateModule::translate() {
     } else {
       ModelAllAsByteArray = NextModelAllAsByteArray;
     }
+
+    ModelPtrAsGlobalOffset = NextModelPtrAsGlobalOffset;
   } while (NeedAdditionalByteArrayModels || NeedAdditionalGlobalOffsetModels);
 }

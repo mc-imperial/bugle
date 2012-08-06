@@ -58,7 +58,8 @@ private:
   std::map<llvm::Function *, std::vector<const std::vector<ref<Expr>> *>>
     CallSites;
   bool NeedAdditionalGlobalOffsetModels;
-  std::map<llvm::Value *, std::set<llvm::Value *>> ModelPtrAsGlobalOffset;
+  std::map<llvm::Value *, std::set<llvm::Value *>>
+    ModelPtrAsGlobalOffset, NextModelPtrAsGlobalOffset;
 
   void translateGlobalInit(GlobalArray *GA, unsigned Offset,
                            llvm::Constant *Init);

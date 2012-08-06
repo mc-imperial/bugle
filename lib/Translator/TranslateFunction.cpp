@@ -164,8 +164,8 @@ void TranslateFunction::translate() {
   for (auto i = BBList.begin(), e = BBList.end(); i != e; ++i)
     translateBasicBlock(BasicBlockMap[*i], *i);
 
-  // If we're modelling everything as a byte array, don't bother to model phis
-  // as offsets.
+  // If we're modelling everything as a byte array, don't bother to compute
+  // value models.
   if (TM->ModelAllAsByteArray)
     return;
 
@@ -173,6 +173,9 @@ void TranslateFunction::translate() {
   for (auto i = PhiAssignsMap.begin(), e = PhiAssignsMap.end(); i != e; ++i) {
     TM->computeValueModel(i->first, PhiVarMap[i->first], i->second);
   }
+
+  // See if we can model the return value.
+  TM->computeValueModel(F, 0, ReturnVals);
 }
 
 ref<Expr> TranslateFunction::translateValue(llvm::Value *V) {
@@ -940,16 +943,20 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           return;
         } else {
           E = CallExpr::create(FI->second, Args);
+          BBB->addStmt(new EvalStmt(E));
+          ValueExprMap[I] = TM->unmodelValue(F, E);
           if (auto CE = dyn_cast<CallExpr>(E))
             TM->CallSites[F].push_back(&CE->getArgs());
+          return;
         }
       }
     }
   } else if (auto RI = dyn_cast<ReturnInst>(I)) {
     if (auto V = RI->getReturnValue()) {
       assert(ReturnVar && "Returning value without return variable?");
-      ref<Expr> Val = translateValue(V);
+      ref<Expr> Val = TM->modelValue(F, translateValue(V));
       BBB->addStmt(new VarAssignStmt(ReturnVar, Val));
+      ReturnVals.push_back(Val);
     }
     BBB->addStmt(new ReturnStmt);
     return;
