@@ -104,8 +104,6 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["get_group_id"] = &TranslateFunction::handleGetGroupId;
       fns["get_local_size"] = &TranslateFunction::handleGetLocalSize;
       fns["get_num_groups"] = &TranslateFunction::handleGetNumGroups;
-      fns["get_global_id"] = &TranslateFunction::handleGetGlobalId;
-      fns["get_global_size"] = &TranslateFunction::handleGetGlobalSize;
     }
 
     auto &ints = SpecialFunctionMap.Intrinsics;
@@ -375,22 +373,6 @@ ref<Expr> TranslateFunction::handleGetNumGroups(bugle::BasicBlock *BBB,
                                           const std::vector<ref<Expr>> &Args) {
   Type t = TM->translateType(Ty);
   return mkNumGroups(t, Args[0]);
-}
-
-ref<Expr> TranslateFunction::handleGetGlobalId(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
-                                          const std::vector<ref<Expr>> &Args) {
-  Type t = TM->translateType(Ty);
-  return BVAddExpr::create(BVMulExpr::create(mkGroupId(t, Args[0]),
-                                             mkLocalSize(t, Args[0])),
-                           mkLocalId(t, Args[0]));
-}
-
-ref<Expr> TranslateFunction::handleGetGlobalSize(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
-                                          const std::vector<ref<Expr>> &Args) {
-  Type t = TM->translateType(Ty);
-  return BVMulExpr::create(mkNumGroups(t, Args[0]), mkLocalSize(t, Args[0]));
 }
 
 ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,
