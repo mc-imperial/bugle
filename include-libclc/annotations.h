@@ -65,6 +65,15 @@ __DEVICE_QUALIFIER__ int __read_offset_global(const __global void* p);
 __DEVICE_QUALIFIER__ int __write_offset_local(const __local void* p);
 __DEVICE_QUALIFIER__ int __write_offset_global(const __global void* p);
 
+/* Pointer base */
+__DEVICE_QUALIFIER__ int __ptr_base_local(const __local void* p);
+__DEVICE_QUALIFIER__ int __ptr_base_global(const __global void* p);
+
+/* Pointer offset */
+__DEVICE_QUALIFIER__ int __ptr_offset_local(const __local void* p);
+__DEVICE_QUALIFIER__ int __ptr_offset_global(const __global void* p);
+
+
 #ifdef __OPENCL__
 bool __points_to_global(const __global void* array, const char* array_name);
 bool __points_to_local(const __local void* array, const char* array_name);

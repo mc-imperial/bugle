@@ -470,24 +470,28 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   }
 }
 
-void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS, bugle::Expr* PtrArr, std::string accessLoggingVar, std::string accessKind, std::string unit) {
-    if(auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
-      OS << "_" << accessKind << "_" << accessLoggingVar << "_$$" << ArrE->getArray()->getName();
+void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS, 
+                                          bugle::Expr* PtrArr, 
+                                          std::string accessLoggingVar, 
+                                          std::string accessKind, 
+                                          std::string unit) {
+  if(auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
+    OS << "_" << accessKind << "_" << accessLoggingVar << "_$$" 
+       << ArrE->getArray()->getName();
 	} else {
-          if (MW) {
-			OS << "(";
-            for (auto i = MW->M->global_begin(), e = MW->M->global_end(); i != e;
-                ++i) {
-              OS << "if (";
-              writeExpr(OS, PtrArr);
-              OS << " == $arrayId$$" << (*i)->getName() << ") then _" << accessKind << 
-				  "_" << accessLoggingVar << "_$$" << (*i)->getName() << " else ";
-            }
-
+    if (MW) {
+      OS << "(";
+      for (auto i = MW->M->global_begin(), e = MW->M->global_end();
+           i != e; ++i) {
+        OS << "if (";
+        writeExpr(OS, PtrArr);
+        OS << " == $arrayId$$" << (*i)->getName() << ") then _" 
+           << accessKind << "_" << accessLoggingVar << "_$$" 
+           << (*i)->getName() << " else ";
+      }
 			OS << unit << ")";
-
-          } else {
-            OS << "<" << accessLoggingVar << "-case-split>";
-          }
-	}
+    } else {
+      OS << "<" << accessLoggingVar << "-case-split>";
+    }
+  }
 }

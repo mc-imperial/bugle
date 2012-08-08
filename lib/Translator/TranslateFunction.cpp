@@ -99,6 +99,10 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
 	fns["__read_offset_global"] = &TranslateFunction::handleReadOffset;
 	fns["__write_offset_local"] = &TranslateFunction::handleWriteOffset;
 	fns["__write_offset_global"] = &TranslateFunction::handleWriteOffset;
+	fns["__ptr_base_local"] = &TranslateFunction::handlePtrBase;
+	fns["__ptr_base_global"] = &TranslateFunction::handlePtrBase;
+	fns["__ptr_offset_local"] = &TranslateFunction::handlePtrOffset;
+	fns["__ptr_offset_global"] = &TranslateFunction::handlePtrOffset;
     if (SL == TranslateModule::SL_OpenCL) {
       fns["get_local_id"] = &TranslateFunction::handleGetLocalId;
       fns["get_group_id"] = &TranslateFunction::handleGetGroupId;
@@ -319,6 +323,18 @@ ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
   return AccessOffsetExpr::create(ArrayIdExpr::create(Args[0], TM->defaultRange()), true);
+}
+
+ref<Expr> TranslateFunction::handlePtrOffset(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return ArrayOffsetExpr::create(Args[0]);
+}
+
+ref<Expr> TranslateFunction::handlePtrBase(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return ArrayIdExpr::create(Args[0], TM->defaultRange());
 }
 
 static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {

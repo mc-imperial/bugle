@@ -61,9 +61,9 @@ public:
     FLog,
     FSin,
     FSqrt,
-	OtherInt,
-	OtherBool,
-	Old,
+    OtherInt,
+    OtherBool,
+    Old,
 
     UnaryFirst = Not,
     UnaryLast = Old,
