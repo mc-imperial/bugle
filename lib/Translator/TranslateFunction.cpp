@@ -311,25 +311,51 @@ ref<Expr> TranslateFunction::handleEnabled(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleReadHasOccurred(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
-  return BoolToBVExpr::create(AccessHasOccurredExpr::create(ArrayIdExpr::create(Args[0], TM->defaultRange()), false));
+  return BoolToBVExpr::create(AccessHasOccurredExpr::create(
+                              ArrayIdExpr::create(Args[0], TM->defaultRange()),
+                              false));
 }
 
 ref<Expr> TranslateFunction::handleWriteHasOccurred(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
-  return BoolToBVExpr::create(AccessHasOccurredExpr::create(ArrayIdExpr::create(Args[0], TM->defaultRange()), true));
+  return BoolToBVExpr::create(AccessHasOccurredExpr::create(
+                              ArrayIdExpr::create(Args[0], TM->defaultRange()),
+                              true));
 }
 
 ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
-  return AccessOffsetExpr::create(ArrayIdExpr::create(Args[0], TM->defaultRange()), false);
+  ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr, false);
+  Type range = arrayIdExpr->getType().range();
+
+  if(range.isKind(Type::BV) || range.isKind(Type::Float)) {
+    if(range.width > 8) {
+      result = BVMulExpr::create(BVConstExpr::create(
+                                 TM->TD.getPointerSizeInBits(),
+                                 range.width/8), result);
+    }
+  }
+  return result;
 }
 
 ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
-  return AccessOffsetExpr::create(ArrayIdExpr::create(Args[0], TM->defaultRange()), true);
+  ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr, true);
+  Type range = arrayIdExpr->getType().range();
+
+  if(range.isKind(Type::BV) || range.isKind(Type::Float)) {
+    if(range.width > 8) {
+      result = BVMulExpr::create(BVConstExpr::create(
+                                 TM->TD.getPointerSizeInBits(),
+                                 range.width/8), result);
+    }
+  }
+  return result;
 }
 
 ref<Expr> TranslateFunction::handlePtrOffset(bugle::BasicBlock *BBB,
