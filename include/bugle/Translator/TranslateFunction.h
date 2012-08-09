@@ -52,10 +52,10 @@ class TranslateFunction {
   SpecialFnHandler handleNoop, handleAssert, handleAssertFail, handleAssume, 
                    handleGlobalAssert, handleRequires, handleEnsures, 
                    handleAll, handleExclusive, handleEnabled, handleOtherInt,
-                   handleOtherBool, handleOld, handleReturnVal, handleImplies,
-				           handleReadHasOccurred, handleWriteHasOccurred,
-                   handleReadOffset, handleWriteOffset, handlePtrOffset,
-                   handlePtrBase;
+                   handleOtherBool, handleOtherPtrBase, handleOld,
+                   handleReturnVal, handleImplies, handleReadHasOccurred, 
+                   handleWriteHasOccurred, handleReadOffset, handleWriteOffset,
+                   handlePtrOffset, handlePtrBase;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize;

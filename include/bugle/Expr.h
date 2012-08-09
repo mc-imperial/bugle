@@ -63,6 +63,7 @@ public:
     FSqrt,
     OtherInt,
     OtherBool,
+    OtherPtrBase,
     Old,
 
     UnaryFirst = Not,
@@ -338,6 +339,7 @@ UNARY_EXPR(FSin)
 UNARY_EXPR(FSqrt)
 UNARY_EXPR(OtherInt)
 UNARY_EXPR(OtherBool)
+UNARY_EXPR(OtherPtrBase)
 UNARY_EXPR(Old)
 
 #define UNARY_CONV_EXPR(kind) \

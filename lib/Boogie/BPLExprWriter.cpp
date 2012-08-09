@@ -295,7 +295,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
        OS << "function __other_bv32(e : bv32) : bv32";
       });
       break;
-	}
+    }
     case Expr::OtherBool: {
       OS << "__other_bool";
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -303,10 +303,17 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       });
       break;
     }
-	case Expr::Old: {
+    case Expr::OtherPtrBase: {
+      OS << "__other_arrayId";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function __other_arrayId(e : arrayId) : arrayId";
+      });
+      break;
+    }
+    case Expr::Old: {
       OS << "old";
-	  break;
-	}
+      break;
+    }
     default:
       assert(0 && "Unsupported unary expr");
       break;

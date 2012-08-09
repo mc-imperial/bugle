@@ -41,6 +41,8 @@ __DEVICE_QUALIFIER__ bool __enabled(void);
 /* Maps to ==> */
 __DEVICE_QUALIFIER__ bool __implies(bool expr1, bool expr2);
 
+#define ptr_base_t int
+
 /* Read set is non-empty */
 __DEVICE_QUALIFIER__ bool __read_local(const __local void* p);
 __DEVICE_QUALIFIER__ bool __read_global(const __global void* p);
@@ -66,30 +68,26 @@ __DEVICE_QUALIFIER__ int __write_offset_local(const __local void* p);
 __DEVICE_QUALIFIER__ int __write_offset_global(const __global void* p);
 
 /* Pointer base */
-__DEVICE_QUALIFIER__ int __ptr_base_local(const __local void* p);
-__DEVICE_QUALIFIER__ int __ptr_base_global(const __global void* p);
+__DEVICE_QUALIFIER__ ptr_base_t __ptr_base_local(const __local void* p);
+__DEVICE_QUALIFIER__ ptr_base_t __ptr_base_global(const __global void* p);
 
 /* Pointer offset */
 __DEVICE_QUALIFIER__ int __ptr_offset_local(const __local void* p);
 __DEVICE_QUALIFIER__ int __ptr_offset_global(const __global void* p);
 
-
-#ifdef __OPENCL__
-bool __points_to_global(const __global void* array, const char* array_name);
-bool __points_to_local(const __local void* array, const char* array_name);
-bool __points_to_private(const __private void* array, const char* array_name);
-#endif
-
 /* Inter-thread predicates */
 
 __DEVICE_QUALIFIER__ int __other_int(int expr);
 __DEVICE_QUALIFIER__ bool __other_bool(bool expr);
+__DEVICE_QUALIFIER__ ptr_base_t __other_ptr_base(ptr_base_t expr);
 
 #define __uniform_int(X) ((X) == __other_int(X))
 #define __uniform_bool(X) ((X) == __other_bool(X))
+#define __uniform_ptr_base(X) ((X) == __other_ptr_base(X))
 
 #define __distinct_int(X) ((X) != __other_int(X))
 #define __distinct_bool(X) ((X) != __other_bool(X))
+#define __distinct_ptr_base(X) ((X) != __other_ptr_base(X))
 
 #define __all(X) ((X) & __other_bool(X))
 #define __exclusive(X) (!(__all(X)))

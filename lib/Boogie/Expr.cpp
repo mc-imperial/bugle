@@ -806,6 +806,10 @@ ref<Expr> OtherIntExpr::create(ref<Expr> op) {
   return new OtherIntExpr(Type(Type::BV, op->getType().width), op);
 }
 
+ref<Expr> OtherPtrBaseExpr::create(ref<Expr> op) {
+  return new OtherPtrBaseExpr(op->getType(), op);
+}
+
 ref<Expr> AccessHasOccurredExpr::create(ref<Expr> array, bool isWrite) {
   assert(array->getType().array);
   return new AccessHasOccurredExpr(array, isWrite);

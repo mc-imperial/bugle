@@ -82,27 +82,28 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__requires"] = &TranslateFunction::handleRequires;
     fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
     fns["__ensures"] = &TranslateFunction::handleEnsures;
-	fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
-	fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
-	fns["__return_val_bool"] = &TranslateFunction::handleReturnVal;
-	fns["__old_int"] = &TranslateFunction::handleOld;
-	fns["__old_bool"] = &TranslateFunction::handleOld;
-	fns["__other_int"] = &TranslateFunction::handleOtherInt;
-	fns["__other_bool"] = &TranslateFunction::handleOtherBool;
-	fns["__implies"] = &TranslateFunction::handleImplies;
-	fns["__enabled"] = &TranslateFunction::handleEnabled;
-	fns["__read_local"] = &TranslateFunction::handleReadHasOccurred;
-	fns["__read_global"] = &TranslateFunction::handleReadHasOccurred;
-	fns["__write_local"] = &TranslateFunction::handleWriteHasOccurred;
-	fns["__write_global"] = &TranslateFunction::handleWriteHasOccurred;
-	fns["__read_offset_local"] = &TranslateFunction::handleReadOffset;
-	fns["__read_offset_global"] = &TranslateFunction::handleReadOffset;
-	fns["__write_offset_local"] = &TranslateFunction::handleWriteOffset;
-	fns["__write_offset_global"] = &TranslateFunction::handleWriteOffset;
-	fns["__ptr_base_local"] = &TranslateFunction::handlePtrBase;
-	fns["__ptr_base_global"] = &TranslateFunction::handlePtrBase;
-	fns["__ptr_offset_local"] = &TranslateFunction::handlePtrOffset;
-	fns["__ptr_offset_global"] = &TranslateFunction::handlePtrOffset;
+    fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
+    fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
+    fns["__return_val_bool"] = &TranslateFunction::handleReturnVal;
+    fns["__old_int"] = &TranslateFunction::handleOld;
+    fns["__old_bool"] = &TranslateFunction::handleOld;
+    fns["__other_int"] = &TranslateFunction::handleOtherInt;
+    fns["__other_bool"] = &TranslateFunction::handleOtherBool;
+    fns["__other_ptr_base"] = &TranslateFunction::handleOtherPtrBase;
+    fns["__implies"] = &TranslateFunction::handleImplies;
+    fns["__enabled"] = &TranslateFunction::handleEnabled;
+    fns["__read_local"] = &TranslateFunction::handleReadHasOccurred;
+    fns["__read_global"] = &TranslateFunction::handleReadHasOccurred;
+    fns["__write_local"] = &TranslateFunction::handleWriteHasOccurred;
+    fns["__write_global"] = &TranslateFunction::handleWriteHasOccurred;
+    fns["__read_offset_local"] = &TranslateFunction::handleReadOffset;
+    fns["__read_offset_global"] = &TranslateFunction::handleReadOffset;
+    fns["__write_offset_local"] = &TranslateFunction::handleWriteOffset;
+    fns["__write_offset_global"] = &TranslateFunction::handleWriteOffset;
+    fns["__ptr_base_local"] = &TranslateFunction::handlePtrBase;
+    fns["__ptr_base_global"] = &TranslateFunction::handlePtrBase;
+    fns["__ptr_offset_local"] = &TranslateFunction::handlePtrOffset;
+    fns["__ptr_offset_global"] = &TranslateFunction::handlePtrOffset;
     if (SL == TranslateModule::SL_OpenCL) {
       fns["get_local_id"] = &TranslateFunction::handleGetLocalId;
       fns["get_group_id"] = &TranslateFunction::handleGetGroupId;
@@ -287,6 +288,12 @@ ref<Expr> TranslateFunction::handleOtherBool(bugle::BasicBlock *BBB,
                                           llvm::Type *Ty,
                                           const std::vector<ref<Expr>> &Args) {
   return BoolToBVExpr::create(OtherBoolExpr::create(BVToBoolExpr::create(Args[0])));
+}
+
+ref<Expr> TranslateFunction::handleOtherPtrBase(bugle::BasicBlock *BBB,
+                                          llvm::Type *Ty,
+                                          const std::vector<ref<Expr>> &Args) {
+  return OtherPtrBaseExpr::create(Args[0]);
 }
 
 ref<Expr> TranslateFunction::handleImplies(bugle::BasicBlock *BBB,
