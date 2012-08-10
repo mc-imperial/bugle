@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
       DisplayFilename = InputFilename;
     M.reset(getStreamedBitcodeModule(DisplayFilename, streamer, Context,
                                      &ErrorMessage));
-    if(M.get() != 0 && M->MaterializeAllPermanently(&ErrorMessage)) {
+    if (M.get() != 0 && M->MaterializeAllPermanently(&ErrorMessage)) {
       M.reset();
     }
   }

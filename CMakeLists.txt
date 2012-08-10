@@ -122,6 +122,7 @@ add_library(bugleBoogie STATIC
   include/bugle/Module.h
   include/bugle/OwningPtrVector.h
   include/bugle/Ref.h
+  include/bugle/SourceLoc.h
   include/bugle/Stmt.h
   include/bugle/Type.h
   include/bugle/Var.h

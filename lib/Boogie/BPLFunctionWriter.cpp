@@ -8,6 +8,7 @@
 #include "bugle/GlobalArray.h"
 #include "bugle/Module.h"
 #include "bugle/Stmt.h"
+#include "bugle/SourceLoc.h"
 
 using namespace bugle;
 
@@ -130,6 +131,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (auto AtS = dyn_cast<AssertStmt>(S)) {
     OS << "  assert ";
+    writeSourceLoc(OS, AtS->getSourceLoc());
     writeExpr(OS, AtS->getPredicate().get());
     OS << ";\n";
   } else if (auto AtS = dyn_cast<GlobalAssertStmt>(S)) {
@@ -147,6 +149,16 @@ void BPLFunctionWriter::writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB) {
   OS << "$" << BB->getName() << ":\n";
   for (auto i = BB->begin(), e = BB->end(); i != e; ++i)
     writeStmt(OS, *i);
+}
+
+void BPLFunctionWriter::writeSourceLoc(llvm::raw_ostream &OS,
+                                       const SourceLoc *sourceloc) {
+  if (sourceloc) {
+    OS << "{:line " << sourceloc->getLineNo() << "}";
+    OS << "{:col " << sourceloc->getColNo() << "}";
+    OS << "{:fname \"" << sourceloc->getFileName() << "\"}";
+    OS << "{:dir \"" << sourceloc->getPath() << "\"}";
+  }
 }
 
 void BPLFunctionWriter::writeVar(llvm::raw_ostream &OS, Var *V) {

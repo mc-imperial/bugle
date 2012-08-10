@@ -19,6 +19,7 @@ class BasicBlock;
 class Expr;
 class Function;
 class GlobalArray;
+class SourceLoc;
 class Stmt;
 class Var;
 
@@ -35,6 +36,7 @@ class BPLFunctionWriter : BPLExprWriter {
   void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0);
   void writeStmt(llvm::raw_ostream &OS, Stmt *S);
   void writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB);
+  void writeSourceLoc(llvm::raw_ostream &OS, const SourceLoc *sourceloc);
 
 public:
   BPLFunctionWriter(BPLModuleWriter *MW, llvm::raw_ostream &OS,

@@ -20,7 +20,7 @@ set PARAMS=%PARAMS% %1
 goto loop
 :afterloop
 
-@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\clang @CLANG_OPTS@ -I@CMAKE_SOURCE_DIR@\include -emit-llvm -c -o %IN_PREFIX%.bc %PARAMS% || exit /b 1
+@LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\clang @CLANG_OPTS@ -g -I@CMAKE_SOURCE_DIR@\include -emit-llvm -c -o %IN_PREFIX%.bc %PARAMS% || exit /b 1
 @LLVM_BUILD@\bin\@LLVM_BUILD_TYPE@\opt -mem2reg -globaldce -o %IN_PREFIX%.opt.bc %IN_PREFIX%.bc || exit /b 1
 @CMAKE_BINARY_DIR@\@LLVM_BUILD_TYPE@\bugle @BUGLE_OPTS@ -o %OUT% %IN_PREFIX%.opt.bc || exit /b 1
 

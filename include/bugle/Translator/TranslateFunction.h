@@ -2,6 +2,7 @@
 #define BUGLE_TRANSLATOR_TRANSLATEFUNCTION_H
 
 #include "bugle/Ref.h"
+#include "bugle/Stmt.h"
 #include "bugle/Translator/TranslateModule.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
@@ -30,7 +31,7 @@ class Var;
 
 class TranslateFunction {
   typedef ref<Expr> SpecialFnHandler(BasicBlock *,
-                                     llvm::Type *,
+                                     llvm::CallInst *,
                                      const std::vector<klee::ref<Expr>> &);
   struct SpecialFnMapTy {
     llvm::StringMap<SpecialFnHandler TranslateFunction::*> Functions;
@@ -81,6 +82,8 @@ class TranslateFunction {
   Var *getPhiVariable(llvm::PHINode *PN);
   void addPhiAssigns(BasicBlock *BBB, llvm::BasicBlock *Pred,
                      llvm::BasicBlock *Succ);
+  void addLocToStmt(Stmt *stmt, llvm::Instruction *I);
+  SourceLoc *extractSourceLoc(llvm::Instruction *I);
 
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF,

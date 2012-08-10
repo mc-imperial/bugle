@@ -8,11 +8,13 @@
 #include "bugle/Module.h"
 #include "bugle/util/Functional.h"
 #include "llvm/BasicBlock.h"
+#include "llvm/DebugInfo.h"
 #include "llvm/Function.h"
 #include "llvm/InstrTypes.h"
 #include "llvm/Instructions.h"
 #include "llvm/IntrinsicInst.h"
 #include "llvm/Intrinsics.h"
+#include "llvm/Metadata.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/CommandLine.h"
@@ -120,6 +122,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::pow] = &TranslateFunction::handlePow;
     ints[Intrinsic::sin] = &TranslateFunction::handleSin;
     ints[Intrinsic::sqrt] = &TranslateFunction::handleSqrt;
+    ints[Intrinsic::dbg_value] = &TranslateFunction::handleNoop;
+    ints[Intrinsic::dbg_declare] = &TranslateFunction::handleNoop;
   }
   return SpecialFunctionMap;
 }
@@ -188,6 +192,10 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V) {
   if (auto C = dyn_cast<Constant>(V))
     return TM->translateConstant(C);
 
+  if (isa<MDNode>(V)) {
+    // ignore metadata values
+    return 0;
+  }
   assert(0 && "Unsupported value");
   return 0;
 }
@@ -221,98 +229,119 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
     BBB->addStmt(new VarAssignStmt(Vars, Exprs));
 }
 
+void TranslateFunction::addLocToStmt(Stmt *stmt, llvm::Instruction *I) {
+  stmt->setSourceLoc(extractSourceLoc(I));
+}
+
+SourceLoc *TranslateFunction::extractSourceLoc(llvm::Instruction *I) {
+  SourceLoc* sourceloc(nullptr);
+  if (llvm::MDNode *mdnode = I->getMetadata("dbg")) {
+    llvm::DILocation Loc(mdnode);
+    sourceloc = new SourceLoc(Loc.getLineNumber(),
+                              Loc.getColumnNumber(),
+                              Loc.getFilename().str(),
+                              Loc.getDirectory().str());
+  }
+  return sourceloc;
+}
+
+
 ref<Expr> TranslateFunction::handleNoop(bugle::BasicBlock *BBB,
-                                        llvm::Type *Ty,
+                                        llvm::CallInst *CI,
                                         const std::vector<ref<Expr>> &Args) {
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  BBB->addStmt(new AssertStmt(Expr::createNeZero(Args[0])));
+  Stmt *assertstmt = new AssertStmt(Expr::createNeZero(Args[0]));
+  addLocToStmt(assertstmt, CI);
+  BBB->addStmt(assertstmt);
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
-                                           llvm::Type *Ty,
+                                           llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
-  BBB->addStmt(new AssertStmt(BoolConstExpr::create(false)));
+  Stmt *assertstmt = new AssertStmt(BoolConstExpr::create(false));
+  addLocToStmt(assertstmt, CI);
+  BBB->addStmt(assertstmt);
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   BBB->addStmt(new AssumeStmt(Expr::createNeZero(Args[0])));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleGlobalAssert(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   BBB->addStmt(new GlobalAssertStmt(Expr::createNeZero(Args[0])));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleRequires(bugle::BasicBlock *BBB,
-                                           llvm::Type *Ty,
+                                           llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
   BF->addRequires(Expr::createNeZero(Args[0]));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleEnsures(bugle::BasicBlock *BBB,
-                                           llvm::Type *Ty,
+                                           llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
   BF->addEnsures(Expr::createNeZero(Args[0]));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleOld(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return OldExpr::create(Args[0]);
 }
 
 ref<Expr> TranslateFunction::handleReturnVal(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return VarRefExpr::create(ReturnVar);
 }
 
 ref<Expr> TranslateFunction::handleOtherInt(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return OtherIntExpr::create(Args[0]);
 }
 
 ref<Expr> TranslateFunction::handleOtherBool(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return BoolToBVExpr::create(OtherBoolExpr::create(BVToBoolExpr::create(Args[0])));
 }
 
 ref<Expr> TranslateFunction::handleOtherPtrBase(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return OtherPtrBaseExpr::create(Args[0]);
 }
 
 ref<Expr> TranslateFunction::handleImplies(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return BoolToBVExpr::create(ImpliesExpr::create(BVToBoolExpr::create(Args[0]), BVToBoolExpr::create(Args[1])));
 }
 
 ref<Expr> TranslateFunction::handleEnabled(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return BoolToBVExpr::create(SpecialVarRefExpr::create(bugle::Type(bugle::Type::Bool), "__enabled"));
 }
 
 ref<Expr> TranslateFunction::handleReadHasOccurred(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return BoolToBVExpr::create(AccessHasOccurredExpr::create(
                               ArrayIdExpr::create(Args[0], TM->defaultRange()),
@@ -320,7 +349,7 @@ ref<Expr> TranslateFunction::handleReadHasOccurred(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleWriteHasOccurred(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return BoolToBVExpr::create(AccessHasOccurredExpr::create(
                               ArrayIdExpr::create(Args[0], TM->defaultRange()),
@@ -328,7 +357,7 @@ ref<Expr> TranslateFunction::handleWriteHasOccurred(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr, false);
@@ -345,7 +374,7 @@ ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr, true);
@@ -362,13 +391,13 @@ ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handlePtrOffset(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return ArrayOffsetExpr::create(Args[0]);
 }
 
 ref<Expr> TranslateFunction::handlePtrBase(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return ArrayIdExpr::create(Args[0], TM->defaultRange());
 }
@@ -400,36 +429,37 @@ static ref<Expr> mkNumGroups(bugle::Type t, ref<Expr> dim) {
 }
 
 ref<Expr> TranslateFunction::handleGetLocalId(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  Type t = TM->translateType(Ty);
+  Type t = TM->translateType(CI->getType());
   return mkLocalId(t, Args[0]);
 }
 
 ref<Expr> TranslateFunction::handleGetGroupId(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  Type t = TM->translateType(Ty);
+  Type t = TM->translateType(CI->getType());
   return mkGroupId(t, Args[0]);
 }
 
 ref<Expr> TranslateFunction::handleGetLocalSize(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  Type t = TM->translateType(Ty);
+  Type t = TM->translateType(CI->getType());
   return mkLocalSize(t, Args[0]);
 }
 
 ref<Expr> TranslateFunction::handleGetNumGroups(bugle::BasicBlock *BBB,
-                                          llvm::Type *Ty,
+                                          llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  Type t = TM->translateType(Ty);
+  Type t = TM->translateType(CI->getType());
   return mkNumGroups(t, Args[0]);
 }
 
 ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,
-                                        llvm::Type *Ty,
+                                        llvm::CallInst *CI,
                                         const std::vector<ref<Expr>> &Args) {
+  llvm::Type *Ty = CI->getType();
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
     return FCosExpr::create(E);
@@ -437,8 +467,9 @@ ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleExp(bugle::BasicBlock *BBB,
-                                       llvm::Type *Ty,
+                                       llvm::CallInst *CI,
                                        const std::vector<ref<Expr>> &Args) {
+  llvm::Type *Ty = CI->getType();
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
     return FExpExpr::create(E);
@@ -446,8 +477,9 @@ ref<Expr> TranslateFunction::handleExp(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleFabs(bugle::BasicBlock *BBB,
-                                        llvm::Type *Ty,
+                                        llvm::CallInst *CI,
                                         const std::vector<ref<Expr>> &Args) {
+  llvm::Type *Ty = CI->getType();
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
     return FAbsExpr::create(E);
@@ -455,8 +487,9 @@ ref<Expr> TranslateFunction::handleFabs(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleFma(bugle::BasicBlock *BBB,
-                                       llvm::Type *Ty,
+                                       llvm::CallInst *CI,
                                        const std::vector<ref<Expr>> &Args) {
+  llvm::Type *Ty = CI->getType();
   ref<Expr> M =
     maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0], Args[1], FMulExpr::create);
   return
@@ -464,8 +497,9 @@ ref<Expr> TranslateFunction::handleFma(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleLog(bugle::BasicBlock *BBB,
-                                       llvm::Type *Ty,
+                                       llvm::CallInst *CI,
                                        const std::vector<ref<Expr>> &Args) {
+  llvm::Type *Ty = CI->getType();
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
     return FLogExpr::create(E);
@@ -473,8 +507,9 @@ ref<Expr> TranslateFunction::handleLog(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handlePow(bugle::BasicBlock *BBB,
-                                       llvm::Type *Ty,
+                                       llvm::CallInst *CI,
                                        const std::vector<ref<Expr>> &Args) {
+  llvm::Type *Ty = CI->getType();
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0], Args[1],
                                 [&](ref<Expr> LHS, ref<Expr> RHS) {
     return FPowExpr::create(LHS, RHS);
@@ -482,8 +517,9 @@ ref<Expr> TranslateFunction::handlePow(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleSin(bugle::BasicBlock *BBB,
-                                       llvm::Type *Ty,
+                                       llvm::CallInst *CI,
                                        const std::vector<ref<Expr>> &Args) {
+  llvm::Type *Ty = CI->getType();
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
     return FSinExpr::create(E);
@@ -491,8 +527,9 @@ ref<Expr> TranslateFunction::handleSin(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleSqrt(bugle::BasicBlock *BBB,
-                                        llvm::Type *Ty,
+                                        llvm::CallInst *CI,
                                         const std::vector<ref<Expr>> &Args) {
+  llvm::Type *Ty = CI->getType();
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
     return FSqrtExpr::create(E);
@@ -911,7 +948,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       auto ID = II->getIntrinsicID();
       auto SFII = SpecialFunctionMap.Intrinsics.find(ID);
       if (SFII != SpecialFunctionMap.Intrinsics.end()) {
-        E = (this->*SFII->second)(BBB, CI->getType(), Args);
+        E = (this->*SFII->second)(BBB, CI, Args);
         assert(E.isNull() == CI->getType()->isVoidTy());
         if (E.isNull())
           return;
@@ -924,7 +961,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     } else {
       auto SFI = SpecialFunctionMap.Functions.find(F->getName());
       if (SFI != SpecialFunctionMap.Functions.end()) {
-        E = (this->*SFI->second)(BBB, CI->getType(), Args);
+        E = (this->*SFI->second)(BBB, CI, Args);
         assert(E.isNull() == CI->getType()->isVoidTy());
         if (E.isNull())
           return;

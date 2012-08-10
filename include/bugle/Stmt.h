@@ -1,5 +1,6 @@
 #include "bugle/Expr.h"
 #include "bugle/Ref.h"
+#include "bugle/SourceLoc.h"
 
 #ifndef BUGLE_STMT_H
 #define BUGLE_STMT_H
@@ -26,6 +27,10 @@ public:
 
   virtual ~Stmt() {}
   virtual Kind getKind() const = 0;
+  void setSourceLoc(SourceLoc* sourceloc) { Stmt::sourceloc.reset(sourceloc); }
+  SourceLoc* getSourceLoc() { return sourceloc.get(); }
+private:
+  std::unique_ptr<SourceLoc> sourceloc;
 };
 
 #define STMT_KIND(kind) \
