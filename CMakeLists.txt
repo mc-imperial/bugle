@@ -113,9 +113,18 @@ add_library(bugleBoogie STATIC
   include/bugle/BPLExprWriter.h
   include/bugle/BPLFunctionWriter.h
   include/bugle/BPLModuleWriter.h
+  include/bugle/BasicBlock.h
+  include/bugle/Casting.h
   include/bugle/Expr.h
+  include/bugle/Function.h
+  include/bugle/GlobalArray.h
   include/bugle/Ident.h
+  include/bugle/Module.h
+  include/bugle/OwningPtrVector.h
+  include/bugle/Ref.h
   include/bugle/Stmt.h
+  include/bugle/Type.h
+  include/bugle/Var.h
 )
 
 add_library(bugleTranslator STATIC
