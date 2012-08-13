@@ -64,9 +64,12 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       return;
     unsigned id = SSAVarIds.size();
     OS << "  ";
-    if (isa<CallExpr>(ES->getExpr()))
+    if (isa<CallExpr>(ES->getExpr())) {
       OS << "call ";
+      writeSourceLoc(OS, ES->getSourceLoc());
+    }
     if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
+      writeSourceLocMarker(OS, ES->getSourceLoc());
       maybeWriteCaseSplit(OS, LE->getArray().get(), [&](GlobalArray *GA) {
         assert(LE->getType() == GA->getRangeType());
         OS << "v" << id << " := $$" << GA->getName() << "[";
@@ -80,7 +83,9 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     }
     SSAVarIds[ES->getExpr().get()] = id;
   } else if (auto CS = dyn_cast<CallStmt>(S)) {
-    OS << "  call $" << CS->getCallee()->getName() << "(";
+    OS << "  call ";
+    writeSourceLoc(OS, CS->getSourceLoc());
+    OS << "$" << CS->getCallee()->getName() << "(";
     for (auto b = CS->getArgs().begin(), i = b, e = CS->getArgs().end();
          i != e; ++i) {
       if (i != b)
@@ -90,6 +95,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ");\n";
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     OS << "  ";
+    writeSourceLocMarker(OS, SS->getSourceLoc());
     maybeWriteCaseSplit(OS, SS->getArray().get(), [&](GlobalArray *GA) {
       assert(SS->getValue()->getType() == GA->getRangeType());
       OS << "$$" << GA->getName() << "[";
@@ -158,6 +164,17 @@ void BPLFunctionWriter::writeSourceLoc(llvm::raw_ostream &OS,
     OS << "{:col " << sourceloc->getColNo() << "}";
     OS << "{:fname \"" << sourceloc->getFileName() << "\"}";
     OS << "{:dir \"" << sourceloc->getPath() << "\"}";
+    OS << " ";
+  }
+}
+
+void BPLFunctionWriter::writeSourceLocMarker(llvm::raw_ostream &OS,
+                                       const SourceLoc *sourceloc) {
+  if (sourceloc) {
+    OS << "assert {:sourceloc}";
+    writeSourceLoc(OS, sourceloc);
+    OS << "true;\n";
+    OS << "  ";
   }
 }
 

@@ -37,6 +37,7 @@ class BPLFunctionWriter : BPLExprWriter {
   void writeStmt(llvm::raw_ostream &OS, Stmt *S);
   void writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB);
   void writeSourceLoc(llvm::raw_ostream &OS, const SourceLoc *sourceloc);
+  void writeSourceLocMarker(llvm::raw_ostream &OS, const SourceLoc *sourceloc);
 
 public:
   BPLFunctionWriter(BPLModuleWriter *MW, llvm::raw_ostream &OS,
