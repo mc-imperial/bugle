@@ -7,8 +7,8 @@
 #include "bugle/Function.h"
 #include "bugle/GlobalArray.h"
 #include "bugle/Module.h"
-#include "bugle/Stmt.h"
 #include "bugle/SourceLoc.h"
+#include "bugle/Stmt.h"
 
 using namespace bugle;
 
@@ -218,13 +218,15 @@ void BPLFunctionWriter::write() {
 
     for (auto i = F->requires_begin(), e = F->requires_end(); i != e; ++i) {
       OS << "requires ";
-      writeExpr(OS, i->get());
+      writeSourceLoc(OS, (*i)->getSourceLoc());
+      writeExpr(OS, (*i)->getExpr().get());
       OS << ";\n";
     }
 
     for (auto i = F->ensures_begin(), e = F->ensures_end(); i != e; ++i) {
       OS << "ensures ";
-      writeExpr(OS, i->get());
+      writeSourceLoc(OS, (*i)->getSourceLoc());      
+      writeExpr(OS, (*i)->getExpr().get());
       OS << ";\n";
     }
 

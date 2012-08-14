@@ -287,14 +287,14 @@ ref<Expr> TranslateFunction::handleGlobalAssert(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleRequires(bugle::BasicBlock *BBB,
                                            llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
-  BF->addRequires(Expr::createNeZero(Args[0]));
+  BF->addRequires(Expr::createNeZero(Args[0]), extractSourceLoc(CI));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleEnsures(bugle::BasicBlock *BBB,
                                            llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
-  BF->addEnsures(Expr::createNeZero(Args[0]));
+  BF->addEnsures(Expr::createNeZero(Args[0]), extractSourceLoc(CI));
   return 0;
 }
 

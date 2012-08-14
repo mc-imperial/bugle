@@ -1,6 +1,8 @@
 #ifndef BUGLE_SOURCELOC_H
 #define BUGLE_SOURCELOC_H
 
+#include <string>
+
 namespace bugle {
 
 class SourceLoc

@@ -6,6 +6,7 @@
 #include "bugle/BasicBlock.h"
 #include "bugle/Ident.h"
 #include "bugle/OwningPtrVector.h"
+#include "bugle/SpecificationInfo.h"
 #include "bugle/util/UniqueNameSet.h"
 
 namespace bugle {
@@ -14,7 +15,7 @@ class Function {
   std::string name;
   std::set<std::string> attributes;
   bool entryPoint;
-  std::vector<ref<Expr>> requires, ensures;
+  OwningPtrVector<SpecificationInfo> requires, ensures;
   OwningPtrVector<BasicBlock> blocks;
   OwningPtrVector<Var> args, returns, locals;
   UniqueNameSet bbNames, varNames;
@@ -44,11 +45,11 @@ public:
   void addAttribute(const std::string &attrib) {
     attributes.insert(attrib);
   }
-  void addRequires(ref<Expr> e) {
-    requires.push_back(e);
+  void addRequires(ref<Expr> r, SourceLoc *s) {
+    requires.push_back(new SpecificationInfo(r.get(), s));
   }
-  void addEnsures(ref<Expr> e) {
-    ensures.push_back(e);
+  void addEnsures(ref<Expr> e, SourceLoc *s) {
+    ensures.push_back(new SpecificationInfo(e.get(), s));
   }
 
   const std::string &getName() { return name; }
@@ -90,17 +91,17 @@ public:
     return attributes.end();
   }
 
-  std::vector<ref<Expr>>::const_iterator requires_begin() const {
+  OwningPtrVector<SpecificationInfo>::const_iterator requires_begin() const {
     return requires.begin();
   }
-  std::vector<ref<Expr>>::const_iterator requires_end() const {
+  OwningPtrVector<SpecificationInfo>::const_iterator requires_end() const {
     return requires.end();
   }
 
-  std::vector<ref<Expr>>::const_iterator ensures_begin() const {
+  OwningPtrVector<SpecificationInfo>::const_iterator ensures_begin() const {
     return ensures.begin();
   }
-  std::vector<ref<Expr>>::const_iterator ensures_end() const {
+  OwningPtrVector<SpecificationInfo>::const_iterator ensures_end() const {
     return ensures.end();
   }
 };
