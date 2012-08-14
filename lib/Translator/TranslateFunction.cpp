@@ -234,7 +234,7 @@ void TranslateFunction::addLocToStmt(Stmt *stmt, llvm::Instruction *I) {
 }
 
 SourceLoc *TranslateFunction::extractSourceLoc(llvm::Instruction *I) {
-  SourceLoc* sourceloc(nullptr);
+  SourceLoc* sourceloc = 0;
   if (llvm::MDNode *mdnode = I->getMetadata("dbg")) {
     llvm::DILocation Loc(mdnode);
     sourceloc = new SourceLoc(Loc.getLineNumber(),
