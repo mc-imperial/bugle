@@ -164,8 +164,18 @@ bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
     return translateArrayRangeType(AT->getElementType());
   if (auto VT = dyn_cast<VectorType>(T))
     return translateArrayRangeType(VT->getElementType());
-  if (isa<StructType>(T))
-    return Type(Type::BV, 8);
+  if (auto ST = dyn_cast<StructType>(T)) {
+    auto i = ST->element_begin(), e = ST->element_end();
+    if (i == e)
+      return Type(Type::BV, 8);
+    auto ET = *i;
+    ++i;
+    for (; i != e; ++i) {
+      if (ET != *i)
+        return Type(Type::BV, 8);
+    }
+    return translateType(ET);
+  }
 
   return translateType(T);
 }
