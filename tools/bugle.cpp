@@ -94,14 +94,6 @@ int main(int argc, char **argv) {
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
     TM.addGPUEntryPoint(&*i);
 
-  if (NamedMDNode *NMDN = M->getNamedMetadata("opencl.kernels")) {
-    MDNode *MDN = NMDN->getOperand(0);
-    for (unsigned i = 0; i < MDN->getNumOperands(); ++i) {
-      Function *F = cast<Function>(MDN->getOperand(i));
-      TM.addGPUEntryPoint(F->getName());
-    }
-  }
-
   TM.translate();
   std::auto_ptr<bugle::Module> BM(TM.takeModule());
 

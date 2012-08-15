@@ -421,6 +421,7 @@ void TranslateModule::translate() {
       } else if (!TranslateFunction::isSpecialFunction(SL, i->getName())) {
         TranslateFunction TF(this, FunctionMap[&*i], &*i);
         TF.isGPUEntryPoint =
+          i->getCallingConv() == llvm::CallingConv::PTX_Kernel ||
           (GPUEntryPoints.find(i->getName()) != GPUEntryPoints.end());
         TF.translate();
       }
