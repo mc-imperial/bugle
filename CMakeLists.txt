@@ -2,12 +2,11 @@ cmake_minimum_required(VERSION 2.8)
 project(Bugle)
 
 set(LIBCLC_DIR "" CACHE PATH "Path to libclc")
-set(GPUVERIFY_BENCHMARKING_DIR "" CACHE PATH "Path to GPUVerifyBenchmarking")
 
-set(CLBLANG_CLANG_OPTS "-Xclang -cl-std=CL1.2 -O0 -ccc-host-triple nvptx--bugle -I${CMAKE_SOURCE_DIR}/include-libclc -I${LIBCLC_DIR}/generic/include -Xclang -mlink-bitcode-file -Xclang ${LIBCLC_DIR}/nvptx--bugle/lib/builtins.bc -Dcl_khr_fp64 -Dcl_clang_storage_class_specifiers")
+set(CLBLANG_CLANG_OPTS "-Xclang -cl-std=CL1.2 -O0 -ccc-host-triple nvptx--bugle -I${LIBCLC_DIR}/generic/include -Xclang -mlink-bitcode-file -Xclang ${LIBCLC_DIR}/nvptx--bugle/lib/builtins.bc -Dcl_khr_fp64 -Dcl_clang_storage_class_specifiers")
 set(CLBLANG_BUGLE_OPTS "-l cl")
 
-set(CUBLANG_CLANG_OPTS "-ccc-host-triple nvptx--bugle -I${GPUVERIFY_BENCHMARKING_DIR}/include_cl -emit-llvm -Xclang -fcuda-is-device")
+set(CUBLANG_CLANG_OPTS "-ccc-host-triple nvptx--bugle -emit-llvm -Xclang -fcuda-is-device")
 set(CUBLANG_BUGLE_OPTS "-l cu")
 
 if (NOT WIN32 OR MSYS OR CYGWIN)

@@ -7,6 +7,10 @@
 #define __DEVICE_QUALIFIER__
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Loop invariant */
 __DEVICE_QUALIFIER__ void __invariant(bool expr);
 
@@ -43,6 +47,8 @@ __DEVICE_QUALIFIER__ bool __implies(bool expr1, bool expr2);
 
 #define ptr_base_t int
 
+#ifdef __OPENCL__
+
 /* Read set is non-empty */
 __DEVICE_QUALIFIER__ bool __read_local(const __local void* p);
 __DEVICE_QUALIFIER__ bool __read_global(const __global void* p);
@@ -75,6 +81,8 @@ __DEVICE_QUALIFIER__ ptr_base_t __ptr_base_global(const __global void* p);
 __DEVICE_QUALIFIER__ int __ptr_offset_local(const __local void* p);
 __DEVICE_QUALIFIER__ int __ptr_offset_global(const __global void* p);
 
+#endif
+
 /* Inter-thread predicates */
 
 __DEVICE_QUALIFIER__ int __other_int(int expr);
@@ -99,12 +107,21 @@ __DEVICE_QUALIFIER__ ptr_base_t __other_ptr_base(ptr_base_t expr);
 /* Axioms */
 #define __concatenate(x,y) x##y
 #define __axiom_inner(x,y) __concatenate(x,y)
+
+#ifdef __cplusplus
+#define __axiom(expr) extern "C" __DEVICE_QUALIFIER__ bool __axiom_inner(__axiom, __COUNTER__) () { return expr; }
+#else
 #define __axiom(expr) bool __axiom_inner(__axiom, __COUNTER__) () { return expr; }
+#endif
 
 
 /* Helpers */
 
 #define __is_pow2(x) ((((x) & (x - 1)) == 0))
 #define __mod_pow2(x,y) ((y - 1) & (x))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

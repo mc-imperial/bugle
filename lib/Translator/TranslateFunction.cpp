@@ -137,10 +137,9 @@ void TranslateFunction::translate() {
   if (isGPUEntryPoint)
     BF->addAttribute("kernel");
 
-  if (TM->SL == TranslateModule::SL_OpenCL) {
-    if (F->getName() == "barrier")
-      BF->addAttribute("barrier");
-  }
+  if ((TM->SL == TranslateModule::SL_OpenCL && F->getName() == "barrier") ||
+      (TM->SL == TranslateModule::SL_CUDA && F->getName() == "__syncthreads"))
+    BF->addAttribute("barrier");
 
   unsigned PtrSize = TM->TD.getPointerSizeInBits();
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
