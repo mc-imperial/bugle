@@ -61,9 +61,12 @@ private:
   std::map<llvm::Value *, std::set<llvm::Value *>>
     ModelPtrAsGlobalOffset, NextModelPtrAsGlobalOffset;
 
+  ref<Expr> translateCUDABuiltinGlobal(std::string Prefix,
+                                       llvm::GlobalVariable *GV);
+
   void translateGlobalInit(GlobalArray *GA, unsigned Offset,
                            llvm::Constant *Init);
-  GlobalArray *translateGlobalVariable(llvm::GlobalVariable *GV);
+  ref<Expr> translateGlobalVariable(llvm::GlobalVariable *GV);
   void addGlobalArrayAttribs(GlobalArray *GA, llvm::PointerType *PT);
   bugle::GlobalArray *getGlobalArray(llvm::Value *V);
 

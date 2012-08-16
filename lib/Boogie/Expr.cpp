@@ -64,6 +64,21 @@ ref<Expr> NullArrayRefExpr::create() {
   return new NullArrayRefExpr();
 }
 
+ref<Expr> ConstantArrayRefExpr::create(llvm::ArrayRef<ref<Expr>> array) {
+#ifndef NDEBUG
+  assert(array.size() > 0);
+  Type t = array[0]->getType();
+  for (auto i = array.begin()+1, e = array.end(); i != e; ++i) {
+    assert((*i)->getType() == t);
+  }
+#endif
+
+  for (auto i = array.begin(), e = array.end(); i != e; ++i)
+    (*i)->isDerivedFromConstant = true;
+
+  return new ConstantArrayRefExpr(array);
+}
+
 ref<Expr> PointerExpr::create(ref<Expr> array, ref<Expr> offset) {
   assert(array->getType().array);
   assert(offset->getType().isKind(Type::BV));
@@ -75,6 +90,14 @@ ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset) {
   Type at = array->getType();
   assert(at.array);
   assert(offset->getType().isKind(Type::BV));
+
+  if (auto CA = dyn_cast<ConstantArrayRefExpr>(array)) {
+    // More restrictive than strictly necessary, but sufficient for CUDA.
+    auto OfsCE = cast<BVConstExpr>(offset);
+    uint64_t Ofs = OfsCE->getValue().getZExtValue();
+    assert(Ofs < CA->getArray().size());
+    return CA->getArray()[Ofs];
+  }
 
   return new LoadExpr(at.range(), array, offset);
 }

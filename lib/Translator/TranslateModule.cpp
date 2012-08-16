@@ -52,7 +52,7 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned Offset,
 }
 
 void TranslateModule::addGlobalArrayAttribs(GlobalArray *GA, PointerType *PT) {
-  if (SL == SL_OpenCL) {
+  if (SL == SL_OpenCL || SL == SL_CUDA) {
     switch (PT->getAddressSpace()) {
       case 1: GA->addAttribute("global");       break;
       case 3: GA->addAttribute("group_shared"); break;
@@ -61,13 +61,33 @@ void TranslateModule::addGlobalArrayAttribs(GlobalArray *GA, PointerType *PT) {
   }
 }
 
-GlobalArray *TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
+ref<Expr> TranslateModule::translateCUDABuiltinGlobal(std::string Prefix,
+                                                      GlobalVariable *GV) {
+  Type ty = translateArrayRangeType(GV->getType()->getElementType());
+  ref<Expr> Arr[3] = { SpecialVarRefExpr::create(ty, Prefix + "_x"),
+                       SpecialVarRefExpr::create(ty, Prefix + "_y"),
+                       SpecialVarRefExpr::create(ty, Prefix + "_z") };
+  return ConstantArrayRefExpr::create(Arr);
+}
+
+ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
+  if (SL == SL_CUDA) {
+    if (GV->getName() == "gridDim")
+      return translateCUDABuiltinGlobal("global_size", GV);
+    if (GV->getName() == "blockIdx")
+      return translateCUDABuiltinGlobal("global_id", GV);
+    if (GV->getName() == "blockDim")
+      return translateCUDABuiltinGlobal("local_size", GV);
+    if (GV->getName() == "threadIdx")
+      return translateCUDABuiltinGlobal("local_id", GV);
+  }
+
   GlobalArray *GA = getGlobalArray(GV);
   if (GV->hasInitializer() &&
       // OpenCL __local variables have bogus initialisers.
       !(SL == SL_OpenCL && GV->getType()->getAddressSpace() == 3))
     translateGlobalInit(GA, 0, GV->getInitializer());
-  return GA;
+  return GlobalArrayRefExpr::create(GA);
 }
 
 ref<Expr> TranslateModule::translateUndef(bugle::Type t) {
@@ -103,8 +123,8 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     }
   }
   if (auto GV = dyn_cast<GlobalVariable>(C)) {
-    GlobalArray *GA = translateGlobalVariable(GV);
-    return PointerExpr::create(GlobalArrayRefExpr::create(GA),
+    ref<Expr> Arr = translateGlobalVariable(GV);
+    return PointerExpr::create(Arr,
                             BVConstExpr::createZero(TD.getPointerSizeInBits()));
   }
   if (auto UV = dyn_cast<UndefValue>(C)) {

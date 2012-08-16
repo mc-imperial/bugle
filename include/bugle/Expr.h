@@ -27,6 +27,7 @@ public:
     BoolConst,
     GlobalArrayRef,
     NullArrayRef,
+    ConstantArrayRef,
     Pointer,
     Load,
     VarRef,
@@ -191,6 +192,19 @@ public:
   static ref<Expr> create();
 
   EXPR_KIND(NullArrayRef)
+};
+
+class ConstantArrayRefExpr : public Expr {
+  ConstantArrayRefExpr(llvm::ArrayRef<ref<Expr>> array) :
+    Expr(Type(Type::ArrayOf, array[0]->getType())),
+    array(array.begin(), array.end()) {}
+  std::vector<ref<Expr>> array;
+
+public:
+  static ref<Expr> create(llvm::ArrayRef<ref<Expr>> array);
+
+  EXPR_KIND(ConstantArrayRef)
+  const std::vector<ref<Expr>> &getArray() const { return array; }
 };
 
 class PointerExpr : public Expr {
