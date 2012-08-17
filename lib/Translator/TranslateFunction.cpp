@@ -652,7 +652,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             BVAddExpr::create(Div,
                               BVConstExpr::create(Div->getType().width, i));
           ref<Expr> ValElem = LoadExpr::create(PtrArr, ElemOfs);
-          BBB->addStmt(new EvalStmt(ValElem));
+          EvalStmt* ES = new EvalStmt(ValElem);
+          addLocToStmt(ES, I);
+          BBB->addStmt(ES);
           if (LoadElTy.isKind(Type::Pointer))
             ValElem = PtrToBVExpr::create(ValElem);
           else if (LoadElTy.isKind(Type::Float))
@@ -671,7 +673,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                             BVConstExpr::create(PtrOfs->getType().width, i));
         ref<Expr> ValByte = LoadExpr::create(PtrArr, PtrByteOfs);
         BytesLoaded.push_back(ValByte);
-        BBB->addStmt(new EvalStmt(ValByte));
+        EvalStmt* ES = new EvalStmt(ValByte);
+        addLocToStmt(ES, I);
+        BBB->addStmt(ES);
       }
       E = Expr::createBVConcatN(BytesLoaded);
       if (LoadTy.isKind(Type::Pointer))

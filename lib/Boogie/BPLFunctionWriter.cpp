@@ -94,7 +94,6 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     }
     OS << ");\n";
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
-    OS << "  ";
     writeSourceLocMarker(OS, SS->getSourceLoc());
     maybeWriteCaseSplit(OS, SS->getArray().get(), [&](GlobalArray *GA) {
       assert(SS->getValue()->getType() == GA->getRangeType());
