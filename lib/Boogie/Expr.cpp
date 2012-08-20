@@ -262,6 +262,16 @@ ref<Expr> FLogExpr::create(ref<Expr> expr) {
   return new FLogExpr(expr->getType(), expr);
 }
 
+ref<Expr> FrexpExpExpr::create(unsigned width, ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::Float));
+  return new FrexpExpExpr(Type(Type::BV, width), expr);
+}
+
+ref<Expr> FrexpFracExpr::create(ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::Float));
+  return new FrexpFracExpr(expr->getType(), expr);
+}
+
 ref<Expr> FSinExpr::create(ref<Expr> expr) {
   assert(expr->getType().isKind(Type::Float));
   return new FSinExpr(expr->getType(), expr);

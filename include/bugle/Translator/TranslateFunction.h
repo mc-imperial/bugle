@@ -62,8 +62,9 @@ class TranslateFunction {
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize;
 
-  SpecialFnHandler handleCos, handleExp, handleFabs, handleFma, handleSqrt,
-                   handleLog, handlePow, handleSin;
+  SpecialFnHandler handleCos, handleExp, handleFabs, handleFrexpExp,
+                   handleFrexpFrac, handleFma, handleSqrt, handleLog, handlePow,
+                   handleSin;
 
   static SpecialFnMapTy &initSpecialFunctionMap(
                                             TranslateModule::SourceLanguage SL);

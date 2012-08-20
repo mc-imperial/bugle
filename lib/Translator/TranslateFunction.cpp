@@ -84,6 +84,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__requires"] = &TranslateFunction::handleRequires;
     fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
     fns["__ensures"] = &TranslateFunction::handleEnsures;
+    fns["bugle_frexp_exp"] = &TranslateFunction::handleFrexpExp;
+    fns["bugle_frexp_frac"] = &TranslateFunction::handleFrexpFrac;
     fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_bool"] = &TranslateFunction::handleReturnVal;
@@ -495,6 +497,19 @@ ref<Expr> TranslateFunction::handleFma(bugle::BasicBlock *BBB,
     maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0], Args[1], FMulExpr::create);
   return
     maybeTranslateSIMDInst(BBB, Ty, Ty, M, Args[2], FAddExpr::create);
+}
+
+ref<Expr> TranslateFunction::handleFrexpExp(bugle::BasicBlock *BBB,
+                                            llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  return FrexpExpExpr::create(cast<IntegerType>(CI->getType())->getBitWidth(),
+                              Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleFrexpFrac(bugle::BasicBlock *BBB,
+                                             llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  return FrexpFracExpr::create(Args[0]);
 }
 
 ref<Expr> TranslateFunction::handleLog(bugle::BasicBlock *BBB,
