@@ -174,6 +174,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     case Expr::FAbs:
     case Expr::FCos:
     case Expr::FExp:
+    case Expr::FFloor:
     case Expr::FloatToBV:
     case Expr::FLog:
     case Expr::FPConv:
@@ -203,6 +204,9 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::FAbs:  IntS << "FABS" << ToWidth;  break;
       case Expr::FCos:  IntS << "FCOS" << ToWidth;  break;
       case Expr::FExp:  IntS << "FEXP" << ToWidth;  break;
+      case Expr::FFloor:
+        IntS << "FFLOOR" << ToWidth;
+        break;
       case Expr::FloatToBV:
         IntS << "FLOAT" << FromWidth << "_TO_BV";
         break;

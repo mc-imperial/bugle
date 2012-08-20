@@ -59,6 +59,7 @@ public:
     FAbs,
     FCos,
     FExp,
+    FFloor,
     FLog,
     FrexpExp,
     FrexpFrac,
@@ -350,6 +351,7 @@ UNARY_EXPR(BoolToBV)
 UNARY_EXPR(FAbs)
 UNARY_EXPR(FCos)
 UNARY_EXPR(FExp)
+UNARY_EXPR(FFloor)
 UNARY_EXPR(FLog)
 UNARY_EXPR(FrexpFrac)
 UNARY_EXPR(FSin)

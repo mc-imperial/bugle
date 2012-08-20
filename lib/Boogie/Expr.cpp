@@ -272,6 +272,11 @@ ref<Expr> FrexpFracExpr::create(ref<Expr> expr) {
   return new FrexpFracExpr(expr->getType(), expr);
 }
 
+ref<Expr> FFloorExpr::create(ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::Float));
+  return new FFloorExpr(expr->getType(), expr);
+}
+
 ref<Expr> FSinExpr::create(ref<Expr> expr) {
   assert(expr->getType().isKind(Type::Float));
   return new FSinExpr(expr->getType(), expr);

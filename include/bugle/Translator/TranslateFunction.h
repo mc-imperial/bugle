@@ -62,7 +62,7 @@ class TranslateFunction {
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize;
 
-  SpecialFnHandler handleCos, handleExp, handleFabs, handleFrexpExp,
+  SpecialFnHandler handleCos, handleExp, handleFabs, handleFloor, handleFrexpExp,
                    handleFrexpFrac, handleFma, handleSqrt, handleLog, handlePow,
                    handleSin;
 
