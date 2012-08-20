@@ -33,6 +33,9 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
   case Type::Pointer:
     OS << "ptr";
     break;
+  case Type::Unknown:
+  case Type::Any:
+    assert(0 && "Module writer found unexpected type");
   }
 }
 

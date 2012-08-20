@@ -621,6 +621,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     case BinaryOperator::Xor:  F = BVXorExpr::create;  break;
     default:
       assert(0 && "Unsupported binary operator");
+      return;
     }
     E = maybeTranslateSIMDInst(BBB, BO->getType(), BO->getType(), LHS, RHS, F);
   } else if (auto GEPI = dyn_cast<GetElementPtrInst>(I)) {

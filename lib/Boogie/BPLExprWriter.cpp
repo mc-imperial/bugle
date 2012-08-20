@@ -278,7 +278,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::FPow:  IntName = "FPOW";  break;
       case Expr::FSin:  IntName = "FSIN";  break;
       case Expr::FSqrt: IntName = "FSQRT"; break;
-      default: assert(0 && "huh?");
+      default: assert(0 && "huh?"); return;
       }
       OS << IntName << UnE->getType().width;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -351,7 +351,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::BVAnd:  IntName = "AND";  SMTName = "bvand";  break;
       case Expr::BVOr:   IntName = "OR";   SMTName = "bvor";   break;
       case Expr::BVXor:  IntName = "XOR";  SMTName = "bvxor";  break;
-      default: assert(0 && "huh?");
+      default: assert(0 && "huh?"); return;
       }
       OS << "BV" << BinE->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -381,7 +381,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::BVSge: IntName = "SGE"; SMTName = "bvsge"; break;
       case Expr::BVSlt: IntName = "SLT"; SMTName = "bvslt"; break;
       case Expr::BVSle: IntName = "SLE"; SMTName = "bvsle"; break;
-      default: assert(0 && "huh?");
+      default: assert(0 && "huh?"); return;
       }
       OS << "BV" << BinE->getLHS()->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -405,7 +405,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::FMul: IntName = "FMUL"; break;
       case Expr::FDiv: IntName = "FDIV"; break;
       case Expr::FPow: IntName = "FPOW"; break;
-      default: assert(0 && "huh?");
+      default: assert(0 && "huh?"); return;
       }
       OS << IntName << BinE->getType().width;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -430,7 +430,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       switch (BinE->getKind()) {
       case Expr::FLt:  IntName = "FLT";  break;
       case Expr::FUno: IntName = "FUNO"; break;
-      default: assert(0 && "huh?");
+      default: assert(0 && "huh?"); return;
       }
       OS << IntName << BinE->getLHS()->getType().width;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {

@@ -446,7 +446,7 @@ void TranslateModule::translate() {
         assert(F.begin()+1 == F.end() && "Expected one basic block");
         bugle::BasicBlock *BB = *F.begin();
         VarAssignStmt *S = cast<VarAssignStmt>(*(BB->end()-2));
-        assert(S->getVars()[0] == RV);
+        assert(S->getVars()[0] == RV); (void) RV;
         BM->addAxiom(Expr::createNeZero(S->getValues()[0]));
       } else if (!TranslateFunction::isSpecialFunction(SL, i->getName())) {
         TranslateFunction TF(this, FunctionMap[&*i], &*i);
