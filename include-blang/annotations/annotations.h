@@ -49,37 +49,33 @@ __DEVICE_QUALIFIER__ bool __implies(bool expr1, bool expr2);
 
 #ifdef __OPENCL__
 
-/* Read set is non-empty */
-__DEVICE_QUALIFIER__ bool __read_local(const __local void* p);
-__DEVICE_QUALIFIER__ bool __read_global(const __global void* p);
+#define __POINTER_QUERY_OVERLOAD(NAME, MEMORY_SPACE, TYPE) \
+    __DEVICE_QUALIFIER__ TYPE __##NAME##_##MEMORY_SPACE##(const __##MEMORY_SPACE void* p); \
+    __DEVICE_QUALIFIER__ __attribute__((overloadable)) static __attribute__((always_inline)) TYPE __##NAME(const __##MEMORY_SPACE void* p) { \
+      return __##NAME##_##MEMORY_SPACE##(p); \
+    }
 
-/* Read set is empty */
-#define __no_read_local(p) !__read_local(p)
-#define __no_read_global(p) !__read_global(p)
+#define __POINTER_QUERY(NAME, TYPE) \
+    __POINTER_QUERY_OVERLOAD(NAME, local, TYPE) \
+    __POINTER_QUERY_OVERLOAD(NAME, global, TYPE) \
+    
+/* Read/write set is non-empty */
+__POINTER_QUERY(read, bool)
+__POINTER_QUERY(write, bool)
 
-/* Write set is non-empty */
-__DEVICE_QUALIFIER__ bool __write_local(const __local void* p);
-__DEVICE_QUALIFIER__ bool __write_global(const __global void* p);
+/* Read/write set is empty */
+#define __no_read(p) !__read(p)
+#define __no_write(p) !__write(p)
 
-/* Write set is empty */
-#define __no_write_local(p) !__write_local(p)
-#define __no_write_global(p) !__write_global(p)
-
-/* Read offset */
-__DEVICE_QUALIFIER__ int __read_offset_local(const __local void* p);
-__DEVICE_QUALIFIER__ int __read_offset_global(const __global void* p);
-
-/* Write offset */
-__DEVICE_QUALIFIER__ int __write_offset_local(const __local void* p);
-__DEVICE_QUALIFIER__ int __write_offset_global(const __global void* p);
+/* Read/write offset */
+__POINTER_QUERY(read_offset, int)
+__POINTER_QUERY(write_offset, int)
 
 /* Pointer base */
-__DEVICE_QUALIFIER__ ptr_base_t __ptr_base_local(const __local void* p);
-__DEVICE_QUALIFIER__ ptr_base_t __ptr_base_global(const __global void* p);
+__POINTER_QUERY(ptr_base, ptr_base_t);
 
 /* Pointer offset */
-__DEVICE_QUALIFIER__ int __ptr_offset_local(const __local void* p);
-__DEVICE_QUALIFIER__ int __ptr_offset_global(const __global void* p);
+__POINTER_QUERY(ptr_offset, int);
 
 #endif
 

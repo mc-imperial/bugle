@@ -60,7 +60,7 @@ _CLC_INLINE void write_imageui(image2d_t image, uint2 coord, uint4 color) {
 int get_image_height (image2d_t image);
 int get_image_width (image2d_t image);
 
-#include "annotations.h"
+#include "annotations/annotations.h"
 
 // Must define a dimension
 
