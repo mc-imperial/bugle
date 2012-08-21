@@ -60,6 +60,8 @@ public:
     FCos,
     FExp,
     FLog,
+    FrexpExp,
+    FrexpFrac,
     FSin,
     FSqrt,
     OtherInt,
@@ -349,6 +351,7 @@ UNARY_EXPR(FAbs)
 UNARY_EXPR(FCos)
 UNARY_EXPR(FExp)
 UNARY_EXPR(FLog)
+UNARY_EXPR(FrexpFrac)
 UNARY_EXPR(FSin)
 UNARY_EXPR(FSqrt)
 UNARY_EXPR(OtherInt)
@@ -372,8 +375,10 @@ UNARY_CONV_EXPR(FPToSI)
 UNARY_CONV_EXPR(FPToUI)
 UNARY_CONV_EXPR(SIToFP)
 UNARY_CONV_EXPR(UIToFP)
+UNARY_CONV_EXPR(FrexpExp)
 
 #undef UNARY_EXPR
+#undef UNARY_CONV_EXPR
 
 class BinaryExpr : public Expr {
   ref<Expr> lhs, rhs;

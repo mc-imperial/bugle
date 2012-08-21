@@ -65,67 +65,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
          << "\"} BV" << FromWidth << "_SEXT" << ToWidth << "(bv" << FromWidth
          << ") : bv" << ToWidth;
     });
-  } else if (auto FPCE = dyn_cast<FPConvExpr>(E)) {
-    OS << "FP" << FPCE->getSubExpr()->getType().width
-       << "_CONV" << FPCE->getType().width << "(";
-    writeExpr(OS, FPCE->getSubExpr().get());
-    OS << ")";
-    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      unsigned FromWidth = FPCE->getSubExpr()->getType().width,
-               ToWidth = FPCE->getType().width;
-      OS << "function FP" << FromWidth << "_CONV" << ToWidth << "(";
-      MW->writeType(OS, FPCE->getSubExpr()->getType());
-      OS << ") : ";
-      MW->writeType(OS, FPCE->getType());
-    });
-  } else if (auto FPSIE = dyn_cast<FPToSIExpr>(E)) {
-    OS << "FP" << FPSIE->getSubExpr()->getType().width
-       << "_TO_SI" << FPSIE->getType().width << "(";
-    writeExpr(OS, FPSIE->getSubExpr().get());
-    OS << ")";
-    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      unsigned FromWidth = FPSIE->getSubExpr()->getType().width,
-               ToWidth = FPSIE->getType().width;
-      OS << "function FP" << FromWidth << "_TO_SI" << ToWidth << "(";
-      MW->writeType(OS, FPSIE->getSubExpr()->getType());
-      OS << ") : bv" << ToWidth;
-    });
-  } else if (auto FPUIE = dyn_cast<FPToUIExpr>(E)) {
-    OS << "FP" << FPUIE->getSubExpr()->getType().width
-       << "_TO_UI" << FPUIE->getType().width << "(";
-    writeExpr(OS, FPUIE->getSubExpr().get());
-    OS << ")";
-    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      unsigned FromWidth = FPUIE->getSubExpr()->getType().width,
-               ToWidth = FPUIE->getType().width;
-      OS << "function FP" << FromWidth << "_TO_UI" << ToWidth << "(";
-      MW->writeType(OS, FPUIE->getSubExpr()->getType());
-      OS << ") : bv" << ToWidth;
-    });
-  } else if (auto SIFPE = dyn_cast<SIToFPExpr>(E)) {
-    OS << "SI" << SIFPE->getSubExpr()->getType().width
-       << "_TO_FP" << SIFPE->getType().width << "(";
-    writeExpr(OS, SIFPE->getSubExpr().get());
-    OS << ")";
-    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      unsigned FromWidth = SIFPE->getSubExpr()->getType().width,
-               ToWidth = SIFPE->getType().width;
-      OS << "function SI" << FromWidth << "_TO_FP" << ToWidth << "(bv"
-         << FromWidth << ") : ";
-      MW->writeType(OS, SIFPE->getType());
-    });
-  } else if (auto UIFPE = dyn_cast<UIToFPExpr>(E)) {
-    OS << "UI" << UIFPE->getSubExpr()->getType().width
-       << "_TO_FP" << UIFPE->getType().width << "(";
-    writeExpr(OS, UIFPE->getSubExpr().get());
-    OS << ")";
-    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      unsigned FromWidth = UIFPE->getSubExpr()->getType().width,
-               ToWidth = UIFPE->getType().width;
-      OS << "function UI" << FromWidth << "_TO_FP" << ToWidth << "(bv"
-         << FromWidth << ") : ";
-      MW->writeType(OS, UIFPE->getType());
-    });
   } else if (auto PtrE = dyn_cast<PointerExpr>(E)) {
     OS << "MKPTR(";
     writeExpr(OS, PtrE->getArray().get());
@@ -185,38 +124,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     ScopedParenPrinter X(OS, Depth, 4);
     writeExpr(OS, BV2BE->getSubExpr().get(), 4);
     OS << " == 1bv1";
-  } else if (auto F2BVE = dyn_cast<FloatToBVExpr>(E)) {
-    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << "function FLOAT" << F2BVE->getType().width << "_TO_BV(";
-      MW->writeType(OS, F2BVE->getSubExpr()->getType());
-      OS << ") : bv" << F2BVE->getType().width;
-    });
-    OS << "FLOAT" << F2BVE->getType().width << "_TO_BV(";
-    writeExpr(OS, F2BVE->getSubExpr().get());
-    OS << ")";
-  } else if (auto BV2FE = dyn_cast<BVToFloatExpr>(E)) {
-    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << "function BV" << BV2FE->getType().width << "_TO_FLOAT(bv"
-         << BV2FE->getType().width << ") : ";
-      MW->writeType(OS, BV2FE->getType());
-    });
-    OS << "BV" << BV2FE->getType().width << "_TO_FLOAT(";
-    writeExpr(OS, BV2FE->getSubExpr().get());
-    OS << ")";
-  } else if (auto P2BVE = dyn_cast<PtrToBVExpr>(E)) {
-    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << "function PTR_TO_BV(ptr) : bv" << P2BVE->getType().width;
-    });
-    OS << "PTR_TO_BV(";
-    writeExpr(OS, P2BVE->getSubExpr().get());
-    OS << ")";
-  } else if (auto BV2PE = dyn_cast<BVToPtrExpr>(E)) {
-    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << "function BV_TO_PTR(bv" << BV2PE->getType().width << ") : ptr";
-    });
-    OS << "BV_TO_PTR(";
-    writeExpr(OS, BV2PE->getSubExpr().get());
-    OS << ")";
   } else if (auto AIE = dyn_cast<ArrayIdExpr>(E)) {
     OS << "base#MKPTR(";
     writeExpr(OS, AIE->getSubExpr().get());
@@ -262,51 +169,79 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeAccessLoggingVar(OS, AOE->getArray().get(), "OFFSET", AOE->getAccessKind(), "0bv32");
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
+    case Expr::BVToFloat:
+    case Expr::BVToPtr:
     case Expr::FAbs:
     case Expr::FCos:
     case Expr::FExp:
+    case Expr::FloatToBV:
     case Expr::FLog:
+    case Expr::FPConv:
     case Expr::FPow:
+    case Expr::FPToSI:
+    case Expr::FPToUI:
+    case Expr::FrexpExp:
+    case Expr::FrexpFrac:
     case Expr::FSin:
-    case Expr::FSqrt: {
-      const char *IntName;
+    case Expr::FSqrt:
+    case Expr::OtherInt:
+    case Expr::OtherBool:
+    case Expr::OtherPtrBase:
+    case Expr::PtrToBV:
+    case Expr::SIToFP:
+    case Expr::UIToFP: {
+      std::string IntName; llvm::raw_string_ostream IntS(IntName);
+      unsigned FromWidth = UnE->getSubExpr()->getType().width,
+               ToWidth = UnE->getType().width;
       switch (UnE->getKind()) {
-      case Expr::FAbs:  IntName = "FABS";  break;
-      case Expr::FCos:  IntName = "FCOS";  break;
-      case Expr::FExp:  IntName = "FEXP";  break;
-      case Expr::FLog:  IntName = "FLOG";  break;
-      case Expr::FPow:  IntName = "FPOW";  break;
-      case Expr::FSin:  IntName = "FSIN";  break;
-      case Expr::FSqrt: IntName = "FSQRT"; break;
-      default: assert(0 && "huh?");
+      case Expr::BVToFloat:
+        IntS << "BV" << FromWidth << "_TO_FLOAT";
+        break;
+      case Expr::BVToPtr:
+        IntS << "BV" << FromWidth << "_TO_PTR";
+        break;
+      case Expr::FAbs:  IntS << "FABS" << ToWidth;  break;
+      case Expr::FCos:  IntS << "FCOS" << ToWidth;  break;
+      case Expr::FExp:  IntS << "FEXP" << ToWidth;  break;
+      case Expr::FloatToBV:
+        IntS << "FLOAT" << FromWidth << "_TO_BV";
+        break;
+      case Expr::FLog:  IntS << "FLOG" << ToWidth;  break;
+      case Expr::FPConv:
+        IntS << "FP" << FromWidth << "_CONV" << ToWidth;
+        break;
+      case Expr::FPow:  IntS << "FPOW" << ToWidth;  break;
+      case Expr::FPToSI:
+        IntS << "FP" << FromWidth << "_TO_SI" << ToWidth;
+        break;
+      case Expr::FPToUI:
+        IntS << "FP" << FromWidth << "_TO_UI" << ToWidth;
+        break;
+      case Expr::FrexpExp:
+        IntS << "FREXP" << FromWidth << "_EXP";
+        break;
+      case Expr::FrexpFrac:
+        IntS << "FREXP" << FromWidth << "_FRAC" << ToWidth;
+        break;
+      case Expr::FSin:  IntS << "FSIN" << ToWidth;  break;
+      case Expr::FSqrt: IntS << "FSQRT" << ToWidth; break;
+      case Expr::OtherInt: IntS << "__other_bv" << ToWidth; break;
+      case Expr::OtherBool: IntS << "__other_bool"; break;
+      case Expr::OtherPtrBase: IntS << "__other_arrayId"; break;
+      case Expr::SIToFP:
+        IntS << "SI" << FromWidth << "_TO_FP" << ToWidth;
+        break;
+      case Expr::UIToFP:
+        IntS << "UI" << FromWidth << "_TO_FP" << ToWidth;
+        break;
+      default: assert(0 && "huh?"); return;
       }
-      OS << IntName << UnE->getType().width;
+      OS << IntS.str();
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function " << IntName << UnE->getType().width << "(";
+        OS << "function " << IntS.str() << "(";
         MW->writeType(OS, UnE->getSubExpr()->getType());
         OS << ") : ";
         MW->writeType(OS, UnE->getType());
-      });
-      break;
-    }
-    case Expr::OtherInt: {
-      OS << "__other_bv32";
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-       OS << "function __other_bv32(e : bv32) : bv32";
-      });
-      break;
-    }
-    case Expr::OtherBool: {
-      OS << "__other_bool";
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-       OS << "function __other_bool(e : bool) : bool";
-      });
-      break;
-    }
-    case Expr::OtherPtrBase: {
-      OS << "__other_arrayId";
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "function __other_arrayId(e : arrayId) : arrayId";
       });
       break;
     }
@@ -351,7 +286,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::BVAnd:  IntName = "AND";  SMTName = "bvand";  break;
       case Expr::BVOr:   IntName = "OR";   SMTName = "bvor";   break;
       case Expr::BVXor:  IntName = "XOR";  SMTName = "bvxor";  break;
-      default: assert(0 && "huh?");
+      default: assert(0 && "huh?"); return;
       }
       OS << "BV" << BinE->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -381,7 +316,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::BVSge: IntName = "SGE"; SMTName = "bvsge"; break;
       case Expr::BVSlt: IntName = "SLT"; SMTName = "bvslt"; break;
       case Expr::BVSle: IntName = "SLE"; SMTName = "bvsle"; break;
-      default: assert(0 && "huh?");
+      default: assert(0 && "huh?"); return;
       }
       OS << "BV" << BinE->getLHS()->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -405,7 +340,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::FMul: IntName = "FMUL"; break;
       case Expr::FDiv: IntName = "FDIV"; break;
       case Expr::FPow: IntName = "FPOW"; break;
-      default: assert(0 && "huh?");
+      default: assert(0 && "huh?"); return;
       }
       OS << IntName << BinE->getType().width;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -426,7 +361,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::FEq:  IntName = "FEQ";  break;
       case Expr::FLt:  IntName = "FLT";  break;
       case Expr::FUno: IntName = "FUNO"; break;
-      default: assert(0 && "huh?");
+      default: assert(0 && "huh?"); return;
       }
       OS << IntName << BinE->getLHS()->getType().width;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {

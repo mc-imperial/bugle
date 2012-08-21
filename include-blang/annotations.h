@@ -124,4 +124,37 @@ __DEVICE_QUALIFIER__ ptr_base_t __other_ptr_base(ptr_base_t expr);
 }
 #endif
 
+#ifdef __CUDA__
+// TODO: remove these functions once the CUDA benchmarks have been moved to the
+// new builtins.
+
+/* Read set is empty */
+__attribute__((always_inline)) __DEVICE_QUALIFIER__ bool __no_read(const char* array_name) { return false; }
+
+/* Read set is non-empty */
+__attribute__((always_inline)) __DEVICE_QUALIFIER__ bool __read(const char* array_name) { return false; }
+
+/* Write set is empty */
+__attribute__((always_inline)) __DEVICE_QUALIFIER__ bool __no_write(const char* array_name) { return false; }
+
+/* Write set is non-empty */
+__attribute__((always_inline)) __DEVICE_QUALIFIER__ bool __write(const char* array_name) { return false; }
+
+/* Read offset */
+__attribute__((always_inline)) __DEVICE_QUALIFIER__ int __read_offset(const char* array_name) { return 0; }
+
+/* Write set is empty */
+__attribute__((always_inline)) __DEVICE_QUALIFIER__ int __write_offset(const char* array_name) { return 0; }
+
+/* If a read has occurred to 'array_name' then 'expr' must hold */
+__attribute__((always_inline)) __DEVICE_QUALIFIER__ bool __read_implies(const char* array_name, bool expr) { return false; }
+
+/* If a write has occurred to 'array_name' then 'expr' must hold */
+__attribute__((always_inline)) __DEVICE_QUALIFIER__ bool __write_implies(const char* array_name, bool expr) { return false; }
+
+/* 'expr' may hold for at most one thread */
+__attribute__((always_inline)) __DEVICE_QUALIFIER__ bool __at_most_one(bool expr) { return false; }
+
+#endif
+
 #endif

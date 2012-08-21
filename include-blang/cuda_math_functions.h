@@ -104,7 +104,15 @@ __device__ double erfcx(double x);
 __device__ double lgamma(double x);
 __device__ double tgamma(double x);
 __device__ double fma(double x, double y, double z);
-__device__ double frexp(double x, int *exp);
+
+__device__ int bugle_frexp_exp(double x);
+__device__ double bugle_frexp_frac(double x);
+
+__attribute__((always_inline)) __device__ double frexp(double x, int *exp) {
+  *exp = bugle_frexp_exp(x);
+  return bugle_frexp_frac(x);
+}
+
 __device__ double ldexp(double x, int exp);
 __device__ double scalbn(double x, int n);
 __device__ double scalbln(double x, int l);

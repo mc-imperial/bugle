@@ -219,29 +219,25 @@ ref<Expr> FPConvExpr::create(unsigned width, ref<Expr> expr) {
 }
 
 ref<Expr> FPToSIExpr::create(unsigned width, ref<Expr> expr) {
-  const Type &ty = expr->getType();
-  assert(ty.isKind(Type::Float));
+  assert(expr->getType().isKind(Type::Float));
 
   return new FPToSIExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> FPToUIExpr::create(unsigned width, ref<Expr> expr) {
-  const Type &ty = expr->getType();
-  assert(ty.isKind(Type::Float));
+  assert(expr->getType().isKind(Type::Float));
 
   return new FPToUIExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> SIToFPExpr::create(unsigned width, ref<Expr> expr) {
-  const Type &ty = expr->getType();
-  assert(ty.isKind(Type::BV));
+  assert(expr->getType().isKind(Type::BV));
 
   return new SIToFPExpr(Type(Type::Float, width), expr);
 }
 
 ref<Expr> UIToFPExpr::create(unsigned width, ref<Expr> expr) {
-  const Type &ty = expr->getType();
-  assert(ty.isKind(Type::BV));
+  assert(expr->getType().isKind(Type::BV));
 
   return new UIToFPExpr(Type(Type::Float, width), expr);
 }
@@ -264,6 +260,16 @@ ref<Expr> FExpExpr::create(ref<Expr> expr) {
 ref<Expr> FLogExpr::create(ref<Expr> expr) {
   assert(expr->getType().isKind(Type::Float));
   return new FLogExpr(expr->getType(), expr);
+}
+
+ref<Expr> FrexpExpExpr::create(unsigned width, ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::Float));
+  return new FrexpExpExpr(Type(Type::BV, width), expr);
+}
+
+ref<Expr> FrexpFracExpr::create(ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::Float));
+  return new FrexpFracExpr(expr->getType(), expr);
 }
 
 ref<Expr> FSinExpr::create(ref<Expr> expr) {
@@ -344,9 +350,8 @@ ref<Expr> PtrToBVExpr::create(ref<Expr> bv) {
 }
 
 ref<Expr> BVToBoolExpr::create(ref<Expr> bv) {
-  const Type &ty = bv->getType();
-  assert(ty.isKind(Type::BV));
-  assert(ty.width == 1);
+  assert(bv->getType().isKind(Type::BV));
+  assert(bv->getType().width == 1);
 
   if (auto e = dyn_cast<BoolToBVExpr>(bv))
     return e->getSubExpr();
@@ -355,8 +360,7 @@ ref<Expr> BVToBoolExpr::create(ref<Expr> bv) {
 }
 
 ref<Expr> BoolToBVExpr::create(ref<Expr> bv) {
-  const Type &ty = bv->getType();
-  assert(ty.isKind(Type::Bool));
+  assert(bv->getType().isKind(Type::Bool));
 
   if (auto e = dyn_cast<BVToBoolExpr>(bv))
     return e->getSubExpr();
@@ -405,8 +409,8 @@ ref<Expr> Expr::createNeZero(ref<Expr> bv) {
 }
 
 ref<Expr> AndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::Bool) && rhsTy.isKind(Type::Bool));
+  assert(lhs->getType().isKind(Type::Bool) &&
+         rhs->getType().isKind(Type::Bool));
 
   if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
     return e1->getValue() ? rhs : lhs;
@@ -418,8 +422,8 @@ ref<Expr> AndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> OrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::Bool) && rhsTy.isKind(Type::Bool));
+  assert(lhs->getType().isKind(Type::Bool) &&
+         rhs->getType().isKind(Type::Bool));
 
   if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
     return e1->getValue() ? lhs : rhs;
@@ -442,9 +446,9 @@ static ref<Expr> reassociateConstAdd(BVAddExpr *nonConstOp,
 }
 
 ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs)) {
     if (e1->getValue().isMinValue())
@@ -472,9 +476,9 @@ ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> BVSubExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
@@ -488,9 +492,9 @@ ref<Expr> BVSubExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> BVMulExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs)) {
     if (e1->getValue().getLimitedValue() == 1)
@@ -507,9 +511,9 @@ ref<Expr> BVMulExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> BVSDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
@@ -519,9 +523,9 @@ ref<Expr> BVSDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> BVUDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
@@ -576,9 +580,9 @@ ref<Expr> Expr::createExactBVUDiv(ref<Expr> lhs, uint64_t rhs, Var *base) {
 }
 
 ref<Expr> BVSRemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
@@ -588,9 +592,9 @@ ref<Expr> BVSRemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> BVURemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
@@ -600,9 +604,9 @@ ref<Expr> BVURemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> BVShlExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
@@ -612,9 +616,9 @@ ref<Expr> BVShlExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> BVAShrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
@@ -624,9 +628,9 @@ ref<Expr> BVAShrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> BVLShrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
@@ -636,9 +640,9 @@ ref<Expr> BVLShrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> BVAndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
@@ -648,9 +652,9 @@ ref<Expr> BVAndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> BVOrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
@@ -660,9 +664,9 @@ ref<Expr> BVOrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> BVXorExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType();
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV));
-  assert(lhsTy.width == rhsTy.width);
+  auto &lhsTy = lhs->getType();
+  assert(lhsTy.isKind(Type::BV));
+  assert(lhsTy == rhs->getType());
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
@@ -695,9 +699,8 @@ ref<Expr> Expr::createBVConcatN(const std::vector<ref<Expr>> &exprs) {
 
 #define ICMP_EXPR_CREATE(cls, method) \
 ref<Expr> cls::create(ref<Expr> lhs, ref<Expr> rhs) { \
-  auto &lhsTy = lhs->getType(), &rhsTy = rhs->getType(); \
-  assert(lhsTy.isKind(Type::BV) && rhsTy.isKind(Type::BV)); \
-  assert(lhsTy.width == rhsTy.width); \
+  assert(lhs->getType().isKind(Type::BV)); \
+  assert(lhs->getType() == rhs->getType()); \
  \
   if (auto e1 = dyn_cast<BVConstExpr>(lhs)) \
     if (auto e2 = dyn_cast<BVConstExpr>(rhs)) \
