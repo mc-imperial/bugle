@@ -120,6 +120,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::exp2] = &TranslateFunction::handleExp;
     ints[Intrinsic::fabs] = &TranslateFunction::handleFabs;
     ints[Intrinsic::fma] = &TranslateFunction::handleFma;
+    ints[Intrinsic::floor] = &TranslateFunction::handleFloor;
     ints[Intrinsic::log2] = &TranslateFunction::handleLog;
     ints[Intrinsic::pow] = &TranslateFunction::handlePow;
     ints[Intrinsic::sin] = &TranslateFunction::handleSin;
@@ -486,6 +487,15 @@ ref<Expr> TranslateFunction::handleFabs(bugle::BasicBlock *BBB,
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
     return FAbsExpr::create(E);
+  });
+}
+
+ref<Expr> TranslateFunction::handleFloor(bugle::BasicBlock *BBB,
+                                         llvm::Type *Ty,
+                                         const std::vector<ref<Expr>> &Args) {
+  return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
+                                [&](llvm::Type *T, ref<Expr> E) {
+    return FFloorExpr::create(E);
   });
 }
 
