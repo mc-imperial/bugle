@@ -419,15 +419,11 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       break;
     }
     case Expr::FEq:
-      assert(BinE->getKind() == Expr::FEq);
-      writeExpr(OS, BinE->getLHS().get());
-      OS << " == "; // TODO: deal with NaN
-      writeExpr(OS, BinE->getRHS().get());
-	  return; // This case does not conform to the pattern for other binaries, so we return
-	case Expr::FLt:
+    case Expr::FLt:
     case Expr::FUno: {
       const char *IntName;
       switch (BinE->getKind()) {
+      case Expr::FEq:  IntName = "FEQ";  break;
       case Expr::FLt:  IntName = "FLT";  break;
       case Expr::FUno: IntName = "FUNO"; break;
       default: assert(0 && "huh?");

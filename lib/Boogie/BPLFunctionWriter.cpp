@@ -13,8 +13,10 @@
 using namespace bugle;
 
 void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
+                                            SourceLoc *Loc,
                                             Expr *PtrArr,
                                          std::function<void(GlobalArray *)> F) {
+  writeSourceLocMarker(OS, Loc);
   if (isa<NullArrayRefExpr>(PtrArr) ||
       MW->M->global_begin() == MW->M->global_end()) {
     OS << "assert false;\n";
@@ -69,8 +71,8 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       writeSourceLoc(OS, ES->getSourceLoc());
     }
     if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
-      writeSourceLocMarker(OS, ES->getSourceLoc());
-      maybeWriteCaseSplit(OS, LE->getArray().get(), [&](GlobalArray *GA) {
+      maybeWriteCaseSplit(OS, ES->getSourceLoc(), LE->getArray().get(), 
+          [&](GlobalArray *GA) {
         assert(LE->getType() == GA->getRangeType());
         OS << "v" << id << " := $$" << GA->getName() << "[";
         writeExpr(OS, LE->getOffset().get());
@@ -94,8 +96,8 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     }
     OS << ");\n";
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
-    writeSourceLocMarker(OS, SS->getSourceLoc());
-    maybeWriteCaseSplit(OS, SS->getArray().get(), [&](GlobalArray *GA) {
+    maybeWriteCaseSplit(OS, SS->getSourceLoc(), SS->getArray().get(), 
+        [&](GlobalArray *GA) {
       assert(SS->getValue()->getType() == GA->getRangeType());
       OS << "$$" << GA->getName() << "[";
       writeExpr(OS, SS->getOffset().get());
