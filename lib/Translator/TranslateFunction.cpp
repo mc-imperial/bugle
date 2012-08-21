@@ -491,8 +491,9 @@ ref<Expr> TranslateFunction::handleFabs(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleFloor(bugle::BasicBlock *BBB,
-                                         llvm::Type *Ty,
+                                         llvm::CallInst *CI,
                                          const std::vector<ref<Expr>> &Args) {
+  llvm::Type *Ty = CI->getType();
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
     return FFloorExpr::create(E);
