@@ -50,9 +50,13 @@ __DEVICE_QUALIFIER__ bool __implies(bool expr1, bool expr2);
 #ifdef __OPENCL__
 
 #define __POINTER_QUERY_OVERLOAD(NAME, MEMORY_SPACE, TYPE) \
-    __DEVICE_QUALIFIER__ TYPE __##NAME##_##MEMORY_SPACE##(const __##MEMORY_SPACE void* p); \
-    __DEVICE_QUALIFIER__ __attribute__((overloadable)) static __attribute__((always_inline)) TYPE __##NAME(const __##MEMORY_SPACE void* p) { \
-      return __##NAME##_##MEMORY_SPACE##(p); \
+    __DEVICE_QUALIFIER__ TYPE \
+    __##NAME##_##MEMORY_SPACE \
+    (const __##MEMORY_SPACE void* p); \
+    __DEVICE_QUALIFIER__ __attribute__((overloadable)) \
+    static __attribute__((always_inline)) TYPE \
+    __##NAME(const __##MEMORY_SPACE void* p) { \
+      return __##NAME##_##MEMORY_SPACE(p); \
     }
 
 #define __POINTER_QUERY(NAME, TYPE) \
