@@ -29,7 +29,7 @@ class BPLFunctionWriter : BPLExprWriter {
   llvm::DenseMap<Expr *, unsigned> SSAVarIds;
   std::set<GlobalArray *> ModifiesSet;
 
-  void maybeWriteCaseSplit(llvm::raw_ostream &OS, SourceLoc *Loc, Expr *PtrArr,
+  void maybeWriteCaseSplit(llvm::raw_ostream &OS, Expr *PtrArr,
                            std::function<void(GlobalArray *)> F);
   void writeVar(llvm::raw_ostream &OS, Var *V);
   BPLModuleWriter *getModuleWriter();
