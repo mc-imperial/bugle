@@ -108,7 +108,7 @@ __device__ double fma(double x, double y, double z);
 __device__ int bugle_frexp_exp(double x);
 __device__ double bugle_frexp_frac(double x);
 
-__attribute__((always_inline)) __device__ double frexp(double x, int *exp) {
+static __attribute__((always_inline)) __device__ double frexp(double x, int *exp) {
   *exp = bugle_frexp_exp(x);
   return bugle_frexp_frac(x);
 }

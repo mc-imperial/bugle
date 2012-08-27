@@ -16,7 +16,7 @@
 #define __host__ __attribute__((host))
 #define __shared__ __attribute__((shared))
 
-#include "annotations.h"
+#include "annotations/annotations.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +28,16 @@ struct _3DimensionalVector {
   unsigned x, y, z;
 } threadIdx, blockIdx, blockDim, gridDim;
 
-__device__ void __syncthreads();
+typedef int cl_mem_fence_flags;
+
+#define CLK_LOCAL_MEM_FENCE 1
+#define CLK_GLOBAL_MEM_FENCE 2
+    
+__device__ void barrier(cl_mem_fence_flags flags);
+    
+static __attribute__((always_inline)) __device__ void __syncthreads() {
+    barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
+}
 
 
 __device__ float abs (float x);
