@@ -98,16 +98,22 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__enabled"] = &TranslateFunction::handleEnabled;
     fns["__read_local"] = &TranslateFunction::handleReadHasOccurred;
     fns["__read_global"] = &TranslateFunction::handleReadHasOccurred;
+    fns["__read"] = &TranslateFunction::handleReadHasOccurred;
     fns["__write_local"] = &TranslateFunction::handleWriteHasOccurred;
     fns["__write_global"] = &TranslateFunction::handleWriteHasOccurred;
+    fns["__write"] = &TranslateFunction::handleWriteHasOccurred;
     fns["__read_offset_local"] = &TranslateFunction::handleReadOffset;
     fns["__read_offset_global"] = &TranslateFunction::handleReadOffset;
+    fns["__read_offset"] = &TranslateFunction::handleReadOffset;
     fns["__write_offset_local"] = &TranslateFunction::handleWriteOffset;
     fns["__write_offset_global"] = &TranslateFunction::handleWriteOffset;
+    fns["__write_offset"] = &TranslateFunction::handleWriteOffset;
     fns["__ptr_base_local"] = &TranslateFunction::handlePtrBase;
     fns["__ptr_base_global"] = &TranslateFunction::handlePtrBase;
+    fns["__ptr_base"] = &TranslateFunction::handlePtrBase;
     fns["__ptr_offset_local"] = &TranslateFunction::handlePtrOffset;
     fns["__ptr_offset_global"] = &TranslateFunction::handlePtrOffset;
+    fns["__ptr_offset"] = &TranslateFunction::handlePtrOffset;
     if (SL == TranslateModule::SL_OpenCL) {
       fns["get_local_id"] = &TranslateFunction::handleGetLocalId;
       fns["get_group_id"] = &TranslateFunction::handleGetGroupId;
@@ -140,8 +146,9 @@ void TranslateFunction::translate() {
   if (isGPUEntryPoint)
     BF->addAttribute("kernel");
 
-  if ((TM->SL == TranslateModule::SL_OpenCL && F->getName() == "barrier") ||
-      (TM->SL == TranslateModule::SL_CUDA && F->getName() == "__syncthreads"))
+  if ((TM->SL == TranslateModule::SL_OpenCL || 
+       TM->SL == TranslateModule::SL_CUDA)
+       && F->getName() == "barrier")
     BF->addAttribute("barrier");
 
   unsigned PtrSize = TM->TD.getPointerSizeInBits();

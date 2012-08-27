@@ -73,11 +73,11 @@ ref<Expr> TranslateModule::translateCUDABuiltinGlobal(std::string Prefix,
 ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
   if (SL == SL_CUDA) {
     if (GV->getName() == "gridDim")
-      return translateCUDABuiltinGlobal("global_size", GV);
+      return translateCUDABuiltinGlobal("num_groups", GV);
     if (GV->getName() == "blockIdx")
       return translateCUDABuiltinGlobal("global_id", GV);
     if (GV->getName() == "blockDim")
-      return translateCUDABuiltinGlobal("local_size", GV);
+      return translateCUDABuiltinGlobal("group_size", GV);
     if (GV->getName() == "threadIdx")
       return translateCUDABuiltinGlobal("local_id", GV);
   }
