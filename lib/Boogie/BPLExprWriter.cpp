@@ -4,9 +4,15 @@
 #include "bugle/Expr.h"
 #include "bugle/Function.h"
 #include "bugle/GlobalArray.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace bugle;
+
+static llvm::cl::opt<bool>
+DumpRefCounts("dump-ref-counts", llvm::cl::Hidden,
+              llvm::cl::init(false),
+              llvm::cl::desc("Dump expression reference counts"));
 
 namespace {
 
@@ -30,6 +36,9 @@ BPLExprWriter::~BPLExprWriter() {}
 
 void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
                               unsigned Depth) {
+  if (DumpRefCounts)
+    OS << "/*rc=" << E->refCount << "*/";
+
   if (auto CE = dyn_cast<BVConstExpr>(E)) {
     auto &Val = CE->getValue();
     Val.print(OS, /*isSigned=*/false);
