@@ -570,6 +570,13 @@ ref<Expr> TranslateFunction::handleSqrt(bugle::BasicBlock *BBB,
   });
 }
 
+void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB,
+                                    llvm::Instruction *I, ref<Expr> E) {
+  auto ES = BBB->addEvalStmt(E);
+  if (ES)
+    addLocToStmt(ES, I);
+}
+
 ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
                              llvm::Type *Ty, llvm::Type *OpTy,
                              ref<Expr> Op,
@@ -587,10 +594,10 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
     if (OpVT->getElementType()->isFloatingPointTy())
       Opi = BVToFloatExpr::create(Opi);
     ref<Expr> Elem = F(VT->getElementType(), Opi);
-    BBB->addStmt(new EvalStmt(Elem));
+    BBB->addEvalStmt(Elem);
     if (VT->getElementType()->isFloatingPointTy()) {
       Elem = FloatToBVExpr::create(Elem);
-      BBB->addStmt(new EvalStmt(Elem));
+      BBB->addEvalStmt(Elem);
     }
     Elems.push_back(Elem);
   }
@@ -617,10 +624,10 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
       RHSi = BVToFloatExpr::create(RHSi);
     }
     ref<Expr> Elem = F(LHSi, RHSi);
-    BBB->addStmt(new EvalStmt(Elem));
+    BBB->addEvalStmt(Elem);
     if (VT->getElementType()->isFloatingPointTy()) {
       Elem = FloatToBVExpr::create(Elem);
-      BBB->addStmt(new EvalStmt(Elem));
+      BBB->addEvalStmt(Elem);
     }
     Elems.push_back(Elem);
   }
@@ -686,9 +693,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             BVAddExpr::create(Div,
                               BVConstExpr::create(Div->getType().width, i));
           ref<Expr> ValElem = LoadExpr::create(PtrArr, ElemOfs);
-          EvalStmt* ES = new EvalStmt(ValElem);
-          addLocToStmt(ES, I);
-          BBB->addStmt(ES);
+          addEvalStmt(BBB, I, ValElem);
           if (LoadElTy.isKind(Type::Pointer))
             ValElem = PtrToBVExpr::create(ValElem);
           else if (LoadElTy.isKind(Type::Float))
@@ -707,9 +712,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                             BVConstExpr::create(PtrOfs->getType().width, i));
         ref<Expr> ValByte = LoadExpr::create(PtrArr, PtrByteOfs);
         BytesLoaded.push_back(ValByte);
-        EvalStmt* ES = new EvalStmt(ValByte);
-        addLocToStmt(ES, I);
-        BBB->addStmt(ES);
+        addEvalStmt(BBB, I, ValByte);
       }
       E = Expr::createBVConcatN(BytesLoaded);
       if (LoadTy.isKind(Type::Pointer))
@@ -765,14 +768,10 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
       if (StoreTy.isKind(Type::Pointer)) {
         Val = PtrToBVExpr::create(Val);
-        EvalStmt* ES = new EvalStmt(Val);
-        addLocToStmt(ES, I);
-        BBB->addStmt(ES);
+        addEvalStmt(BBB, I, Val);
       } else if (StoreTy.isKind(Type::Float)) {
         Val = FloatToBVExpr::create(Val);
-        EvalStmt* ES = new EvalStmt(Val);
-        addLocToStmt(ES, I);
-        BBB->addStmt(ES);
+        addEvalStmt(BBB, I, Val);
       }
       for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
         ref<Expr> PtrByteOfs =
@@ -836,7 +835,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           assert(0 && "Unsupported icmp");
         }
       }
-      BBB->addStmt(new EvalStmt(E));
+      addEvalStmt(BBB, I, E);
       return BoolToBVExpr::create(E);
     });
   } else if (auto FI = dyn_cast<FCmpInst>(I)) {
@@ -854,7 +853,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         E = OrExpr::create(E, FLtExpr::create(LHS, RHS));
       if (FI->getPredicate() & FCmpInst::FCMP_UNO)
         E = OrExpr::create(E, FUnoExpr::create(LHS, RHS));
-      BBB->addStmt(new EvalStmt(E));
+      addEvalStmt(BBB, I, E);
       return BoolToBVExpr::create(E);
     });
   } else if (auto ZEI = dyn_cast<ZExtInst>(I)) {
@@ -1030,9 +1029,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           return;
         } else {
           E = CallExpr::create(FI->second, Args);
-          EvalStmt* ES = new EvalStmt(E);
-          addLocToStmt(ES, CI);
-          BBB->addStmt(ES);
+          addEvalStmt(BBB, I, E);
           ValueExprMap[I] = TM->unmodelValue(F, E);
           if (auto CE = dyn_cast<CallExpr>(E))
             TM->CallSites[F].push_back(&CE->getArgs());
@@ -1110,9 +1107,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     E->dump();
   }
   ValueExprMap[I] = E;
-  EvalStmt* ES = new EvalStmt(E);
-  addLocToStmt(ES, I);
-  BBB->addStmt(ES);
+  addEvalStmt(BBB, I, E);
   return;
 }
 

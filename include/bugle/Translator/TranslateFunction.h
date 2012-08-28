@@ -85,6 +85,7 @@ class TranslateFunction {
                      llvm::BasicBlock *Succ);
   void addLocToStmt(Stmt *stmt, llvm::Instruction *I);
   SourceLoc *extractSourceLoc(llvm::Instruction *I);
+  void addEvalStmt(BasicBlock *BBB, llvm::Instruction *I, ref<Expr> E);
 
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF,

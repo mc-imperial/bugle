@@ -19,6 +19,14 @@ public:
   void addStmt(Stmt *stmt) {
     stmts.push_back(stmt);
   }
+  EvalStmt *addEvalStmt(ref<Expr> e) {
+    if (e->hasEvalStmt || e->isDerivedFromConstant)
+      return 0;
+
+    auto ES = new EvalStmt(e);
+    addStmt(ES);
+    return ES;
+  }
 
   const std::string &getName() { return name; }
 
