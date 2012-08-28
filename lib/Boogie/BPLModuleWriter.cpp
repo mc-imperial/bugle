@@ -18,18 +18,6 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
   case Type::BV:
     OS << "bv" << t.width;
     break;
-  case Type::Float:
-    switch (t.width) {
-    case 32:
-      OS << "float";
-      break;
-    case 64:
-      OS << "double";
-      break;
-    default:
-      assert(0 && "Unexpected float width");
-    }
-    break;
   case Type::Pointer:
     OS << "ptr";
     break;
@@ -88,9 +76,7 @@ void BPLModuleWriter::write() {
         "type arrayId;\n"
         "function {:constructor} MKPTR(base: arrayId, offset: bv"
      << M->getPointerWidth() << ") : ptr;\n"
-        "function PTR_LT(lhs: ptr, rhs: ptr) : bool;\n\n"
-        "type float;\n"
-        "type double;\n\n";
+        "function PTR_LT(lhs: ptr, rhs: ptr) : bool;\n\n";
 
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
     OS << "var ";

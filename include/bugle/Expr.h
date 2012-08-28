@@ -43,8 +43,6 @@ public:
     Not,
     ArrayId,
     ArrayOffset,
-    BVToFloat,
-    FloatToBV,
     BVToPtr,
     PtrToBV,
     BVToBool,
@@ -343,8 +341,6 @@ public:
 };
 
 UNARY_EXPR(ArrayOffset)
-UNARY_EXPR(BVToFloat)
-UNARY_EXPR(FloatToBV)
 UNARY_EXPR(BVToPtr)
 UNARY_EXPR(PtrToBV)
 UNARY_EXPR(BVToBool)

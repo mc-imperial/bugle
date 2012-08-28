@@ -37,8 +37,6 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned Offset,
     if (GA->getRangeType() == Const->getType() && Offset % InitByteWidth == 0) {
       BM->addGlobalInit(GA, Offset/InitByteWidth, Const);
     } else if (GA->getRangeType() == Type(Type::BV, 8)) {
-      if (Init->getType()->isFloatingPointTy())
-        Const = FloatToBVExpr::create(Const);
       if (Init->getType()->isPointerTy())
         Const = PtrToBVExpr::create(Const);
 
@@ -92,9 +90,7 @@ ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
 
 ref<Expr> TranslateModule::translateUndef(bugle::Type t) {
   ref<Expr> E = BVConstExpr::createZero(t.width);
-  if (t.isKind(Type::Float))
-    return BVToFloatExpr::create(E);
-  else if (t.isKind(Type::Pointer))
+  if (t.isKind(Type::Pointer))
     return BVToPtrExpr::create(E);
   else
     return E;
@@ -104,8 +100,7 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
   if (auto CI = dyn_cast<ConstantInt>(C))
     return BVConstExpr::create(CI->getValue());
   if (auto CF = dyn_cast<ConstantFP>(C))
-    return BVToFloatExpr::create(
-             BVConstExpr::create(CF->getValueAPF().bitcastToAPInt()));
+    return BVConstExpr::create(CF->getValueAPF().bitcastToAPInt());
   if (auto CE = dyn_cast<ConstantExpr>(C)) {
     switch (CE->getOpcode()) {
     case Instruction::GetElementPtr: {
@@ -145,19 +140,13 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
   if (auto CV = dyn_cast<ConstantVector>(C)) {
     std::vector<ref<Expr>> Elems;
     std::transform(CV->op_begin(), CV->op_end(), std::back_inserter(Elems),
-                   [&](Use &U) -> ref<Expr> {
-      ref<Expr> E = translateConstant(cast<Constant>(U.get()));
-      if (U.get()->getType()->isFloatingPointTy())
-        E = FloatToBVExpr::create(E);
-      return E;
+                   [&](Use &U) {
+      return translateConstant(cast<Constant>(U.get()));
     });
     return Expr::createBVConcatN(Elems);
   }
   if (auto CAZ = dyn_cast<ConstantAggregateZero>(C)) {
-    ref<Expr> CE = BVConstExpr::createZero(TD.getTypeSizeInBits(CAZ->getType()));
-    if (CAZ->getType()->isFloatingPointTy())
-      CE = BVToFloatExpr::create(CE);
-    return CE;
+    return BVConstExpr::createZero(TD.getTypeSizeInBits(CAZ->getType()));
   }
   if (isa<ConstantPointerNull>(C)) {
     return PointerExpr::create(NullArrayRefExpr::create(), 
@@ -169,9 +158,7 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
 
 bugle::Type TranslateModule::translateType(llvm::Type *T) {
   Type::Kind K;
-  if (T->isFloatingPointTy())
-    K = Type::Float;
-  else if (T->isPointerTy())
+  if (T->isPointerTy())
     K = Type::Pointer;
   else
     K = Type::BV;
@@ -248,13 +235,7 @@ ref<Expr> TranslateModule::translateGEP(ref<Expr> Ptr,
 ref<Expr> TranslateModule::translateBitCast(llvm::Type *SrcTy,
                                             llvm::Type *DestTy,
                                             ref<Expr> Op) {
-  if (SrcTy->isFloatingPointTy() && !DestTy->isFloatingPointTy()) {
-    return FloatToBVExpr::create(Op);
-  } else if (!SrcTy->isFloatingPointTy() && DestTy->isFloatingPointTy()) {
-    return BVToFloatExpr::create(Op);
-  } else {
-    return Op;
-  }
+  return Op;
 }
 
 void TranslateModule::addGPUEntryPoint(StringRef Name) {

@@ -13,7 +13,6 @@ struct Type {
   enum Kind {
     Bool,
     BV,
-    Float,
     Pointer,
 
     // The following two types are used by the translator as array range types
