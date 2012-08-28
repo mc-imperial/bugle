@@ -89,6 +89,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_bool"] = &TranslateFunction::handleReturnVal;
+    fns["__return_val_ptr"] = &TranslateFunction::handleReturnVal;
     fns["__old_int"] = &TranslateFunction::handleOld;
     fns["__old_bool"] = &TranslateFunction::handleOld;
     fns["__other_int"] = &TranslateFunction::handleOtherInt;
@@ -318,7 +319,7 @@ ref<Expr> TranslateFunction::handleOld(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleReturnVal(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  return VarRefExpr::create(ReturnVar);
+  return TM->unmodelValue(F, VarRefExpr::create(ReturnVar));
 }
 
 ref<Expr> TranslateFunction::handleOtherInt(bugle::BasicBlock *BBB,

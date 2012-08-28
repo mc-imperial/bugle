@@ -23,6 +23,7 @@ __DEVICE_QUALIFIER__ void __ensures(bool expr);
 /* Return value of function, for use in postconditions */
 __DEVICE_QUALIFIER__ int __return_val_int(void);
 __DEVICE_QUALIFIER__ bool __return_val_bool(void);
+__DEVICE_QUALIFIER__ void* __return_val_ptr(void);
 #ifdef __OPENCL__
 __DEVICE_QUALIFIER__ int4 __return_val_int4(void);
 #endif

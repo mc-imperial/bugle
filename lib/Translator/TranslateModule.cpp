@@ -75,7 +75,7 @@ ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
     if (GV->getName() == "gridDim")
       return translateCUDABuiltinGlobal("num_groups", GV);
     if (GV->getName() == "blockIdx")
-      return translateCUDABuiltinGlobal("global_id", GV);
+      return translateCUDABuiltinGlobal("group_id", GV);
     if (GV->getName() == "blockDim")
       return translateCUDABuiltinGlobal("group_size", GV);
     if (GV->getName() == "threadIdx")
