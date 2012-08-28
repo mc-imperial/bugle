@@ -298,6 +298,10 @@ ref<Expr> IfThenElseExpr::create(ref<Expr> cond, ref<Expr> trueExpr,
   return new IfThenElseExpr(cond, trueExpr, falseExpr);
 }
 
+ref<Expr> HavocExpr::create(const bugle::Type &type) {
+  return new HavocExpr(type);
+}
+
 ref<Expr> MemberOfExpr::create(ref<Expr> expr,
                                const std::set<GlobalArray *> &elems) {
   assert(expr->getType().array);

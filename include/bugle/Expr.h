@@ -35,6 +35,7 @@ public:
     Call,
     BVExtract,
     IfThenElse,
+    Havoc,
     AccessHasOccurred,
     AccessOffset,
     MemberOf,
@@ -287,6 +288,15 @@ public:
   ref<Expr> getCond() const { return cond; }
   ref<Expr> getTrueExpr() const { return trueExpr; }
   ref<Expr> getFalseExpr() const { return falseExpr; }
+};
+
+class HavocExpr : public Expr {
+  HavocExpr(const Type &type) :
+    Expr(type) {}
+
+public:
+  static ref<Expr> create(const Type &type);
+  EXPR_KIND(Havoc)
 };
 
 /// Expression which denotes that its subexpression is an arrayId and a member

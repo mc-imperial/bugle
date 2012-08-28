@@ -194,11 +194,18 @@ void TranslateFunction::translate() {
   TM->computeValueModel(F, 0, ReturnVals);
 }
 
-ref<Expr> TranslateFunction::translateValue(llvm::Value *V) {
+ref<Expr> TranslateFunction::translateValue(llvm::Value *V,  bugle::BasicBlock *BBB) {
   if (isa<Instruction>(V) || isa<Argument>(V)) {
     auto MI = ValueExprMap.find(V);
     assert(MI != ValueExprMap.end());
     return MI->second;
+  }
+
+  if (isa<UndefValue>(V)) {
+    ref<Expr> E = HavocExpr::create(
+      bugle::Type(TM->translateType(V->getType())));
+    BBB->addStmt(new EvalStmt(E));
+    return E;
   }
 
   if (auto C = dyn_cast<Constant>(V))
@@ -232,7 +239,7 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
     assert(idx != -1 && "No phi index?");
 
     Vars.push_back(getPhiVariable(PN));
-    auto Val = TM->modelValue(PN, translateValue(PN->getIncomingValue(idx)));
+    auto Val = TM->modelValue(PN, translateValue(PN->getIncomingValue(idx), BBB));
     Exprs.push_back(Val);
     PhiAssignsMap[PN].push_back(Val);
   }
@@ -632,8 +639,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                                              Instruction *I) {
   ref<Expr> E;
   if (auto BO = dyn_cast<BinaryOperator>(I)) {
-    ref<Expr> LHS = translateValue(BO->getOperand(0)),
-              RHS = translateValue(BO->getOperand(1));
+    ref<Expr> LHS = translateValue(BO->getOperand(0), BBB),
+              RHS = translateValue(BO->getOperand(1), BBB);
     ref<Expr> (*F)(ref<Expr>, ref<Expr>);
     switch (BO->getOpcode()) {
     case BinaryOperator::Add:  F = BVAddExpr::create;  break;
@@ -659,16 +666,16 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     }
     E = maybeTranslateSIMDInst(BBB, BO->getType(), BO->getType(), LHS, RHS, F);
   } else if (auto GEPI = dyn_cast<GetElementPtrInst>(I)) {
-    ref<Expr> Ptr = translateValue(GEPI->getPointerOperand());
+    ref<Expr> Ptr = translateValue(GEPI->getPointerOperand(), BBB);
     E = TM->translateGEP(Ptr, klee::gep_type_begin(GEPI),
                          klee::gep_type_end(GEPI),
-                         [&](Value *V) { return translateValue(V); });
+                         [&](Value *V) { return translateValue(V, BBB); });
   } else if (auto AI = dyn_cast<AllocaInst>(I)) {
     GlobalArray *GA = TM->getGlobalArray(AI);
     E = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
   } else if (auto LI = dyn_cast<LoadInst>(I)) {
-    ref<Expr> Ptr = translateValue(LI->getPointerOperand()),
+    ref<Expr> Ptr = translateValue(LI->getPointerOperand(), BBB),
               PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
     Type ArrRangeTy = PtrArr->getType().range();
@@ -730,8 +737,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       E = TM->translateUndef(LoadTy);
     }
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
-    ref<Expr> Ptr = translateValue(SI->getPointerOperand()),
-              Val = translateValue(SI->getValueOperand()),
+    ref<Expr> Ptr = translateValue(SI->getPointerOperand(), BBB),
+              Val = translateValue(SI->getValueOperand(), BBB),
               PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
     Type ArrRangeTy = PtrArr->getType().range();
@@ -798,8 +805,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     }
     return;
   } else if (auto II = dyn_cast<ICmpInst>(I)) {
-    ref<Expr> LHS = translateValue(II->getOperand(0)),
-              RHS = translateValue(II->getOperand(1));
+    ref<Expr> LHS = translateValue(II->getOperand(0), BBB),
+              RHS = translateValue(II->getOperand(1), BBB);
     E = maybeTranslateSIMDInst(BBB, II->getType(), II->getOperand(0)->getType(),
                                LHS, RHS,
                                [&](ref<Expr> LHS, ref<Expr> RHS) -> ref<Expr> {
@@ -841,8 +848,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       return BoolToBVExpr::create(E);
     });
   } else if (auto FI = dyn_cast<FCmpInst>(I)) {
-    ref<Expr> LHS = translateValue(FI->getOperand(0)),
-              RHS = translateValue(FI->getOperand(1));
+    ref<Expr> LHS = translateValue(FI->getOperand(0), BBB),
+              RHS = translateValue(FI->getOperand(1), BBB);
     E = maybeTranslateSIMDInst(BBB, FI->getType(), FI->getOperand(0)->getType(),
                                LHS, RHS,
                                [&](ref<Expr> LHS, ref<Expr> RHS) -> ref<Expr> {
@@ -859,42 +866,42 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       return BoolToBVExpr::create(E);
     });
   } else if (auto ZEI = dyn_cast<ZExtInst>(I)) {
-    ref<Expr> Op = translateValue(ZEI->getOperand(0));
+    ref<Expr> Op = translateValue(ZEI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, ZEI->getType(),
                                ZEI->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return BVZExtExpr::create(cast<IntegerType>(Ty)->getBitWidth(), Op);
     });
   } else if (auto SEI = dyn_cast<SExtInst>(I)) {
-    ref<Expr> Op = translateValue(SEI->getOperand(0));
+    ref<Expr> Op = translateValue(SEI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, SEI->getType(),
                                SEI->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return BVSExtExpr::create(cast<IntegerType>(Ty)->getBitWidth(), Op);
     });
   } else if (auto FPSII = dyn_cast<FPToSIInst>(I)) {
-    ref<Expr> Op = translateValue(FPSII->getOperand(0));
+    ref<Expr> Op = translateValue(FPSII->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, FPSII->getType(),
                                FPSII->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return FPToSIExpr::create(cast<IntegerType>(Ty)->getBitWidth(), Op);
     });
   } else if (auto FPUII = dyn_cast<FPToUIInst>(I)) {
-    ref<Expr> Op = translateValue(FPUII->getOperand(0));
+    ref<Expr> Op = translateValue(FPUII->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, FPUII->getType(),
                                FPUII->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return FPToUIExpr::create(cast<IntegerType>(Ty)->getBitWidth(), Op);
     });
   } else if (auto SIFPI = dyn_cast<SIToFPInst>(I)) {
-    ref<Expr> Op = translateValue(SIFPI->getOperand(0));
+    ref<Expr> Op = translateValue(SIFPI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, SIFPI->getType(),
                                SIFPI->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return SIToFPExpr::create(TM->TD.getTypeSizeInBits(Ty), Op);
     });
   } else if (auto UIFPI = dyn_cast<UIToFPInst>(I)) {
-    ref<Expr> Op = translateValue(UIFPI->getOperand(0));
+    ref<Expr> Op = translateValue(UIFPI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, UIFPI->getType(),
                                UIFPI->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
@@ -902,41 +909,41 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     });
   } else if (isa<FPExtInst>(I) || isa<FPTruncInst>(I)) {
     auto CI = cast<CastInst>(I);
-    ref<Expr> Op = translateValue(CI->getOperand(0));
+    ref<Expr> Op = translateValue(CI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, CI->getType(),
                                CI->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return FPConvExpr::create(TM->TD.getTypeSizeInBits(Ty), Op);
     });
   } else if (auto TI = dyn_cast<TruncInst>(I)) {
-    ref<Expr> Op = translateValue(TI->getOperand(0));
+    ref<Expr> Op = translateValue(TI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, TI->getType(),
                                TI->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return BVExtractExpr::create(Op, 0, cast<IntegerType>(Ty)->getBitWidth());
     });
   } else if (auto I2PI = dyn_cast<IntToPtrInst>(I)) {
-    ref<Expr> Op = translateValue(I2PI->getOperand(0));
+    ref<Expr> Op = translateValue(I2PI->getOperand(0), BBB);
     E = BVToPtrExpr::create(Op);
   } else if (auto P2II = dyn_cast<PtrToIntInst>(I)) {
-    ref<Expr> Op = translateValue(P2II->getOperand(0));
+    ref<Expr> Op = translateValue(P2II->getOperand(0), BBB);
     E = PtrToBVExpr::create(Op);
   } else if (auto BCI = dyn_cast<BitCastInst>(I)) {
-    ref<Expr> Op = translateValue(BCI->getOperand(0));
+    ref<Expr> Op = translateValue(BCI->getOperand(0), BBB);
     E = TM->translateBitCast(BCI->getSrcTy(), BCI->getDestTy(), Op);
     if (Op.get() == E.get()) {
       ValueExprMap[I] = Op;
       return;
     }
   } else if (auto SI = dyn_cast<SelectInst>(I)) {
-    ref<Expr> Cond = translateValue(SI->getCondition()),
-              TrueVal = translateValue(SI->getTrueValue()),
-              FalseVal = translateValue(SI->getFalseValue());
+    ref<Expr> Cond = translateValue(SI->getCondition(), BBB),
+              TrueVal = translateValue(SI->getTrueValue(), BBB),
+              FalseVal = translateValue(SI->getFalseValue(), BBB);
     Cond = BVToBoolExpr::create(Cond);
     E = IfThenElseExpr::create(Cond, TrueVal, FalseVal);
   } else if (auto EEI = dyn_cast<ExtractElementInst>(I)) {
-    ref<Expr> Vec = translateValue(EEI->getVectorOperand()),
-              Idx = translateValue(EEI->getIndexOperand());
+    ref<Expr> Vec = translateValue(EEI->getVectorOperand(), BBB),
+              Idx = translateValue(EEI->getIndexOperand(), BBB);
     unsigned EltBits = TM->TD.getTypeSizeInBits(EEI->getType());
     BVConstExpr *CEIdx = cast<BVConstExpr>(Idx);
     unsigned UIdx = CEIdx->getValue().getZExtValue();
@@ -944,9 +951,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     if (EEI->getType()->isFloatingPointTy())
       E = BVToFloatExpr::create(E);
   } else if (auto IEI = dyn_cast<InsertElementInst>(I)) {
-    ref<Expr> Vec = translateValue(IEI->getOperand(0)),
-              NewElt = translateValue(IEI->getOperand(1)),
-              Idx = translateValue(IEI->getOperand(2));
+    ref<Expr> Vec = translateValue(IEI->getOperand(0), BBB),
+              NewElt = translateValue(IEI->getOperand(1), BBB),
+              Idx = translateValue(IEI->getOperand(2), BBB);
     llvm::Type *EltType = IEI->getType()->getElementType();
     if (EltType->isFloatingPointTy())
       NewElt = FloatToBVExpr::create(NewElt);
@@ -961,8 +968,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     }
     E = Expr::createBVConcatN(Elems);
   } else if (auto SVI = dyn_cast<ShuffleVectorInst>(I)) {
-    ref<Expr> Vec1 = translateValue(SVI->getOperand(0)),
-              Vec2 = translateValue(SVI->getOperand(1));
+    ref<Expr> Vec1 = translateValue(SVI->getOperand(0), BBB),
+              Vec2 = translateValue(SVI->getOperand(1), BBB);
     unsigned EltBits =
       TM->TD.getTypeSizeInBits(SVI->getType()->getElementType());
     unsigned VecElemCount = cast<VectorType>(SVI->getOperand(0)->getType())
@@ -992,7 +999,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     CallSite CS(CI);
     std::vector<ref<Expr>> Args;
     std::transform(CS.arg_begin(), CS.arg_end(), std::back_inserter(Args),
-                   [&](Value *V) { return translateValue(V); });
+                   [&](Value *V) { return translateValue(V, BBB); });
 
     if (auto II = dyn_cast<IntrinsicInst>(CI)) {
       auto ID = II->getIntrinsicID();
@@ -1044,7 +1051,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto RI = dyn_cast<ReturnInst>(I)) {
     if (auto V = RI->getReturnValue()) {
       assert(ReturnVar && "Returning value without return variable?");
-      ref<Expr> Val = TM->modelValue(F, translateValue(V));
+      ref<Expr> Val = TM->modelValue(F, translateValue(V, BBB));
       BBB->addStmt(new VarAssignStmt(ReturnVar, Val));
       ReturnVals.push_back(Val);
     }
@@ -1052,7 +1059,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     return;
   } else if (auto BI = dyn_cast<BranchInst>(I)) {
     if (BI->isConditional()) {
-      ref<Expr> Cond = BVToBoolExpr::create(translateValue(BI->getCondition()));
+      ref<Expr> Cond = BVToBoolExpr::create(translateValue(BI->getCondition(), BBB));
 
       bugle::BasicBlock *TrueBB = BF->addBasicBlock("truebb");
       TrueBB->addStmt(new AssumeStmt(Cond, /*partition=*/true));
@@ -1075,7 +1082,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     }
     return;
   } else if (auto SI = dyn_cast<SwitchInst>(I)) {
-    ref<Expr> Cond = translateValue(SI->getCondition());
+    ref<Expr> Cond = translateValue(SI->getCondition(), BBB);
     ref<Expr> DefaultExpr = BoolConstExpr::create(true);
     std::vector<bugle::BasicBlock *> Succs;
 

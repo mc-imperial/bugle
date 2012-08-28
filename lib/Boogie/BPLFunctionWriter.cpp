@@ -68,7 +68,9 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       OS << "call ";
       writeSourceLoc(OS, ES->getSourceLoc());
     }
-    if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
+    if (isa<HavocExpr>(ES->getExpr())) {
+      OS << "havoc v" << id << ";\n";
+    } else if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, LE->getArray().get(), 
           [&](GlobalArray *GA) {
         writeSourceLocMarker(OS, ES->getSourceLoc());

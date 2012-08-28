@@ -77,7 +77,7 @@ class TranslateFunction {
                               llvm::Type *Ty, llvm::Type *OpTy,
                               ref<Expr> LHS, ref<Expr> RHS,
                               std::function<ref<Expr>(ref<Expr>, ref<Expr>)> F);
-  ref<Expr> translateValue(llvm::Value *V);
+  ref<Expr> translateValue(llvm::Value *V, bugle::BasicBlock *BBB);
   void translateBasicBlock(BasicBlock *BBB, llvm::BasicBlock *BB);
   void translateInstruction(BasicBlock *BBB, llvm::Instruction *I);
   Var *getPhiVariable(llvm::PHINode *PN);

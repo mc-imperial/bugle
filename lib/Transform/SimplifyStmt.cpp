@@ -12,7 +12,7 @@ bool hasSideEffects(Expr *e) {
 }
 
 bool isTemporal(Expr *e) {
-  return isa<LoadExpr>(e);
+  return isa<LoadExpr>(e) || isa<HavocExpr>(e);
 }
 
 void ProcessBasicBlock(BasicBlock *BB) {

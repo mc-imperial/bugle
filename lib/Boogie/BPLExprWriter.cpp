@@ -116,6 +116,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << " else ";
     writeExpr(OS, ITEE->getFalseExpr().get());
     OS << ")";
+  } else if (isa<HavocExpr>(E)) {
+    OS << "havoc";  
   } else if (auto B2BVE = dyn_cast<BoolToBVExpr>(E)) {
     OS << "(if ";
     writeExpr(OS, B2BVE->getSubExpr().get());
