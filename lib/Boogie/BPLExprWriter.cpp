@@ -4,9 +4,15 @@
 #include "bugle/Expr.h"
 #include "bugle/Function.h"
 #include "bugle/GlobalArray.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace bugle;
+
+static llvm::cl::opt<bool>
+DumpRefCounts("dump-ref-counts", llvm::cl::Hidden,
+              llvm::cl::init(false),
+              llvm::cl::desc("Dump expression reference counts"));
 
 namespace {
 
@@ -30,6 +36,9 @@ BPLExprWriter::~BPLExprWriter() {}
 
 void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
                               unsigned Depth) {
+  if (DumpRefCounts)
+    OS << "/*rc=" << E->refCount << "*/";
+
   if (auto CE = dyn_cast<BVConstExpr>(E)) {
     auto &Val = CE->getValue();
     Val.print(OS, /*isSigned=*/false);
@@ -171,13 +180,11 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeAccessLoggingVar(OS, AOE->getArray().get(), "OFFSET", AOE->getAccessKind(), "0bv32");
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
-    case Expr::BVToFloat:
     case Expr::BVToPtr:
     case Expr::FAbs:
     case Expr::FCos:
     case Expr::FExp:
     case Expr::FFloor:
-    case Expr::FloatToBV:
     case Expr::FLog:
     case Expr::FPConv:
     case Expr::FPow:
@@ -197,9 +204,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       unsigned FromWidth = UnE->getSubExpr()->getType().width,
                ToWidth = UnE->getType().width;
       switch (UnE->getKind()) {
-      case Expr::BVToFloat:
-        IntS << "BV" << FromWidth << "_TO_FLOAT";
-        break;
       case Expr::BVToPtr:
         IntS << "BV" << FromWidth << "_TO_PTR";
         break;
@@ -208,9 +212,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::FExp:  IntS << "FEXP" << ToWidth;  break;
       case Expr::FFloor:
         IntS << "FFLOOR" << ToWidth;
-        break;
-      case Expr::FloatToBV:
-        IntS << "FLOAT" << FromWidth << "_TO_BV";
         break;
       case Expr::FLog:  IntS << "FLOG" << ToWidth;  break;
       case Expr::FPConv:

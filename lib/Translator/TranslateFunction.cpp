@@ -382,7 +382,7 @@ ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
   ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr, false);
   Type range = arrayIdExpr->getType().range();
 
-  if(range.isKind(Type::BV) || range.isKind(Type::Float)) {
+  if(range.isKind(Type::BV)) {
     if(range.width > 8) {
       result = BVMulExpr::create(BVConstExpr::create(
                                  TM->TD.getPointerSizeInBits(),
@@ -399,7 +399,7 @@ ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
   ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr, true);
   Type range = arrayIdExpr->getType().range();
 
-  if(range.isKind(Type::BV) || range.isKind(Type::Float)) {
+  if(range.isKind(Type::BV)) {
     if(range.width > 8) {
       result = BVMulExpr::create(BVConstExpr::create(
                                  TM->TD.getPointerSizeInBits(),
@@ -578,6 +578,13 @@ ref<Expr> TranslateFunction::handleSqrt(bugle::BasicBlock *BBB,
   });
 }
 
+void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB,
+                                    llvm::Instruction *I, ref<Expr> E) {
+  auto ES = BBB->addEvalStmt(E);
+  if (ES)
+    addLocToStmt(ES, I);
+}
+
 ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
                              llvm::Type *Ty, llvm::Type *OpTy,
                              ref<Expr> Op,
@@ -592,14 +599,8 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
   std::vector<ref<Expr>> Elems;
   for (unsigned i = 0; i < NumElems; ++i) {
     ref<Expr> Opi = BVExtractExpr::create(Op, i*ElemWidth, ElemWidth);
-    if (OpVT->getElementType()->isFloatingPointTy())
-      Opi = BVToFloatExpr::create(Opi);
     ref<Expr> Elem = F(VT->getElementType(), Opi);
-    BBB->addStmt(new EvalStmt(Elem));
-    if (VT->getElementType()->isFloatingPointTy()) {
-      Elem = FloatToBVExpr::create(Elem);
-      BBB->addStmt(new EvalStmt(Elem));
-    }
+    BBB->addEvalStmt(Elem);
     Elems.push_back(Elem);
   }
   return Expr::createBVConcatN(Elems);
@@ -620,16 +621,8 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
   for (unsigned i = 0; i < NumElems; ++i) {
     ref<Expr> LHSi = BVExtractExpr::create(LHS, i*ElemWidth, ElemWidth);
     ref<Expr> RHSi = BVExtractExpr::create(RHS, i*ElemWidth, ElemWidth);
-    if (OpVT->getElementType()->isFloatingPointTy()) {
-      LHSi = BVToFloatExpr::create(LHSi);
-      RHSi = BVToFloatExpr::create(RHSi);
-    }
     ref<Expr> Elem = F(LHSi, RHSi);
-    BBB->addStmt(new EvalStmt(Elem));
-    if (VT->getElementType()->isFloatingPointTy()) {
-      Elem = FloatToBVExpr::create(Elem);
-      BBB->addStmt(new EvalStmt(Elem));
-    }
+    BBB->addEvalStmt(Elem);
     Elems.push_back(Elem);
   }
   return Expr::createBVConcatN(Elems);
@@ -694,13 +687,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             BVAddExpr::create(Div,
                               BVConstExpr::create(Div->getType().width, i));
           ref<Expr> ValElem = LoadExpr::create(PtrArr, ElemOfs);
-          EvalStmt* ES = new EvalStmt(ValElem);
-          addLocToStmt(ES, I);
-          BBB->addStmt(ES);
+          addEvalStmt(BBB, I, ValElem);
           if (LoadElTy.isKind(Type::Pointer))
             ValElem = PtrToBVExpr::create(ValElem);
-          else if (LoadElTy.isKind(Type::Float))
-            ValElem = FloatToBVExpr::create(ValElem);
           ElemsLoaded.push_back(ValElem);
         }
         E = Expr::createBVConcatN(ElemsLoaded);
@@ -715,15 +704,11 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                             BVConstExpr::create(PtrOfs->getType().width, i));
         ref<Expr> ValByte = LoadExpr::create(PtrArr, PtrByteOfs);
         BytesLoaded.push_back(ValByte);
-        EvalStmt* ES = new EvalStmt(ValByte);
-        addLocToStmt(ES, I);
-        BBB->addStmt(ES);
+        addEvalStmt(BBB, I, ValByte);
       }
       E = Expr::createBVConcatN(BytesLoaded);
       if (LoadTy.isKind(Type::Pointer))
         E = BVToPtrExpr::create(E);
-      else if (LoadTy.isKind(Type::Float))
-        E = BVToFloatExpr::create(E);
     } else {
       TM->NeedAdditionalByteArrayModels = true;
       std::set<GlobalArray *> Globals;
@@ -759,8 +744,6 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             BVExtractExpr::create(Val, i*StoreElTy.width, StoreElTy.width);
           if (StoreElTy.isKind(Type::Pointer))
             ValElem = BVToPtrExpr::create(ValElem);
-          else if (StoreElTy.isKind(Type::Float))
-            ValElem = BVToFloatExpr::create(ValElem);
           StoreStmt* SS = new StoreStmt(PtrArr, ElemOfs, ValElem);
           addLocToStmt(SS, I);
           BBB->addStmt(SS);
@@ -773,14 +756,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
       if (StoreTy.isKind(Type::Pointer)) {
         Val = PtrToBVExpr::create(Val);
-        EvalStmt* ES = new EvalStmt(Val);
-        addLocToStmt(ES, I);
-        BBB->addStmt(ES);
-      } else if (StoreTy.isKind(Type::Float)) {
-        Val = FloatToBVExpr::create(Val);
-        EvalStmt* ES = new EvalStmt(Val);
-        addLocToStmt(ES, I);
-        BBB->addStmt(ES);
+        addEvalStmt(BBB, I, Val);
       }
       for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
         ref<Expr> PtrByteOfs =
@@ -844,7 +820,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           assert(0 && "Unsupported icmp");
         }
       }
-      BBB->addStmt(new EvalStmt(E));
+      addEvalStmt(BBB, I, E);
       return BoolToBVExpr::create(E);
     });
   } else if (auto FI = dyn_cast<FCmpInst>(I)) {
@@ -862,7 +838,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         E = OrExpr::create(E, FLtExpr::create(LHS, RHS));
       if (FI->getPredicate() & FCmpInst::FCMP_UNO)
         E = OrExpr::create(E, FUnoExpr::create(LHS, RHS));
-      BBB->addStmt(new EvalStmt(E));
+      addEvalStmt(BBB, I, E);
       return BoolToBVExpr::create(E);
     });
   } else if (auto ZEI = dyn_cast<ZExtInst>(I)) {
@@ -948,15 +924,11 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     BVConstExpr *CEIdx = cast<BVConstExpr>(Idx);
     unsigned UIdx = CEIdx->getValue().getZExtValue();
     E = BVExtractExpr::create(Vec, EltBits*UIdx, EltBits);
-    if (EEI->getType()->isFloatingPointTy())
-      E = BVToFloatExpr::create(E);
   } else if (auto IEI = dyn_cast<InsertElementInst>(I)) {
     ref<Expr> Vec = translateValue(IEI->getOperand(0), BBB),
               NewElt = translateValue(IEI->getOperand(1), BBB),
               Idx = translateValue(IEI->getOperand(2), BBB);
     llvm::Type *EltType = IEI->getType()->getElementType();
-    if (EltType->isFloatingPointTy())
-      NewElt = FloatToBVExpr::create(NewElt);
     unsigned EltBits = TM->TD.getTypeSizeInBits(EltType);
     unsigned ElemCount = IEI->getType()->getNumElements();
     BVConstExpr *CEIdx = cast<BVConstExpr>(Idx);
@@ -1038,9 +1010,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           return;
         } else {
           E = CallExpr::create(FI->second, Args);
-          EvalStmt* ES = new EvalStmt(E);
-          addLocToStmt(ES, CI);
-          BBB->addStmt(ES);
+          addEvalStmt(BBB, I, E);
           ValueExprMap[I] = TM->unmodelValue(F, E);
           if (auto CE = dyn_cast<CallExpr>(E))
             TM->CallSites[F].push_back(&CE->getArgs());
@@ -1118,9 +1088,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     E->dump();
   }
   ValueExprMap[I] = E;
-  EvalStmt* ES = new EvalStmt(E);
-  addLocToStmt(ES, I);
-  BBB->addStmt(ES);
+  addEvalStmt(BBB, I, E);
   return;
 }
 

@@ -57,11 +57,8 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
 
 void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   if (auto ES = dyn_cast<EvalStmt>(S)) {
-    if (ES->getExpr()->isDerivedFromConstant)
-      return;
-    auto i = SSAVarIds.find(ES->getExpr().get());
-    if (i != SSAVarIds.end())
-      return;
+    assert(!ES->getExpr()->isDerivedFromConstant);
+    assert(SSAVarIds.find(ES->getExpr().get()) == SSAVarIds.end());
     unsigned id = SSAVarIds.size();
     OS << "  ";
     if (isa<CallExpr>(ES->getExpr())) {

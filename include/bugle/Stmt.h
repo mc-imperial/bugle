@@ -42,7 +42,13 @@ class EvalStmt : public Stmt {
   ref<Expr> expr;
 
 public:
-  EvalStmt(ref<Expr> expr) : expr(expr) {}
+  EvalStmt(ref<Expr> expr) : expr(expr) {
+    assert(!expr->hasEvalStmt);
+    expr->hasEvalStmt = true;
+  }
+  ~EvalStmt() {
+    expr->hasEvalStmt = false;
+  }
 
   STMT_KIND(Eval)
   ref<Expr> getExpr() const { return expr; }

@@ -210,22 +210,22 @@ ref<Expr> BVSExtExpr::create(unsigned width, ref<Expr> bv) {
 
 ref<Expr> FPConvExpr::create(unsigned width, ref<Expr> expr) {
   const Type &ty = expr->getType();
-  assert(ty.isKind(Type::Float));
+  assert(ty.isKind(Type::BV));
 
   if (width == ty.width)
     return expr;
 
-  return new FPConvExpr(Type(Type::Float, width), expr);
+  return new FPConvExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> FPToSIExpr::create(unsigned width, ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::Float));
+  assert(expr->getType().isKind(Type::BV));
 
   return new FPToSIExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> FPToUIExpr::create(unsigned width, ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::Float));
+  assert(expr->getType().isKind(Type::BV));
 
   return new FPToUIExpr(Type(Type::BV, width), expr);
 }
@@ -233,57 +233,57 @@ ref<Expr> FPToUIExpr::create(unsigned width, ref<Expr> expr) {
 ref<Expr> SIToFPExpr::create(unsigned width, ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
 
-  return new SIToFPExpr(Type(Type::Float, width), expr);
+  return new SIToFPExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> UIToFPExpr::create(unsigned width, ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
 
-  return new UIToFPExpr(Type(Type::Float, width), expr);
+  return new UIToFPExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> FAbsExpr::create(ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::Float));
+  assert(expr->getType().isKind(Type::BV));
   return new FAbsExpr(expr->getType(), expr);
 }
 
 ref<Expr> FCosExpr::create(ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::Float));
+  assert(expr->getType().isKind(Type::BV));
   return new FCosExpr(expr->getType(), expr);
 }
 
 ref<Expr> FExpExpr::create(ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::Float));
+  assert(expr->getType().isKind(Type::BV));
   return new FExpExpr(expr->getType(), expr);
 }
 
 ref<Expr> FLogExpr::create(ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::Float));
+  assert(expr->getType().isKind(Type::BV));
   return new FLogExpr(expr->getType(), expr);
 }
 
 ref<Expr> FrexpExpExpr::create(unsigned width, ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::Float));
+  assert(expr->getType().isKind(Type::BV));
   return new FrexpExpExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> FrexpFracExpr::create(ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::Float));
+  assert(expr->getType().isKind(Type::BV));
   return new FrexpFracExpr(expr->getType(), expr);
 }
 
 ref<Expr> FFloorExpr::create(ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::Float));
+  assert(expr->getType().isKind(Type::BV));
   return new FFloorExpr(expr->getType(), expr);
 }
 
 ref<Expr> FSinExpr::create(ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::Float));
+  assert(expr->getType().isKind(Type::BV));
   return new FSinExpr(expr->getType(), expr);
 }
 
 ref<Expr> FSqrtExpr::create(ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::Float));
+  assert(expr->getType().isKind(Type::BV));
   return new FSqrtExpr(expr->getType(), expr);
 }
 
@@ -315,27 +315,6 @@ ref<Expr> MemberOfExpr::create(ref<Expr> expr,
 #endif
 
   return new MemberOfExpr(Type(Type::ArrayOf, t), expr, elems);
-}
-
-ref<Expr> BVToFloatExpr::create(ref<Expr> bv) {
-  const Type &ty = bv->getType();
-  assert(ty.isKind(Type::BV));
-  assert(ty.width == 32 || ty.width == 64);
-
-  if (auto e = dyn_cast<FloatToBVExpr>(bv))
-    return e->getSubExpr();
-
-  return new BVToFloatExpr(Type(Type::Float, ty.width), bv);
-}
-
-ref<Expr> FloatToBVExpr::create(ref<Expr> bv) {
-  const Type &ty = bv->getType();
-  assert(ty.isKind(Type::Float));
-
-  if (auto e = dyn_cast<BVToFloatExpr>(bv))
-    return e->getSubExpr();
-
-  return new FloatToBVExpr(Type(Type::BV, ty.width), bv);
 }
 
 ref<Expr> BVToPtrExpr::create(ref<Expr> bv) {
@@ -728,56 +707,56 @@ ICMP_EXPR_CREATE(BVSltExpr, slt)
 ICMP_EXPR_CREATE(BVSleExpr, sle)
 
 ref<Expr> FAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().isKind(Type::Float));
+  assert(lhs->getType().isKind(Type::BV));
   assert(lhs->getType() == rhs->getType());
 
   return new FAddExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> FSubExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().isKind(Type::Float));
+  assert(lhs->getType().isKind(Type::BV));
   assert(lhs->getType() == rhs->getType());
 
   return new FSubExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> FMulExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().isKind(Type::Float));
+  assert(lhs->getType().isKind(Type::BV));
   assert(lhs->getType() == rhs->getType());
 
   return new FMulExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> FDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().isKind(Type::Float));
+  assert(lhs->getType().isKind(Type::BV));
   assert(lhs->getType() == rhs->getType());
 
   return new FDivExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> FPowExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().isKind(Type::Float));
+  assert(lhs->getType().isKind(Type::BV));
   assert(lhs->getType() == rhs->getType());
 
   return new FPowExpr(lhs->getType(), lhs, rhs);
 }
 
 ref<Expr> FLtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().isKind(Type::Float));
+  assert(lhs->getType().isKind(Type::BV));
   assert(lhs->getType() == rhs->getType());
 
   return new FLtExpr(Type(Type::Bool), lhs, rhs);
 }
 
 ref<Expr> FEqExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().isKind(Type::Float));
+  assert(lhs->getType().isKind(Type::BV));
   assert(lhs->getType() == rhs->getType());
 
   return new FEqExpr(Type(Type::Bool), lhs, rhs);
 }
 
 ref<Expr> FUnoExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().isKind(Type::Float));
+  assert(lhs->getType().isKind(Type::BV));
   assert(lhs->getType() == rhs->getType());
 
   return new FUnoExpr(Type(Type::Bool), lhs, rhs);
