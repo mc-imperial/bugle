@@ -23,7 +23,6 @@ class BPLModuleWriter : BPLExprWriter {
   std::set<std::string> IntrinsicSet;
   std::string GlobalInitRequires;
 
-  BPLModuleWriter *getModuleWriter();
   const std::string &getGlobalInitRequires();
   void writeType(llvm::raw_ostream &OS, const bugle::Type &t);
   void writeIntrinsic(std::function<void(llvm::raw_ostream &)> F);

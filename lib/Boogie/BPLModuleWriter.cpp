@@ -37,10 +37,6 @@ void BPLModuleWriter::writeIntrinsic(std::function<void(llvm::raw_ostream&)> F){
   IntrinsicSet.insert(SS.str());
 }
 
-BPLModuleWriter *BPLModuleWriter::getModuleWriter() {
-  return this;
-}
-
 const std::string &BPLModuleWriter::getGlobalInitRequires() {
   if (GlobalInitRequires.empty() &&
       M->global_init_begin() != M->global_init_end()) {

@@ -40,10 +40,6 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
   }
 }
 
-BPLModuleWriter *BPLFunctionWriter::getModuleWriter() {
-  return MW;
-}
-
 void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
                                   unsigned Depth) {
   auto id = SSAVarIds.find(E);

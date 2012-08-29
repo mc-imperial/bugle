@@ -32,7 +32,6 @@ class BPLFunctionWriter : BPLExprWriter {
   void maybeWriteCaseSplit(llvm::raw_ostream &OS, Expr *PtrArr,
                            std::function<void(GlobalArray *)> F);
   void writeVar(llvm::raw_ostream &OS, Var *V);
-  BPLModuleWriter *getModuleWriter();
   void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0);
   void writeStmt(llvm::raw_ostream &OS, Stmt *S);
   void writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB);
