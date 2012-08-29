@@ -82,7 +82,7 @@ private:
                          std::function<ref<Expr>(llvm::Value *)> xlate);
   ref<Expr> translateBitCast(llvm::Type *SrcTy, llvm::Type *DestTy,
                              ref<Expr> Op);
-  ref<Expr> translateUndef(Type t);
+  ref<Expr> translateArbitrary(Type t);
 
   ref<Expr> modelValue(llvm::Value *V, ref<Expr> E);
   Type getModelledType(llvm::Value *V);

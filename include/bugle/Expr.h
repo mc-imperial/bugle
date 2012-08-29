@@ -290,11 +290,11 @@ public:
 };
 
 class HavocExpr : public Expr {
-  HavocExpr(const Type &type) :
+  HavocExpr(Type type) :
     Expr(type) {}
 
 public:
-  static ref<Expr> create(const Type &type);
+  static ref<Expr> create(Type type);
   EXPR_KIND(Havoc)
 };
 

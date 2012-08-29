@@ -88,7 +88,7 @@ ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
   return GlobalArrayRefExpr::create(GA);
 }
 
-ref<Expr> TranslateModule::translateUndef(bugle::Type t) {
+ref<Expr> TranslateModule::translateArbitrary(bugle::Type t) {
   ref<Expr> E = BVConstExpr::createZero(t.width);
   if (t.isKind(Type::Pointer))
     return BVToPtrExpr::create(E);
@@ -123,7 +123,7 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
                             BVConstExpr::createZero(TD.getPointerSizeInBits()));
   }
   if (auto UV = dyn_cast<UndefValue>(C)) {
-    return translateUndef(translateType(UV->getType()));
+    return translateArbitrary(translateType(UV->getType()));
   }
   if (auto CDS = dyn_cast<ConstantDataSequential>(C)) {
     std::vector<ref<Expr>> Elems;

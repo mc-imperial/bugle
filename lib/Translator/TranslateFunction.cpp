@@ -202,8 +202,7 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V,  bugle::BasicBlock *
   }
 
   if (isa<UndefValue>(V)) {
-    ref<Expr> E = HavocExpr::create(
-      bugle::Type(TM->translateType(V->getType())));
+    ref<Expr> E = HavocExpr::create(TM->translateType(V->getType()));
     BBB->addStmt(new EvalStmt(E));
     return E;
   }
@@ -719,7 +718,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       } else {
         TM->NextModelAllAsByteArray = true;
       }
-      E = TM->translateUndef(LoadTy);
+      E = TM->translateArbitrary(LoadTy);
     }
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
     ref<Expr> Ptr = translateValue(SI->getPointerOperand(), BBB),
