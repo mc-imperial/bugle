@@ -149,7 +149,7 @@ void TranslateFunction::translate() {
 
   if ((TM->SL == TranslateModule::SL_OpenCL || 
        TM->SL == TranslateModule::SL_CUDA)
-       && F->getName() == "barrier")
+       && F->getName() == "bugle_barrier")
     BF->addAttribute("barrier");
 
   unsigned PtrSize = TM->TD.getPointerSizeInBits();

@@ -1,12 +1,15 @@
 #ifndef OPENCL_H
 #define OPENCL_H
 
-#define __OPENCL__
+#ifndef __OPENCL_VERSION__
+#error __OPENCL_VERSION__ must be defined
+#endif
 
-#ifdef __CUDA__
+#ifdef __CUDA_ARCH__
 #error Cannot include both opencl.h and cuda.h
 #endif
 
+#include <bugle.h>
 #include <clc/clc.h>
 
 #pragma OPENCL EXTENSION cl_khr_fp64: enable

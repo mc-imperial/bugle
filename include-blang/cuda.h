@@ -1,14 +1,13 @@
 #ifndef CUDA_H
 #define CUDA_H
 
-#define __CUDA__
-
-#ifdef __OPENCL__
-#error Cannot include both opencl.h and cuda.h
+#ifndef __CUDA_ARCH__
+#error __CUDA_ARCH__ must be defined
 #endif
 
-/* Vectors */
-#include "cuda_vectors.h"
+#ifdef __OPENCL_VERSION__
+#error Cannot include both opencl.h and cuda.h
+#endif
 
 #define __constant__ __attribute__((constant))
 #define __device__ __attribute__((device))
@@ -16,27 +15,25 @@
 #define __host__ __attribute__((host))
 #define __shared__ __attribute__((shared))
 
-#include "annotations/annotations.h"
+#include <bugle.h>
+
+/* Vectors */
+#include <cuda_vectors.h>
+
+#include <annotations/annotations.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "cuda_math_functions.h"
+#include <cuda_math_functions.h>
 
 struct _3DimensionalVector {
   unsigned x, y, z;
 } threadIdx, blockIdx, blockDim, gridDim;
 
-typedef int cl_mem_fence_flags;
-
-#define CLK_LOCAL_MEM_FENCE 1
-#define CLK_GLOBAL_MEM_FENCE 2
-    
-__device__ void barrier(cl_mem_fence_flags flags);
-    
 static __attribute__((always_inline)) __device__ void __syncthreads() {
-    barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
+  bugle_barrier(true, true);
 }
 
 
