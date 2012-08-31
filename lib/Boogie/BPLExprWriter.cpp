@@ -208,6 +208,9 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::BVToPtr:
         IntS << "BV" << FromWidth << "_TO_PTR";
         break;
+      case Expr::PtrToBV:
+        IntS << "PTR_TO_BV" << ToWidth;
+        break;
       case Expr::FAbs:  IntS << "FABS" << ToWidth;  break;
       case Expr::FCos:  IntS << "FCOS" << ToWidth;  break;
       case Expr::FExp:  IntS << "FEXP" << ToWidth;  break;
@@ -242,7 +245,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::UIToFP:
         IntS << "UI" << FromWidth << "_TO_FP" << ToWidth;
         break;
-      default: assert(0 && "huh?"); return;
+      default:
+       assert(0 && "Unsupported unary expr opcode"); return;
       }
       OS << IntS.str();
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
