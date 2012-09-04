@@ -28,6 +28,7 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
       F(*Globals.begin());
       OS << "\n";
     } else {
+      MW->UsesPointers = true;
       for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
         OS << "if (";
         writeExpr(OS, PtrArr);

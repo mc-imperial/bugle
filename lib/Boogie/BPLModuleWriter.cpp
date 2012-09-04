@@ -8,6 +8,7 @@ using namespace bugle;
 
 void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
   if (t.array) {
+    UsesPointers = true;
     OS << "arrayId";
     return;
   }
@@ -19,6 +20,7 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
     OS << "bv" << t.width;
     break;
   case Type::Pointer:
+    UsesPointers = true;
     OS << "ptr";
     break;
   case Type::Unknown:
@@ -68,11 +70,13 @@ void BPLModuleWriter::write() {
     SS << ";\n";
   }
 
-  OS << "type {:datatype} ptr;\n"
-        "type arrayId;\n"
-        "function {:constructor} MKPTR(base: arrayId, offset: bv"
-     << M->getPointerWidth() << ") : ptr;\n"
-        "function PTR_LT(lhs: ptr, rhs: ptr) : bool;\n\n";
+  if (UsesPointers) {
+    OS << "type {:datatype} ptr;\n"
+          "type arrayId;\n"
+          "function {:constructor} MKPTR(base: arrayId, offset: bv"
+       << M->getPointerWidth() << ") : ptr;\n"
+          "function PTR_LT(lhs: ptr, rhs: ptr) : bool;\n\n";
+  }
 
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
     OS << "var ";
@@ -88,10 +92,14 @@ void BPLModuleWriter::write() {
 	OS << "var {:race_checking} _WRITE_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
 	OS << "var {:race_checking} _READ_OFFSET_$$" << (*i)->getName() << " : bv32;\n";
 	OS << "var {:race_checking} _WRITE_OFFSET_$$" << (*i)->getName() << " : bv32;\n";
-	OS << "const unique $arrayId$$" << (*i)->getName() << " : arrayId;\n\n";
+        if (UsesPointers)
+          OS << "const unique $arrayId$$" << (*i)->getName() << " : arrayId;\n";
+
+        OS << "\n";
   }
 
-  OS << "const unique $arrayId$$null : arrayId;\n\n";
+  if (UsesPointers)
+    OS << "const unique $arrayId$$null : arrayId;\n\n";
 
   for (auto i = IntrinsicSet.begin(), e = IntrinsicSet.end(); i != e; ++i) {
     OS << *i << ";\n";

@@ -89,8 +89,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     });
     OS << SVarE->getAttr();
   } else if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(E)) {
+    if (MW)
+      MW->UsesPointers = true;
     OS << "$arrayId$$" << ArrE->getArray()->getName();
   } else if (isa<NullArrayRefExpr>(E)) {
+    if (MW)
+      MW->UsesPointers = true;
     OS << "$arrayId$$null";
   } else if (auto ConcatE = dyn_cast<BVConcatExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
@@ -430,6 +434,7 @@ void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS,
        << ArrE->getArray()->getName();
 	} else {
     if (MW) {
+      MW->UsesPointers = true;
       OS << "(";
       for (auto i = MW->M->global_begin(), e = MW->M->global_end();
            i != e; ++i) {

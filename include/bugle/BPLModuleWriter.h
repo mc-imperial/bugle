@@ -21,6 +21,7 @@ class BPLModuleWriter : BPLExprWriter {
   llvm::raw_ostream &OS;
   bugle::Module *M;
   std::set<std::string> IntrinsicSet;
+  bool UsesPointers;
   std::string GlobalInitRequires;
 
   const std::string &getGlobalInitRequires();
@@ -29,7 +30,7 @@ class BPLModuleWriter : BPLExprWriter {
 
 public:
   BPLModuleWriter(llvm::raw_ostream &OS, bugle::Module *M) :
-    BPLExprWriter(this), OS(OS), M(M) {}
+    BPLExprWriter(this), OS(OS), M(M), UsesPointers(false) {}
 
   void write();
 
