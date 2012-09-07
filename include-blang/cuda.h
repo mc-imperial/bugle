@@ -32,9 +32,8 @@ struct _3DimensionalVector {
   unsigned x, y, z;
 } threadIdx, blockIdx, blockDim, gridDim;
 
-static __attribute__((always_inline)) __device__ void __syncthreads() {
-  bugle_barrier(true, true);
-}
+#define __syncthreads() \
+  bugle_barrier(true, true)
 
 
 __device__ float abs (float x);
