@@ -86,7 +86,7 @@ ref<Expr> PointerExpr::create(ref<Expr> array, ref<Expr> offset) {
   return new PointerExpr(array, offset);
 }
 
-ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset) {
+ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset, bool isTemporal) {
   Type at = array->getType();
   assert(at.array);
   assert(offset->getType().isKind(Type::BV));
@@ -99,7 +99,7 @@ ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset) {
     return CA->getArray()[Ofs];
   }
 
-  return new LoadExpr(at.range(), array, offset);
+  return new LoadExpr(at.range(), array, offset, isTemporal);
 }
 
 ref<Expr> VarRefExpr::create(Var *var) {
@@ -808,6 +808,14 @@ ref<Expr> CallExpr::create(Function *f, const std::vector<ref<Expr>> &args) {
 
 ref<Expr> OldExpr::create(ref<Expr> op) {
   return new OldExpr(op->getType(), op);
+}
+
+ref<Expr> GetImageWidthExpr::create(ref<Expr> op) {
+  return new GetImageWidthExpr(Type(Type::BV, 32), op);
+}
+
+ref<Expr> GetImageHeightExpr::create(ref<Expr> op) {
+  return new GetImageHeightExpr(Type(Type::BV, 32), op);
 }
 
 ref<Expr> OtherBoolExpr::create(ref<Expr> op) {

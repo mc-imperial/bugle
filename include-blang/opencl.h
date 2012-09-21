@@ -32,7 +32,11 @@ typedef unsigned int sampler_t;
 
 #pragma OPENCL EXTENSION cl_clang_storage_class_specifiers: enable
 
-_CLC_INLINE float4 read_imagef(image2d_t image, sampler_t sampler, uint2 coord) {
+_CLC_INLINE _CLC_OVERLOAD float4 read_imagef(image2d_t image, sampler_t sampler, uint2 coord) {
+  __global float4 *img = image;
+  return img[coord.y*(2<<16) + coord.x];
+}
+_CLC_INLINE _CLC_OVERLOAD float4 read_imagef(image2d_t image, sampler_t sampler, int2 coord) {
   __global float4 *img = image;
   return img[coord.y*(2<<16) + coord.x];
 }

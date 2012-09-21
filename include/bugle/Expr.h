@@ -68,9 +68,11 @@ public:
     OtherBool,
     OtherPtrBase,
     Old,
+    GetImageWidth,
+    GetImageHeight,
 
     UnaryFirst = Not,
-    UnaryLast = Old,
+    UnaryLast = GetImageHeight,
 
     // Binary
     Eq,
@@ -225,16 +227,18 @@ public:
 };
 
 class LoadExpr : public Expr {
-  LoadExpr(Type t, ref<Expr> array, ref<Expr> offset) :
-    Expr(t), array(array), offset(offset) {}
+  LoadExpr(Type t, ref<Expr> array, ref<Expr> offset, bool isTemporal) :
+    Expr(t), array(array), offset(offset), isTemporal(isTemporal) {}
   ref<Expr> array, offset;
+  bool isTemporal;
 
 public:
-  static ref<Expr> create(ref<Expr> array, ref<Expr> offset);
+  static ref<Expr> create(ref<Expr> array, ref<Expr> offset, bool isTemporal);
 
   EXPR_KIND(Load)
   ref<Expr> getArray() const { return array; }
   ref<Expr> getOffset() const { return offset; }
+  bool getIsTemporal() const { return isTemporal; }
 };
 
 /// Local variable reference.  Used for phi nodes, parameters and return
@@ -367,6 +371,8 @@ UNARY_EXPR(OtherInt)
 UNARY_EXPR(OtherBool)
 UNARY_EXPR(OtherPtrBase)
 UNARY_EXPR(Old)
+UNARY_EXPR(GetImageWidth)
+UNARY_EXPR(GetImageHeight)
 
 #define UNARY_CONV_EXPR(kind) \
   class kind##Expr : public UnaryExpr { \

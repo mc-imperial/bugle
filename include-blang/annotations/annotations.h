@@ -5,9 +5,18 @@
 extern "C" {
 #endif
 
+/* Turning temporal nature of loads on and off */
+_DEVICE_QUALIFIER void __non_temporal_loads_begin(void);
+_DEVICE_QUALIFIER void __non_temporal_loads_end(void);
+    
 /* Loop invariant */
 _DEVICE_QUALIFIER void __invariant(bool expr);
 
+#define __invariant(X) \
+    __non_temporal_loads_begin(), \
+    __invariant(X), \
+    __non_temporal_loads_end()
+    
 /* Function precondition */
 _DEVICE_QUALIFIER void __requires(bool expr);
 
@@ -101,6 +110,17 @@ _DEVICE_QUALIFIER ptr_base_t __other_ptr_base(ptr_base_t expr);
 #endif
 
 
+
+/* Barrier invariants */
+void __barrier_invariant(bool invariant);
+
+#define __barrier_invariant(X) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant(X),    \
+    __non_temporal_loads_end()
+
+void __barrier_invariant_instantiation(int);
+    
 /* Helpers */
 
 #define __is_pow2(x) ((((x) & (x - 1)) == 0))

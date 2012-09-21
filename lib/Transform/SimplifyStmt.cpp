@@ -12,7 +12,11 @@ bool hasSideEffects(Expr *e) {
 }
 
 bool isTemporal(Expr *e) {
-  return isa<LoadExpr>(e) || isa<HavocExpr>(e);
+  if(auto LE = dyn_cast<LoadExpr>(e)) {
+    return LE->getIsTemporal();
+  }
+
+  return isa<HavocExpr>(e);
 }
 
 void ProcessBasicBlock(BasicBlock *BB) {

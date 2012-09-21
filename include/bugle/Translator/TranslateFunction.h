@@ -47,20 +47,23 @@ class TranslateFunction {
   llvm::DenseMap<llvm::PHINode *, std::vector<ref<Expr>>> PhiAssignsMap;
   Var *ReturnVar;
   std::vector<ref<Expr>> ReturnVals;
+  bool LoadsAreTemporal;
 
   SpecialFnMapTy &SpecialFunctionMap;
   static SpecialFnMapTy SpecialFunctionMaps[TranslateModule::SL_Count];
 
   SpecialFnHandler handleNoop, handleAssert, handleAssertFail, handleAssume, 
-                   handleGlobalAssert, handleRequires, handleEnsures, 
-                   handleAll, handleExclusive, handleEnabled, handleOtherInt,
-                   handleOtherBool, handleOtherPtrBase, handleOld,
-                   handleReturnVal, handleImplies, handleReadHasOccurred, 
-                   handleWriteHasOccurred, handleReadOffset, handleWriteOffset,
-                   handlePtrOffset, handlePtrBase;
+                   handleGlobalAssert, handleNonTemporalLoadsBegin,
+                   handleNonTemporalLoadsEnd,
+                   handleRequires, handleEnsures, handleAll, handleExclusive, 
+                   handleEnabled, handleOtherInt, handleOtherBool, 
+                   handleOtherPtrBase, handleOld, handleReturnVal, handleImplies, 
+                   handleReadHasOccurred, handleWriteHasOccurred, handleReadOffset, 
+                   handleWriteOffset, handlePtrOffset, handlePtrBase;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
-                   handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize;
+                   handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize,
+                   handleGetImageWidth, handleGetImageHeight;
 
   SpecialFnHandler handleCos, handleExp, handleFabs, handleFloor, handleFrexpExp,
                    handleFrexpFrac, handleFma, handleSqrt, handleLog, handlePow,
@@ -90,7 +93,7 @@ class TranslateFunction {
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF,
                     llvm::Function *F)
-    : TM(TM), BF(BF), F(F), ReturnVar(0),
+    : TM(TM), BF(BF), F(F), ReturnVar(0), LoadsAreTemporal(true),
       SpecialFunctionMap(initSpecialFunctionMap(TM->SL)) {}
   bool isGPUEntryPoint;
 

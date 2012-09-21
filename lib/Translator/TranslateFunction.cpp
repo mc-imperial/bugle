@@ -78,6 +78,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__assert"] = &TranslateFunction::handleAssert;
     fns["__invariant"] = &TranslateFunction::handleAssert;
     fns["__global_assert"] = &TranslateFunction::handleGlobalAssert;
+    fns["__non_temporal_loads_begin"] = &TranslateFunction::handleNonTemporalLoadsBegin;
+    fns["__non_temporal_loads_end"] = &TranslateFunction::handleNonTemporalLoadsEnd;
     fns["bugle_assume"] = &TranslateFunction::handleAssume;
     fns["__assert_fail"] = &TranslateFunction::handleAssertFail;
     fns["bugle_requires"] = &TranslateFunction::handleRequires;
@@ -120,6 +122,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["get_group_id"] = &TranslateFunction::handleGetGroupId;
       fns["get_local_size"] = &TranslateFunction::handleGetLocalSize;
       fns["get_num_groups"] = &TranslateFunction::handleGetNumGroups;
+      fns["get_image_width"] = &TranslateFunction::handleGetImageWidth;
+      fns["get_image_height"] = &TranslateFunction::handleGetImageHeight;
     }
 
     auto &ints = SpecialFunctionMap.Intrinsics;
@@ -151,6 +155,16 @@ void TranslateFunction::translate() {
        TM->SL == TranslateModule::SL_CUDA)
        && F->getName() == "bugle_barrier")
     BF->addAttribute("barrier");
+
+  if ((TM->SL == TranslateModule::SL_OpenCL || 
+       TM->SL == TranslateModule::SL_CUDA)
+       && F->getName() == "__barrier_invariant")
+    BF->addAttribute("barrier_invariant");
+
+  if ((TM->SL == TranslateModule::SL_OpenCL || 
+       TM->SL == TranslateModule::SL_CUDA)
+       && F->getName() == "__barrier_invariant_instantiation")
+    BF->addAttribute("barrier_invariant_instantiation");
 
   unsigned PtrSize = TM->TD.getPointerSizeInBits();
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
@@ -276,6 +290,22 @@ ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
   Stmt *assertstmt = new AssertStmt(Expr::createNeZero(Args[0]));
   addLocToStmt(assertstmt, CI);
   BBB->addStmt(assertstmt);
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleNonTemporalLoadsBegin(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  assert(LoadsAreTemporal && "Nested __non_temporal_loads_begin");
+  LoadsAreTemporal = false;
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleNonTemporalLoadsEnd(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  assert(!LoadsAreTemporal && "__non_temporal_loads_end without __non_temporal_loads_begin");
+  LoadsAreTemporal = true;
   return 0;
 }
 
@@ -472,6 +502,18 @@ ref<Expr> TranslateFunction::handleGetNumGroups(bugle::BasicBlock *BBB,
                                           const std::vector<ref<Expr>> &Args) {
   Type t = TM->translateType(CI->getType());
   return mkNumGroups(t, Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleGetImageWidth(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  return GetImageWidthExpr::create(Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleGetImageHeight(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  return GetImageHeightExpr::create(Args[0]);
 }
 
 ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,
@@ -685,7 +727,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           ref<Expr> ElemOfs =
             BVAddExpr::create(Div,
                               BVConstExpr::create(Div->getType().width, i));
-          ref<Expr> ValElem = LoadExpr::create(PtrArr, ElemOfs);
+          ref<Expr> ValElem = LoadExpr::create(PtrArr, ElemOfs, LoadsAreTemporal);
           addEvalStmt(BBB, I, ValElem);
           if (LoadElTy.isKind(Type::Pointer))
             ValElem = PtrToBVExpr::create(ValElem);
@@ -693,7 +735,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         }
         E = Expr::createBVConcatN(ElemsLoaded);
       } else {
-        E = LoadExpr::create(PtrArr, Div);
+        E = LoadExpr::create(PtrArr, Div, LoadsAreTemporal);
       }
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
       std::vector<ref<Expr> > BytesLoaded;
@@ -701,7 +743,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         ref<Expr> PtrByteOfs =
           BVAddExpr::create(PtrOfs,
                             BVConstExpr::create(PtrOfs->getType().width, i));
-        ref<Expr> ValByte = LoadExpr::create(PtrArr, PtrByteOfs);
+        ref<Expr> ValByte = LoadExpr::create(PtrArr, PtrByteOfs, LoadsAreTemporal);
         BytesLoaded.push_back(ValByte);
         addEvalStmt(BBB, I, ValByte);
       }

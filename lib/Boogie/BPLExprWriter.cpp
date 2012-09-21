@@ -204,7 +204,9 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     case Expr::OtherPtrBase:
     case Expr::PtrToBV:
     case Expr::SIToFP:
-    case Expr::UIToFP: {
+    case Expr::UIToFP:
+    case Expr::GetImageWidth:
+    case Expr::GetImageHeight: {
       std::string IntName; llvm::raw_string_ostream IntS(IntName);
       unsigned FromWidth = UnE->getSubExpr()->getType().width,
                ToWidth = UnE->getType().width;
@@ -248,6 +250,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         break;
       case Expr::UIToFP:
         IntS << "UI" << FromWidth << "_TO_FP" << ToWidth;
+        break;
+      case Expr::GetImageWidth:
+        IntS << "GET_IMAGE_WIDTH";
+        break;
+      case Expr::GetImageHeight:
+        IntS << "GET_IMAGE_HEIGHT";
         break;
       default:
        assert(0 && "Unsupported unary expr opcode"); return;
@@ -399,13 +407,31 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, BinE->getRHS().get());
     OS << ")";
   } else if (auto LE = dyn_cast<LoadExpr>(E)) {
-    // This case is only accessible from the dumper, as we handle LoadExpr
-    // specially in BPLFunctionWriter::writeStmt to handle case splitting.
-    assert(!MW);
-    writeExpr(OS, LE->getArray().get(), 9);
-    OS << "[";
-    writeExpr(OS, LE->getOffset().get());
-    OS << "]";
+    // If this is the dumper, show the expression in a simple form.
+    // Otherwise, generate appropriate code
+    if(!MW) {
+      writeExpr(OS, LE->getArray().get(), 9);
+      OS << "[";
+      writeExpr(OS, LE->getOffset().get());
+      OS << "]";
+    } else {
+      auto PtrArr = LE->getArray().get();
+      assert(!(isa<NullArrayRefExpr>(PtrArr) ||
+        MW->M->global_begin() == MW->M->global_end()));
+      std::set<GlobalArray *> Globals;
+      if (!PtrArr->computeArrayCandidates(Globals)) {
+        Globals.insert(MW->M->global_begin(), MW->M->global_end());
+      }
+
+      if (Globals.size() == 1) {
+        OS << "$$" << (*Globals.begin())->getName() << "[";
+        writeExpr(OS, LE->getOffset().get());
+        OS << "]";
+      } else {
+        assert(0 && "Load expressions from pointers not supported yet");
+      }
+
+    }
   } else if (auto MOE = dyn_cast<MemberOfExpr>(E)) {
     // If this is the dumper, show the expression.  Otherwise, this is a no-op.
     if (!MW) {
