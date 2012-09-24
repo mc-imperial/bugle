@@ -117,6 +117,9 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__ptr_offset_local"] = &TranslateFunction::handlePtrOffset;
     fns["__ptr_offset_global"] = &TranslateFunction::handlePtrOffset;
     fns["__ptr_offset"] = &TranslateFunction::handlePtrOffset;
+    fns["__array_snapshot_local"] = &TranslateFunction::handleArraySnapshot;
+    fns["__array_snapshot_global"] = &TranslateFunction::handleArraySnapshot;
+    fns["__array_snapshot"] = &TranslateFunction::handleArraySnapshot;
     if (SL == TranslateModule::SL_OpenCL ||
         SL == TranslateModule::SL_CUDA) {
       fns["__barrier_invariant"] = &TranslateFunction::handleBarrierInvariant;
@@ -444,6 +447,16 @@ ref<Expr> TranslateFunction::handlePtrBase(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return ArrayIdExpr::create(Args[0], TM->defaultRange());
+}
+
+ref<Expr> TranslateFunction::handleArraySnapshot(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  ref<Expr> dstArrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  ref<Expr> srcArrayIdExpr = ArrayIdExpr::create(Args[1], TM->defaultRange());
+  ref<Expr> E = ArraySnapshotExpr::create(dstArrayIdExpr, srcArrayIdExpr);
+  BBB->addStmt(new EvalStmt(E));
+  return 0;
 }
 
 ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,

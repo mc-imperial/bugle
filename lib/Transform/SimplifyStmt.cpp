@@ -8,7 +8,7 @@ using namespace bugle;
 namespace {
 
 bool hasSideEffects(Expr *e) {
-  return isa<CallExpr>(e);
+  return isa<CallExpr>(e) || isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e);
 }
 
 bool isTemporal(Expr *e) {
@@ -16,7 +16,7 @@ bool isTemporal(Expr *e) {
     return LE->getIsTemporal();
   }
 
-  return isa<HavocExpr>(e);
+  return isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e);
 }
 
 void ProcessBasicBlock(BasicBlock *BB) {

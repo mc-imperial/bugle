@@ -75,8 +75,23 @@ _POINTER_QUERY(ptr_offset, int);
 /* Read/write set is empty */
 #define __no_read(p) !__read(p)
 #define __no_write(p) !__write(p)
+    
+#ifdef __OPENCL_VERSION__
+void __array_snapshot_local(__local void* dst, __local void* src);
+void __array_snapshot_global(__global void* dst, __global void* src);
 
+_CLC_OVERLOAD _CLC_INLINE void __array_snapshot(__local void* dst, __local void* src) {
+    return __array_snapshot_local(dst, src);
+}
 
+_CLC_OVERLOAD _CLC_INLINE void __array_snapshot(__global void* dst, __global void* src) {
+    return __array_snapshot_global(dst, src);
+}
+#endif
+
+#ifdef __CUDA_ARCH__
+void __array_snapshot(void* dst, void* src);
+#endif    
     
 /* Inter-thread predicates */
 

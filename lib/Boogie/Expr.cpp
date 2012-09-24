@@ -17,6 +17,8 @@ void Expr::dump() {
   llvm::errs() << "\n";
 }
 
+#include <iostream>
+
 bool Expr::computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const {
   if (auto GARE = dyn_cast<GlobalArrayRefExpr>(this)) {
     GlobalSet.insert(GARE->getArray());
@@ -840,4 +842,10 @@ ref<Expr> AccessHasOccurredExpr::create(ref<Expr> array, bool isWrite) {
 ref<Expr> AccessOffsetExpr::create(ref<Expr> array, bool isWrite) {
   assert(array->getType().array);
   return new AccessOffsetExpr(array, isWrite);
+}
+
+ref<Expr> ArraySnapshotExpr::create(ref<Expr> dst, ref<Expr> src) {
+  assert(dst->getType().array);
+  assert(src->getType().array);
+  return new ArraySnapshotExpr(dst, src);
 }

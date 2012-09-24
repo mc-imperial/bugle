@@ -21,7 +21,7 @@ public:
     Return,
     Assume,
     Assert,
-	GlobalAssert,
+  	GlobalAssert,
     Call
   };
 

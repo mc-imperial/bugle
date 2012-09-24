@@ -38,6 +38,7 @@ public:
     Havoc,
     AccessHasOccurred,
     AccessOffset,
+    ArraySnapshot,
     MemberOf,
 
     // Unary
@@ -111,7 +112,7 @@ public:
     FUno,
     PtrLt,
     PtrLe,
-	Implies,
+  	Implies,
 
     BinaryFirst = Eq,
     BinaryLast = Implies
@@ -503,6 +504,21 @@ public:
   ref<Expr> getArray() const { return array; }
   std::string getAccessKind() { return isWrite ? "WRITE" : "READ"; }
 };
+
+class ArraySnapshotExpr : public Expr {
+  ArraySnapshotExpr(ref<Expr> dst, ref<Expr> src) :
+    Expr(Type::BV), dst(dst), src(src) { }
+  ref<Expr> dst;
+  ref<Expr> src;
+
+public:
+  static ref<Expr> create(ref<Expr> dst, ref<Expr> src);
+
+  EXPR_KIND(ArraySnapshot)
+  ref<Expr> getDst() const { return dst; }
+  ref<Expr> getSrc() const { return src; }
+};
+
 
 }
 

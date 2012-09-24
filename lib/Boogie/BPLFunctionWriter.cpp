@@ -58,6 +58,32 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     assert(SSAVarIds.find(ES->getExpr().get()) == SSAVarIds.end());
     unsigned id = SSAVarIds.size();
     OS << "  ";
+    if (auto ASE = dyn_cast<ArraySnapshotExpr>(ES->getExpr())) {
+      auto DstArray = ASE->getDst().get();
+      auto SrcArray = ASE->getSrc().get();
+
+      assert(!(isa<NullArrayRefExpr>(DstArray) || 
+        isa<NullArrayRefExpr>(SrcArray) ||
+        MW->M->global_begin() == MW->M->global_end()));
+
+      std::set<GlobalArray *> GlobalsDst;
+      if (!DstArray->computeArrayCandidates(GlobalsDst)) {
+        GlobalsDst.insert(MW->M->global_begin(), MW->M->global_end());
+      }
+
+      std::set<GlobalArray *> GlobalsSrc;
+      if (!SrcArray->computeArrayCandidates(GlobalsSrc)) {
+        GlobalsSrc.insert(MW->M->global_begin(), MW->M->global_end());
+      }
+
+      if (GlobalsDst.size() == 1 && GlobalsSrc.size() == 1) {
+        OS << "$$" << (*GlobalsDst.begin())->getName() << " := " <<
+          "$$" << (*GlobalsSrc.begin())->getName() << ";\n";
+      } else {
+        assert (0 && "Array snapshots on pointers not yet supported");
+      }
+      return;
+    }
     if (isa<CallExpr>(ES->getExpr())) {
       OS << "call ";
       writeSourceLoc(OS, ES->getSourceLoc());

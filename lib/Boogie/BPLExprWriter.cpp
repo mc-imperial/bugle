@@ -432,6 +432,13 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       }
 
     }
+  } else if (auto ASE = dyn_cast<ArraySnapshotExpr>(E)) {
+    // If this is the dumper, show the expression.  Otherwise, this is a no-op
+    if(!MW) {
+      writeExpr(OS, ASE->getDst().get(), 9);
+      OS << " := ";
+      writeExpr(OS, ASE->getSrc().get());
+    }
   } else if (auto MOE = dyn_cast<MemberOfExpr>(E)) {
     // If this is the dumper, show the expression.  Otherwise, this is a no-op.
     if (!MW) {
