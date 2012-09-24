@@ -48,6 +48,8 @@ class TranslateFunction {
   Var *ReturnVar;
   std::vector<ref<Expr>> ReturnVals;
   bool LoadsAreTemporal;
+  std::map<unsigned, bugle::Function *> BarrierInvariants;
+  std::map<unsigned, bugle::Function *> BinaryBarrierInvariants;
 
   SpecialFnMapTy &SpecialFunctionMap;
   static SpecialFnMapTy SpecialFunctionMaps[TranslateModule::SL_Count];
@@ -59,7 +61,8 @@ class TranslateFunction {
                    handleEnabled, handleOtherInt, handleOtherBool, 
                    handleOtherPtrBase, handleOld, handleReturnVal, handleImplies, 
                    handleReadHasOccurred, handleWriteHasOccurred, handleReadOffset, 
-                   handleWriteOffset, handlePtrOffset, handlePtrBase;
+                   handleWriteOffset, handlePtrOffset, handlePtrBase,
+                   handleBarrierInvariant, handleBarrierInvariantBinary;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize,

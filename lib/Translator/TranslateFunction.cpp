@@ -117,6 +117,12 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__ptr_offset_local"] = &TranslateFunction::handlePtrOffset;
     fns["__ptr_offset_global"] = &TranslateFunction::handlePtrOffset;
     fns["__ptr_offset"] = &TranslateFunction::handlePtrOffset;
+    if (SL == TranslateModule::SL_OpenCL ||
+        SL == TranslateModule::SL_CUDA) {
+      fns["__barrier_invariant"] = &TranslateFunction::handleBarrierInvariant;
+      fns["__barrier_invariant_binary"] = 
+        &TranslateFunction::handleBarrierInvariantBinary;
+    }
     if (SL == TranslateModule::SL_OpenCL) {
       fns["get_local_id"] = &TranslateFunction::handleGetLocalId;
       fns["get_group_id"] = &TranslateFunction::handleGetGroupId;
@@ -155,16 +161,6 @@ void TranslateFunction::translate() {
        TM->SL == TranslateModule::SL_CUDA)
        && F->getName() == "bugle_barrier")
     BF->addAttribute("barrier");
-
-  if ((TM->SL == TranslateModule::SL_OpenCL || 
-       TM->SL == TranslateModule::SL_CUDA)
-       && F->getName() == "__barrier_invariant")
-    BF->addAttribute("barrier_invariant");
-
-  if ((TM->SL == TranslateModule::SL_OpenCL || 
-       TM->SL == TranslateModule::SL_CUDA)
-       && F->getName() == "__barrier_invariant_instantiation")
-    BF->addAttribute("barrier_invariant_instantiation");
 
   unsigned PtrSize = TM->TD.getPointerSizeInBits();
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
@@ -449,6 +445,87 @@ ref<Expr> TranslateFunction::handlePtrBase(bugle::BasicBlock *BBB,
                                           const std::vector<ref<Expr>> &Args) {
   return ArrayIdExpr::create(Args[0], TM->defaultRange());
 }
+
+ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  assert (CI->getNumArgOperands() > 1);
+
+  auto BF = BarrierInvariants[CI->getNumArgOperands()];
+  if(!BF) {
+    std::string S = CI->getCalledFunction()->getName().str();
+    llvm::raw_string_ostream SS(S);
+    SS << (CI->getNumArgOperands() - 1);
+    BF = TM->BM->addFunction(SS.str());
+    BarrierInvariants[CI->getNumArgOperands()] = BF;
+
+    int count = 0;
+    for (auto i = Args.begin(), e = Args.end(); i != e; ++i, ++count) {
+      std::string S;
+      llvm::raw_string_ostream SS(S);
+      if(count == 0) {
+        SS << "expr";
+      } else {
+        SS << "instantiation";
+        SS << count;
+      }
+      BF->addArgument((*i)->getType(), SS.str());
+    }
+
+    BF->addAttribute("barrier_invariant");
+
+  }
+
+  auto CS = new CallStmt(BF, Args);
+  addLocToStmt(CS, CI);
+  BBB->addStmt(CS);
+  return 0;
+}
+
+
+ref<Expr> TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  assert (CI->getNumArgOperands() > 1);
+  assert ((CI->getNumArgOperands() % 2) &&
+    "Arguments to __barrier_invariant_binary should consist of barrier invariant"
+    " followed by a sequence of *pairs* of instantiation arguments");
+
+  auto BF = BinaryBarrierInvariants[CI->getNumArgOperands()];
+  if(!BF) {
+    std::string S = CI->getCalledFunction()->getName().str();
+    llvm::raw_string_ostream SS(S);
+    SS << ((CI->getNumArgOperands() - 1)/2);
+    BF = TM->BM->addFunction(SS.str());
+    BinaryBarrierInvariants[CI->getNumArgOperands()] = BF;
+
+    int count = 0;
+    for (auto i = Args.begin(), e = Args.end(); i != e; ++i, ++count) {
+      std::string S;
+      llvm::raw_string_ostream SS(S);
+      if(count == 0) {
+        SS << "expr";
+      } else {
+        SS << "instantiation";
+        SS << (count/2);
+        SS << "_";
+        SS << ((count % 2) == 0 ? 2 : 1);
+      }
+      BF->addArgument((*i)->getType(), SS.str());
+    }
+
+    BF->addAttribute("binary_barrier_invariant");
+
+  }
+
+  auto CS = new CallStmt(BF, Args);
+  addLocToStmt(CS, CI);
+  BBB->addStmt(CS);
+  return 0;
+}
+
+
+
 
 static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {
   auto CE = dyn_cast<BVConstExpr>(dim);

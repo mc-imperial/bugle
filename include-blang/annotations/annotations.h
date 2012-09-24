@@ -82,7 +82,6 @@ _POINTER_QUERY(ptr_offset, int);
 
 _DEVICE_QUALIFIER int __other_int(int expr);
 _DEVICE_QUALIFIER bool __other_bool(bool expr);
-_DEVICE_QUALIFIER ptr_base_t __other_ptr_base(ptr_base_t expr);
 
 #define __uniform_int(X) ((X) == __other_int(X))
 #define __uniform_bool(X) ((X) == __other_bool(X))
@@ -112,14 +111,29 @@ _DEVICE_QUALIFIER ptr_base_t __other_ptr_base(ptr_base_t expr);
 
 
 /* Barrier invariants */
-void __barrier_invariant(bool invariant);
 
-#define __barrier_invariant(X) \
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+
+#define __barrier_invariant(X, ...) !!! Barrier invariants currently only supported for 1D thread groups !!!    
+#define __barrier_invariant_binary(X, ...) !!! Barrier invariants currently only supported for 1D thread groups !!!    
+
+#else
+    
+void __stdcall __barrier_invariant(bool expr, ...);
+    
+#define __barrier_invariant(X, ...) \
     __non_temporal_loads_begin(), \
-    __barrier_invariant(X),    \
+    __barrier_invariant(X, __VA_ARGS__), \
     __non_temporal_loads_end()
 
-void __barrier_invariant_instantiation(int);
+void __stdcall __barrier_invariant_binary(bool expr, ...);
+    
+#define __barrier_invariant_binary(X, ...) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary(X, __VA_ARGS__), \
+    __non_temporal_loads_end()
+
+#endif
     
 /* Helpers */
 
