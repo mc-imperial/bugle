@@ -88,6 +88,9 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       OS << "call ";
       writeSourceLoc(OS, ES->getSourceLoc());
     }
+    if (isa<AddNoovflExpr>(ES->getExpr())) {
+      OS << "call ";
+    }
     if (isa<HavocExpr>(ES->getExpr())) {
       OS << "havoc v" << id << ";\n";
     } else if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {

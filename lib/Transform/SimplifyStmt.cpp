@@ -8,7 +8,8 @@ using namespace bugle;
 namespace {
 
 bool hasSideEffects(Expr *e) {
-  return isa<CallExpr>(e) || isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e);
+  return isa<CallExpr>(e) || isa<HavocExpr>(e) || 
+    isa<ArraySnapshotExpr>(e) || isa<AddNoovflExpr>(e);
 }
 
 bool isTemporal(Expr *e) {

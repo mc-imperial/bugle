@@ -155,6 +155,9 @@ void __stdcall __barrier_invariant_binary(bool expr, ...);
 #define __is_pow2(x) ((((x) & (x - 1)) == 0))
 #define __mod_pow2(x,y) ((y - 1) & (x))
 
+unsigned __add_noovfl_unsigned(unsigned x, unsigned y);
+int __add_noovfl_signed(int x, int y);
+    
 #ifdef __cplusplus
 }
 #endif

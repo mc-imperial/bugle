@@ -849,3 +849,11 @@ ref<Expr> ArraySnapshotExpr::create(ref<Expr> dst, ref<Expr> src) {
   assert(src->getType().array);
   return new ArraySnapshotExpr(dst, src);
 }
+
+ref<Expr> AddNoovflExpr::create(ref<Expr> first, ref<Expr> second,
+    bool isSigned) {
+  assert(first->getType().isKind(Type::BV));
+  assert(second->getType().isKind(Type::BV));
+  assert(first->getType().width == second->getType().width);
+  return new AddNoovflExpr(first, second, isSigned);
+}

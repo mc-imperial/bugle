@@ -161,6 +161,57 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       writeExpr(OS, i->get());
     }
     OS << ")";
+  } else if (auto ANOVE = dyn_cast<AddNoovflExpr>(E)) {
+    int width = ANOVE->getFirst()->getType().width;
+    OS << "$__add_noovfl_" << (ANOVE->getIsSigned() ? "signed" : "unsigned")
+      << "_" << width << "(";
+    writeExpr(OS, ANOVE->getFirst().get());
+    OS << ", ";
+    writeExpr(OS, ANOVE->getSecond().get());
+    OS << ")";
+
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "function {:bvbuiltin \"bvadd\"} BV"
+          << width
+          << "_" << "ADD" << "(bv" << width
+          << ", bv" << width
+          << ") : bv" << width;
+    });
+
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "function {:bvbuiltin \"bvadd\"} BV"
+          << (width + 1)
+          << "_" << "ADD" << "(bv" << (width + 1)
+          << ", bv" << (width + 1)
+          << ") : bv" << (width + 1);
+    });
+
+    if (ANOVE->getIsSigned()) {
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "procedure {:inline 1} $__add_noovfl_signed_"
+           << width << "(x : bv" << width << ", y : bv" << width
+           << ") returns (z : bv" << width << ") {\n"
+           << "  assume BV" << (width + 1) << "_ADD(0bv1++x, 0bv1++y)["
+           << (width + 1) << ":" << width << "] == 0bv1;\n"
+           << "  assume x[" << width << ":" << (width - 1) << "] == y[" 
+           << width << ":" << (width - 1) << "] ==> BV" << width 
+           << "_ADD(x, y)[" << width << ":" << (width - 1) << "] == x[" 
+           << width << ":" << (width - 1) << "];\n"
+           << "  z := BV" << width << "_ADD(x, y);\n"
+           << "}//";
+      });
+    } else {
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "procedure {:inline 1} $__add_noovfl_unsigned_"
+           << width << "(x : bv" << width << ", y : bv" << width
+           << ") returns (z : bv" << width << ") {\n"
+           << "  assume BV" << (width + 1) << "_ADD(0bv1++x, 0bv1++y)["
+           << (width + 1) << ":" << width << "] == 0bv1;\n"
+           << "  z := BV" << width << "_ADD(x, y);\n"
+           << "}//";
+      });
+    }
+
   } else if (auto PLTE = dyn_cast<PtrLtExpr>(E)) {
     OS << "PTR_LT(";
     writeExpr(OS, PLTE->getLHS().get());

@@ -88,6 +88,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__ensures"] = &TranslateFunction::handleEnsures;
     fns["bugle_frexp_exp"] = &TranslateFunction::handleFrexpExp;
     fns["bugle_frexp_frac"] = &TranslateFunction::handleFrexpFrac;
+    fns["__add_noovfl_unsigned"] = &TranslateFunction::handleAddNoovflUnsigned;
+    fns["__add_noovfl_signed"] = &TranslateFunction::handleAddNoovflSigned;
     fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_bool"] = &TranslateFunction::handleReturnVal;
@@ -707,6 +709,22 @@ ref<Expr> TranslateFunction::handleSqrt(bugle::BasicBlock *BBB,
                                 [&](llvm::Type *T, ref<Expr> E) {
     return FSqrtExpr::create(E);
   });
+}
+
+ref<Expr> TranslateFunction::handleAddNoovflUnsigned(bugle::BasicBlock *BBB,
+                                             llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  ref<Expr> E = AddNoovflExpr::create(Args[0], Args[1], false);
+  BBB->addStmt(new EvalStmt(E));
+  return E;
+}
+
+ref<Expr> TranslateFunction::handleAddNoovflSigned(bugle::BasicBlock *BBB,
+                                             llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  ref<Expr> E = AddNoovflExpr::create(Args[0], Args[1], true);
+  BBB->addStmt(new EvalStmt(E));
+  return E;
 }
 
 void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB,

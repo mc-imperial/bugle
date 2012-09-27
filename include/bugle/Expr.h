@@ -39,6 +39,7 @@ public:
     AccessHasOccurred,
     AccessOffset,
     ArraySnapshot,
+    AddNoovfl,
     MemberOf,
 
     // Unary
@@ -517,6 +518,23 @@ public:
   EXPR_KIND(ArraySnapshot)
   ref<Expr> getDst() const { return dst; }
   ref<Expr> getSrc() const { return src; }
+};
+
+class AddNoovflExpr : public Expr {
+  AddNoovflExpr(ref<Expr> first, ref<Expr> second, bool isSigned) :
+    Expr(Type(Type::BV, first->getType().width)), 
+    first(first), second(second), isSigned(isSigned) { }
+  ref<Expr> first;
+  ref<Expr> second;
+  bool isSigned;
+
+public:
+  static ref<Expr> create(ref<Expr> first, ref<Expr> second, bool isSigned);
+
+  EXPR_KIND(AddNoovfl)
+  ref<Expr> getFirst() const { return first; }
+  ref<Expr> getSecond() const { return second; }
+  bool getIsSigned() const { return isSigned; }
 };
 
 
