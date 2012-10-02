@@ -26,7 +26,8 @@ class BPLModuleWriter : BPLExprWriter {
 
   const std::string &getGlobalInitRequires();
   void writeType(llvm::raw_ostream &OS, const bugle::Type &t);
-  void writeIntrinsic(std::function<void(llvm::raw_ostream &)> F);
+  void writeIntrinsic(std::function<void(llvm::raw_ostream &)> F,
+                      bool addSeparator = true);
 
 public:
   BPLModuleWriter(llvm::raw_ostream &OS, bugle::Module *M) :

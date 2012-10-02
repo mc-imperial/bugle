@@ -137,6 +137,16 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["get_image_height"] = &TranslateFunction::handleGetImageHeight;
     }
 
+    if (SL == TranslateModule::SL_CUDA) {
+      fns["cos"] = &TranslateFunction::handleCos;
+      fns["sin"] = &TranslateFunction::handleSin;
+      fns["sqrt"] = &TranslateFunction::handleSqrt;
+      fns["sqrtf"] = &TranslateFunction::handleSqrt;
+      fns["rsqrt"] = &TranslateFunction::handleRsqrt;
+      fns["log"] = &TranslateFunction::handleLog;
+      fns["exp"] = &TranslateFunction::handleExp;
+    }
+
     auto &ints = SpecialFunctionMap.Intrinsics;
     ints[Intrinsic::cos] = &TranslateFunction::handleCos;
     ints[Intrinsic::exp2] = &TranslateFunction::handleExp;
@@ -708,6 +718,16 @@ ref<Expr> TranslateFunction::handleSqrt(bugle::BasicBlock *BBB,
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
     return FSqrtExpr::create(E);
+  });
+}
+
+ref<Expr> TranslateFunction::handleRsqrt(bugle::BasicBlock *BBB,
+                                        llvm::CallInst *CI,
+                                        const std::vector<ref<Expr>> &Args) {
+  llvm::Type *Ty = CI->getType();
+  return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
+                                [&](llvm::Type *T, ref<Expr> E) {
+    return FRsqrtExpr::create(E);
   });
 }
 

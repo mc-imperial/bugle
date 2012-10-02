@@ -198,8 +198,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
            << "_ADD(x, y)[" << width << ":" << (width - 1) << "] == x[" 
            << width << ":" << (width - 1) << "];\n"
            << "  z := BV" << width << "_ADD(x, y);\n"
-           << "}//";
-      });
+           << "}";
+      }, false);
     } else {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << "procedure {:inline 1} $__add_noovfl_unsigned_"
@@ -250,6 +250,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     case Expr::FrexpFrac:
     case Expr::FSin:
     case Expr::FSqrt:
+    case Expr::FRsqrt:
     case Expr::OtherInt:
     case Expr::OtherBool:
     case Expr::OtherPtrBase:
@@ -293,6 +294,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         break;
       case Expr::FSin:  IntS << "FSIN" << ToWidth;  break;
       case Expr::FSqrt: IntS << "FSQRT" << ToWidth; break;
+      case Expr::FRsqrt: IntS << "FRSQRT" << ToWidth; break;
       case Expr::OtherInt: IntS << "__other_bv" << ToWidth; break;
       case Expr::OtherBool: IntS << "__other_bool"; break;
       case Expr::OtherPtrBase: IntS << "__other_arrayId"; break;

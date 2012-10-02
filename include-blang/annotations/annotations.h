@@ -75,6 +75,9 @@ _POINTER_QUERY(ptr_offset, int);
 /* Read/write set is empty */
 #define __no_read(p) !__read(p)
 #define __no_write(p) !__write(p)
+
+#define __read_implies(p, e) __implies(__read(p), e)
+#define __write_implies(p, e) __implies(__write(p), e)
     
 #ifdef __OPENCL_VERSION__
 void __array_snapshot_local(__local void* dst, __local void* src);

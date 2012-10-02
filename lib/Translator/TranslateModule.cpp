@@ -82,8 +82,8 @@ ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
 
   GlobalArray *GA = getGlobalArray(GV);
   if (GV->hasInitializer() &&
-      // OpenCL __local variables have bogus initialisers.
-      !(SL == SL_OpenCL && GV->getType()->getAddressSpace() == 3))
+      // OpenCL __local and CUDA __shared__ variables have bogus initialisers.
+      !((SL == SL_OpenCL || SL == SL_CUDA) && GV->getType()->getAddressSpace() == 3))
     translateGlobalInit(GA, 0, GV->getInitializer());
   return GlobalArrayRefExpr::create(GA);
 }

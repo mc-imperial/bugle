@@ -289,6 +289,11 @@ ref<Expr> FSqrtExpr::create(ref<Expr> expr) {
   return new FSqrtExpr(expr->getType(), expr);
 }
 
+ref<Expr> FRsqrtExpr::create(ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::BV));
+  return new FRsqrtExpr(expr->getType(), expr);
+}
+
 ref<Expr> IfThenElseExpr::create(ref<Expr> cond, ref<Expr> trueExpr,
                                  ref<Expr> falseExpr) {
   assert(cond->getType().isKind(Type::Bool));

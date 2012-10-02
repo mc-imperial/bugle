@@ -29,13 +29,17 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
   }
 }
 
-void BPLModuleWriter::writeIntrinsic(std::function<void(llvm::raw_ostream&)> F){
+void BPLModuleWriter::writeIntrinsic(std::function<void(llvm::raw_ostream&)> F,
+                                     bool addSeparator) {
   if (this == 0)
     return;
 
   std::string S;
   llvm::raw_string_ostream SS(S);
   F(SS);
+  if (addSeparator) {
+    SS << ";";
+  }
   IntrinsicSet.insert(SS.str());
 }
 
@@ -102,7 +106,7 @@ void BPLModuleWriter::write() {
     OS << "const unique $arrayId$$null : arrayId;\n\n";
 
   for (auto i = IntrinsicSet.begin(), e = IntrinsicSet.end(); i != e; ++i) {
-    OS << *i << ";\n";
+    OS << *i << "\n";
   }
 
   OS << SS.str();

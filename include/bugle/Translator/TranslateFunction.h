@@ -72,7 +72,7 @@ class TranslateFunction {
 
   SpecialFnHandler handleCos, handleExp, handleFabs, handleFloor, handleFrexpExp,
                    handleFrexpFrac, handleFma, handleSqrt, handleLog, handlePow,
-                   handleSin;
+                   handleSin, handleRsqrt;
 
   static SpecialFnMapTy &initSpecialFunctionMap(
                                             TranslateModule::SourceLanguage SL);
