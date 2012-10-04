@@ -86,6 +86,12 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__requires"] = &TranslateFunction::handleRequires;
     fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
     fns["__ensures"] = &TranslateFunction::handleEnsures;
+    fns["__reads_from"] = &TranslateFunction::handleReadsFrom;
+    fns["__reads_from_local"] = &TranslateFunction::handleReadsFrom;
+    fns["__reads_from_global"] = &TranslateFunction::handleReadsFrom;
+    fns["__writes_to"] = &TranslateFunction::handleWritesTo;
+    fns["__writes_to_local"] = &TranslateFunction::handleWritesTo;
+    fns["__writes_to_global"] = &TranslateFunction::handleWritesTo;
     fns["bugle_frexp_exp"] = &TranslateFunction::handleFrexpExp;
     fns["bugle_frexp_frac"] = &TranslateFunction::handleFrexpFrac;
     fns["__add_noovfl_unsigned"] = &TranslateFunction::handleAddNoovflUnsigned;
@@ -354,6 +360,33 @@ ref<Expr> TranslateFunction::handleEnsures(bugle::BasicBlock *BBB,
                                            llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
   BF->addEnsures(Expr::createNeZero(Args[0]), extractSourceLoc(CI));
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleReadsFrom(bugle::BasicBlock *BBB,
+                                           llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  BF->addModifies(AccessHasOccurredExpr::create(
+        ArrayIdExpr::create(Args[0], TM->defaultRange()), false),
+        extractSourceLoc(CI));
+  BF->addModifies(AccessOffsetExpr::create(
+        ArrayIdExpr::create(Args[0], TM->defaultRange()), false),
+        extractSourceLoc(CI));
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleWritesTo(bugle::BasicBlock *BBB,
+                                           llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  BF->addModifies(AccessHasOccurredExpr::create(
+        ArrayIdExpr::create(Args[0], TM->defaultRange()), true),
+        extractSourceLoc(CI));
+  BF->addModifies(AccessOffsetExpr::create(
+        ArrayIdExpr::create(Args[0], TM->defaultRange()), true),
+        extractSourceLoc(CI));
+  BF->addModifies(UnderlyingArrayExpr::create(
+        ArrayIdExpr::create(Args[0], TM->defaultRange())),
+        extractSourceLoc(CI));
   return 0;
 }
 

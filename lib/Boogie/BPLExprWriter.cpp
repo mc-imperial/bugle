@@ -492,6 +492,21 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       OS << " := ";
       writeExpr(OS, ASE->getSrc().get());
     }
+  } else if (auto UAE = dyn_cast<UnderlyingArrayExpr>(E)) {
+      auto Array = UAE->getArray().get();
+      assert(!(isa<NullArrayRefExpr>(Array) || 
+        MW->M->global_begin() == MW->M->global_end()));
+
+      std::set<GlobalArray *> Globals;
+      if (!Array->computeArrayCandidates(Globals)) {
+        Globals.insert(MW->M->global_begin(), MW->M->global_end());
+      }
+
+      if (Globals.size() == 1) {
+        OS << "$$" << (*Globals.begin())->getName();
+      } else {
+        assert (0 && "Underlying array expressions for pointers not yet supported");
+      }
   } else if (auto MOE = dyn_cast<MemberOfExpr>(E)) {
     // If this is the dumper, show the expression.  Otherwise, this is a no-op.
     if (!MW) {
@@ -515,24 +530,34 @@ void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS,
                                           std::string accessLoggingVar, 
                                           std::string accessKind, 
                                           std::string unit) {
-  if(auto ArrE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
+  if(auto GARE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
     OS << "_" << accessKind << "_" << accessLoggingVar << "_$$" 
-       << ArrE->getArray()->getName();
+       << GARE->getArray()->getName();
 	} else {
-    if (MW) {
-      MW->UsesPointers = true;
-      OS << "(";
-      for (auto i = MW->M->global_begin(), e = MW->M->global_end();
-           i != e; ++i) {
-        OS << "if (";
-        writeExpr(OS, PtrArr);
-        OS << " == $arrayId$$" << (*i)->getName() << ") then _" 
-           << accessKind << "_" << accessLoggingVar << "_$$" 
-           << (*i)->getName() << " else ";
-      }
-			OS << unit << ")";
+    std::set<GlobalArray *> Globals;
+    if (!PtrArr->computeArrayCandidates(Globals)) {
+      Globals.insert(MW->M->global_begin(), MW->M->global_end());
+    }
+
+    if (Globals.size() == 1) {
+      OS << "_" << accessKind << "_" << accessLoggingVar << "_$$" 
+         << (*Globals.begin())->getName();
     } else {
-      OS << "<" << accessLoggingVar << "-case-split>";
+      if (MW) {
+        MW->UsesPointers = true;
+        OS << "(";
+        for (auto i = MW->M->global_begin(), e = MW->M->global_end();
+             i != e; ++i) {
+          OS << "if (";
+          writeExpr(OS, PtrArr);
+          OS << " == $arrayId$$" << (*i)->getName() << ") then _" 
+             << accessKind << "_" << accessLoggingVar << "_$$" 
+             << (*i)->getName() << " else ";
+        }
+			  OS << unit << ")";
+      } else {
+        OS << "<" << accessLoggingVar << "-case-split>";
+      }
     }
   }
 }

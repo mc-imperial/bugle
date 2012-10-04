@@ -15,7 +15,7 @@ class Function {
   std::string name;
   std::set<std::string> attributes;
   bool entryPoint;
-  OwningPtrVector<SpecificationInfo> requires, ensures;
+  OwningPtrVector<SpecificationInfo> requires, ensures, modifies;
   OwningPtrVector<BasicBlock> blocks;
   OwningPtrVector<Var> args, returns, locals;
   UniqueNameSet bbNames, varNames;
@@ -50,6 +50,9 @@ public:
   }
   void addEnsures(ref<Expr> e, SourceLoc *s) {
     ensures.push_back(new SpecificationInfo(e.get(), s));
+  }
+  void addModifies(ref<Expr> e, SourceLoc *s) {
+    modifies.push_back(new SpecificationInfo(e.get(), s));
   }
 
   const std::string &getName() { return name; }
@@ -104,6 +107,14 @@ public:
   OwningPtrVector<SpecificationInfo>::const_iterator ensures_end() const {
     return ensures.end();
   }
+
+  OwningPtrVector<SpecificationInfo>::const_iterator modifies_begin() const {
+    return modifies.begin();
+  }
+  OwningPtrVector<SpecificationInfo>::const_iterator modifies_end() const {
+    return modifies.end();
+  }
+
 };
 
 }

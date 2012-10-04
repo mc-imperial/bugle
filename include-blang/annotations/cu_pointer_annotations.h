@@ -5,7 +5,10 @@
 #error For CUDA pointer annotations header to be included, __CUDA_ARCH__ must be defined
 #endif
 
-#define _POINTER_QUERY(NAME, TYPE) \
+#define _FUNCTION_FROM_POINTER_TO_TYPE(NAME, TYPE) \
     _DEVICE_QUALIFIER TYPE __##NAME(const void* p);
-    
+
+#define _FUNCTION_FROM_POINTER_TO_VOID(NAME) \
+    _DEVICE_QUALIFIER void __##NAME(const void* p);
+
 #endif

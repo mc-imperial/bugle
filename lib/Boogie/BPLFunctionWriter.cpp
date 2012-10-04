@@ -9,6 +9,7 @@
 #include "bugle/Module.h"
 #include "bugle/SourceLoc.h"
 #include "bugle/Stmt.h"
+#include "llvm/ADT/StringRef.h"
 
 using namespace bugle;
 
@@ -209,6 +210,10 @@ void BPLFunctionWriter::writeVar(llvm::raw_ostream &OS, Var *V) {
   MW->writeType(OS, V->getType());
 }
 
+static bool isSpecificationFunction(llvm::StringRef Name) {
+  return Name.startswith("__spec");
+}
+
 void BPLFunctionWriter::write() {
   OS << "procedure ";
   for (auto i = F->attrib_begin(), e = F->attrib_end(); i != e; ++i) {
@@ -236,6 +241,9 @@ void BPLFunctionWriter::write() {
   if (F->begin() == F->end()) {
     OS << ";\n";
   } else {
+    if(isSpecificationFunction(F->getName())) {
+      OS << ";";
+    }
     OS << "\n";
 
     if (F->isEntryPoint()) {
@@ -254,6 +262,17 @@ void BPLFunctionWriter::write() {
       writeSourceLoc(OS, (*i)->getSourceLoc());      
       writeExpr(OS, (*i)->getExpr().get());
       OS << ";\n";
+    }
+
+    for (auto i = F->modifies_begin(), e = F->modifies_end(); i != e; ++i) {
+      OS << "modifies ";
+      writeExpr(OS, (*i)->getExpr().get());
+      OS << ";\n";
+    }
+
+    if (isSpecificationFunction(F->getName())) {
+      OS << "\n";
+      return;
     }
 
     std::string Body;

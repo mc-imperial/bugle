@@ -59,18 +59,18 @@ _DEVICE_QUALIFIER bool __implies(bool expr1, bool expr2);
 #endif
 
 /* Read/write set is non-empty */
-_POINTER_QUERY(read, bool)
-_POINTER_QUERY(write, bool)
+_FUNCTION_FROM_POINTER_TO_TYPE(read, bool)
+_FUNCTION_FROM_POINTER_TO_TYPE(write, bool)
 
 /* Read/write offset */
-_POINTER_QUERY(read_offset, int)
-_POINTER_QUERY(write_offset, int)
+_FUNCTION_FROM_POINTER_TO_TYPE(read_offset, int)
+_FUNCTION_FROM_POINTER_TO_TYPE(write_offset, int)
 
 /* Pointer base */
-_POINTER_QUERY(ptr_base, ptr_base_t);
+_FUNCTION_FROM_POINTER_TO_TYPE(ptr_base, ptr_base_t);
 
 /* Pointer offset */
-_POINTER_QUERY(ptr_offset, int);
+_FUNCTION_FROM_POINTER_TO_TYPE(ptr_offset, int);
     
 /* Read/write set is empty */
 #define __no_read(p) !__read(p)
@@ -78,6 +78,10 @@ _POINTER_QUERY(ptr_offset, int);
 
 #define __read_implies(p, e) __implies(__read(p), e)
 #define __write_implies(p, e) __implies(__write(p), e)
+
+/* Used in specifications to say how a pointer is accessed */
+_FUNCTION_FROM_POINTER_TO_VOID(reads_from);
+_FUNCTION_FROM_POINTER_TO_VOID(writes_to);
     
 #ifdef __OPENCL_VERSION__
 void __array_snapshot_local(__local void* dst, __local void* src);

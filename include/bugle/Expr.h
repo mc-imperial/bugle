@@ -39,6 +39,7 @@ public:
     AccessHasOccurred,
     AccessOffset,
     ArraySnapshot,
+    UnderlyingArray,
     AddNoovfl,
     MemberOf,
 
@@ -520,6 +521,18 @@ public:
   EXPR_KIND(ArraySnapshot)
   ref<Expr> getDst() const { return dst; }
   ref<Expr> getSrc() const { return src; }
+};
+
+class UnderlyingArrayExpr : public Expr {
+  UnderlyingArrayExpr(ref<Expr> array) :
+    Expr(array->getType()), array(array) { }
+  ref<Expr> array;
+
+public:
+  static ref<Expr> create(ref<Expr> array);
+
+  EXPR_KIND(UnderlyingArray)
+  ref<Expr> getArray() const { return array; }
 };
 
 class AddNoovflExpr : public Expr {
