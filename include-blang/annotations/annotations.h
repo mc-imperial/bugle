@@ -164,6 +164,8 @@ void __stdcall __barrier_invariant_binary(bool expr, ...);
 
 unsigned __add_noovfl_unsigned(unsigned x, unsigned y);
 int __add_noovfl_signed(int x, int y);
+
+int __ite(bool b, int x, int y);
     
 #ifdef __cplusplus
 }

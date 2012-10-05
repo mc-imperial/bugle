@@ -96,6 +96,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["bugle_frexp_frac"] = &TranslateFunction::handleFrexpFrac;
     fns["__add_noovfl_unsigned"] = &TranslateFunction::handleAddNoovflUnsigned;
     fns["__add_noovfl_signed"] = &TranslateFunction::handleAddNoovflSigned;
+    fns["__ite"] = &TranslateFunction::handleIte;
     fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_bool"] = &TranslateFunction::handleReturnVal;
@@ -779,6 +780,13 @@ ref<Expr> TranslateFunction::handleAddNoovflSigned(bugle::BasicBlock *BBB,
   BBB->addStmt(new EvalStmt(E));
   return E;
 }
+
+ref<Expr> TranslateFunction::handleIte(bugle::BasicBlock *BBB,
+                                       llvm::CallInst *CI,
+                                       const std::vector<ref<Expr>> &Args) {
+  return IfThenElseExpr::create(BVToBoolExpr::create(Args[0]), Args[1], Args[2]);
+}
+
 
 void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB,
                                     llvm::Instruction *I, ref<Expr> E) {
