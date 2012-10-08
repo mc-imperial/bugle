@@ -11,6 +11,7 @@
 
 #include <bugle.h>
 #include <clc/clc.h>
+#include <opencl_builtins.h>
 
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 
