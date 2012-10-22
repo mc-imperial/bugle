@@ -249,7 +249,9 @@ public:
 /// variables.
 class VarRefExpr : public Expr {
   Var *var;
-  VarRefExpr(Var *var) : Expr(var->getType()), var(var) {}
+  VarRefExpr(Var *var) : Expr(var->getType()), var(var) {
+    preventEvalStmt = true;
+  }
 
 public:
   static ref<Expr> create(Var *var);
