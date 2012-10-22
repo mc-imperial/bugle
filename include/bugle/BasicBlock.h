@@ -20,7 +20,7 @@ public:
     stmts.push_back(stmt);
   }
   EvalStmt *addEvalStmt(ref<Expr> e) {
-    if (e->hasEvalStmt || e->isDerivedFromConstant)
+    if (e->hasEvalStmt || e->preventEvalStmt)
       return 0;
 
     auto ES = new EvalStmt(e);
