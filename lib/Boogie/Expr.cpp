@@ -76,7 +76,7 @@ ref<Expr> ConstantArrayRefExpr::create(llvm::ArrayRef<ref<Expr>> array) {
 #endif
 
   for (auto i = array.begin(), e = array.end(); i != e; ++i)
-    (*i)->isDerivedFromConstant = true;
+    (*i)->preventEvalStmt = true;
 
   return new ConstantArrayRefExpr(array);
 }

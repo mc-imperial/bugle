@@ -122,7 +122,7 @@ public:
   };
 
   unsigned refCount;
-  bool isDerivedFromConstant:1, hasEvalStmt:1;
+  bool preventEvalStmt:1, hasEvalStmt:1;
 
   static ref<Expr> createPtrLt(ref<Expr> lhs, ref<Expr> rhs);
   static ref<Expr> createPtrLe(ref<Expr> lhs, ref<Expr> rhs);
@@ -138,7 +138,7 @@ private:
   Type type;
 
 protected:
-  Expr(Type type) : refCount(0), isDerivedFromConstant(false),
+  Expr(Type type) : refCount(0), preventEvalStmt(false),
                     hasEvalStmt(false), type(type) {}
 
 public:
@@ -249,7 +249,9 @@ public:
 /// variables.
 class VarRefExpr : public Expr {
   Var *var;
-  VarRefExpr(Var *var) : Expr(var->getType()), var(var) {}
+  VarRefExpr(Var *var) : Expr(var->getType()), var(var) {
+    preventEvalStmt = true;
+  }
 
 public:
   static ref<Expr> create(Var *var);
