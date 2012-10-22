@@ -198,7 +198,7 @@ void BPLFunctionWriter::writeSourceLoc(llvm::raw_ostream &OS,
 void BPLFunctionWriter::writeSourceLocMarker(llvm::raw_ostream &OS,
                                        const SourceLoc *sourceloc) {
   if (sourceloc) {
-    OS << "assert {:sourceloc}";
+    OS << "  assert {:sourceloc}";
     writeSourceLoc(OS, sourceloc);
     OS << "true;\n";
     OS << "  ";
