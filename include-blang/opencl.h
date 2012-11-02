@@ -177,6 +177,30 @@ __axiom(get_num_groups(2) == 1);
 __axiom(get_num_groups(2) == 1);
 #endif
 
+#ifdef __LOCAL_SIZE_0
+__axiom(get_local_size(0) == __LOCAL_SIZE_0)
+#endif
+
+#ifdef __LOCAL_SIZE_1
+__axiom(get_local_size(1) == __LOCAL_SIZE_1)
+#endif
+
+#ifdef __LOCAL_SIZE_2
+__axiom(get_local_size(2) == __LOCAL_SIZE_2)
+#endif
+
+#ifdef __NUM_GROUPS_0
+__axiom(get_num_groups(0) == __NUM_GROUPS_0)
+#endif
+
+#ifdef __NUM_GROUPS_1
+__axiom(get_num_groups(1) == __NUM_GROUPS_1)
+#endif
+
+#ifdef __NUM_GROUPS_2
+__axiom(get_num_groups(2) == __NUM_GROUPS_2)
+#endif
+
 
 
 #endif
