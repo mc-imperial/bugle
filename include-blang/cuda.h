@@ -151,6 +151,31 @@ __axiom(gridDim.z == 1);
 __axiom(gridDim.z == 1);
 #endif
 
+#ifdef __BLOCK_DIM_0
+__axiom(blockDim.x == __BLOCK_DIM_0)
+#endif
+
+#ifdef __BLOCK_DIM_1
+__axiom(blockDim.y == __BLOCK_DIM_1)
+#endif
+
+#ifdef __BLOCK_DIM_2
+__axiom(blockDim.z == __BLOCK_DIM_2)
+#endif
+
+#ifdef __GRID_DIM_0
+__axiom(gridDim.x == __GRID_DIM_0)
+#endif
+
+#ifdef __GRID_DIM_1
+__axiom(gridDim.y == __GRID_DIM_1)
+#endif
+
+#ifdef __GRID_DIM_2
+__axiom(gridDim.z == __GRID_DIM_2)
+#endif
+
+
 
 
 #endif
