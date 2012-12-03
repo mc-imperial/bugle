@@ -130,32 +130,9 @@ _DEVICE_QUALIFIER bool __other_bool(bool expr);
 #define __axiom(expr) bool __axiom_inner(__axiom, __COUNTER__) () { return expr; }
 #endif
 
-
-
 /* Barrier invariants */
 
-#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
-
-#define __barrier_invariant(X, ...) !!! Barrier invariants currently only supported for 1D thread groups !!!    
-#define __barrier_invariant_binary(X, ...) !!! Barrier invariants currently only supported for 1D thread groups !!!    
-
-#else
-    
-void __stdcall __barrier_invariant(bool expr, ...);
-    
-#define __barrier_invariant(X, ...) \
-    __non_temporal_loads_begin(), \
-    __barrier_invariant(X, __VA_ARGS__), \
-    __non_temporal_loads_end()
-
-void __stdcall __barrier_invariant_binary(bool expr, ...);
-    
-#define __barrier_invariant_binary(X, ...) \
-    __non_temporal_loads_begin(), \
-    __barrier_invariant_binary(X, __VA_ARGS__), \
-    __non_temporal_loads_end()
-
-#endif
+#include "barrier_invariants.h"
     
 /* Helpers */
 

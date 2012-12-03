@@ -6,7 +6,7 @@
 #include "klee/util/GetElementPtrTypeIterator.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
-#include "llvm/Target/TargetData.h"
+#include "llvm/DataLayout.h"
 #include <functional>
 #include <set>
 
@@ -40,7 +40,7 @@ public:
 private:
   bugle::Module *BM;
   llvm::Module *M;
-  llvm::TargetData TD;
+  llvm::DataLayout TD;
   SourceLanguage SL;
 
   llvm::DenseMap<llvm::Function *, bugle::Function *> FunctionMap;

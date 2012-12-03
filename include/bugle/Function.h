@@ -15,7 +15,7 @@ class Function {
   std::string name;
   std::set<std::string> attributes;
   bool entryPoint;
-  OwningPtrVector<SpecificationInfo> requires, ensures, modifies;
+  OwningPtrVector<SpecificationInfo> requires, globalRequires, ensures, globalEnsures, modifies;
   OwningPtrVector<BasicBlock> blocks;
   OwningPtrVector<Var> args, returns, locals;
   UniqueNameSet bbNames, varNames;
@@ -48,8 +48,14 @@ public:
   void addRequires(ref<Expr> r, SourceLoc *s) {
     requires.push_back(new SpecificationInfo(r.get(), s));
   }
+  void addGlobalRequires(ref<Expr> r, SourceLoc *s) {
+    globalRequires.push_back(new SpecificationInfo(r.get(), s));
+  }
   void addEnsures(ref<Expr> e, SourceLoc *s) {
     ensures.push_back(new SpecificationInfo(e.get(), s));
+  }
+  void addGlobalEnsures(ref<Expr> e, SourceLoc *s) {
+    globalEnsures.push_back(new SpecificationInfo(e.get(), s));
   }
   void addModifies(ref<Expr> e, SourceLoc *s) {
     modifies.push_back(new SpecificationInfo(e.get(), s));
@@ -101,11 +107,25 @@ public:
     return requires.end();
   }
 
+  OwningPtrVector<SpecificationInfo>::const_iterator globalRequires_begin() const {
+    return globalRequires.begin();
+  }
+  OwningPtrVector<SpecificationInfo>::const_iterator globalRequires_end() const {
+    return globalRequires.end();
+  }
+
   OwningPtrVector<SpecificationInfo>::const_iterator ensures_begin() const {
     return ensures.begin();
   }
   OwningPtrVector<SpecificationInfo>::const_iterator ensures_end() const {
     return ensures.end();
+  }
+
+  OwningPtrVector<SpecificationInfo>::const_iterator globalEnsures_begin() const {
+    return globalEnsures.begin();
+  }
+  OwningPtrVector<SpecificationInfo>::const_iterator globalEnsures_end() const {
+    return globalEnsures.end();
   }
 
   OwningPtrVector<SpecificationInfo>::const_iterator modifies_begin() const {

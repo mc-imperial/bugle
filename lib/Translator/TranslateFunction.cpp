@@ -78,14 +78,17 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__assert"] = &TranslateFunction::handleAssert;
     fns["__invariant"] = &TranslateFunction::handleAssert;
     fns["__global_assert"] = &TranslateFunction::handleGlobalAssert;
+    fns["__global_invariant"] = &TranslateFunction::handleGlobalAssert;
     fns["__non_temporal_loads_begin"] = &TranslateFunction::handleNonTemporalLoadsBegin;
     fns["__non_temporal_loads_end"] = &TranslateFunction::handleNonTemporalLoadsEnd;
     fns["bugle_assume"] = &TranslateFunction::handleAssume;
     fns["__assert_fail"] = &TranslateFunction::handleAssertFail;
     fns["bugle_requires"] = &TranslateFunction::handleRequires;
     fns["__requires"] = &TranslateFunction::handleRequires;
+    fns["__global_requires"] = &TranslateFunction::handleGlobalRequires;
     fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
     fns["__ensures"] = &TranslateFunction::handleEnsures;
+    fns["__global_ensures"] = &TranslateFunction::handleGlobalEnsures;
     fns["__reads_from"] = &TranslateFunction::handleReadsFrom;
     fns["__reads_from_local"] = &TranslateFunction::handleReadsFrom;
     fns["__reads_from_global"] = &TranslateFunction::handleReadsFrom;
@@ -131,9 +134,19 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__array_snapshot"] = &TranslateFunction::handleArraySnapshot;
     if (SL == TranslateModule::SL_OpenCL ||
         SL == TranslateModule::SL_CUDA) {
-      fns["__barrier_invariant"] = &TranslateFunction::handleBarrierInvariant;
-      fns["__barrier_invariant_binary"] = 
-        &TranslateFunction::handleBarrierInvariantBinary;
+      const unsigned BARRIER_INVARIANT_MAX_ARITY = 20;
+      for(unsigned i = 0; i <= BARRIER_INVARIANT_MAX_ARITY; ++i) {
+        std::string S = "__barrier_invariant_";
+        llvm::raw_string_ostream SS(S);
+        SS << i;
+        fns[SS.str()] = &TranslateFunction::handleBarrierInvariant;
+      }
+      for(unsigned i = 0; i <= BARRIER_INVARIANT_MAX_ARITY; ++i) {
+        std::string S = "__barrier_invariant_binary";
+        llvm::raw_string_ostream SS(S);
+        SS << i;
+        fns[SS.str()] = &TranslateFunction::handleBarrierInvariantBinary;
+      }
     }
     if (SL == TranslateModule::SL_OpenCL) {
       fns["get_local_id"] = &TranslateFunction::handleGetLocalId;
@@ -330,9 +343,9 @@ ref<Expr> TranslateFunction::handleNonTemporalLoadsEnd(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
                                            llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
-  Stmt *assertstmt = new AssertStmt(BoolConstExpr::create(false));
-  addLocToStmt(assertstmt, CI);
-  BBB->addStmt(assertstmt);
+  Stmt *assertStmt = new AssertStmt(BoolConstExpr::create(false));
+  addLocToStmt(assertStmt, CI);
+  BBB->addStmt(assertStmt);
   return 0;
 }
 
@@ -346,7 +359,9 @@ ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleGlobalAssert(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  BBB->addStmt(new GlobalAssertStmt(Expr::createNeZero(Args[0])));
+  Stmt *globalAssertStmt = new GlobalAssertStmt(Expr::createNeZero(Args[0]));
+  addLocToStmt(globalAssertStmt, CI);
+  BBB->addStmt(globalAssertStmt);
   return 0;
 }
 
@@ -357,10 +372,24 @@ ref<Expr> TranslateFunction::handleRequires(bugle::BasicBlock *BBB,
   return 0;
 }
 
+ref<Expr> TranslateFunction::handleGlobalRequires(bugle::BasicBlock *BBB,
+                                           llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  BF->addGlobalRequires(Expr::createNeZero(Args[0]), extractSourceLoc(CI));
+  return 0;
+}
+
 ref<Expr> TranslateFunction::handleEnsures(bugle::BasicBlock *BBB,
                                            llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
   BF->addEnsures(Expr::createNeZero(Args[0]), extractSourceLoc(CI));
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleGlobalEnsures(bugle::BasicBlock *BBB,
+                                           llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  BF->addGlobalEnsures(Expr::createNeZero(Args[0]), extractSourceLoc(CI));
   return 0;
 }
 

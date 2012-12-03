@@ -169,6 +169,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (auto AtS = dyn_cast<GlobalAssertStmt>(S)) {
 	OS << "  assert {:do_not_predicate} ";
+    writeSourceLoc(OS, AtS->getSourceLoc());
     writeExpr(OS, AtS->getPredicate().get());
     OS << ";\n";
   } else if (isa<ReturnStmt>(S)) {
@@ -257,8 +258,22 @@ void BPLFunctionWriter::write() {
       OS << ";\n";
     }
 
+    for (auto i = F->globalRequires_begin(), e = F->globalRequires_end(); i != e; ++i) {
+      OS << "requires {:do_not_predicate} ";
+      writeSourceLoc(OS, (*i)->getSourceLoc());
+      writeExpr(OS, (*i)->getExpr().get());
+      OS << ";\n";
+    }
+
     for (auto i = F->ensures_begin(), e = F->ensures_end(); i != e; ++i) {
       OS << "ensures ";
+      writeSourceLoc(OS, (*i)->getSourceLoc());      
+      writeExpr(OS, (*i)->getExpr().get());
+      OS << ";\n";
+    }
+
+    for (auto i = F->globalEnsures_begin(), e = F->globalEnsures_end(); i != e; ++i) {
+      OS << "ensures {:do_not_predicate} ";
       writeSourceLoc(OS, (*i)->getSourceLoc());      
       writeExpr(OS, (*i)->getExpr().get());
       OS << ";\n";
