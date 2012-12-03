@@ -83,6 +83,7 @@ void BPLModuleWriter::write() {
   }
 
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
+
     OS << "var ";
     for (auto ai = (*i)->attrib_begin(), ae = (*i)->attrib_end(); ai != ae;
          ++ai) {
@@ -92,14 +93,18 @@ void BPLModuleWriter::write() {
        << "]";
     writeType(OS, (*i)->getRangeType());
     OS << ";\n";
-	OS << "var {:race_checking} _READ_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
-	OS << "var {:race_checking} _WRITE_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
-	OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width << "} _READ_OFFSET_$$" << (*i)->getName() << " : bv32;\n";
-	OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width << "} _WRITE_OFFSET_$$" << (*i)->getName() << " : bv32;\n";
-        if (UsesPointers)
-          OS << "const unique $arrayId$$" << (*i)->getName() << " : arrayId;\n";
 
-        OS << "\n";
+    if ((*i)->isGlobalOrGroupShared()) {
+	    OS << "var {:race_checking} _READ_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
+	    OS << "var {:race_checking} _WRITE_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
+	    OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width << "} _READ_OFFSET_$$" << (*i)->getName() << " : bv32;\n";
+	    OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width << "} _WRITE_OFFSET_$$" << (*i)->getName() << " : bv32;\n";
+    }
+
+    if (UsesPointers)
+      OS << "const unique $arrayId$$" << (*i)->getName() << " : arrayId;\n";
+
+    OS << "\n";
   }
 
   if (UsesPointers)

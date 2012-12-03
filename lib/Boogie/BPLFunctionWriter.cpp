@@ -97,7 +97,9 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     } else if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, LE->getArray().get(), 
           [&](GlobalArray *GA) {
-        writeSourceLocMarker(OS, ES->getSourceLoc());
+        if (GA->isGlobalOrGroupShared()) {
+          writeSourceLocMarker(OS, ES->getSourceLoc());
+        }
         assert(LE->getType() == GA->getRangeType());
         OS << "v" << id << " := $$" << GA->getName() << "[";
         writeExpr(OS, LE->getOffset().get());
@@ -123,9 +125,11 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     maybeWriteCaseSplit(OS, SS->getArray().get(), 
         [&](GlobalArray *GA) {
-      writeSourceLocMarker(OS, SS->getSourceLoc());
+      if(GA->isGlobalOrGroupShared()) {
+        writeSourceLocMarker(OS, SS->getSourceLoc());
+      }
       assert(SS->getValue()->getType() == GA->getRangeType());
-      OS << "$$" << GA->getName() << "[";
+      OS << "  $$" << GA->getName() << "[";
       writeExpr(OS, SS->getOffset().get());
       OS << "] := ";
       writeExpr(OS, SS->getValue().get());
@@ -202,7 +206,6 @@ void BPLFunctionWriter::writeSourceLocMarker(llvm::raw_ostream &OS,
     OS << "  assert {:sourceloc}";
     writeSourceLoc(OS, sourceloc);
     OS << "true;\n";
-    OS << "  ";
   }
 }
 

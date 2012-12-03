@@ -19,9 +19,11 @@ _DEVICE_QUALIFIER void __invariant(bool expr);
     
 /* Function precondition */
 _DEVICE_QUALIFIER void __requires(bool expr);
+_DEVICE_QUALIFIER void __global_requires(bool expr);
 
 /* Function postcondition */
 _DEVICE_QUALIFIER void __ensures(bool expr);
+_DEVICE_QUALIFIER void __global_ensures(bool expr);
 
 /* Return value of function, for use in postconditions */
 _DEVICE_QUALIFIER int __return_val_int(void);

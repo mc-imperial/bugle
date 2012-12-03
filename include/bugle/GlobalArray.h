@@ -28,6 +28,14 @@ public:
   std::set<std::string>::const_iterator attrib_end() const {
     return attributes.end();
   }
+
+  bool isGlobalOrGroupShared() const {
+    return (std::find(attrib_begin(), attrib_end(), "global")
+             != attrib_end())
+        || (std::find(attrib_begin(), attrib_end(), "group_shared")
+           != attrib_end());
+  }
+
 };
 
 }
