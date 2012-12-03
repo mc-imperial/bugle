@@ -57,8 +57,8 @@ class TranslateFunction {
   SpecialFnHandler handleNoop, handleAssert, handleAssertFail, handleAssume, 
                    handleGlobalAssert, handleNonTemporalLoadsBegin,
                    handleNonTemporalLoadsEnd, 
-                   handleRequires, handleEnsures, handleGlobalRequires, handleGlobalEnsures,
-                   handleReadsFrom, handleWritesTo,
+                   handleRequires, handleEnsures, handleGlobalRequires, 
+                   handleGlobalEnsures, handleReadsFrom, handleWritesTo,
                    handleAll, handleExclusive, 
                    handleEnabled, handleOtherInt, handleOtherBool, 
                    handleOtherPtrBase, handleOld, handleReturnVal, handleImplies, 
@@ -73,8 +73,8 @@ class TranslateFunction {
                    handleGetImageWidth, handleGetImageHeight;
 
   SpecialFnHandler handleCos, handleExp, handleFabs, handleFloor, handleFrexpExp,
-                   handleFrexpFrac, handleFma, handleSqrt, handleLog, handlePow,
-                   handleSin, handleRsqrt;
+                   handleFrexpFrac, handleFma, handleSqrt, 
+                   handleLog, handlePow, handleSin, handleRsqrt;
 
   static SpecialFnMapTy &initSpecialFunctionMap(
                                             TranslateModule::SourceLanguage SL);

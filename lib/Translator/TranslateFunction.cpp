@@ -142,7 +142,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
         fns[SS.str()] = &TranslateFunction::handleBarrierInvariant;
       }
       for(unsigned i = 0; i <= BARRIER_INVARIANT_MAX_ARITY; ++i) {
-        std::string S = "__barrier_invariant_binary";
+        std::string S = "__barrier_invariant_binary_";
         llvm::raw_string_ostream SS(S);
         SS << i;
         fns[SS.str()] = &TranslateFunction::handleBarrierInvariantBinary;
@@ -172,6 +172,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::exp2] = &TranslateFunction::handleExp;
     ints[Intrinsic::fabs] = &TranslateFunction::handleFabs;
     ints[Intrinsic::fma] = &TranslateFunction::handleFma;
+    ints[Intrinsic::fmuladd] = &TranslateFunction::handleFma;
     ints[Intrinsic::floor] = &TranslateFunction::handleFloor;
     ints[Intrinsic::log2] = &TranslateFunction::handleLog;
     ints[Intrinsic::pow] = &TranslateFunction::handlePow;
