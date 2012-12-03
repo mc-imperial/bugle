@@ -252,17 +252,17 @@ void __barrier_invariant_20(bool expr
   , unsigned int inst_expr_18
   , unsigned int inst_expr_19
 );
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
 ) { __barrier_invariant_0(expr
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
 ) { __barrier_invariant_1(expr
   , inst_expr_0
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
 ) { __barrier_invariant_2(expr
@@ -270,7 +270,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -280,7 +280,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_2
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -292,7 +292,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_3
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -306,7 +306,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_4
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -322,7 +322,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_5
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -340,7 +340,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_6
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -360,7 +360,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_7
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -382,7 +382,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_8
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -406,7 +406,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_9
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -432,7 +432,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_10
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -460,7 +460,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_11
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -490,7 +490,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_12
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -522,7 +522,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_13
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -556,7 +556,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_14
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -592,7 +592,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_15
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -630,7 +630,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_16
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -670,7 +670,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_17
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -712,7 +712,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
   , inst_expr_18
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
   , unsigned int inst_expr_0
   , unsigned int inst_expr_1
   , unsigned int inst_expr_2
@@ -1008,17 +1008,17 @@ void __barrier_invariant_binary_20(bool expr
   , unsigned int inst_expr_18_0, unsigned int inst_expr_18_1
   , unsigned int inst_expr_19_0, unsigned int inst_expr_19_1
 );
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
 ) { __barrier_invariant_binary_0(expr
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
 ) { __barrier_invariant_binary_1(expr
   , inst_expr_0_0, inst_expr_0_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
 ) { __barrier_invariant_binary_2(expr
@@ -1026,7 +1026,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_1_0, inst_expr_1_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1036,7 +1036,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_2_0, inst_expr_2_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1048,7 +1048,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_3_0, inst_expr_3_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1062,7 +1062,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_4_0, inst_expr_4_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1078,7 +1078,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_5_0, inst_expr_5_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1096,7 +1096,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_6_0, inst_expr_6_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1116,7 +1116,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_7_0, inst_expr_7_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1138,7 +1138,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_8_0, inst_expr_8_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1162,7 +1162,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_9_0, inst_expr_9_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1188,7 +1188,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_10_0, inst_expr_10_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1216,7 +1216,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_11_0, inst_expr_11_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1246,7 +1246,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_12_0, inst_expr_12_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1278,7 +1278,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_13_0, inst_expr_13_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1312,7 +1312,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_14_0, inst_expr_14_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1348,7 +1348,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_15_0, inst_expr_15_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1386,7 +1386,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_16_0, inst_expr_16_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1426,7 +1426,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_17_0, inst_expr_17_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
@@ -1468,7 +1468,7 @@ _CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
   , inst_expr_18_0, inst_expr_18_1
     );
 }
-_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr
+static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
   , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
   , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
   , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1

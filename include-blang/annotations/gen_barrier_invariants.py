@@ -24,7 +24,7 @@ def main(argv=None):
     print ");"
 
   for i in range(0, n + 1):
-    print "_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant(bool expr"
+    print "static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr"
     for j in range(0, i):
       print "  , unsigned int inst_expr_" + str(j);
     print ") { __barrier_invariant_" + str(i) + "(expr"
@@ -40,7 +40,7 @@ def main(argv=None):
     print ");"
 
   for i in range(0, n + 1):
-    print "_CLC_INLINE _CLC_OVERLOAD void __barrier_invariant_binary(bool expr"
+    print "static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr"
     for j in range(0, i):
       print "  , unsigned int inst_expr_" + str(j) + "_0, unsigned int inst_expr_" + str(j) + "_1"
     print ") { __barrier_invariant_binary_" + str(i) + "(expr"
