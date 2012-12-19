@@ -211,6 +211,94 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
            << "}//";
       });
     }
+  } else if (auto AAE = dyn_cast<AddAbstractExpr>(E)) {
+    int width = AAE->getFirst()->getType().width;
+
+    std::string addAbstractString;
+    llvm::raw_string_ostream addAbstract(addAbstractString);
+    addAbstract << "BV" << width << "_ADD_ABSTRACT";
+
+    OS << addAbstract.str();
+    
+    if(AAE->getIsPrimed()) {
+      OS << "'";
+    }
+
+    OS << "(";
+    writeExpr(OS, AAE->getFirst().get());
+    OS << ", ";
+    writeExpr(OS, AAE->getSecond().get());
+    OS << ")";
+
+
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+    OS << "function " << addAbstract.str() << "("
+       << "bv" << width << ", "
+       << "bv" << width << ") : "
+       << "bv" << width;
+    });
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+    OS << "function " << addAbstract.str() << "'("
+       << "bv" << width << ", "
+       << "bv" << width << ") : "
+       << "bv" << width;
+    });
+
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+    OS << "axiom (forall x, y: bv" << width << " :: { " << addAbstract.str()
+       << "(x, y) } BV" << width << "_ULE(x, " << addAbstract.str() 
+       << "(x, y)))";
+    });
+
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+    OS << "axiom (forall x, y : bv" << width << " :: { " << addAbstract.str()
+       << "(x, y) } BV" << width << "_ULE(y, " << addAbstract.str()
+       << "(x, y)))";
+    });
+
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+    OS << "axiom (forall x : bv" << width << " :: { " << addAbstract.str()
+       << "(x, 0bv" << width << ") } " << addAbstract.str() << "(x, 0bv" << width
+       << ") == x)";
+    });
+
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+    OS << "axiom (forall x : bv" << width << " :: { " << addAbstract.str() 
+       << "(0bv" << width << ", x) } " << addAbstract.str() << "(0bv" << width
+       << ", x) == x)";
+    });
+
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+    OS << "axiom (forall x, y, z : bv" << width << " :: { " << addAbstract.str()
+       << "'(x, " << addAbstract.str() << "(y, z)) } x != 0bv" << width
+       << " ==> " << addAbstract.str() << "'(x, " << addAbstract.str()
+       << "(y, z)) == " << addAbstract.str() << "'(" << addAbstract.str()
+       << "(x, y), z))";
+    });
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+    OS << "axiom (forall x, y : bv" << width << " :: { " << addAbstract.str()
+       << "'(x, y) } " << addAbstract.str() << "'(x, y) == " 
+       << addAbstract.str() << "(x, y))";
+    });
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+    OS << "axiom (forall x, y, z : bv" << width << " :: { " << addAbstract.str()
+       << "'(" << addAbstract.str() << "(x, y), z) } " << addAbstract.str()
+       << "'(" << addAbstract.str() << "(x, y), z) == " 
+       << addAbstract.str() << "(" << addAbstract.str() << "'(x, y), z))";
+    });
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+    OS << "axiom (forall x, y : bv" << width << " :: { " << addAbstract.str()
+       << "'(0bv" << width << ", " << addAbstract.str() << "(x, y)) } " 
+       << addAbstract.str() << "'(0bv" << width << ", " << addAbstract.str() 
+       << "(x, y)) == " << addAbstract.str() << "'(x, y))";
+    });
+
+    // Write ULE, in case it is not us
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+    OS << "function {:bvbuiltin \"" << "bvule" << "\"} BV"
+       << width << "_" << "ULE" << "(bv" << width
+       << ", bv" << width << ") : bool";
+    });
 
   } else if (auto PLTE = dyn_cast<PtrLtExpr>(E)) {
     OS << "PTR_LT(";
@@ -225,7 +313,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, PLEE->getRHS().get());
     OS << ")";
   } else if (auto IMPLIESE = dyn_cast<ImpliesExpr>(E)) {
-	OS << "(";
+	  OS << "(";
     writeExpr(OS, IMPLIESE->getLHS().get());
     OS << " ==> ";
     writeExpr(OS, IMPLIESE->getRHS().get());

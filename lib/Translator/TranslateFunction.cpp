@@ -99,6 +99,14 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["bugle_frexp_frac"] = &TranslateFunction::handleFrexpFrac;
     fns["__add_noovfl_unsigned"] = &TranslateFunction::handleAddNoovflUnsigned;
     fns["__add_noovfl_signed"] = &TranslateFunction::handleAddNoovflSigned;
+    fns["__add_abstract_char"] = &TranslateFunction::handleAddAbstract;
+    fns["__add_abstract_short"] = &TranslateFunction::handleAddAbstract;
+    fns["__add_abstract_int"] = &TranslateFunction::handleAddAbstract;
+    fns["__add_abstract_long"] = &TranslateFunction::handleAddAbstract;
+    fns["__add_abstract_primed_char"] = &TranslateFunction::handleAddAbstractPrimed;
+    fns["__add_abstract_primed_short"] = &TranslateFunction::handleAddAbstractPrimed;
+    fns["__add_abstract_primed_int"] = &TranslateFunction::handleAddAbstractPrimed;
+    fns["__add_abstract_primed_long"] = &TranslateFunction::handleAddAbstractPrimed;
     fns["__ite"] = &TranslateFunction::handleIte;
     fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
@@ -809,6 +817,18 @@ ref<Expr> TranslateFunction::handleAddNoovflSigned(bugle::BasicBlock *BBB,
   ref<Expr> E = AddNoovflExpr::create(Args[0], Args[1], true);
   BBB->addStmt(new EvalStmt(E));
   return E;
+}
+
+ref<Expr> TranslateFunction::handleAddAbstract(bugle::BasicBlock *BBB,
+                                             llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  return AddAbstractExpr::create(Args[0], Args[1], false);
+}
+
+ref<Expr> TranslateFunction::handleAddAbstractPrimed(bugle::BasicBlock *BBB,
+                                             llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  return AddAbstractExpr::create(Args[0], Args[1], true);
 }
 
 ref<Expr> TranslateFunction::handleIte(bugle::BasicBlock *BBB,

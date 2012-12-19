@@ -145,7 +145,22 @@ unsigned __add_noovfl_unsigned(unsigned x, unsigned y);
 int __add_noovfl_signed(int x, int y);
 
 int __ite(bool b, int x, int y);
-    
+
+#define ADD_ABSTRACT(TYPE) \
+    unsigned TYPE __add_abstract_##TYPE(unsigned TYPE x, unsigned TYPE y); \
+    unsigned TYPE __add_abstract_primed_##TYPE(unsigned TYPE x, unsigned TYPE y); \
+    static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add_abstract(unsigned TYPE x, unsigned TYPE y) { \
+      return __add_abstract_##TYPE(x, y); \
+    } \
+    static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add_abstract_primed(unsigned TYPE x, unsigned TYPE y) { \
+      return __add_abstract_primed_##TYPE(x, y); \
+    }
+
+ADD_ABSTRACT(char)
+ADD_ABSTRACT(short)
+ADD_ABSTRACT(int)
+ADD_ABSTRACT(long)
+
 #ifdef __cplusplus
 }
 #endif

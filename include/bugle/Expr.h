@@ -41,6 +41,7 @@ public:
     ArraySnapshot,
     UnderlyingArray,
     AddNoovfl,
+    AddAbstract,
     MemberOf,
 
     // Unary
@@ -554,6 +555,22 @@ public:
   bool getIsSigned() const { return isSigned; }
 };
 
+class AddAbstractExpr : public Expr {
+  AddAbstractExpr(ref<Expr> first, ref<Expr> second, bool isPrimed) :
+    Expr(Type(Type::BV, first->getType().width)), 
+    first(first), second(second), isPrimed(isPrimed) { }
+  ref<Expr> first;
+  ref<Expr> second;
+  bool isPrimed;
+
+public:
+  static ref<Expr> create(ref<Expr> first, ref<Expr> second, bool isPrimed);
+
+  EXPR_KIND(AddAbstract)
+  ref<Expr> getFirst() const { return first; }
+  ref<Expr> getSecond() const { return second; }
+  bool getIsPrimed() const { return isPrimed; }
+};
 
 }
 
