@@ -66,7 +66,8 @@ class TranslateFunction {
                    handleWriteOffset, handlePtrOffset, handlePtrBase,
                    handleArraySnapshot, handleBarrierInvariant, 
                    handleBarrierInvariantBinary, handleAddNoovflUnsigned,
-                   handleAddNoovflSigned, handleAddAbstract, handleAddAbstractPrimed,
+                   handleAddNoovflSigned, handleAddAbstract, handleAddAbstract1,
+                   handleAddAbstract2, handleAddAbstract3,
                    handleIte;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,

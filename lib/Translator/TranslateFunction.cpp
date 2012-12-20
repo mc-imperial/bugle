@@ -103,10 +103,18 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__add_abstract_short"] = &TranslateFunction::handleAddAbstract;
     fns["__add_abstract_int"] = &TranslateFunction::handleAddAbstract;
     fns["__add_abstract_long"] = &TranslateFunction::handleAddAbstract;
-    fns["__add_abstract_primed_char"] = &TranslateFunction::handleAddAbstractPrimed;
-    fns["__add_abstract_primed_short"] = &TranslateFunction::handleAddAbstractPrimed;
-    fns["__add_abstract_primed_int"] = &TranslateFunction::handleAddAbstractPrimed;
-    fns["__add_abstract_primed_long"] = &TranslateFunction::handleAddAbstractPrimed;
+    fns["__add_abstract_char_1"] = &TranslateFunction::handleAddAbstract1;
+    fns["__add_abstract_short_1"] = &TranslateFunction::handleAddAbstract1;
+    fns["__add_abstract_int_1"] = &TranslateFunction::handleAddAbstract1;
+    fns["__add_abstract_long_1"] = &TranslateFunction::handleAddAbstract1;
+    fns["__add_abstract_char_2"] = &TranslateFunction::handleAddAbstract2;
+    fns["__add_abstract_short_2"] = &TranslateFunction::handleAddAbstract2;
+    fns["__add_abstract_int_2"] = &TranslateFunction::handleAddAbstract2;
+    fns["__add_abstract_long_2"] = &TranslateFunction::handleAddAbstract2;
+    fns["__add_abstract_char_3"] = &TranslateFunction::handleAddAbstract3;
+    fns["__add_abstract_short_3"] = &TranslateFunction::handleAddAbstract3;
+    fns["__add_abstract_int_3"] = &TranslateFunction::handleAddAbstract3;
+    fns["__add_abstract_long_3"] = &TranslateFunction::handleAddAbstract3;
     fns["__ite"] = &TranslateFunction::handleIte;
     fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
@@ -822,13 +830,25 @@ ref<Expr> TranslateFunction::handleAddNoovflSigned(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleAddAbstract(bugle::BasicBlock *BBB,
                                              llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
-  return AddAbstractExpr::create(Args[0], Args[1], false);
+  return AddAbstractExpr::create(Args[0], Args[1], 0);
 }
 
-ref<Expr> TranslateFunction::handleAddAbstractPrimed(bugle::BasicBlock *BBB,
+ref<Expr> TranslateFunction::handleAddAbstract1(bugle::BasicBlock *BBB,
                                              llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
-  return AddAbstractExpr::create(Args[0], Args[1], true);
+  return AddAbstractExpr::create(Args[0], Args[1], 1);
+}
+
+ref<Expr> TranslateFunction::handleAddAbstract2(bugle::BasicBlock *BBB,
+                                             llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  return AddAbstractExpr::create(Args[0], Args[1], 2);
+}
+
+ref<Expr> TranslateFunction::handleAddAbstract3(bugle::BasicBlock *BBB,
+                                             llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  return AddAbstractExpr::create(Args[0], Args[1], 3);
 }
 
 ref<Expr> TranslateFunction::handleIte(bugle::BasicBlock *BBB,

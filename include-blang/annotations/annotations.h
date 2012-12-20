@@ -148,12 +148,20 @@ int __ite(bool b, int x, int y);
 
 #define ADD_ABSTRACT(TYPE) \
     unsigned TYPE __add_abstract_##TYPE(unsigned TYPE x, unsigned TYPE y); \
-    unsigned TYPE __add_abstract_primed_##TYPE(unsigned TYPE x, unsigned TYPE y); \
+    unsigned TYPE __add_abstract_1_##TYPE(unsigned TYPE x, unsigned TYPE y); \
+    unsigned TYPE __add_abstract_2_##TYPE(unsigned TYPE x, unsigned TYPE y); \
+    unsigned TYPE __add_abstract_3_##TYPE(unsigned TYPE x, unsigned TYPE y); \
     static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add_abstract(unsigned TYPE x, unsigned TYPE y) { \
       return __add_abstract_##TYPE(x, y); \
     } \
-    static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add_abstract_primed(unsigned TYPE x, unsigned TYPE y) { \
-      return __add_abstract_primed_##TYPE(x, y); \
+    static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add_abstract_1(unsigned TYPE x, unsigned TYPE y) { \
+      return __add_abstract_1_##TYPE(x, y); \
+    } \
+    static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add_abstract_2(unsigned TYPE x, unsigned TYPE y) { \
+      return __add_abstract_2_##TYPE(x, y); \
+    } \
+    static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add_abstract_3(unsigned TYPE x, unsigned TYPE y) { \
+      return __add_abstract_3_##TYPE(x, y); \
     }
 
 ADD_ABSTRACT(char)

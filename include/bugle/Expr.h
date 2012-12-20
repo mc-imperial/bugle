@@ -556,20 +556,21 @@ public:
 };
 
 class AddAbstractExpr : public Expr {
-  AddAbstractExpr(ref<Expr> first, ref<Expr> second, bool isPrimed) :
+  AddAbstractExpr(ref<Expr> first, ref<Expr> second, unsigned level) :
     Expr(Type(Type::BV, first->getType().width)), 
-    first(first), second(second), isPrimed(isPrimed) { }
+    first(first), second(second), level(level) { }
   ref<Expr> first;
   ref<Expr> second;
-  bool isPrimed;
+  unsigned level;
 
 public:
-  static ref<Expr> create(ref<Expr> first, ref<Expr> second, bool isPrimed);
+  static ref<Expr> create(ref<Expr> first, ref<Expr> second, unsigned level);
 
   EXPR_KIND(AddAbstract)
   ref<Expr> getFirst() const { return first; }
   ref<Expr> getSecond() const { return second; }
-  bool getIsPrimed() const { return isPrimed; }
+  bool getLevel() const { return level; }
+  static const unsigned maxLevel = 3;
 };
 
 }

@@ -869,9 +869,10 @@ ref<Expr> AddNoovflExpr::create(ref<Expr> first, ref<Expr> second,
 }
 
 ref<Expr> AddAbstractExpr::create(ref<Expr> first, ref<Expr> second,
-    bool isPrimed) {
+    unsigned level) {
   assert(first->getType().isKind(Type::BV));
   assert(second->getType().isKind(Type::BV));
   assert(first->getType().width == second->getType().width);
-  return new AddAbstractExpr(first, second, isPrimed);
+  assert(level <= AddAbstractExpr::maxLevel);
+  return new AddAbstractExpr(first, second, level);
 }
