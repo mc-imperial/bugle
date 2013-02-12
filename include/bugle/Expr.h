@@ -38,9 +38,11 @@ public:
     Havoc,
     AccessHasOccurred,
     AccessOffset,
+    NotAccessed,
     ArraySnapshot,
     UnderlyingArray,
     AddNoovfl,
+    AddNoovflPredicate,
     AddAbstract,
     MemberOf,
 
@@ -512,6 +514,17 @@ public:
   std::string getAccessKind() { return isWrite ? "WRITE" : "READ"; }
 };
 
+class NotAccessedExpr : public Expr {
+  NotAccessedExpr(ref<Expr> array) : Expr(Type(Type::BV, 32)), array(array) {}
+  ref<Expr> array;
+
+public:
+  static ref<Expr> create(ref<Expr> array);
+
+  EXPR_KIND(NotAccessed)
+  ref<Expr> getArray() const { return array; }
+};
+
 class ArraySnapshotExpr : public Expr {
   ArraySnapshotExpr(ref<Expr> dst, ref<Expr> src) :
     Expr(Type::BV), dst(dst), src(src) { }
@@ -553,6 +566,18 @@ public:
   ref<Expr> getFirst() const { return first; }
   ref<Expr> getSecond() const { return second; }
   bool getIsSigned() const { return isSigned; }
+};
+
+class AddNoovflPredicateExpr : public Expr {
+  std::vector<ref<Expr>> exprs;
+  AddNoovflPredicateExpr(const std::vector<ref<Expr>> &exprs) :
+    Expr(Type(Type::BV, 1)), exprs(exprs) { }
+
+public:
+  static ref<Expr> create(const std::vector<ref<Expr>> &exprs);
+
+  EXPR_KIND(AddNoovflPredicate)
+  const std::vector<ref<Expr>> &getExprs() const { return exprs; }
 };
 
 class AddAbstractExpr : public Expr {

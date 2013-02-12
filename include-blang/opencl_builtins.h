@@ -55,9 +55,6 @@ _FLOAT_UNARY_MACRO(acos);
 _FLOAT_BINARY_MACRO(atan2);
 _FLOAT_UNARY_MACRO(cbrt);
 
-#define floor __clc_floor
-_FLOAT_UNARY_MACRO(floor);
-
 #define fmax __clc_fmax
 _FLOAT_BINARY_MACRO(fmax);
 

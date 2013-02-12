@@ -99,6 +99,7 @@ void BPLModuleWriter::write() {
 	    OS << "var {:race_checking} _WRITE_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
 	    OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width << "} _READ_OFFSET_$$" << (*i)->getName() << " : bv32;\n";
 	    OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width << "} _WRITE_OFFSET_$$" << (*i)->getName() << " : bv32;\n";
+	    OS << "var {:check_access} _NOT_ACCESSED_$$" << (*i)->getName() << " : bv" << M->getPointerWidth() << ";\n";
     }
 
     if (UsesPointers)

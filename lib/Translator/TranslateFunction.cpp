@@ -97,8 +97,33 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__writes_to_global"] = &TranslateFunction::handleWritesTo;
     fns["bugle_frexp_exp"] = &TranslateFunction::handleFrexpExp;
     fns["bugle_frexp_frac"] = &TranslateFunction::handleFrexpFrac;
-    fns["__add_noovfl_unsigned"] = &TranslateFunction::handleAddNoovflUnsigned;
-    fns["__add_noovfl_signed"] = &TranslateFunction::handleAddNoovflSigned;
+    fns["__add_noovfl_char"] = &TranslateFunction::handleAddNoovflSigned;
+    fns["__add_noovfl_short"] = &TranslateFunction::handleAddNoovflSigned;
+    fns["__add_noovfl_int"] = &TranslateFunction::handleAddNoovflSigned;
+    fns["__add_noovfl_long"] = &TranslateFunction::handleAddNoovflSigned;
+    fns["__add_noovfl_unsigned_char"] = &TranslateFunction::handleAddNoovflUnsigned;
+    fns["__add_noovfl_unsigned_short"] = &TranslateFunction::handleAddNoovflUnsigned;
+    fns["__add_noovfl_unsigned_int"] = &TranslateFunction::handleAddNoovflUnsigned;
+    fns["__add_noovfl_unsigned_long"] = &TranslateFunction::handleAddNoovflUnsigned;
+    const unsigned NOOVFL_PREDICATE_MAX_ARITY = 20;
+    const std::string tys[] = { "char", "short", "int", "long" };
+    for(unsigned j = 0; j < 4; ++j) {
+      std::string t = tys[j];
+      for(unsigned i = 0; i <= NOOVFL_PREDICATE_MAX_ARITY; ++i) {
+        std::string S = "__add_noovfl_unsigned_";
+        llvm::raw_string_ostream SS(S);
+        SS << t << "_" << i;
+        fns[SS.str()] = &TranslateFunction::handleAddNoovflPredicate;
+      }
+    }
+    fns["__add_char"] = &TranslateFunction::handleAdd;
+    fns["__add_short"] = &TranslateFunction::handleAdd;
+    fns["__add_int"] = &TranslateFunction::handleAdd;
+    fns["__add_long"] = &TranslateFunction::handleAdd;
+    fns["__add_unsigned_char"] = &TranslateFunction::handleAdd;
+    fns["__add_unsigned_short"] = &TranslateFunction::handleAdd;
+    fns["__add_unsigned_int"] = &TranslateFunction::handleAdd;
+    fns["__add_unsigned_long"] = &TranslateFunction::handleAdd;
     fns["__add_abstract_char"] = &TranslateFunction::handleAddAbstract;
     fns["__add_abstract_short"] = &TranslateFunction::handleAddAbstract;
     fns["__add_abstract_int"] = &TranslateFunction::handleAddAbstract;
@@ -115,7 +140,14 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__add_abstract_short_3"] = &TranslateFunction::handleAddAbstract3;
     fns["__add_abstract_int_3"] = &TranslateFunction::handleAddAbstract3;
     fns["__add_abstract_long_3"] = &TranslateFunction::handleAddAbstract3;
-    fns["__ite"] = &TranslateFunction::handleIte;
+    fns["__ite_char"] = &TranslateFunction::handleIte;
+    fns["__ite_short"] = &TranslateFunction::handleIte;
+    fns["__ite_int"] = &TranslateFunction::handleIte;
+    fns["__ite_long"] = &TranslateFunction::handleIte;
+    fns["__ite_unsigned_char"] = &TranslateFunction::handleIte;
+    fns["__ite_unsigned_short"] = &TranslateFunction::handleIte;
+    fns["__ite_unsigned_int"] = &TranslateFunction::handleIte;
+    fns["__ite_unsigned_long"] = &TranslateFunction::handleIte;
     fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_bool"] = &TranslateFunction::handleReturnVal;
@@ -139,6 +171,9 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__write_offset_local"] = &TranslateFunction::handleWriteOffset;
     fns["__write_offset_global"] = &TranslateFunction::handleWriteOffset;
     fns["__write_offset"] = &TranslateFunction::handleWriteOffset;
+    fns["__not_accessed_local"] = &TranslateFunction::handleNotAccessed;
+    fns["__not_accessed_global"] = &TranslateFunction::handleNotAccessed;
+    fns["__not_accessed"] = &TranslateFunction::handleNotAccessed;
     fns["__ptr_base_local"] = &TranslateFunction::handlePtrBase;
     fns["__ptr_base_global"] = &TranslateFunction::handlePtrBase;
     fns["__ptr_base"] = &TranslateFunction::handlePtrBase;
@@ -541,6 +576,14 @@ ref<Expr> TranslateFunction::handlePtrBase(bugle::BasicBlock *BBB,
   return ArrayIdExpr::create(Args[0], TM->defaultRange());
 }
 
+ref<Expr> TranslateFunction::handleNotAccessed(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  ref<Expr> result = NotAccessedExpr::create(arrayIdExpr);
+  return result;
+}
+
 ref<Expr> TranslateFunction::handleArraySnapshot(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
@@ -825,6 +868,18 @@ ref<Expr> TranslateFunction::handleAddNoovflSigned(bugle::BasicBlock *BBB,
   ref<Expr> E = AddNoovflExpr::create(Args[0], Args[1], true);
   BBB->addStmt(new EvalStmt(E));
   return E;
+}
+
+ref<Expr> TranslateFunction::handleAddNoovflPredicate(bugle::BasicBlock *BBB,
+                                             llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  return AddNoovflPredicateExpr::create(Args);
+}
+
+ref<Expr> TranslateFunction::handleAdd(bugle::BasicBlock *BBB,
+                                             llvm::CallInst *CI,
+                                           const std::vector<ref<Expr>> &Args) {
+  return BVAddExpr::create(Args[0], Args[1]);
 }
 
 ref<Expr> TranslateFunction::handleAddAbstract(bugle::BasicBlock *BBB,

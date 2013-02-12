@@ -6,6 +6,8 @@
 #include "bugle/GlobalArray.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
+#include <cmath>
+#include <sstream>
 
 using namespace bugle;
 
@@ -208,9 +210,55 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
            << "  assume BV" << (width + 1) << "_ADD(0bv1++x, 0bv1++y)["
            << (width + 1) << ":" << width << "] == 0bv1;\n"
            << "  z := BV" << width << "_ADD(x, y);\n"
-           << "}//";
-      });
+           << "}";
+      }, false);
     }
+  } else if (auto ANOVPE = dyn_cast<AddNoovflPredicateExpr>(E)) {
+    auto exprs = ANOVPE->getExprs();
+    int n = exprs.size();
+    int width = exprs[0]->getType().width;
+    OS << "__add_noovfl_" << n << "(";
+    for (auto b = exprs.begin(), i = b, e = exprs.end(); i != e; ++i) {
+      OS << (i != b ? ", " : "");
+      writeExpr(OS, i->get());
+    }
+    OS << ")";
+
+    int b = std::ceil(std::log((float)n) / std::log(2.0));
+    std::stringstream ss;
+    ss << "0bv" << b << "++v0";
+    std::string lhs = ss.str();
+    for (int i=1; i<n; ++i) {
+      std::stringstream ss;
+      ss << "BV" << (width+b) << "_ADD("
+         << lhs
+         << ", 0bv" << b << "++v" << i << ")";
+      lhs = ss.str();
+    }
+
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "function {:bvbuiltin \"bvadd\"} BV"
+          << (width + b)
+          << "_" << "ADD" << "(bv" << (width + b)
+          << ", bv" << (width + b)
+          << ") : bv" << (width + b);
+    });
+
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "function __add_noovfl_" << n << "(";
+      for (int i=0; i<n; ++i) {
+        OS << (i > 0 ? ", " : "") << " v" << i << ":" << "bv" << width;
+      }
+      OS << ") : bv1 {";
+      if (n == 1) {
+        OS << "1bv1";
+      } else {
+        OS << "if " << lhs << "[" << width+b << ":" << width << "] == 0bv" << b
+           << " then 1bv1"
+           << " else 0bv1";
+      }
+      OS << "}";
+    }, false);
   } else if (auto AAE = dyn_cast<AddAbstractExpr>(E)) {
     int width = AAE->getFirst()->getType().width;
 
@@ -242,8 +290,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
          << "bv" << width;
       });
     }
-
-
   } else if (auto PLTE = dyn_cast<PtrLtExpr>(E)) {
     OS << "PTR_LT(";
     writeExpr(OS, PLTE->getLHS().get());
@@ -266,6 +312,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeAccessLoggingVar(OS, AHOE->getArray().get(), "HAS_OCCURRED", AHOE->getAccessKind(), "false");
   } else if (auto AOE = dyn_cast<AccessOffsetExpr>(E)) {
     writeAccessLoggingVar(OS, AOE->getArray().get(), "OFFSET", AOE->getAccessKind(), "0bv32");
+  } else if (auto NAE = dyn_cast<NotAccessedExpr>(E)) {
+    if (auto GARE = dyn_cast<GlobalArrayRefExpr>(NAE->getArray().get())) {
+      OS << "_NOT_ACCESSED_$$" << GARE->getArray()->getName();
+    } else {
+      assert(0 && "NotAccessedExpr must have array name argument");
+    }
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
     case Expr::BVToPtr:

@@ -64,10 +64,13 @@ class TranslateFunction {
                    handleOtherPtrBase, handleOld, handleReturnVal, handleImplies, 
                    handleReadHasOccurred, handleWriteHasOccurred, handleReadOffset, 
                    handleWriteOffset, handlePtrOffset, handlePtrBase,
+                   handleNotAccessed,
                    handleArraySnapshot, handleBarrierInvariant, 
-                   handleBarrierInvariantBinary, handleAddNoovflUnsigned,
-                   handleAddNoovflSigned, handleAddAbstract, handleAddAbstract1,
-                   handleAddAbstract2, handleAddAbstract3,
+                   handleBarrierInvariantBinary,
+                   handleAddNoovflUnsigned, handleAddNoovflSigned,
+                   handleAddNoovflPredicate,
+                   handleAdd, handleAddAbstract, 
+                   handleAddAbstract1, handleAddAbstract2, handleAddAbstract3,
                    handleIte;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
