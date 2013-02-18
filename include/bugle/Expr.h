@@ -594,7 +594,7 @@ public:
   EXPR_KIND(AddAbstract)
   ref<Expr> getFirst() const { return first; }
   ref<Expr> getSecond() const { return second; }
-  bool getLevel() const { return level; }
+  unsigned getLevel() const { return level; }
   static const unsigned maxLevel = 3;
 };
 

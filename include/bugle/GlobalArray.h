@@ -12,10 +12,12 @@ class GlobalArray {
   std::string name;
   Type rangeType;
   std::set<std::string> attributes;
+  bool notAccessedExpr;
 
 public:
+
   GlobalArray(const std::string &name, Type rangeType)
-    : name(name), rangeType(rangeType) {}
+    : name(name), rangeType(rangeType), notAccessedExpr(false) {}
   const std::string &getName() const { return name; }
   Type getRangeType() const { return rangeType; }
   void addAttribute(const std::string &attrib) {
@@ -34,6 +36,13 @@ public:
              != attrib_end())
         || (std::find(attrib_begin(), attrib_end(), "group_shared")
            != attrib_end());
+  }
+
+  void setNotAccessedExpr() {
+    notAccessedExpr = true;
+  }
+  bool getNotAccessedExpr() const {
+    return notAccessedExpr;
   }
 
 };
