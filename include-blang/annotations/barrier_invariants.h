@@ -17,4 +17,9 @@
     __barrier_invariant_binary(X, __VA_ARGS__), \
     __non_temporal_loads_end()
 
+#define __read_permission(X) \
+    { \
+        void* volatile __read_permission_temp = (void*)X;       \
+    }
+
 #endif
