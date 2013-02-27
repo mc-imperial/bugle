@@ -15,6 +15,8 @@
 
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 
+#include "annotations/annotations.h"
+
 /* Images */
 typedef __global void *image2d_t;
 typedef __global void *image3d_t;
@@ -33,42 +35,56 @@ typedef unsigned int sampler_t;
 
 #pragma OPENCL EXTENSION cl_clang_storage_class_specifiers: enable
 
+#define __MAX_VALUES_PER_COORD (1<<12)
+
 _CLC_INLINE _CLC_OVERLOAD float4 read_imagef(image2d_t image, sampler_t sampler, uint2 coord) {
   __global float4 *img = image;
-  return img[coord.y*(2<<16) + coord.x];
+  __assert(coord.x < __MAX_VALUES_PER_COORD);
+  __assert(coord.y < __MAX_VALUES_PER_COORD);
+  return img[coord.y*__MAX_VALUES_PER_COORD + coord.x];
 }
 _CLC_INLINE _CLC_OVERLOAD float4 read_imagef(image2d_t image, sampler_t sampler, int2 coord) {
   __global float4 *img = image;
-  return img[coord.y*(2<<16) + coord.x];
+  __assert(coord.x < __MAX_VALUES_PER_COORD);
+  __assert(coord.y < __MAX_VALUES_PER_COORD);
+  return img[coord.y*__MAX_VALUES_PER_COORD + coord.x];
 }
 _CLC_INLINE int4 read_imagei(image2d_t image, sampler_t sampler, uint2 coord) {
   __global int4 *img = image;
-  return img[coord.y*(2<<16) + coord.x];
+  __assert(coord.x < __MAX_VALUES_PER_COORD);
+  __assert(coord.y < __MAX_VALUES_PER_COORD);
+  return img[coord.y*__MAX_VALUES_PER_COORD + coord.x];
 }
 _CLC_INLINE uint4 read_imageui(image2d_t image, sampler_t sampler, uint2 coord) {
   __global uint4 *img = image;
-  return img[coord.y*(2<<16) + coord.x];
+  __assert(coord.x < __MAX_VALUES_PER_COORD);
+  __assert(coord.y < __MAX_VALUES_PER_COORD);
+  return img[coord.y*__MAX_VALUES_PER_COORD + coord.x];
 }
 
 _CLC_INLINE void write_imagef(image2d_t image, uint2 coord, float4 color) {
   __global float4 *img = image;
-  img[coord.y*(2<<16) + coord.x] = color;
+  __assert(coord.x < __MAX_VALUES_PER_COORD);
+  __assert(coord.y < __MAX_VALUES_PER_COORD);
+  img[coord.y*__MAX_VALUES_PER_COORD + coord.x] = color;
 }
 _CLC_INLINE void write_imagei(image2d_t image, uint2 coord, int4 color) {
   __global int4 *img = image;
-  img[coord.y*(2<<16) + coord.x] = color;
+  __assert(coord.x < __MAX_VALUES_PER_COORD);
+  __assert(coord.y < __MAX_VALUES_PER_COORD);
+  img[coord.y*__MAX_VALUES_PER_COORD + coord.x] = color;
 }
 _CLC_INLINE void write_imageui(image2d_t image, uint2 coord, uint4 color) {
   __global uint4 *img = image;
-  img[coord.y*(2<<16) + coord.x] = color;
+  __assert(coord.x < __MAX_VALUES_PER_COORD);
+  __assert(coord.y < __MAX_VALUES_PER_COORD);
+  img[coord.y*__MAX_VALUES_PER_COORD + coord.x] = color;
 }
 
 #pragma OPENCL EXTENSION cl_clang_storage_class_specifiers: disable
 
 int get_image_height (image2d_t image);
 int get_image_width (image2d_t image);
-
-#include "annotations/annotations.h"
 
 // Must define a dimension
 
