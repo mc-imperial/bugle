@@ -1,6 +1,8 @@
 #ifndef BUGLE_H
 #define BUGLE_H
 
+#pragma GCC diagnostic error "-Wimplicit-function-declaration"
+
 #include <device_qualifier.h>
 
 #ifdef __cplusplus
