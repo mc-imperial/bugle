@@ -11,12 +11,18 @@ _DEVICE_QUALIFIER void __non_temporal_loads_end(void);
     
 /* Loop invariant */
 _DEVICE_QUALIFIER void __invariant(bool expr);
+_DEVICE_QUALIFIER void __global_invariant(bool expr);
 
 #define __invariant(X) \
     __non_temporal_loads_begin(), \
     __invariant(X), \
     __non_temporal_loads_end()
-    
+
+#define __global_invariant(X) \
+    __non_temporal_loads_begin(), \
+    __global_invariant(X), \
+    __non_temporal_loads_end()
+
 /* Function precondition */
 _DEVICE_QUALIFIER void __requires(bool expr);
 _DEVICE_QUALIFIER void __global_requires(bool expr);
@@ -181,33 +187,6 @@ ITE_DECL(long)
 
 #undef ITE_DECL
 
-/* Abstract add */
-
-#define ADD_ABSTRACT(TYPE) \
-    _DEVICE_QUALIFIER unsigned TYPE __add_abstract_##TYPE(unsigned TYPE x, unsigned TYPE y); \
-    _DEVICE_QUALIFIER unsigned TYPE __add_abstract_1_##TYPE(unsigned TYPE x, unsigned TYPE y); \
-    _DEVICE_QUALIFIER unsigned TYPE __add_abstract_2_##TYPE(unsigned TYPE x, unsigned TYPE y); \
-    _DEVICE_QUALIFIER unsigned TYPE __add_abstract_3_##TYPE(unsigned TYPE x, unsigned TYPE y); \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add_abstract(unsigned TYPE x, unsigned TYPE y) { \
-      return __add_abstract_##TYPE(x, y); \
-    } \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add_abstract_1(unsigned TYPE x, unsigned TYPE y) { \
-      return __add_abstract_1_##TYPE(x, y); \
-    } \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add_abstract_2(unsigned TYPE x, unsigned TYPE y) { \
-      return __add_abstract_2_##TYPE(x, y); \
-    } \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add_abstract_3(unsigned TYPE x, unsigned TYPE y) { \
-      return __add_abstract_3_##TYPE(x, y); \
-    }
-
-ADD_ABSTRACT(char)
-ADD_ABSTRACT(short)
-ADD_ABSTRACT(int)
-ADD_ABSTRACT(long)
-
-#undef ADD_ABSTRACT
-
 /* Addition */
 
 #define ADD_DECL(TYPE) \
@@ -226,6 +205,16 @@ ADD_DECL(int)
 ADD_DECL(long)
 
 #undef ADD_DECL
+
+/* Uninterpreted functions */
+
+#define DECLARE_UF_BINARY(NAME, ARG1TYPE, ARG2TYPE, RETURNTYPE) \
+    _DEVICE_QUALIFIER RETURNTYPE \
+    __uninterpreted_function_##NAME(ARG1TYPE, ARG2TYPE); \
+    _DEVICE_QUALIFIER static __attribute__((always_inline)) RETURNTYPE \
+    NAME(ARG1TYPE x, ARG2TYPE y) { \
+       return __uninterpreted_function_##NAME(x, y);   \
+    }
 
 #ifdef __cplusplus
 }

@@ -246,6 +246,10 @@ static bool isAxiomFunction(StringRef Name) {
   return Name.startswith("__axiom");
 }
 
+static bool isUninterpretedFunction(StringRef Name) {
+  return Name.startswith("__uninterpreted_function_");
+}
+
 // Convert the given unmodelled expression E to modelled form.
 ref<Expr> TranslateModule::modelValue(Value *V, ref<Expr> E) {
   if (E->getType().isKind(Type::Pointer)) {
@@ -403,6 +407,11 @@ void TranslateModule::translate() {
     BM->setPointerWidth(TD.getPointerSizeInBits());
 
     for (auto i = M->begin(), e = M->end(); i != e; ++i) {
+
+      if (isUninterpretedFunction(i->getName())) {
+          TranslateFunction::addUninterpretedFunction(SL, i->getName());
+      }
+
       if (i->isIntrinsic() || isAxiomFunction(i->getName()) ||
           TranslateFunction::isSpecialFunction(SL, i->getName()))
         continue;

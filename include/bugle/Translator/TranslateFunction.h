@@ -69,9 +69,7 @@ class TranslateFunction {
                    handleBarrierInvariantBinary,
                    handleAddNoovflUnsigned, handleAddNoovflSigned,
                    handleAddNoovflPredicate,
-                   handleAdd, handleAddAbstract, 
-                   handleAddAbstract1, handleAddAbstract2, handleAddAbstract3,
-                   handleIte;
+                   handleAdd, handleIte, handleUninterpretedFunction;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize,
@@ -111,6 +109,8 @@ public:
 
   static bool isSpecialFunction(TranslateModule::SourceLanguage SL,
                                 const std::string &fnName);
+  static void addUninterpretedFunction(TranslateModule::SourceLanguage SL,
+                                           const std::string &fnName);
   void translate();
 };
 

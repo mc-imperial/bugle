@@ -259,37 +259,27 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       }
       OS << "}";
     }, false);
-  } else if (auto AAE = dyn_cast<AddAbstractExpr>(E)) {
-    int width = AAE->getFirst()->getType().width;
-
-    std::string addAbstractString;
-    llvm::raw_string_ostream addAbstract(addAbstractString);
-    addAbstract << "BV" << width << "_ADD_ABSTRACT";
-
-    OS << addAbstract.str();
-    
-    if(AAE->getLevel() > 0) {
-      OS << "_" << AAE->getLevel();
+  } else if (auto UFE = dyn_cast<UninterpretedFunctionExpr>(E)) {
+    OS << UFE->getName() << "(";
+    for (unsigned i = 0; i < UFE->getNumOperands(); ++i) {
+      if(i > 0) {
+        OS << ", ";
+      }
+      writeExpr(OS, UFE->getOperand(i).get());
     }
-
-    OS << "(";
-    writeExpr(OS, AAE->getFirst().get());
-    OS << ", ";
-    writeExpr(OS, AAE->getSecond().get());
     OS << ")";
 
-    for(unsigned i = 0; i <= AddAbstractExpr::maxLevel; ++i) {
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << "function " << addAbstract.str();
-      if(i > 0) {
-        OS << "_" << i;
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "function " << UFE->getName() << "(";
+      for (unsigned i = 0; i < UFE->getNumOperands(); ++i) {
+        if(i > 0) {
+          OS << ", ";
+        }
+        MW->writeType(OS, UFE->getOperand(i)->getType());
       }
-      OS << "("
-         << "bv" << width << ", "
-         << "bv" << width << ") : "
-         << "bv" << width;
-      });
-    }
+      OS << ") : ";
+      MW->writeType(OS, UFE->getType());
+    });
   } else if (auto PLTE = dyn_cast<PtrLtExpr>(E)) {
     OS << "PTR_LT(";
     writeExpr(OS, PLTE->getLHS().get());

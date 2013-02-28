@@ -43,7 +43,7 @@ public:
     UnderlyingArray,
     AddNoovfl,
     AddNoovflPredicate,
-    AddAbstract,
+    UninterpretedFunction,
     MemberOf,
 
     // Unary
@@ -580,23 +580,25 @@ public:
   const std::vector<ref<Expr>> &getExprs() const { return exprs; }
 };
 
-class AddAbstractExpr : public Expr {
-  AddAbstractExpr(ref<Expr> first, ref<Expr> second, unsigned level) :
-    Expr(Type(Type::BV, first->getType().width)), 
-    first(first), second(second), level(level) { }
-  ref<Expr> first;
-  ref<Expr> second;
-  unsigned level;
+class UninterpretedFunctionExpr : public Expr {
+  UninterpretedFunctionExpr(const std::string &name, Type returnType,
+                            const std::vector<ref<Expr>> &args) :
+    Expr(returnType), 
+    name(name), args(args) { }
+  const std::string name;
+  const std::vector<ref<Expr>> args;
 
 public:
-  static ref<Expr> create(ref<Expr> first, ref<Expr> second, unsigned level);
+  static ref<Expr> create(const std::string &name, Type returnType,
+                          const std::vector<ref<Expr>> &args);
 
-  EXPR_KIND(AddAbstract)
-  ref<Expr> getFirst() const { return first; }
-  ref<Expr> getSecond() const { return second; }
-  unsigned getLevel() const { return level; }
-  static const unsigned maxLevel = 3;
+  EXPR_KIND(UninterpretedFunction)
+  const std::string& getName() { return name; }
+  unsigned getNumOperands() const { return args.size(); }
+  ref<Expr> getOperand(unsigned index) const { return args[index]; }
 };
+
+
 
 }
 

@@ -67,6 +67,12 @@ bool TranslateFunction::isSpecialFunction(TranslateModule::SourceLanguage SL,
          SpecialFunctionMap.Functions.end();
 }
 
+void TranslateFunction::addUninterpretedFunction(TranslateModule::SourceLanguage SL,
+                                           const std::string &fnName) {
+  SpecialFnMapTy &SpecialFunctionMap = initSpecialFunctionMap(SL);
+  SpecialFunctionMap.Functions[fnName] = &TranslateFunction::handleUninterpretedFunction;
+}
+
 TranslateFunction::SpecialFnMapTy &
 TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
   SpecialFnMapTy &SpecialFunctionMap = SpecialFunctionMaps[SL];
@@ -124,22 +130,6 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__add_unsigned_short"] = &TranslateFunction::handleAdd;
     fns["__add_unsigned_int"] = &TranslateFunction::handleAdd;
     fns["__add_unsigned_long"] = &TranslateFunction::handleAdd;
-    fns["__add_abstract_char"] = &TranslateFunction::handleAddAbstract;
-    fns["__add_abstract_short"] = &TranslateFunction::handleAddAbstract;
-    fns["__add_abstract_int"] = &TranslateFunction::handleAddAbstract;
-    fns["__add_abstract_long"] = &TranslateFunction::handleAddAbstract;
-    fns["__add_abstract_1_char"] = &TranslateFunction::handleAddAbstract1;
-    fns["__add_abstract_1_short"] = &TranslateFunction::handleAddAbstract1;
-    fns["__add_abstract_1_int"] = &TranslateFunction::handleAddAbstract1;
-    fns["__add_abstract_1_long"] = &TranslateFunction::handleAddAbstract1;
-    fns["__add_abstract_2_char"] = &TranslateFunction::handleAddAbstract2;
-    fns["__add_abstract_2_short"] = &TranslateFunction::handleAddAbstract2;
-    fns["__add_abstract_2_int"] = &TranslateFunction::handleAddAbstract2;
-    fns["__add_abstract_2_long"] = &TranslateFunction::handleAddAbstract2;
-    fns["__add_abstract_3_char"] = &TranslateFunction::handleAddAbstract3;
-    fns["__add_abstract_3_short"] = &TranslateFunction::handleAddAbstract3;
-    fns["__add_abstract_3_int"] = &TranslateFunction::handleAddAbstract3;
-    fns["__add_abstract_3_long"] = &TranslateFunction::handleAddAbstract3;
     fns["__ite_char"] = &TranslateFunction::handleIte;
     fns["__ite_short"] = &TranslateFunction::handleIte;
     fns["__ite_int"] = &TranslateFunction::handleIte;
@@ -882,28 +872,13 @@ ref<Expr> TranslateFunction::handleAdd(bugle::BasicBlock *BBB,
   return BVAddExpr::create(Args[0], Args[1]);
 }
 
-ref<Expr> TranslateFunction::handleAddAbstract(bugle::BasicBlock *BBB,
+ref<Expr> TranslateFunction::handleUninterpretedFunction(bugle::BasicBlock *BBB,
                                              llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
-  return AddAbstractExpr::create(Args[0], Args[1], 0);
-}
-
-ref<Expr> TranslateFunction::handleAddAbstract1(bugle::BasicBlock *BBB,
-                                             llvm::CallInst *CI,
-                                           const std::vector<ref<Expr>> &Args) {
-  return AddAbstractExpr::create(Args[0], Args[1], 1);
-}
-
-ref<Expr> TranslateFunction::handleAddAbstract2(bugle::BasicBlock *BBB,
-                                             llvm::CallInst *CI,
-                                           const std::vector<ref<Expr>> &Args) {
-  return AddAbstractExpr::create(Args[0], Args[1], 2);
-}
-
-ref<Expr> TranslateFunction::handleAddAbstract3(bugle::BasicBlock *BBB,
-                                             llvm::CallInst *CI,
-                                           const std::vector<ref<Expr>> &Args) {
-  return AddAbstractExpr::create(Args[0], Args[1], 3);
+  return UninterpretedFunctionExpr::create(CI->getCalledFunction()->getName().
+                                      substr(strlen("__uninterpreted_function_")),
+                                   TM->translateType(CI->getCalledFunction()->getReturnType()),
+                                   Args);
 }
 
 ref<Expr> TranslateFunction::handleIte(bugle::BasicBlock *BBB,

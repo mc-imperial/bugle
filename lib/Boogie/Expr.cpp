@@ -888,11 +888,7 @@ ref<Expr> AddNoovflPredicateExpr::create(const std::vector<ref<Expr>> &exprs) {
   return new AddNoovflPredicateExpr(exprs);
 }
 
-ref<Expr> AddAbstractExpr::create(ref<Expr> first, ref<Expr> second,
-    unsigned level) {
-  assert(first->getType().isKind(Type::BV));
-  assert(second->getType().isKind(Type::BV));
-  assert(first->getType().width == second->getType().width);
-  assert(level <= AddAbstractExpr::maxLevel);
-  return new AddAbstractExpr(first, second, level);
+ref<Expr> UninterpretedFunctionExpr::create(const std::string &name,
+    Type returnType, const std::vector<ref<Expr>> &args) {
+  return new UninterpretedFunctionExpr(name, returnType, args);
 }
