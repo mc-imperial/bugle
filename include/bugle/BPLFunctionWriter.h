@@ -30,6 +30,7 @@ class BPLFunctionWriter : BPLExprWriter {
   std::set<GlobalArray *> ModifiesSet;
 
   void maybeWriteCaseSplit(llvm::raw_ostream &OS, Expr *PtrArr,
+                           SourceLoc *SLoc,
                            std::function<void(GlobalArray *)> F);
   void writeVar(llvm::raw_ostream &OS, Var *V);
   void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0);

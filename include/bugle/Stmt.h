@@ -120,22 +120,28 @@ public:
 
 class AssertStmt : public Stmt {
   ref<Expr> pred;
+  bool candidate;
 
 public:
-  AssertStmt(ref<Expr> pred) : pred(pred) {}
+  AssertStmt(ref<Expr> pred, bool candidate = false) : pred(pred),
+             candidate(candidate) {}
 
   STMT_KIND(Assert)
   ref<Expr> getPredicate() const { return pred; }
+  bool isCandidate() const { return candidate; }
 };
 
 class GlobalAssertStmt : public Stmt {
   ref<Expr> pred;
+  bool candidate;
 
 public:
-  GlobalAssertStmt(ref<Expr> pred) : pred(pred) {}
+  GlobalAssertStmt(ref<Expr> pred, bool candidate = false) : pred(pred),
+            candidate(candidate) {}
 
   STMT_KIND(GlobalAssert)
   ref<Expr> getPredicate() const { return pred; }
+  bool isCandidate() const { return candidate; }
 };
 
 class CallStmt : public Stmt {

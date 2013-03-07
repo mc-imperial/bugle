@@ -119,3 +119,9 @@ void BPLModuleWriter::write() {
 
   OS << SS.str();
 }
+
+unsigned BPLModuleWriter::nextCandidateNumber() {
+  unsigned result = candidateNumber;
+  candidateNumber++;
+  return result;
+}

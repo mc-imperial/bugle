@@ -15,10 +15,13 @@ using namespace bugle;
 
 void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
                                             Expr *PtrArr,
+                                            SourceLoc *SLoc,
                                          std::function<void(GlobalArray *)> F) {
   if (isa<NullArrayRefExpr>(PtrArr) ||
       MW->M->global_begin() == MW->M->global_end()) {
-    OS << "assert false;\n";
+    OS << "assert {:bad_pointer_access} ";
+    writeSourceLoc(OS, SLoc);
+    OS << "false;\n";
   } else {
     std::set<GlobalArray *> Globals;
     if (!PtrArr->computeArrayCandidates(Globals)) {
@@ -37,7 +40,9 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
         F(*i);
         OS << "\n  } else ";
       }
-      OS << "{\n    assert false;\n  }\n";
+      OS << "{\n    assert {:bad_pointer_access} ";
+      writeSourceLoc(OS, SLoc);
+      OS << "false;\n  }\n";
     }
   }
 }
@@ -95,7 +100,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     if (isa<HavocExpr>(ES->getExpr())) {
       OS << "havoc v" << id << ";\n";
     } else if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
-      maybeWriteCaseSplit(OS, LE->getArray().get(), 
+      maybeWriteCaseSplit(OS, LE->getArray().get(), ES->getSourceLoc(),
           [&](GlobalArray *GA) {
         if (GA->isGlobalOrGroupShared()) {
           writeSourceLocMarker(OS, ES->getSourceLoc());
@@ -123,7 +128,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     }
     OS << ");\n";
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
-    maybeWriteCaseSplit(OS, SS->getArray().get(), 
+    maybeWriteCaseSplit(OS, SS->getArray().get(), SS->getSourceLoc(),
         [&](GlobalArray *GA) {
       if(GA->isGlobalOrGroupShared()) {
         writeSourceLocMarker(OS, SS->getSourceLoc());
@@ -168,12 +173,32 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (auto AtS = dyn_cast<AssertStmt>(S)) {
     OS << "  assert ";
+    if(AtS->isCandidate()) {
+      OS << "{:tag \"user\"} ";
+    }
     writeSourceLoc(OS, AtS->getSourceLoc());
+    if(AtS->isCandidate()) {
+      unsigned candidateNumber = MW->nextCandidateNumber();
+      OS << "_c" << candidateNumber << " ==> ";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "const {:existential true} _c" << candidateNumber << " : bool";
+      }, true);
+    }
     writeExpr(OS, AtS->getPredicate().get());
     OS << ";\n";
   } else if (auto AtS = dyn_cast<GlobalAssertStmt>(S)) {
-	OS << "  assert {:do_not_predicate} ";
+    OS << "  assert {:do_not_predicate} ";
+    if(AtS->isCandidate()) {
+      OS << "{:tag \"user\"} ";
+    }
     writeSourceLoc(OS, AtS->getSourceLoc());
+    if(AtS->isCandidate()) {
+      unsigned candidateNumber = MW->nextCandidateNumber();
+      OS << "_c" << candidateNumber << " ==> ";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "const {:existential true} _c" << candidateNumber << " : bool";
+      }, true);
+    }
     writeExpr(OS, AtS->getPredicate().get());
     OS << ";\n";
   } else if (isa<ReturnStmt>(S)) {

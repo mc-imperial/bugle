@@ -85,6 +85,10 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__invariant"] = &TranslateFunction::handleAssert;
     fns["__global_assert"] = &TranslateFunction::handleGlobalAssert;
     fns["__global_invariant"] = &TranslateFunction::handleGlobalAssert;
+    fns["__candidate_invariant"] = &TranslateFunction::handleCandidateAssert;
+    fns["__candidate_global_invariant"] = &TranslateFunction::handleCandidateGlobalAssert;
+    fns["__candidate_assert"] = &TranslateFunction::handleCandidateAssert;
+    fns["__candidate_global_assert"] = &TranslateFunction::handleCandidateGlobalAssert;
     fns["__non_temporal_loads_begin"] = &TranslateFunction::handleNonTemporalLoadsBegin;
     fns["__non_temporal_loads_end"] = &TranslateFunction::handleNonTemporalLoadsEnd;
     fns["bugle_assume"] = &TranslateFunction::handleAssume;
@@ -366,6 +370,15 @@ ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
   return 0;
 }
 
+ref<Expr> TranslateFunction::handleCandidateAssert(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  Stmt *candidateAssertstmt = new AssertStmt(Expr::createNeZero(Args[0]), true);
+  addLocToStmt(candidateAssertstmt, CI);
+  BBB->addStmt(candidateAssertstmt);
+  return 0;
+}
+
 ref<Expr> TranslateFunction::handleNonTemporalLoadsBegin(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
@@ -401,9 +414,19 @@ ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleGlobalAssert(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  Stmt *globalAssertStmt = new GlobalAssertStmt(Expr::createNeZero(Args[0]));
+  Stmt *globalAssertStmt = new GlobalAssertStmt(Expr::createNeZero(Args[0]), true);
   addLocToStmt(globalAssertStmt, CI);
   BBB->addStmt(globalAssertStmt);
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleCandidateGlobalAssert(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  Stmt *candidateGlobalAssertStmt = new GlobalAssertStmt(
+                                        Expr::createNeZero(Args[0]), true);
+  addLocToStmt(candidateGlobalAssertStmt, CI);
+  BBB->addStmt(candidateGlobalAssertStmt);
   return 0;
 }
 

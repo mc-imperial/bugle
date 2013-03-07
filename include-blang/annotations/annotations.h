@@ -12,6 +12,8 @@ _DEVICE_QUALIFIER void __non_temporal_loads_end(void);
 /* Loop invariant */
 _DEVICE_QUALIFIER void __invariant(bool expr);
 _DEVICE_QUALIFIER void __global_invariant(bool expr);
+_DEVICE_QUALIFIER void __candidate_invariant(bool expr);
+_DEVICE_QUALIFIER void __candidate_global_invariant(bool expr);
 
 #define __invariant(X) \
     __non_temporal_loads_begin(), \
@@ -49,6 +51,8 @@ _DEVICE_QUALIFIER bool __old_bool(bool);
 /* Assertion */
 _DEVICE_QUALIFIER void __assert(bool expr);
 _DEVICE_QUALIFIER void __global_assert(bool expr);
+_DEVICE_QUALIFIER void __candidate_assert(bool expr);
+_DEVICE_QUALIFIER void __candidate_global_assert(bool expr);
 
 /* Used to express whether a thread is enabled at a particuar point */
 _DEVICE_QUALIFIER bool __enabled(void);

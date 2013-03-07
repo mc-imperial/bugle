@@ -55,7 +55,8 @@ class TranslateFunction {
   static SpecialFnMapTy SpecialFunctionMaps[TranslateModule::SL_Count];
 
   SpecialFnHandler handleNoop, handleAssert, handleAssertFail, handleAssume, 
-                   handleGlobalAssert, handleNonTemporalLoadsBegin,
+                   handleGlobalAssert, handleCandidateAssert,
+                   handleCandidateGlobalAssert, handleNonTemporalLoadsBegin,
                    handleNonTemporalLoadsEnd, 
                    handleRequires, handleEnsures, handleGlobalRequires, 
                    handleGlobalEnsures, handleReadsFrom, handleWritesTo,
