@@ -245,7 +245,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     });
 
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << "function __add_noovfl_" << n << "(";
+      OS << "function {:inline true} __add_noovfl_" << n << "(";
       for (int i=0; i<n; ++i) {
         OS << (i > 0 ? ", " : "") << " v" << i << ":" << "bv" << width;
       }
