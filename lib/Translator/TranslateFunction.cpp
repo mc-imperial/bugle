@@ -414,7 +414,7 @@ ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleGlobalAssert(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  Stmt *globalAssertStmt = new GlobalAssertStmt(Expr::createNeZero(Args[0]), true);
+  Stmt *globalAssertStmt = new GlobalAssertStmt(Expr::createNeZero(Args[0]));
   addLocToStmt(globalAssertStmt, CI);
   BBB->addStmt(globalAssertStmt);
   return 0;
