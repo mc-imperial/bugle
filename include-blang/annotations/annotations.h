@@ -220,6 +220,14 @@ ADD_DECL(long)
        return __uninterpreted_function_##NAME(x, y);   \
     }
 
+#define DECLARE_UF_UNARY(NAME, ARG1TYPE, RETURNTYPE) \
+    _DEVICE_QUALIFIER RETURNTYPE \
+    __uninterpreted_function_##NAME(ARG1TYPE); \
+    _DEVICE_QUALIFIER static __attribute__((always_inline)) RETURNTYPE \
+    NAME(ARG1TYPE x) { \
+       return __uninterpreted_function_##NAME(x);   \
+    }
+
 #ifdef __cplusplus
 }
 #endif
