@@ -338,8 +338,11 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
     BBB->addStmt(new VarAssignStmt(Vars, Exprs));
 }
 
-void TranslateFunction::addLocToStmt(Stmt *stmt, llvm::Instruction *I) {
-  stmt->setSourceLoc(extractSourceLoc(I));
+void TranslateFunction::addLocToStmt(Stmt *stmt) {
+  assert(0 != currentSourceLoc.get());
+  if(0 != currentSourceLoc.get()) {
+    stmt->setSourceLoc(new SourceLoc(*currentSourceLoc));
+  }
 }
 
 SourceLoc *TranslateFunction::extractSourceLoc(llvm::Instruction *I) {
@@ -365,7 +368,7 @@ ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   Stmt *assertstmt = new AssertStmt(Expr::createNeZero(Args[0]));
-  addLocToStmt(assertstmt, CI);
+  addLocToStmt(assertstmt);
   BBB->addStmt(assertstmt);
   return 0;
 }
@@ -374,7 +377,7 @@ ref<Expr> TranslateFunction::handleCandidateAssert(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   Stmt *candidateAssertstmt = new AssertStmt(Expr::createNeZero(Args[0]), true);
-  addLocToStmt(candidateAssertstmt, CI);
+  addLocToStmt(candidateAssertstmt);
   BBB->addStmt(candidateAssertstmt);
   return 0;
 }
@@ -399,7 +402,7 @@ ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
                                            llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
   Stmt *assertStmt = new AssertStmt(BoolConstExpr::create(false));
-  addLocToStmt(assertStmt, CI);
+  addLocToStmt(assertStmt);
   BBB->addStmt(assertStmt);
   return 0;
 }
@@ -415,7 +418,7 @@ ref<Expr> TranslateFunction::handleGlobalAssert(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   Stmt *globalAssertStmt = new GlobalAssertStmt(Expr::createNeZero(Args[0]));
-  addLocToStmt(globalAssertStmt, CI);
+  addLocToStmt(globalAssertStmt);
   BBB->addStmt(globalAssertStmt);
   return 0;
 }
@@ -425,7 +428,7 @@ ref<Expr> TranslateFunction::handleCandidateGlobalAssert(bugle::BasicBlock *BBB,
                                           const std::vector<ref<Expr>> &Args) {
   Stmt *candidateGlobalAssertStmt = new GlobalAssertStmt(
                                         Expr::createNeZero(Args[0]), true);
-  addLocToStmt(candidateGlobalAssertStmt, CI);
+  addLocToStmt(candidateGlobalAssertStmt);
   BBB->addStmt(candidateGlobalAssertStmt);
   return 0;
 }
@@ -638,7 +641,7 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
   }
 
   auto CS = new CallStmt(BF, Args);
-  addLocToStmt(CS, CI);
+  addLocToStmt(CS);
   BBB->addStmt(CS);
   return 0;
 }
@@ -680,7 +683,7 @@ ref<Expr> TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB
   }
 
   auto CS = new CallStmt(BF, Args);
-  addLocToStmt(CS, CI);
+  addLocToStmt(CS);
   BBB->addStmt(CS);
   return 0;
 }
@@ -915,7 +918,7 @@ void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB,
                                     llvm::Instruction *I, ref<Expr> E) {
   auto ES = BBB->addEvalStmt(E);
   if (ES)
-    addLocToStmt(ES, I);
+    addLocToStmt(ES);
 }
 
 ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
@@ -963,6 +966,11 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
 
 void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                                              Instruction *I) {
+
+  if (auto SourceLocI = extractSourceLoc(I)) {
+    currentSourceLoc.reset(SourceLocI);
+  }
+
   ref<Expr> E;
   if (auto BO = dyn_cast<BinaryOperator>(I)) {
     ref<Expr> LHS = translateValue(BO->getOperand(0), BBB),
@@ -1078,12 +1086,12 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           if (StoreElTy.isKind(Type::Pointer))
             ValElem = BVToPtrExpr::create(ValElem);
           StoreStmt* SS = new StoreStmt(PtrArr, ElemOfs, ValElem);
-          addLocToStmt(SS, I);
+          addLocToStmt(SS);
           BBB->addStmt(SS);
         }
       } else {
         StoreStmt* SS = new StoreStmt(PtrArr, Div, Val);
-        addLocToStmt(SS, I);
+        addLocToStmt(SS);
         BBB->addStmt(SS);
       }
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
@@ -1098,7 +1106,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         ref<Expr> ValByte =
           BVExtractExpr::create(Val, i*8, 8); // Assumes little endian
         StoreStmt* SS = new StoreStmt(PtrArr, PtrByteOfs, ValByte);
-        addLocToStmt(SS, I);
+        addLocToStmt(SS);
         BBB->addStmt(SS);
       }
     } else {
@@ -1337,7 +1345,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         assert(FI != TM->FunctionMap.end() && "Couldn't find function in map!");
         if (CI->getType()->isVoidTy()) {
           auto CS = new CallStmt(FI->second, Args);
-          addLocToStmt(CS, CI);
+          addLocToStmt(CS);
           BBB->addStmt(CS);
           TM->CallSites[F].push_back(&CS->getArgs());
           return;

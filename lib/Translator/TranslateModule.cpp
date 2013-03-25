@@ -52,8 +52,9 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned Offset,
 void TranslateModule::addGlobalArrayAttribs(GlobalArray *GA, PointerType *PT) {
   if (SL == SL_OpenCL || SL == SL_CUDA) {
     switch (PT->getAddressSpace()) {
-      case 1: GA->addAttribute("global");       break;
-      case 3: GA->addAttribute("group_shared"); break;
+      case AddressSpaces::global: GA->addAttribute("global"); break;
+      case AddressSpaces::group_shared: GA->addAttribute("group_shared"); break;
+      case AddressSpaces::constant: GA->addAttribute("constant"); break;
       default: ;
     }
   }
@@ -83,7 +84,7 @@ ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
   GlobalArray *GA = getGlobalArray(GV);
   if (GV->hasInitializer() &&
       // OpenCL __local and CUDA __shared__ variables have bogus initialisers.
-      !((SL == SL_OpenCL || SL == SL_CUDA) && GV->getType()->getAddressSpace() == 3))
+      !((SL == SL_OpenCL || SL == SL_CUDA) && GV->getType()->getAddressSpace() == AddressSpaces::group_shared))
     translateGlobalInit(GA, 0, GV->getInitializer());
   return GlobalArrayRefExpr::create(GA);
 }
