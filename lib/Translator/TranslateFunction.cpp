@@ -339,7 +339,6 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
 }
 
 void TranslateFunction::addLocToStmt(Stmt *stmt) {
-  assert(0 != currentSourceLoc.get());
   if(0 != currentSourceLoc.get()) {
     stmt->setSourceLoc(new SourceLoc(*currentSourceLoc));
   }
