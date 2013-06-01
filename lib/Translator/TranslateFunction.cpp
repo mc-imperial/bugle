@@ -1564,6 +1564,11 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     ValueExprMap[I] =
       TM->unmodelValue(PN, VarRefExpr::create(getPhiVariable(PN)));
     return;
+  } else if (auto UI = dyn_cast<UnreachableInst>(I)) {
+    Stmt *assertStmt = new AssertStmt(BoolConstExpr::create(false));
+    addLocToStmt(assertStmt);
+    BBB->addStmt(assertStmt);
+    return;
   } else {
     assert(0 && "Unsupported instruction");
   }
