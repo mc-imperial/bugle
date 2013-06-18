@@ -18,10 +18,10 @@
 #ifndef KLEE_UTIL_GETELEMENTPTRTYPE_H
 #define KLEE_UTIL_GETELEMENTPTRTYPE_H
 
-#include "llvm/User.h"
-#include "llvm/DerivedTypes.h"
-#include "llvm/Instructions.h"
-#include "llvm/Constants.h"
+#include "llvm/IR/User.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Constants.h"
 
 namespace klee {
   template<typename ItTy = llvm::User::const_op_iterator>

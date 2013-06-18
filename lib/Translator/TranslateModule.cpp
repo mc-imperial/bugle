@@ -4,10 +4,10 @@
 #include "bugle/Function.h"
 #include "bugle/Module.h"
 #include "bugle/Stmt.h"
-#include "llvm/Constant.h"
-#include "llvm/Constants.h"
-#include "llvm/DerivedTypes.h"
-#include "llvm/Module.h"
+#include "llvm/IR/Constant.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Module.h"
 
 using namespace llvm;
 using namespace bugle;

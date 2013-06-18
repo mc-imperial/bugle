@@ -6,7 +6,7 @@
 #include "klee/util/GetElementPtrTypeIterator.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
-#include "llvm/DataLayout.h"
+#include "llvm/IR/DataLayout.h"
 #include <functional>
 #include <set>
 
