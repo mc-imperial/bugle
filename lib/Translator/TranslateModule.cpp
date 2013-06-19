@@ -251,6 +251,17 @@ static bool isUninterpretedFunction(StringRef Name) {
   return Name.startswith("__uninterpreted_function_");
 }
 
+static bool isKernelEntryPoint(llvm::Module *M, Value *V) {
+  if (NamedMDNode *NMD = M->getNamedMetadata("nvvm.annotations")) {
+    for (int i = 0, e = NMD->getNumOperands(); i != e; ++i) {
+      MDNode *MD = NMD->getOperand(i);
+      if (MD->getOperand(0) == V && MD->getOperand(1)->getName() == "kernel")
+        return true;
+    }
+  }
+  return false;
+}
+
 // Convert the given unmodelled expression E to modelled form.
 ref<Expr> TranslateModule::modelValue(Value *V, ref<Expr> E) {
   if (E->getType().isKind(Type::Pointer)) {
@@ -442,7 +453,7 @@ void TranslateModule::translate() {
       } else if (!TranslateFunction::isSpecialFunction(SL, i->getName())) {
         TranslateFunction TF(this, FunctionMap[&*i], &*i);
         TF.isGPUEntryPoint =
-          i->getCallingConv() == llvm::CallingConv::PTX_Kernel ||
+          isKernelEntryPoint(M, i) ||
           (GPUEntryPoints.find(i->getName()) != GPUEntryPoints.end());
         TF.translate();
       }
