@@ -24,14 +24,26 @@ def main(argv=None):
     print ");"
 
   for i in range(0, n + 1):
-    print "_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr"
+    print "#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)"
+    definition = "#define __barrier_invariant_" + str(i) + "(X"
     for j in range(0, i):
-      print "  , unsigned int inst_expr_" + str(j);
-    print ") { __barrier_invariant_" + str(i) + "(expr"
+      definition += ", I" + str(j)
+    definition += ") !!! Barrier invariants currently only supported for 1D thread groups !!!"
+    print definition
+    print "#else"
+    definition = "#define __barrier_invariant_" + str(i) + "(X"
     for j in range(0, i):
-      print "  , inst_expr_" + str(j);
-    print "    );"
-    print "}"
+      definition += ", I" + str(j)
+    definition += ") \\"
+    print definition
+    print "    __non_temporal_loads_begin(), \\"
+    call = "    __barrier_invariant_" + str(i) + "(X"
+    for j in range(0, i):
+      call += ", I" + str(j)
+    call += "), \\"
+    print call
+    print "    __non_temporal_loads_end()"
+    print "#endif"
 
   for i in range(0, n + 1):
     print "void __barrier_invariant_binary_" + str(i) + "(bool expr"
@@ -40,14 +52,27 @@ def main(argv=None):
     print ");"
 
   for i in range(0, n + 1):
-    print "static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr"
+    print "#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)"
+    definition = "#define __barrier_invariant_binary_" + str(i) + "(X"
     for j in range(0, i):
-      print "  , unsigned int inst_expr_" + str(j) + "_0, unsigned int inst_expr_" + str(j) + "_1"
-    print ") { __barrier_invariant_binary_" + str(i) + "(expr"
+      definition += ", I" + str(j) + "_0, I" + str(j) + "_1"
+    definition += ") !!! Barrier invariants currently only supported for 1D thread groups !!!"
+    print definition
+    print "#else"
+    definition = "#define __barrier_invariant_binary_" + str(i) + "(X"
     for j in range(0, i):
-      print "  , inst_expr_" + str(j) + "_0, inst_expr_" + str(j) + "_1";
-    print "    );"
-    print "}"
+      definition += ", I" + str(j) + "_0, I" + str(j) + "_1"
+    definition += ") \\"
+    print definition
+    print "    __non_temporal_loads_begin(), \\"
+    call = "    __barrier_invariant_binary_" + str(i) + "(X"
+    for j in range(0, i):
+      call += ", I" + str(j) + "_0, I" + str(j) + "_1"
+    call += "), \\"
+    print call
+    print "    __non_temporal_loads_end()"
+    print "#endif"
+
 
 if __name__ == '__main__':
   sys.exit(main())

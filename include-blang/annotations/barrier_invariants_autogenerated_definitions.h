@@ -252,510 +252,174 @@ _DEVICE_QUALIFIER void __barrier_invariant_20(bool expr
   , unsigned int inst_expr_18
   , unsigned int inst_expr_19
 );
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-) { __barrier_invariant_0(expr
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-) { __barrier_invariant_1(expr
-  , inst_expr_0
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-) { __barrier_invariant_2(expr
-  , inst_expr_0
-  , inst_expr_1
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-) { __barrier_invariant_3(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-) { __barrier_invariant_4(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-) { __barrier_invariant_5(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-) { __barrier_invariant_6(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-) { __barrier_invariant_7(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-) { __barrier_invariant_8(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-) { __barrier_invariant_9(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-) { __barrier_invariant_10(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-  , inst_expr_9
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-) { __barrier_invariant_11(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-  , inst_expr_9
-  , inst_expr_10
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-) { __barrier_invariant_12(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-  , inst_expr_9
-  , inst_expr_10
-  , inst_expr_11
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-) { __barrier_invariant_13(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-  , inst_expr_9
-  , inst_expr_10
-  , inst_expr_11
-  , inst_expr_12
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-) { __barrier_invariant_14(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-  , inst_expr_9
-  , inst_expr_10
-  , inst_expr_11
-  , inst_expr_12
-  , inst_expr_13
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
-) { __barrier_invariant_15(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-  , inst_expr_9
-  , inst_expr_10
-  , inst_expr_11
-  , inst_expr_12
-  , inst_expr_13
-  , inst_expr_14
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
-  , unsigned int inst_expr_15
-) { __barrier_invariant_16(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-  , inst_expr_9
-  , inst_expr_10
-  , inst_expr_11
-  , inst_expr_12
-  , inst_expr_13
-  , inst_expr_14
-  , inst_expr_15
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
-  , unsigned int inst_expr_15
-  , unsigned int inst_expr_16
-) { __barrier_invariant_17(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-  , inst_expr_9
-  , inst_expr_10
-  , inst_expr_11
-  , inst_expr_12
-  , inst_expr_13
-  , inst_expr_14
-  , inst_expr_15
-  , inst_expr_16
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
-  , unsigned int inst_expr_15
-  , unsigned int inst_expr_16
-  , unsigned int inst_expr_17
-) { __barrier_invariant_18(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-  , inst_expr_9
-  , inst_expr_10
-  , inst_expr_11
-  , inst_expr_12
-  , inst_expr_13
-  , inst_expr_14
-  , inst_expr_15
-  , inst_expr_16
-  , inst_expr_17
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
-  , unsigned int inst_expr_15
-  , unsigned int inst_expr_16
-  , unsigned int inst_expr_17
-  , unsigned int inst_expr_18
-) { __barrier_invariant_19(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-  , inst_expr_9
-  , inst_expr_10
-  , inst_expr_11
-  , inst_expr_12
-  , inst_expr_13
-  , inst_expr_14
-  , inst_expr_15
-  , inst_expr_16
-  , inst_expr_17
-  , inst_expr_18
-    );
-}
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
-  , unsigned int inst_expr_15
-  , unsigned int inst_expr_16
-  , unsigned int inst_expr_17
-  , unsigned int inst_expr_18
-  , unsigned int inst_expr_19
-) { __barrier_invariant_20(expr
-  , inst_expr_0
-  , inst_expr_1
-  , inst_expr_2
-  , inst_expr_3
-  , inst_expr_4
-  , inst_expr_5
-  , inst_expr_6
-  , inst_expr_7
-  , inst_expr_8
-  , inst_expr_9
-  , inst_expr_10
-  , inst_expr_11
-  , inst_expr_12
-  , inst_expr_13
-  , inst_expr_14
-  , inst_expr_15
-  , inst_expr_16
-  , inst_expr_17
-  , inst_expr_18
-  , inst_expr_19
-    );
-}
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_0(X) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_0(X) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_0(X), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_1(X, I0) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_1(X, I0) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_1(X, I0), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_2(X, I0, I1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_2(X, I0, I1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_2(X, I0, I1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_3(X, I0, I1, I2) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_3(X, I0, I1, I2) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_3(X, I0, I1, I2), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_4(X, I0, I1, I2, I3) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_4(X, I0, I1, I2, I3) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_4(X, I0, I1, I2, I3), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_5(X, I0, I1, I2, I3, I4) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_5(X, I0, I1, I2, I3, I4) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_5(X, I0, I1, I2, I3, I4), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_6(X, I0, I1, I2, I3, I4, I5) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_6(X, I0, I1, I2, I3, I4, I5) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_6(X, I0, I1, I2, I3, I4, I5), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_7(X, I0, I1, I2, I3, I4, I5, I6) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_7(X, I0, I1, I2, I3, I4, I5, I6) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_7(X, I0, I1, I2, I3, I4, I5, I6), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_8(X, I0, I1, I2, I3, I4, I5, I6, I7) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_8(X, I0, I1, I2, I3, I4, I5, I6, I7) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_8(X, I0, I1, I2, I3, I4, I5, I6, I7), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_9(X, I0, I1, I2, I3, I4, I5, I6, I7, I8) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_9(X, I0, I1, I2, I3, I4, I5, I6, I7, I8) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_9(X, I0, I1, I2, I3, I4, I5, I6, I7, I8), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_10(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_10(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_10(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_11(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_11(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_11(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_12(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_12(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_12(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_13(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_13(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_13(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_14(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_14(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_14(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_15(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_15(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_15(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_16(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_16(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_16(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_17(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_17(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_17(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_18(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16, I17) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_18(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16, I17) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_18(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16, I17), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_19(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16, I17, I18) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_19(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16, I17, I18) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_19(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16, I17, I18), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_20(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16, I17, I18, I19) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_20(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16, I17, I18, I19) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_20(X, I0, I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12, I13, I14, I15, I16, I17, I18, I19), \
+    __non_temporal_loads_end()
+#endif
 void __barrier_invariant_binary_0(bool expr
 );
 void __barrier_invariant_binary_1(bool expr
@@ -1008,507 +672,171 @@ void __barrier_invariant_binary_20(bool expr
   , unsigned int inst_expr_18_0, unsigned int inst_expr_18_1
   , unsigned int inst_expr_19_0, unsigned int inst_expr_19_1
 );
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-) { __barrier_invariant_binary_0(expr
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-) { __barrier_invariant_binary_1(expr
-  , inst_expr_0_0, inst_expr_0_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-) { __barrier_invariant_binary_2(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-) { __barrier_invariant_binary_3(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-) { __barrier_invariant_binary_4(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-) { __barrier_invariant_binary_5(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-) { __barrier_invariant_binary_6(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-) { __barrier_invariant_binary_7(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-) { __barrier_invariant_binary_8(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-) { __barrier_invariant_binary_9(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-) { __barrier_invariant_binary_10(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-  , inst_expr_9_0, inst_expr_9_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-) { __barrier_invariant_binary_11(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-  , inst_expr_9_0, inst_expr_9_1
-  , inst_expr_10_0, inst_expr_10_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-) { __barrier_invariant_binary_12(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-  , inst_expr_9_0, inst_expr_9_1
-  , inst_expr_10_0, inst_expr_10_1
-  , inst_expr_11_0, inst_expr_11_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-) { __barrier_invariant_binary_13(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-  , inst_expr_9_0, inst_expr_9_1
-  , inst_expr_10_0, inst_expr_10_1
-  , inst_expr_11_0, inst_expr_11_1
-  , inst_expr_12_0, inst_expr_12_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-) { __barrier_invariant_binary_14(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-  , inst_expr_9_0, inst_expr_9_1
-  , inst_expr_10_0, inst_expr_10_1
-  , inst_expr_11_0, inst_expr_11_1
-  , inst_expr_12_0, inst_expr_12_1
-  , inst_expr_13_0, inst_expr_13_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
-) { __barrier_invariant_binary_15(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-  , inst_expr_9_0, inst_expr_9_1
-  , inst_expr_10_0, inst_expr_10_1
-  , inst_expr_11_0, inst_expr_11_1
-  , inst_expr_12_0, inst_expr_12_1
-  , inst_expr_13_0, inst_expr_13_1
-  , inst_expr_14_0, inst_expr_14_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
-  , unsigned int inst_expr_15_0, unsigned int inst_expr_15_1
-) { __barrier_invariant_binary_16(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-  , inst_expr_9_0, inst_expr_9_1
-  , inst_expr_10_0, inst_expr_10_1
-  , inst_expr_11_0, inst_expr_11_1
-  , inst_expr_12_0, inst_expr_12_1
-  , inst_expr_13_0, inst_expr_13_1
-  , inst_expr_14_0, inst_expr_14_1
-  , inst_expr_15_0, inst_expr_15_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
-  , unsigned int inst_expr_15_0, unsigned int inst_expr_15_1
-  , unsigned int inst_expr_16_0, unsigned int inst_expr_16_1
-) { __barrier_invariant_binary_17(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-  , inst_expr_9_0, inst_expr_9_1
-  , inst_expr_10_0, inst_expr_10_1
-  , inst_expr_11_0, inst_expr_11_1
-  , inst_expr_12_0, inst_expr_12_1
-  , inst_expr_13_0, inst_expr_13_1
-  , inst_expr_14_0, inst_expr_14_1
-  , inst_expr_15_0, inst_expr_15_1
-  , inst_expr_16_0, inst_expr_16_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
-  , unsigned int inst_expr_15_0, unsigned int inst_expr_15_1
-  , unsigned int inst_expr_16_0, unsigned int inst_expr_16_1
-  , unsigned int inst_expr_17_0, unsigned int inst_expr_17_1
-) { __barrier_invariant_binary_18(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-  , inst_expr_9_0, inst_expr_9_1
-  , inst_expr_10_0, inst_expr_10_1
-  , inst_expr_11_0, inst_expr_11_1
-  , inst_expr_12_0, inst_expr_12_1
-  , inst_expr_13_0, inst_expr_13_1
-  , inst_expr_14_0, inst_expr_14_1
-  , inst_expr_15_0, inst_expr_15_1
-  , inst_expr_16_0, inst_expr_16_1
-  , inst_expr_17_0, inst_expr_17_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
-  , unsigned int inst_expr_15_0, unsigned int inst_expr_15_1
-  , unsigned int inst_expr_16_0, unsigned int inst_expr_16_1
-  , unsigned int inst_expr_17_0, unsigned int inst_expr_17_1
-  , unsigned int inst_expr_18_0, unsigned int inst_expr_18_1
-) { __barrier_invariant_binary_19(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-  , inst_expr_9_0, inst_expr_9_1
-  , inst_expr_10_0, inst_expr_10_1
-  , inst_expr_11_0, inst_expr_11_1
-  , inst_expr_12_0, inst_expr_12_1
-  , inst_expr_13_0, inst_expr_13_1
-  , inst_expr_14_0, inst_expr_14_1
-  , inst_expr_15_0, inst_expr_15_1
-  , inst_expr_16_0, inst_expr_16_1
-  , inst_expr_17_0, inst_expr_17_1
-  , inst_expr_18_0, inst_expr_18_1
-    );
-}
-static __attribute__((always_inline)) __attribute__((overloadable)) void __barrier_invariant_binary(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
-  , unsigned int inst_expr_15_0, unsigned int inst_expr_15_1
-  , unsigned int inst_expr_16_0, unsigned int inst_expr_16_1
-  , unsigned int inst_expr_17_0, unsigned int inst_expr_17_1
-  , unsigned int inst_expr_18_0, unsigned int inst_expr_18_1
-  , unsigned int inst_expr_19_0, unsigned int inst_expr_19_1
-) { __barrier_invariant_binary_20(expr
-  , inst_expr_0_0, inst_expr_0_1
-  , inst_expr_1_0, inst_expr_1_1
-  , inst_expr_2_0, inst_expr_2_1
-  , inst_expr_3_0, inst_expr_3_1
-  , inst_expr_4_0, inst_expr_4_1
-  , inst_expr_5_0, inst_expr_5_1
-  , inst_expr_6_0, inst_expr_6_1
-  , inst_expr_7_0, inst_expr_7_1
-  , inst_expr_8_0, inst_expr_8_1
-  , inst_expr_9_0, inst_expr_9_1
-  , inst_expr_10_0, inst_expr_10_1
-  , inst_expr_11_0, inst_expr_11_1
-  , inst_expr_12_0, inst_expr_12_1
-  , inst_expr_13_0, inst_expr_13_1
-  , inst_expr_14_0, inst_expr_14_1
-  , inst_expr_15_0, inst_expr_15_1
-  , inst_expr_16_0, inst_expr_16_1
-  , inst_expr_17_0, inst_expr_17_1
-  , inst_expr_18_0, inst_expr_18_1
-  , inst_expr_19_0, inst_expr_19_1
-    );
-}
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_0(X) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_0(X) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_0(X), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_1(X, I0_0, I0_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_1(X, I0_0, I0_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_1(X, I0_0, I0_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_2(X, I0_0, I0_1, I1_0, I1_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_2(X, I0_0, I0_1, I1_0, I1_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_2(X, I0_0, I0_1, I1_0, I1_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_3(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_3(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_3(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_4(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_4(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_4(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_5(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_5(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_5(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_6(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_6(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_6(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_7(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_7(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_7(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_8(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_8(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_8(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_9(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_9(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_9(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_10(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_10(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_10(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_11(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_11(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_11(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_12(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_12(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_12(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_13(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_13(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_13(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_14(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_14(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_14(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_15(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_15(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_15(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_16(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_16(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_16(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_17(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_17(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_17(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_18(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1, I17_0, I17_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_18(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1, I17_0, I17_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_18(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1, I17_0, I17_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_19(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1, I17_0, I17_1, I18_0, I18_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_19(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1, I17_0, I17_1, I18_0, I18_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_19(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1, I17_0, I17_1, I18_0, I18_1), \
+    __non_temporal_loads_end()
+#endif
+#if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
+#define __barrier_invariant_binary_20(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1, I17_0, I17_1, I18_0, I18_1, I19_0, I19_1) !!! Barrier invariants currently only supported for 1D thread groups !!!
+#else
+#define __barrier_invariant_binary_20(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1, I17_0, I17_1, I18_0, I18_1, I19_0, I19_1) \
+    __non_temporal_loads_begin(), \
+    __barrier_invariant_binary_20(X, I0_0, I0_1, I1_0, I1_1, I2_0, I2_1, I3_0, I3_1, I4_0, I4_1, I5_0, I5_1, I6_0, I6_1, I7_0, I7_1, I8_0, I8_1, I9_0, I9_1, I10_0, I10_1, I11_0, I11_1, I12_0, I12_1, I13_0, I13_1, I14_0, I14_1, I15_0, I15_1, I16_0, I16_1, I17_0, I17_1, I18_0, I18_1, I19_0, I19_1), \
+    __non_temporal_loads_end()
+#endif
