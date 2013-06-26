@@ -55,12 +55,6 @@ _FLOAT_UNARY_MACRO(acos);
 _FLOAT_BINARY_MACRO(atan2);
 _FLOAT_UNARY_MACRO(cbrt);
 
-#define fmax __clc_fmax
-_FLOAT_BINARY_MACRO(fmax);
-
-#define fmin __clc_fmin
-_FLOAT_BINARY_MACRO(fmin);
-
 #define _POWN_MACRO(FLOATGENTYPE, INTGENTYPE) \
     FLOATGENTYPE __pown##_##FLOATGENTYPE##_##INTGENTYPE(FLOATGENTYPE x, INTGENTYPE y); \
     _CLC_INLINE _CLC_OVERLOAD FLOATGENTYPE pown(FLOATGENTYPE x, INTGENTYPE y) { \
@@ -251,13 +245,6 @@ _FLOAT_UNARY_MACRO(half_tan)
     _MATH_TERNARY_FUNC_OVERLOAD(NAME, ulong8); \
     _MATH_TERNARY_FUNC_OVERLOAD(NAME, ulong16);
 
-_INTEGER_TERNARY_MACRO(clamp);
-
-// 6.11.4: Common functions
-
-
-_FLOAT_TERNARY_MACRO(clamp)
-
 // 6.11.5: Geometric functions
 
 _CLC_INLINE _CLC_OVERLOAD float fast_length(float p) {
@@ -309,18 +296,6 @@ _CLC_INLINE _CLC_OVERLOAD float4 fast_normalize(float4 p) {
 #define M_2_SQRTPI_F    1.12837916709551257390f /* 2/sqrt(pi) */
 #define M_SQRT2_F               1.41421356237309504880f /* sqrt(2) */
 #define M_SQRT1_2_F             0.70710678118654752440f /* 1/sqrt(2) */
-
-
-
-// 9.3.6 Vector data load and store functions
-
-_CLC_INLINE float3 vload3(size_t offset, const __global float *p) {
-    float3 result;
-    result.x = p[3*offset];
-    result.y = p[3*offset + 1];
-    result.z = p[3*offset + 2];
-    return result;
-}
 
 #endif
 
