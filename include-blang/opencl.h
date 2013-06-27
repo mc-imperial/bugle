@@ -18,6 +18,9 @@
 #include "annotations/annotations.h"
 
 /* Images */
+#define image2d_t __bugle_image2d_t
+#define image3d_t __bugle_image3d_t
+
 typedef __global void *image2d_t;
 typedef __global void *image3d_t;
 
@@ -30,6 +33,8 @@ typedef __global void *image3d_t;
 #define CLK_ADDRESS_NONE            8
 #define CLK_FILTER_NEAREST          0
 #define CLK_FILTER_LINEAR           16
+
+#define sampler_t __bugle_sampler_t
 
 typedef unsigned int sampler_t;
 
