@@ -106,8 +106,10 @@ add_library(bugleBoogie STATIC
   lib/Boogie/BPLExprWriter.cpp
   lib/Boogie/BPLFunctionWriter.cpp
   lib/Boogie/BPLModuleWriter.cpp
+  lib/Boogie/BVIntegerRepresentation.cpp
   lib/Boogie/Expr.cpp
   lib/Boogie/Ident.cpp
+  lib/Boogie/MathIntegerRepresentation.cpp
   lib/Boogie/Stmt.cpp
   include/bugle/BPLExprWriter.h
   include/bugle/BPLFunctionWriter.h
@@ -118,6 +120,7 @@ add_library(bugleBoogie STATIC
   include/bugle/Function.h
   include/bugle/GlobalArray.h
   include/bugle/Ident.h
+  incluce/bugle/IntegerRepresentation.h
   include/bugle/Module.h
   include/bugle/OwningPtrVector.h
   include/bugle/Ref.h

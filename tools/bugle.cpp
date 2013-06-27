@@ -15,6 +15,7 @@
 #include "llvm/Support/raw_ostream.h"
 
 #include "bugle/BPLModuleWriter.h"
+#include "bugle/IntegerRepresentation.h"
 #include "bugle/Module.h"
 #include "bugle/Transform/SimplifyStmt.h"
 #include "bugle/Translator/TranslateModule.h"
@@ -36,6 +37,10 @@ GPUEntryPoints("k", cl::ZeroOrMore, cl::desc("GPU entry point function name"),
 static cl::opt<std::string>
 SourceLanguage("l", cl::desc("Module source language (c, cu, cl; default c)"),
     cl::value_desc("language"));
+
+static cl::opt<std::string>
+IntegerRepresentation("i", cl::desc("Integer representation (bv, math; default bv)"),
+    cl::value_desc("intrep"));
 
 int main(int argc, char **argv) {
   sys::PrintStackTraceOnErrorSignal();
@@ -89,6 +94,16 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  std::auto_ptr<bugle::IntegerRepresentation> IntRep(0);
+  if (IntegerRepresentation.empty() || IntegerRepresentation == "bv")
+	IntRep.reset(new bugle::BVIntegerRepresentation());
+  else if (IntegerRepresentation == "math")
+    IntRep.reset(new bugle::MathIntegerRepresentation);
+  else {
+	errs() << "Unsupported integer representation: " << IntegerRepresentation << "\n";
+	return 1;
+  }
+
   bugle::TranslateModule TM(M.get(), SL);
 
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
@@ -113,7 +128,7 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  bugle::BPLModuleWriter MW(F.os(), BM.get());
+  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get());
   MW.write();
 
   F.keep();

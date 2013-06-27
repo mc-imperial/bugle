@@ -1,5 +1,6 @@
 #include "bugle/BPLModuleWriter.h"
 #include "bugle/BPLFunctionWriter.h"
+#include "bugle/IntegerRepresentation.h"
 #include "bugle/Module.h"
 #include "bugle/Type.h"
 #include "llvm/Support/raw_ostream.h"
@@ -17,7 +18,7 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
     OS << "bool";
     break;
   case Type::BV:
-    OS << "bv" << t.width;
+    OS << MW->IntRep->getType(t.width);
     break;
   case Type::Pointer:
     UsesPointers = true;
@@ -52,8 +53,8 @@ const std::string &BPLModuleWriter::getGlobalInitRequires() {
          i != e; ++i) {
       if (i != M->global_init_begin())
         SS << " &&\n         ";
-      SS << "$$" << i->array->getName() << "[" << i->offset << "bv"
-         << M->getPointerWidth() << "] == ";
+      SS << "$$" << i->array->getName() << "[" 
+        << MW->IntRep->getLiteral(i->offset, M->getPointerWidth()) << "] == ";
       writeExpr(SS, i->init.get());
     }
     SS << ";\n";
@@ -77,8 +78,8 @@ void BPLModuleWriter::write() {
   if (UsesPointers) {
     OS << "type {:datatype} ptr;\n"
           "type arrayId;\n"
-          "function {:constructor} MKPTR(base: arrayId, offset: bv"
-       << M->getPointerWidth() << ") : ptr;\n"
+          "function {:constructor} MKPTR(base: arrayId, offset: " <<
+            MW->IntRep->getType(M->getPointerWidth()) << ") : ptr;\n"
           "function PTR_LT(lhs: ptr, rhs: ptr) : bool;\n\n";
   }
 
@@ -89,7 +90,7 @@ void BPLModuleWriter::write() {
          ++ai) {
       OS << "{:" << *ai << "} ";
     }
-    OS << "$$" << (*i)->getName() << " : [bv" << M->getPointerWidth()
+    OS << "$$" << (*i)->getName() << " : [" << MW->IntRep->getType(M->getPointerWidth())
        << "]";
     writeType(OS, (*i)->getRangeType());
     OS << ";\n";
@@ -97,10 +98,13 @@ void BPLModuleWriter::write() {
     if ((*i)->isGlobalOrGroupShared()) {
 	    OS << "var {:race_checking} _READ_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
 	    OS << "var {:race_checking} _WRITE_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
-	    OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width << "} _READ_OFFSET_$$" << (*i)->getName() << " : bv32;\n";
-	    OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width << "} _WRITE_OFFSET_$$" << (*i)->getName() << " : bv32;\n";
+	    OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width 
+        << "} _READ_OFFSET_$$" << (*i)->getName() << " : " << MW->IntRep->getType(32) << ";\n";
+	    OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width 
+        << "} _WRITE_OFFSET_$$" << (*i)->getName() << " : " << MW->IntRep->getType(32) << ";\n";
       if ((*i)->getNotAccessedExpr()) {
-        OS << "var {:check_access} _NOT_ACCESSED_$$" << (*i)->getName() << " : bv" << M->getPointerWidth() << ";\n";
+        OS << "var {:check_access} _NOT_ACCESSED_$$" << (*i)->getName() << " : " 
+          << MW->IntRep->getType(M->getPointerWidth()) << ";\n";
       }
     }
 
