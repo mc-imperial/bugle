@@ -120,7 +120,7 @@ add_library(bugleBoogie STATIC
   include/bugle/Function.h
   include/bugle/GlobalArray.h
   include/bugle/Ident.h
-  incluce/bugle/IntegerRepresentation.h
+  include/bugle/IntegerRepresentation.h
   include/bugle/Module.h
   include/bugle/OwningPtrVector.h
   include/bugle/Ref.h
