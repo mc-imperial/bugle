@@ -57,12 +57,12 @@ READ_IMAGE_2D(read_imagei, int4, int2)
 READ_IMAGE_2D(read_imageui, uint4, uint2)
 READ_IMAGE_2D(read_imageui, uint4, int2)
 
-#define WRITE_IMAGE_2D(NAME, COLOUR_TYPE, COORD_TYPE) \
-_CLC_INLINE void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TYPE color) {
+#define WRITE_IMAGE_2D(NAME, COLOUR_TYPE, COORD_TYPE)                 \
+_CLC_INLINE _CLC_OVERLOAD void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TYPE color) { \
   __global COLOUR_TYPE *img = image; \
   __assert(coord.x < __MAX_VALUES_PER_COORD_2D); \
   __assert(coord.y < __MAX_VALUES_PER_COORD_2D); \
-  img[coord.y*__MAX_VALUES_PER_COORD_2D + coord.x] = color;
+  img[coord.y*__MAX_VALUES_PER_COORD_2D + coord.x] = color; \
 }
 
 WRITE_IMAGE_2D(write_imagef, float4, uint2)
