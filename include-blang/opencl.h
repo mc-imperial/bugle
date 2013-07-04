@@ -72,6 +72,40 @@ WRITE_IMAGE_2D(write_imagei, int4, int2)
 WRITE_IMAGE_2D(write_imageui, uint4, uint2)
 WRITE_IMAGE_2D(write_imageui, uint4, int2)
 
+#define __MAX_VALUES_PER_COORD_3D (1<<8)
+
+#define READ_IMAGE_3D(NAME, COLOUR_TYPE, COORD_TYPE) \
+_CLC_INLINE _CLC_OVERLOAD COLOUR_TYPE NAME(image2d_t image, sampler_t sampler, COORD_TYPE coord) { \
+  __global COLOUR_TYPE *img = image; \
+  __assert(coord.x < __MAX_VALUES_PER_COORD_3D); \
+  __assert(coord.y < __MAX_VALUES_PER_COORD_3D); \
+  __assert(coord.z < __MAX_VALUES_PER_COORD_3D); \
+  return img[(coord.z*__MAX_VALUES_PER_COORD_3D + coord.y)*__MAX_VALUES_PER_COORD_3D + coord.x]; \
+}
+
+READ_IMAGE_3D(read_imagef, float4, uint4)
+READ_IMAGE_3D(read_imagef, float4, int4)
+READ_IMAGE_3D(read_imagei, int4, uint4)
+READ_IMAGE_3D(read_imagei, int4, int4)
+READ_IMAGE_3D(read_imageui, uint4, uint4)
+READ_IMAGE_3D(read_imageui, uint4, int4)
+
+#define WRITE_IMAGE_3D(NAME, COLOUR_TYPE, COORD_TYPE)                 \
+_CLC_INLINE _CLC_OVERLOAD void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TYPE color) { \
+  __global COLOUR_TYPE *img = image; \
+  __assert(coord.x < __MAX_VALUES_PER_COORD_3D); \
+  __assert(coord.y < __MAX_VALUES_PER_COORD_3D); \
+  __assert(coord.z < __MAX_VALUES_PER_COORD_3D); \
+  img[(coord.z*__MAX_VALUES_PER_COORD_3D + coord.y)*__MAX_VALUES_PER_COORD_3D + coord.x] = color; \
+}
+
+WRITE_IMAGE_3D(write_imagef, float4, uint4)
+WRITE_IMAGE_3D(write_imagef, float4, int4)
+WRITE_IMAGE_3D(write_imagei, int4, uint4)
+WRITE_IMAGE_3D(write_imagei, int4, int4)
+WRITE_IMAGE_3D(write_imageui, uint4, uint4)
+WRITE_IMAGE_3D(write_imageui, uint4, int4)
+
 #pragma OPENCL EXTENSION cl_clang_storage_class_specifiers: disable
 
 int get_image_height (image2d_t image);
