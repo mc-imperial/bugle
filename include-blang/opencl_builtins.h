@@ -77,6 +77,26 @@ _POWN_MACRO(float16, int16);
 
 #undef _POWN_MACRO
 
+#define _SINCOS_MACRO_FULL(GENTYPE, MEMORYSPACE) \
+    _CLC_INLINE _CLC_OVERLOAD GENTYPE sincos(GENTYPE x, MEMORYSPACE GENTYPE *cosval) { \
+        *cosval = cos(x); \
+        return sin(x); \
+    }
+
+#define _SINCOS_MACRO(GENTYPE)\
+    _SINCOS_MACRO_FULL(GENTYPE, __global) \
+    _SINCOS_MACRO_FULL(GENTYPE, __local) \
+    _SINCOS_MACRO_FULL(GENTYPE, __private)
+
+_SINCOS_MACRO(float);
+_SINCOS_MACRO(float2);
+_SINCOS_MACRO(float3);
+_SINCOS_MACRO(float4);
+_SINCOS_MACRO(float8);
+_SINCOS_MACRO(float16);
+
+#undef _SINCOS_MACRO_FULL
+#undef _SINCOS_MACRO
 
 
 // Table 6.9
@@ -321,6 +341,13 @@ _CLC_INLINE float3 vload3(size_t offset, const __global float *p) {
     result.z = p[3*offset + 2];
     return result;
 }
+
+
+
+// Misc.
+
+
+
 
 #endif
 
