@@ -317,3 +317,5 @@ _CLC_INLINE _CLC_OVERLOAD float4 fast_normalize(float4 p) {
 #define M_SQRT2_F               1.41421356237309504880f /* sqrt(2) */
 #define M_SQRT1_2_F             0.70710678118654752440f /* 1/sqrt(2) */
 
+#endif
+
