@@ -9,15 +9,14 @@ namespace {
 
 bool hasSideEffects(Expr *e) {
   return isa<CallExpr>(e) || isa<HavocExpr>(e) || 
-    isa<ArraySnapshotExpr>(e) || isa<AddNoovflExpr>(e);
+    isa<ArraySnapshotExpr>(e) || isa<AddNoovflExpr>(e) || isa<AtomicExpr>(e);
 }
 
 bool isTemporal(Expr *e) {
   if(auto LE = dyn_cast<LoadExpr>(e)) {
     return LE->getIsTemporal();
   }
-
-  return isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e);
+  return isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e) || isa<AtomicExpr>(e);
 }
 
 void ProcessBasicBlock(BasicBlock *BB) {

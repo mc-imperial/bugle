@@ -17,8 +17,8 @@
 
 #include <bugle.h>
 
-/* Vectors */
 #include <cuda_vectors.h>
+#include <cuda_atomics.h>
 
 #include <annotations/annotations.h>
 

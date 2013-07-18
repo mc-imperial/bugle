@@ -177,6 +177,45 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__array_snapshot_local"] = &TranslateFunction::handleArraySnapshot;
     fns["__array_snapshot_global"] = &TranslateFunction::handleArraySnapshot;
     fns["__array_snapshot"] = &TranslateFunction::handleArraySnapshot;
+
+    {
+      const std::string atomics[] = { "__atomic_add" ,      "_local_int", "_global_int", "_local_unsigned_int", "_global_unsigned_int", "_local_long", "_global_long", "_local_unsigned_long", "_global_unsigned_long", "" ,
+                                      "__atomic_sub" ,      "_local_int", "_global_int", "_local_unsigned_int", "_global_unsigned_int", "_local_long", "_global_long", "_local_unsigned_long", "_global_unsigned_long", "" ,
+                                      "__atomic_xchg" ,     "_local_int", "_global_int", "_local_unsigned_int", "_global_unsigned_int", "_local_float", "_global_float", "_local_long", "_global_long", "_local_unsigned_long", "_global_unsigned_long", "" ,
+                                      "__atomic_min" ,      "_local_int", "_global_int", "_local_unsigned_int", "_global_unsigned_int", "_local_long", "_global_long", "_local_unsigned_long", "_global_unsigned_long", "" ,
+                                      "__atomic_max" ,      "_local_int", "_global_int", "_local_unsigned_int", "_global_unsigned_int", "_local_long", "_global_long", "_local_unsigned_long", "_global_unsigned_long", "" ,
+                                      "__atomic_and" ,      "_local_int", "_global_int", "_local_unsigned_int", "_global_unsigned_int", "_local_long", "_global_long", "_local_unsigned_long", "_global_unsigned_long", "" ,
+                                      "__atomic_or" ,       "_local_int", "_global_int", "_local_unsigned_int", "_global_unsigned_int", "_local_long", "_global_long", "_local_unsigned_long", "_global_unsigned_long", "" ,
+                                      "__atomic_xor" ,      "_local_int", "_global_int", "_local_unsigned_int", "_global_unsigned_int", "_local_long", "_global_long", "_local_unsigned_long", "_global_unsigned_long", "" ,
+                                      "__atomic_cmpxchg" ,  "_local_int", "_global_int", "_local_unsigned_int", "_global_unsigned_int", "_local_long", "_global_long", "_local_unsigned_long", "_global_unsigned_long", "" ,
+                                      "__atomic_inc" ,      "_local_int", "_global_int", "_local_unsigned_int", "_global_unsigned_int", "_local_long", "_global_long", "_local_unsigned_long", "_global_unsigned_long", "" ,
+                                      "__atomic_dec" ,      "_local_int", "_global_int", "_local_unsigned_int", "_global_unsigned_int", "_local_long", "_global_long", "_local_unsigned_long", "_global_unsigned_long", "" ,
+
+                                      "__atomicAdd" ,   "_int", "_unsigned_int", "_unsigned_long_long_int", "_float", "",
+                                      "__atomicSub" ,   "_int", "_unsigned_int", "",
+                                      "__atomicExch" ,  "_int", "_unsigned_int", "_unsigned_long_long_int", "_float", "",
+                                      "__atomicMin" ,   "_int", "_unsigned_int", "_unsigned_long_long_int", "",
+                                      "__atomicMax" ,   "_int", "_unsigned_int", "_unsigned_long_long_int", "",
+                                      "__atomicAnd" ,   "_int", "_unsigned_int", "_unsigned_long_long_int", "",
+                                      "__atomicOr" ,    "_int", "_unsigned_int", "_unsigned_long_long_int", "",
+                                      "__atomicXor" ,   "_int", "_unsigned_int", "_unsigned_long_long_int", "",
+                                      "__atomicInc",    "_unsigned_int", "",
+                                      "__atomicDec",    "_unsigned_int", "",
+                                      "__atomicCAS",    "_int", "_unsigned_int", "_unsigned_long_long_int", "",
+         ""
+      };
+      int i = 0;
+      while (atomics[i] != "") {
+        std::string t = atomics[i];
+        i++;
+        while (atomics[i] != "") {
+          fns[t + atomics[i]] = &TranslateFunction::handleAtomic;
+          i++;
+        }
+        i++;
+      }
+    }
+
     if (SL == TranslateModule::SL_OpenCL ||
         SL == TranslateModule::SL_CUDA) {
       const unsigned BARRIER_INVARIANT_MAX_ARITY = 20;
@@ -607,6 +646,27 @@ ref<Expr> TranslateFunction::handleArraySnapshot(bugle::BasicBlock *BBB,
   ref<Expr> E = ArraySnapshotExpr::create(dstArrayIdExpr, srcArrayIdExpr);
   BBB->addStmt(new EvalStmt(E));
   return 0;
+}
+
+ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
+    llvm::CallInst *CI, const std::vector<ref<Expr>> &Args) {
+  ref<Expr> Ptr = translateValue(CI->getArgOperand(0), BBB),
+            PtrArr = ArrayIdExpr::create(Ptr, TM->translateType(CI->getType()) ),
+            PtrOfs = ArrayOffsetExpr::create(Ptr);
+  Type range = PtrArr->getType().range();
+  if (range.width > 8)
+    PtrOfs = BVSDivExpr::create(PtrOfs,BVConstExpr::create(TM->TD.getPointerSizeInBits(), range.width/8));
+
+  std::vector<ref<Expr>> args;
+  for (unsigned i = 1; i < CI->getNumArgOperands(); i++)
+    args.push_back(translateValue(CI->getArgOperand(i),BBB));
+
+  ref<Expr> E = AtomicExpr::create(PtrArr, PtrOfs, args, CI->getCalledFunction()->getName());
+
+  auto S = new EvalStmt(E);
+  addLocToStmt(S);
+  BBB->addStmt(S);
+  return E;
 }
 
 ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,

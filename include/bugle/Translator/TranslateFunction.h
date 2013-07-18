@@ -81,6 +81,8 @@ class TranslateFunction {
                    handleFrexpFrac, handleFma, handleSqrt, 
                    handleLog, handlePow, handleSin, handleRsqrt;
 
+  SpecialFnHandler handleAtomic;
+
   static SpecialFnMapTy &initSpecialFunctionMap(
                                             TranslateModule::SourceLanguage SL);
 

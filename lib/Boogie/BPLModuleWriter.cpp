@@ -83,6 +83,19 @@ void BPLModuleWriter::write() {
           "function PTR_LT(lhs: ptr, rhs: ptr) : bool;\n\n";
   }
 
+  unsigned long int sizes = 0;
+  for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
+    unsigned long int size = (1 << ((*i)->getRangeType().width -1));
+    if (!(size & sizes)) {
+      auto pw = MW->IntRep->getType(M->getPointerWidth());
+      auto bw = MW->IntRep->getType((*i)->getRangeType().width);
+      OS << "procedure _ATOMIC_OP" << (*i)->getRangeType().width << "(x : ["
+         << pw << "]" << bw << ", y : "
+         << pw << ") returns (z : " << bw << ");\n";
+      sizes = size | sizes;
+    }
+  }
+
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
 
     OS << "var ";
@@ -96,12 +109,15 @@ void BPLModuleWriter::write() {
     OS << ";\n";
 
     if ((*i)->isGlobalOrGroupShared()) {
-	    OS << "var {:race_checking} _READ_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
-	    OS << "var {:race_checking} _WRITE_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
-	    OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width 
+      OS << "var {:race_checking} _READ_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
+      OS << "var {:race_checking} _WRITE_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
+      OS << "var {:race_checking} _ATOMIC_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
+      OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width 
         << "} _READ_OFFSET_$$" << (*i)->getName() << " : " << MW->IntRep->getType(32) << ";\n";
-	    OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width 
+      OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width 
         << "} _WRITE_OFFSET_$$" << (*i)->getName() << " : " << MW->IntRep->getType(32) << ";\n";
+      OS << "var {:race_checking} {:elem_width " << (*i)->getRangeType().width 
+        << "} _ATOMIC_OFFSET_$$" << (*i)->getName() << " : " << MW->IntRep->getType(32) << ";\n";
       if ((*i)->getNotAccessedExpr()) {
         OS << "var {:check_access} _NOT_ACCESSED_$$" << (*i)->getName() << " : " 
           << MW->IntRep->getType(M->getPointerWidth()) << ";\n";

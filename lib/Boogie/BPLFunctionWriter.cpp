@@ -110,6 +110,18 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         writeExpr(OS, LE->getOffset().get());
         OS << "];";
       });
+    } else if (auto AE = dyn_cast<AtomicExpr>(ES->getExpr())) {
+      maybeWriteCaseSplit(OS, AE->getArray().get(), ES->getSourceLoc(),
+          [&](GlobalArray *GA) {
+        if (GA->isGlobalOrGroupShared()) {
+          writeSourceLocMarker(OS, ES->getSourceLoc());
+        }
+        assert(AE->getType() == GA->getRangeType());
+        OS << "call {:atomic} {:atomic_function \"" << AE->getFunction() 
+           << "\"} " << "v" << id << " := _ATOMIC_OP" << GA->getRangeType().width << "($$" << GA->getName() << ", ";
+        writeExpr(OS, AE->getOffset().get());
+        OS << ");";
+      });
     } else {
       OS << "v" << id << " := ";
       writeExpr(OS, ES->getExpr().get());

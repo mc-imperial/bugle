@@ -146,7 +146,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << "(if ";
     writeExpr(OS, B2BVE->getSubExpr().get());
     OS  << " then " << MW->IntRep->getLiteral(1, 1) << " else " <<
-		MW->IntRep->getLiteral(0, 1) << ")";
+      MW->IntRep->getLiteral(0, 1) << ")";
   } else if (auto BV2BE = dyn_cast<BVToBoolExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
     writeExpr(OS, BV2BE->getSubExpr().get(), 4);
@@ -343,7 +343,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, PLEE->getRHS().get());
     OS << ")";
   } else if (auto IMPLIESE = dyn_cast<ImpliesExpr>(E)) {
-	  OS << "(";
+    OS << "(";
     writeExpr(OS, IMPLIESE->getLHS().get());
     OS << " ==> ";
     writeExpr(OS, IMPLIESE->getRHS().get());
@@ -352,7 +352,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeAccessLoggingVar(OS, AHOE->getArray().get(), "HAS_OCCURRED", AHOE->getAccessKind(), "false");
   } else if (auto AOE = dyn_cast<AccessOffsetExpr>(E)) {
     writeAccessLoggingVar(OS, AOE->getArray().get(), "OFFSET", AOE->getAccessKind(),
-		MW->IntRep->getLiteral(0, 32));
+      MW->IntRep->getLiteral(0, 32));
   } else if (auto NAE = dyn_cast<NotAccessedExpr>(E)) {
     if (auto GARE = dyn_cast<GlobalArrayRefExpr>(NAE->getArray().get())) {
       OS << "_NOT_ACCESSED_$$" << GARE->getArray()->getName();
@@ -602,6 +602,33 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       }
 
     }
+  } else if (auto AE = dyn_cast<AtomicExpr>(E)) {
+    // If this is the dumper, show the expression in a simple form.
+    // Otherwise, generate appropriate code
+    if(!MW) {
+      OS << "_ATOMIC_OP(";
+      writeExpr(OS, AE->getArray().get(), 9);
+      OS << ", ";
+      writeExpr(OS, AE->getOffset().get());
+      OS << ")";
+    } else {
+      auto PtrArr = AE->getArray().get();
+      assert(!(isa<NullArrayRefExpr>(PtrArr) ||
+        MW->M->global_begin() == MW->M->global_end()));
+      std::set<GlobalArray *> Globals;
+      if (!PtrArr->computeArrayCandidates(Globals)) {
+        Globals.insert(MW->M->global_begin(), MW->M->global_end());
+      }
+
+      if (Globals.size() == 1) {
+        OS << "_ATOMIC_OP($$" << (*Globals.begin())->getName() << ", ";
+        writeExpr(OS, AE->getOffset().get());
+        OS << ")";
+      } else {
+        assert(0 && "Atomic expressions from pointers not supported yet");
+      }
+
+    }
   } else if (auto ASE = dyn_cast<ArraySnapshotExpr>(E)) {
     // If this is the dumper, show the expression.  Otherwise, this is a no-op
     if(!MW) {
@@ -650,7 +677,7 @@ void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS,
   if(auto GARE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
     OS << "_" << accessKind << "_" << accessLoggingVar << "_$$" 
        << GARE->getArray()->getName();
-	} else {
+  } else {
     std::set<GlobalArray *> Globals;
     if (!PtrArr->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
@@ -671,7 +698,7 @@ void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS,
              << accessKind << "_" << accessLoggingVar << "_$$" 
              << (*i)->getName() << " else ";
         }
-			  OS << unit << ")";
+        OS << unit << ")";
       } else {
         OS << "<" << accessLoggingVar << "-case-split>";
       }

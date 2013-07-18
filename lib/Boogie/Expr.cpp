@@ -104,6 +104,15 @@ ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset, bool isTemporal) {
   return new LoadExpr(at.range(), array, offset, isTemporal);
 }
 
+ref<Expr> AtomicExpr::create(ref<Expr> array, ref<Expr> offset, std::vector<ref<Expr>> args, std::string function) {
+  Type at = array->getType();
+  assert(at.array);
+  assert(offset->getType().isKind(Type::BV));
+  assert(at.range().isKind(Type::BV));
+
+  return new AtomicExpr(at.range(), array, offset, args, function);
+}
+
 ref<Expr> VarRefExpr::create(Var *var) {
   return new VarRefExpr(var);
 }

@@ -30,6 +30,7 @@ public:
     ConstantArrayRef,
     Pointer,
     Load,
+    Atomic,
     VarRef,
     SpecialVarRef,
     Call,
@@ -246,6 +247,23 @@ public:
   ref<Expr> getArray() const { return array; }
   ref<Expr> getOffset() const { return offset; }
   bool getIsTemporal() const { return isTemporal; }
+};
+
+class AtomicExpr : public Expr {
+  AtomicExpr(Type t, ref<Expr> array, ref<Expr> offset, std::vector<ref<Expr>> args, std::string function) :
+    Expr(t), array(array), offset(offset), args(args), function(function) {}
+  ref<Expr> array, offset;
+  std::vector<ref<Expr>> args;
+  std::string function;
+
+public:
+  static ref<Expr> create(ref<Expr> array, ref<Expr> offset, std::vector<ref<Expr>> args, std::string function);
+
+  EXPR_KIND(Atomic)
+  ref<Expr> getArray() const { return array; }
+  ref<Expr> getOffset() const { return offset; }
+  std::vector<ref<Expr>> getArgs() const { return args; }
+  std::string getFunction() const { return function; }
 };
 
 /// Local variable reference.  Used for phi nodes, parameters and return

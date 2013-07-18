@@ -12,6 +12,7 @@
 #include <bugle.h>
 #include <clc/clc.h>
 #include <opencl_builtins.h>
+#include <opencl_atomics.h>
 
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 
