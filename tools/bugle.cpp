@@ -100,8 +100,8 @@ int main(int argc, char **argv) {
   else if (IntegerRepresentation == "math")
     IntRep.reset(new bugle::MathIntegerRepresentation);
   else {
-	errs() << "Unsupported integer representation: " << IntegerRepresentation << "\n";
-	return 1;
+    errs() << "Unsupported integer representation: " << IntegerRepresentation << "\n";
+    return 1;
   }
 
   bugle::TranslateModule TM(M.get(), SL);

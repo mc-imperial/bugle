@@ -150,7 +150,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   } else if (auto BV2BE = dyn_cast<BVToBoolExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
     writeExpr(OS, BV2BE->getSubExpr().get(), 4);
-    OS << " == " << MW->IntRep->getLiteral(1, 1);
+    OS << " == " << MW->IntRep->getLiteral(1, BV2BE->getSubExpr()->getType().width);
   } else if (auto AIE = dyn_cast<ArrayIdExpr>(E)) {
     OS << "base#MKPTR(";
     writeExpr(OS, AIE->getSubExpr().get());
