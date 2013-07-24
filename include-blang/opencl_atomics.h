@@ -141,16 +141,16 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     _DEVICE_QUALIFIER unsigned long __atomic_##OP##_global_unsigned_long(volatile __global unsigned long * x); \
     _DEVICE_QUALIFIER long __atomic_##OP##_local_long(volatile __local long * x); \
     _DEVICE_QUALIFIER unsigned long __atomic_##OP##_local_unsigned_long(volatile __local unsigned long * x); \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) long atomic_##OP(volatile __global long * x) { \
+    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) long atom_##OP(volatile __global long * x) { \
       return __atomic_##OP##_global_long(x); \
     } \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) long atom_##OP(volatile __global unsigned long * x) { \
+    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned long atom_##OP(volatile __global unsigned long * x) { \
       return __atomic_##OP##_global_unsigned_long(x); \
     } \
     _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) long atom_##OP(volatile __local long * x) { \
       return __atomic_##OP##_local_long(x); \
     } \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) long atom_##OP(volatile __local unsigned long * x) { \
+    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned long atom_##OP(volatile __local unsigned long * x) { \
       return __atomic_##OP##_local_unsigned_long(x); \
     }
 

@@ -118,7 +118,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         }
         assert(AE->getType() == GA->getRangeType());
         OS << "call {:atomic} {:atomic_function \"" << AE->getFunction() 
-           << "\"} " << "v" << id << " := _ATOMIC_OP" << GA->getRangeType().width << "($$" << GA->getName() << ", ";
+           << "\"}{:parts " << AE->getParts() << "}{:part " << AE->getPart() << "} " << "v" << id << " := _ATOMIC_OP" << GA->getRangeType().width << "($$" << GA->getName() << ", ";
         writeExpr(OS, AE->getOffset().get());
         OS << ");";
       });

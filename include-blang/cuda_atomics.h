@@ -3,6 +3,8 @@
 
 #ifdef __CUDA_ARCH__
 
+extern "C" {
+
 #define ATOMIC_INT_DECL(OP) \
     _DEVICE_QUALIFIER int __atomic##OP##_int(volatile int * x, int y); \
     _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) int atomic##OP(volatile int * x, int y) { \
@@ -107,6 +109,8 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
  *  * atomicCAS(address,compare,val), computes (old == compare ? val : old)
  * 
  */
+
+}
 
 #endif
 

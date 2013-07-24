@@ -250,20 +250,23 @@ public:
 };
 
 class AtomicExpr : public Expr {
-  AtomicExpr(Type t, ref<Expr> array, ref<Expr> offset, std::vector<ref<Expr>> args, std::string function) :
-    Expr(t), array(array), offset(offset), args(args), function(function) {}
+  AtomicExpr(Type t, ref<Expr> array, ref<Expr> offset, std::vector<ref<Expr>> args, std::string function, unsigned int parts, unsigned int part) :
+    Expr(t), array(array), offset(offset), args(args), function(function), parts(parts), part(part) {}
   ref<Expr> array, offset;
   std::vector<ref<Expr>> args;
   std::string function;
+  unsigned int parts, part;
 
 public:
-  static ref<Expr> create(ref<Expr> array, ref<Expr> offset, std::vector<ref<Expr>> args, std::string function);
+  static ref<Expr> create(ref<Expr> array, ref<Expr> offset, std::vector<ref<Expr>> args, std::string function, unsigned int parts, unsigned int part);
 
   EXPR_KIND(Atomic)
   ref<Expr> getArray() const { return array; }
   ref<Expr> getOffset() const { return offset; }
   std::vector<ref<Expr>> getArgs() const { return args; }
   std::string getFunction() const { return function; }
+  unsigned int getParts() const { return parts; }
+  unsigned int getPart() const { return part; }
 };
 
 /// Local variable reference.  Used for phi nodes, parameters and return

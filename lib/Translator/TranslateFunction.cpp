@@ -734,6 +734,9 @@ ref<Expr> TranslateFunction::handleArraySnapshot(bugle::BasicBlock *BBB,
 
 ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
     llvm::CallInst *CI, const std::vector<ref<Expr>> &Args) {
+
+  assert(CI->getType()->getPrimitiveSizeInBits() % 32 == 0);
+
   ref<Expr> Ptr = translateValue(CI->getArgOperand(0), BBB),
             PtrArr = ArrayIdExpr::create(Ptr, TM->translateType(CI->getType()) ),
             PtrOfs = ArrayOffsetExpr::create(Ptr);
@@ -745,12 +748,23 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
   for (unsigned i = 1; i < CI->getNumArgOperands(); i++)
     args.push_back(translateValue(CI->getArgOperand(i),BBB));
 
-  ref<Expr> E = AtomicExpr::create(PtrArr, PtrOfs, args, CI->getCalledFunction()->getName());
+  std::vector<ref<Expr>> returns;
 
-  auto S = new EvalStmt(E);
-  addLocToStmt(S);
-  BBB->addStmt(S);
-  return E;
+  unsigned int parts = CI->getType()->getPrimitiveSizeInBits() / range.width;
+  ref<Expr> E;
+  for (unsigned int i = 0; i < parts; i++) {
+
+    E = AtomicExpr::create(PtrArr, PtrOfs, args, CI->getCalledFunction()->getName(), parts, i+1);
+
+    auto S = new EvalStmt(E);
+    addLocToStmt(S);
+    BBB->addStmt(S);
+    returns.push_back(E);
+
+    PtrOfs = BVAddExpr::create(PtrOfs, BVConstExpr::create(TM->TD.getPointerSizeInBits(), 1));
+  }
+
+  return Expr::createBVConcatN(returns);
 }
 
 ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,

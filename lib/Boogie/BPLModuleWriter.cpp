@@ -85,7 +85,7 @@ void BPLModuleWriter::write() {
 
   unsigned long int sizes = 0;
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
-    unsigned long int size = (1 << ((*i)->getRangeType().width -1));
+    unsigned long int size = (1 << (((*i)->getRangeType().width/8) ));
     if (!(size & sizes)) {
       auto pw = MW->IntRep->getType(M->getPointerWidth());
       auto bw = MW->IntRep->getType((*i)->getRangeType().width);
