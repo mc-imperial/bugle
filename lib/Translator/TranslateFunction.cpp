@@ -1413,8 +1413,19 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     ref<Expr> Cond = translateValue(SI->getCondition(), BBB),
               TrueVal = translateValue(SI->getTrueValue(), BBB),
               FalseVal = translateValue(SI->getFalseValue(), BBB);
-    Cond = BVToBoolExpr::create(Cond);
-    E = IfThenElseExpr::create(Cond, TrueVal, FalseVal);
+    if (auto VT = dyn_cast<VectorType>(SI->getCondition()->getType())) {
+      unsigned elementBitWidth = TrueVal->getType().width / VT->getNumElements();
+      E = 0;
+      for(unsigned i = 0; i < VT->getNumElements(); ++i) {
+        ref<Expr> Ite = IfThenElseExpr::create(BVToBoolExpr::create(BVExtractExpr::create(Cond, i, 1)),
+                                                                    BVExtractExpr::create(TrueVal, i*elementBitWidth, elementBitWidth),
+                                                                    BVExtractExpr::create(FalseVal, i*elementBitWidth, elementBitWidth));
+        E = (i == 0) ? Ite : BVConcatExpr::create(Ite, E);
+      }
+    } else {
+      Cond = BVToBoolExpr::create(Cond);
+      E = IfThenElseExpr::create(Cond, TrueVal, FalseVal);
+    }
   } else if (auto EEI = dyn_cast<ExtractElementInst>(I)) {
     ref<Expr> Vec = translateValue(EEI->getVectorOperand(), BBB),
               Idx = translateValue(EEI->getIndexOperand(), BBB);
