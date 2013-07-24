@@ -41,14 +41,39 @@ typedef unsigned int sampler_t;
 
 #pragma OPENCL EXTENSION cl_clang_storage_class_specifiers: enable
 
-#define __MAX_VALUES_PER_COORD_2D (1<<12)
+
+#ifndef CL_DEVICE_IMAGE1D_MAX_WIDTH
+#define CL_DEVICE_IMAGE1D_MAX_WIDTH 2048
+#endif
+
+#ifndef CL_DEVICE_IMAGE2D_MAX_WIDTH
+#define CL_DEVICE_IMAGE2D_MAX_WIDTH 2048
+#endif
+
+#ifndef CL_DEVICE_IMAGE2D_MAX_HEIGHT
+#define CL_DEVICE_IMAGE2D_MAX_HEIGHT 2048
+#endif
+
+#ifndef CL_DEVICE_IMAGE3D_MAX_WIDTH
+#define CL_DEVICE_IMAGE3D_MAX_WIDTH 256
+#endif
+
+#ifndef CL_DEVICE_IMAGE3D_MAX_HEIGHT
+#define CL_DEVICE_IMAGE3D_MAX_HEIGHT 256
+#endif
+
+#ifndef CL_DEVICE_IMAGE3D_MAX_DEPTH
+#define CL_DEVICE_IMAGE3D_MAX_DEPTH 256
+#endif
+
+#define __image_clamp(x, MAX) (unsigned)((x) < 0 ? 0 : ( (x) >= (MAX) ? (MAX) - 1 : (x) ))
 
 #define READ_IMAGE_2D(NAME, COLOUR_TYPE, COORD_TYPE) \
 _CLC_INLINE _CLC_OVERLOAD COLOUR_TYPE NAME(image2d_t image, sampler_t sampler, COORD_TYPE coord) { \
   __global COLOUR_TYPE *img = image; \
-  __assert(coord.x < __MAX_VALUES_PER_COORD_2D); \
-  __assert(coord.y < __MAX_VALUES_PER_COORD_2D); \
-  return img[coord.y*__MAX_VALUES_PER_COORD_2D + coord.x]; \
+  unsigned __x = __image_clamp((int)coord.x, CL_DEVICE_IMAGE2D_MAX_WIDTH); \
+  unsigned __y = __image_clamp((int)coord.y, CL_DEVICE_IMAGE2D_MAX_HEIGHT); \
+  return img[coord.y*CL_DEVICE_IMAGE2D_MAX_WIDTH + coord.x]; \
 }
 
 READ_IMAGE_2D(read_imagef, float4, uint2)
@@ -61,9 +86,9 @@ READ_IMAGE_2D(read_imageui, uint4, int2)
 #define WRITE_IMAGE_2D(NAME, COLOUR_TYPE, COORD_TYPE)                 \
 _CLC_INLINE _CLC_OVERLOAD void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TYPE color) { \
   __global COLOUR_TYPE *img = image; \
-  __assert(coord.x < __MAX_VALUES_PER_COORD_2D); \
-  __assert(coord.y < __MAX_VALUES_PER_COORD_2D); \
-  img[coord.y*__MAX_VALUES_PER_COORD_2D + coord.x] = color; \
+  unsigned __x = __image_clamp((unsigned)coord.x, CL_DEVICE_IMAGE2D_MAX_WIDTH); \
+  unsigned __y = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE2D_MAX_HEIGHT); \
+  img[coord.y*CL_DEVICE_IMAGE2D_MAX_WIDTH + coord.x] = color; \
 }
 
 WRITE_IMAGE_2D(write_imagef, float4, uint2)
@@ -78,10 +103,10 @@ WRITE_IMAGE_2D(write_imageui, uint4, int2)
 #define READ_IMAGE_3D(NAME, COLOUR_TYPE, COORD_TYPE) \
 _CLC_INLINE _CLC_OVERLOAD COLOUR_TYPE NAME(image2d_t image, sampler_t sampler, COORD_TYPE coord) { \
   __global COLOUR_TYPE *img = image; \
-  __assert(coord.x < __MAX_VALUES_PER_COORD_3D); \
-  __assert(coord.y < __MAX_VALUES_PER_COORD_3D); \
-  __assert(coord.z < __MAX_VALUES_PER_COORD_3D); \
-  return img[(coord.z*__MAX_VALUES_PER_COORD_3D + coord.y)*__MAX_VALUES_PER_COORD_3D + coord.x]; \
+  unsigned __x = __image_clamp((unsigned)coord.x, CL_DEVICE_IMAGE3D_MAX_WIDTH); \
+  unsigned __y = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE3D_MAX_HEIGHT); \
+  unsigned __z = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE3D_MAX_DEPTH); \
+  return img[(coord.z*CL_DEVICE_IMAGE3D_MAX_HEIGHT + coord.y)*CL_DEVICE_IMAGE3D_MAX_WIDTH + coord.x]; \
 }
 
 READ_IMAGE_3D(read_imagef, float4, uint4)
@@ -94,10 +119,10 @@ READ_IMAGE_3D(read_imageui, uint4, int4)
 #define WRITE_IMAGE_3D(NAME, COLOUR_TYPE, COORD_TYPE)                 \
 _CLC_INLINE _CLC_OVERLOAD void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TYPE color) { \
   __global COLOUR_TYPE *img = image; \
-  __assert(coord.x < __MAX_VALUES_PER_COORD_3D); \
-  __assert(coord.y < __MAX_VALUES_PER_COORD_3D); \
-  __assert(coord.z < __MAX_VALUES_PER_COORD_3D); \
-  img[(coord.z*__MAX_VALUES_PER_COORD_3D + coord.y)*__MAX_VALUES_PER_COORD_3D + coord.x] = color; \
+  unsigned __x = __image_clamp((unsigned)coord.x, CL_DEVICE_IMAGE3D_MAX_WIDTH); \
+  unsigned __y = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE3D_MAX_HEIGHT); \
+  unsigned __z = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE3D_MAX_DEPTH); \
+  img[(coord.z*CL_DEVICE_IMAGE3D_MAX_HEIGHT + coord.y)*CL_DEVICE_IMAGE3D_MAX_WIDTH + coord.x] = color; \
 }
 
 WRITE_IMAGE_3D(write_imagef, float4, uint4)
