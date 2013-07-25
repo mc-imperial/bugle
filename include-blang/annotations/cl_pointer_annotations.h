@@ -8,9 +8,9 @@
 #define _FUNCTION_FROM_POINTER_TO_TYPE_OVERLOAD(NAME, MEMORY_SPACE, TYPE) \
     TYPE \
     __##NAME##_##MEMORY_SPACE \
-    (const __##MEMORY_SPACE void* p); \
+    (const volatile __##MEMORY_SPACE void* p); \
     _CLC_OVERLOAD _CLC_INLINE TYPE \
-    __##NAME(const __##MEMORY_SPACE void* p) { \
+    __##NAME(const volatile __##MEMORY_SPACE void* p) { \
       return __##NAME##_##MEMORY_SPACE(p); \
     }
 
@@ -21,9 +21,9 @@
 #define _FUNCTION_FROM_POINTER_TO_VOID_OVERLOAD(NAME, MEMORY_SPACE) \
     void \
     __##NAME##_##MEMORY_SPACE \
-    (const __##MEMORY_SPACE void* p); \
+    (const volatile __##MEMORY_SPACE void* p); \
     _CLC_OVERLOAD _CLC_INLINE void \
-    __##NAME(const __##MEMORY_SPACE void* p) { \
+    __##NAME(const volatile __##MEMORY_SPACE void* p) { \
       return __##NAME##_##MEMORY_SPACE(p); \
     }
 

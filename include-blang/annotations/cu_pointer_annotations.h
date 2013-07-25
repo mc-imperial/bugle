@@ -6,9 +6,9 @@
 #endif
 
 #define _FUNCTION_FROM_POINTER_TO_TYPE(NAME, TYPE) \
-    _DEVICE_QUALIFIER TYPE __##NAME(const void* p);
+    _DEVICE_QUALIFIER TYPE __##NAME(const volatile void* p);
 
 #define _FUNCTION_FROM_POINTER_TO_VOID(NAME) \
-    _DEVICE_QUALIFIER void __##NAME(const void* p);
+    _DEVICE_QUALIFIER void __##NAME(const volatile void* p);
 
 #endif

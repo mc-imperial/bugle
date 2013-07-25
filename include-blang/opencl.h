@@ -73,7 +73,7 @@ _CLC_INLINE _CLC_OVERLOAD COLOUR_TYPE NAME(image2d_t image, sampler_t sampler, C
   __global COLOUR_TYPE *img = image; \
   unsigned __x = __image_clamp((int)coord.x, CL_DEVICE_IMAGE2D_MAX_WIDTH); \
   unsigned __y = __image_clamp((int)coord.y, CL_DEVICE_IMAGE2D_MAX_HEIGHT); \
-  return img[coord.y*CL_DEVICE_IMAGE2D_MAX_WIDTH + coord.x]; \
+  return img[__y*CL_DEVICE_IMAGE2D_MAX_WIDTH + __x]; \
 }
 
 READ_IMAGE_2D(read_imagef, float4, uint2)
@@ -86,8 +86,6 @@ READ_IMAGE_2D(read_imageui, uint4, int2)
 #define WRITE_IMAGE_2D(NAME, COLOUR_TYPE, COORD_TYPE)                 \
 _CLC_INLINE _CLC_OVERLOAD void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TYPE color) { \
   __global COLOUR_TYPE *img = image; \
-  unsigned __x = __image_clamp((unsigned)coord.x, CL_DEVICE_IMAGE2D_MAX_WIDTH); \
-  unsigned __y = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE2D_MAX_HEIGHT); \
   img[coord.y*CL_DEVICE_IMAGE2D_MAX_WIDTH + coord.x] = color; \
 }
 
@@ -106,7 +104,7 @@ _CLC_INLINE _CLC_OVERLOAD COLOUR_TYPE NAME(image2d_t image, sampler_t sampler, C
   unsigned __x = __image_clamp((unsigned)coord.x, CL_DEVICE_IMAGE3D_MAX_WIDTH); \
   unsigned __y = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE3D_MAX_HEIGHT); \
   unsigned __z = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE3D_MAX_DEPTH); \
-  return img[(coord.z*CL_DEVICE_IMAGE3D_MAX_HEIGHT + coord.y)*CL_DEVICE_IMAGE3D_MAX_WIDTH + coord.x]; \
+  return img[(__z*CL_DEVICE_IMAGE3D_MAX_HEIGHT + __y)*CL_DEVICE_IMAGE3D_MAX_WIDTH + __x]; \
 }
 
 READ_IMAGE_3D(read_imagef, float4, uint4)
@@ -119,9 +117,6 @@ READ_IMAGE_3D(read_imageui, uint4, int4)
 #define WRITE_IMAGE_3D(NAME, COLOUR_TYPE, COORD_TYPE)                 \
 _CLC_INLINE _CLC_OVERLOAD void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TYPE color) { \
   __global COLOUR_TYPE *img = image; \
-  unsigned __x = __image_clamp((unsigned)coord.x, CL_DEVICE_IMAGE3D_MAX_WIDTH); \
-  unsigned __y = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE3D_MAX_HEIGHT); \
-  unsigned __z = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE3D_MAX_DEPTH); \
   img[(coord.z*CL_DEVICE_IMAGE3D_MAX_HEIGHT + coord.y)*CL_DEVICE_IMAGE3D_MAX_WIDTH + coord.x] = color; \
 }
 
