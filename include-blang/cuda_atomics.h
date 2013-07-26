@@ -6,8 +6,8 @@
 extern "C" {
 
 #define ATOMIC_INT_DECL(OP) \
-    _DEVICE_QUALIFIER int __atomic##OP##_int(volatile int * x, int y); \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) int atomic##OP(volatile int * x, int y) { \
+    __device__ int __atomic##OP##_int(volatile int * x, int y); \
+    __device__ static __attribute__((always_inline)) __attribute__((overloadable)) int atomic##OP(volatile int * x, int y) { \
       return __atomic##OP##_int(x,y); \
     }
 
@@ -22,8 +22,8 @@ ATOMIC_INT_DECL(Xor)
 
 #undef ATOMIC_INT_DECL
 #define ATOMIC_UNSIGNED_INT_DECL(OP) \
-    _DEVICE_QUALIFIER unsigned int __atomic##OP##_unsigned_int(volatile unsigned int * x, unsigned int y); \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned int atomic##OP(volatile unsigned int * x, unsigned int y) { \
+    __device__ unsigned int __atomic##OP##_unsigned_int(volatile unsigned int * x, unsigned int y); \
+    __device__ static __attribute__((always_inline)) __attribute__((overloadable)) unsigned int atomic##OP(volatile unsigned int * x, unsigned int y) { \
       return __atomic##OP##_unsigned_int(x,y); \
     }
 
@@ -41,8 +41,8 @@ ATOMIC_UNSIGNED_INT_DECL(Dec)
 #undef ATOMIC_UNSIGNED_INT_DECL
 
 #define ATOMIC_UNSIGNED_LONG_LONG_INT_DECL(OP) \
-    _DEVICE_QUALIFIER unsigned long long int __atomic##OP##_unsigned_long_long_int(volatile unsigned long long int * x, unsigned long long int y); \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned long long int atomic##OP(volatile unsigned long long int * x, unsigned long long int y) { \
+    __device__ unsigned long long int __atomic##OP##_unsigned_long_long_int(volatile unsigned long long int * x, unsigned long long int y); \
+    __device__ static __attribute__((always_inline)) __attribute__((overloadable)) unsigned long long int atomic##OP(volatile unsigned long long int * x, unsigned long long int y) { \
       return __atomic##OP##_unsigned_long_long_int(x,y); \
     }
 
@@ -57,8 +57,8 @@ ATOMIC_UNSIGNED_LONG_LONG_INT_DECL(Xor)
 #undef ATOMIC_UNSIGNED_LONG_LONG_INT_DECL
 
 #define ATOMIC_FLOAT_DECL(OP) \
-    _DEVICE_QUALIFIER float __atomic##OP##_float(volatile float * x, float y); \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) float atomic##OP(volatile float * x, float y) { \
+    __device__ float __atomic##OP##_float(volatile float * x, float y); \
+    __device__ static __attribute__((always_inline)) __attribute__((overloadable)) float atomic##OP(volatile float * x, float y) { \
       return __atomic##OP##_float(x,y); \
     }
 
@@ -68,16 +68,16 @@ ATOMIC_FLOAT_DECL(Exch)
 #undef ATOMIC_FLOAT_DECL
 
 /* atomicCAS(x, y, z) */
-_DEVICE_QUALIFIER int __atomicCAS_int(volatile int * x, int y, int z); \
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) int atomicCAS(volatile int * x, int y, int z) {
+__device__ int __atomicCAS_int(volatile int * x, int y, int z); \
+__device__ static __attribute__((always_inline)) __attribute__((overloadable)) int atomicCAS(volatile int * x, int y, int z) {
   return __atomicCAS_int(x,y,z);
 }
-_DEVICE_QUALIFIER unsigned int __atomicCAS_unsigned_int(volatile unsigned int * x, unsigned int y, unsigned int z); \
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned int atomicCAS(volatile unsigned int * x, unsigned int y, unsigned int z) {
+__device__ unsigned int __atomicCAS_unsigned_int(volatile unsigned int * x, unsigned int y, unsigned int z); \
+__device__ static __attribute__((always_inline)) __attribute__((overloadable)) unsigned int atomicCAS(volatile unsigned int * x, unsigned int y, unsigned int z) {
   return __atomicCAS_unsigned_int(x,y,z);
 }
-_DEVICE_QUALIFIER unsigned long long int __atomicCAS_unsigned_long_long_int(volatile unsigned long long int * x, unsigned long long int y, unsigned long long int z); \
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned long long int atomicCAS(volatile unsigned long long int * x, unsigned long long int y, unsigned long long int z) {
+__device__ unsigned long long int __atomicCAS_unsigned_long_long_int(volatile unsigned long long int * x, unsigned long long int y, unsigned long long int z); \
+__device__ static __attribute__((always_inline)) __attribute__((overloadable)) unsigned long long int atomicCAS(volatile unsigned long long int * x, unsigned long long int y, unsigned long long int z) {
   return __atomicCAS_unsigned_long_long_int(x,y,z);
 }
 
