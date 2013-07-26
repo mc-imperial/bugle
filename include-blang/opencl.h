@@ -43,27 +43,27 @@ typedef unsigned int sampler_t;
 
 
 #ifndef CL_DEVICE_IMAGE1D_MAX_WIDTH
-#define CL_DEVICE_IMAGE1D_MAX_WIDTH 2048
+#define CL_DEVICE_IMAGE1D_MAX_WIDTH (1 << 31)
 #endif
 
 #ifndef CL_DEVICE_IMAGE2D_MAX_WIDTH
-#define CL_DEVICE_IMAGE2D_MAX_WIDTH 2048
+#define CL_DEVICE_IMAGE2D_MAX_WIDTH (1 << 15)
 #endif
 
 #ifndef CL_DEVICE_IMAGE2D_MAX_HEIGHT
-#define CL_DEVICE_IMAGE2D_MAX_HEIGHT 2048
+#define CL_DEVICE_IMAGE2D_MAX_HEIGHT (1 << 15)
 #endif
 
 #ifndef CL_DEVICE_IMAGE3D_MAX_WIDTH
-#define CL_DEVICE_IMAGE3D_MAX_WIDTH 256
+#define CL_DEVICE_IMAGE3D_MAX_WIDTH (1 << 10)
 #endif
 
 #ifndef CL_DEVICE_IMAGE3D_MAX_HEIGHT
-#define CL_DEVICE_IMAGE3D_MAX_HEIGHT 256
+#define CL_DEVICE_IMAGE3D_MAX_HEIGHT (1 << 10)
 #endif
 
 #ifndef CL_DEVICE_IMAGE3D_MAX_DEPTH
-#define CL_DEVICE_IMAGE3D_MAX_DEPTH 256
+#define CL_DEVICE_IMAGE3D_MAX_DEPTH (1 << 10)
 #endif
 
 #define __image_clamp(x, MAX) (unsigned)((x) < 0 ? 0 : ( (x) >= (MAX) ? (MAX) - 1 : (x) ))
