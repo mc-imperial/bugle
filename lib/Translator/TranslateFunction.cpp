@@ -468,9 +468,12 @@ void TranslateFunction::addLocToStmt(Stmt *stmt) {
 }
 
 SourceLoc *TranslateFunction::extractSourceLoc(llvm::Instruction *I) {
-  SourceLoc* sourceloc = 0;
+  SourceLoc* sourceloc = NULL;
   if (llvm::MDNode *mdnode = I->getMetadata("dbg")) {
     llvm::DILocation Loc(mdnode);
+    while (Loc.getOrigLocation() != llvm::DILocation(NULL))
+      Loc = Loc.getOrigLocation();
+
     sourceloc = new SourceLoc(Loc.getLineNumber(),
                               Loc.getColumnNumber(),
                               Loc.getFilename().str(),

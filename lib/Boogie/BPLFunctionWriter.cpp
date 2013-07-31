@@ -228,7 +228,7 @@ void BPLFunctionWriter::writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB) {
 
 void BPLFunctionWriter::writeSourceLoc(llvm::raw_ostream &OS,
                                        const SourceLoc *sourceloc) {
-  if (sourceloc) {
+  if (sourceloc != NULL) {
     OS << "{:line " << sourceloc->getLineNo() << "}";
     OS << "{:col " << sourceloc->getColNo() << "}";
     OS << "{:fname \"" << sourceloc->getFileName() << "\"}";
@@ -239,7 +239,7 @@ void BPLFunctionWriter::writeSourceLoc(llvm::raw_ostream &OS,
 
 void BPLFunctionWriter::writeSourceLocMarker(llvm::raw_ostream &OS,
                                        const SourceLoc *sourceloc) {
-  if (sourceloc) {
+  if (sourceloc != NULL) {
     OS << "  assert {:sourceloc}";
     writeSourceLoc(OS, sourceloc);
     OS << "true;\n";
@@ -307,14 +307,14 @@ void BPLFunctionWriter::write() {
 
     for (auto i = F->ensures_begin(), e = F->ensures_end(); i != e; ++i) {
       OS << "ensures ";
-      writeSourceLoc(OS, (*i)->getSourceLoc());      
+      writeSourceLoc(OS, (*i)->getSourceLoc());
       writeExpr(OS, (*i)->getExpr().get());
       OS << ";\n";
     }
 
     for (auto i = F->globalEnsures_begin(), e = F->globalEnsures_end(); i != e; ++i) {
       OS << "ensures {:do_not_predicate} ";
-      writeSourceLoc(OS, (*i)->getSourceLoc());      
+      writeSourceLoc(OS, (*i)->getSourceLoc());
       writeExpr(OS, (*i)->getExpr().get());
       OS << ";\n";
     }
