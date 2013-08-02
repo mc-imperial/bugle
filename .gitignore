@@ -1,3 +1,4 @@
 examples/*.bc
 examples/*.bpl
 examples/*.gbpl
+.DS_Store
