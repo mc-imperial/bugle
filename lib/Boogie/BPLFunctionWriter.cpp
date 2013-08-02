@@ -117,8 +117,13 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
           writeSourceLocMarker(OS, ES->getSourceLoc());
         }
         assert(AE->getType() == GA->getRangeType());
-        OS << "call {:atomic} {:atomic_function \"" << AE->getFunction() 
-           << "\"}{:parts " << AE->getParts() << "}{:part " << AE->getPart() << "} " << "v" << id << " := _ATOMIC_OP" << GA->getRangeType().width << "($$" << GA->getName() << ", ";
+        OS << "call {:atomic} {:atomic_function \"" << AE->getFunction() << "\"}";
+        for (int i = 0; i < AE->getArgs().size(); i++) {
+          OS << "{:arg" << (i+1) << " ";
+          writeExpr(OS,AE->getArgs()[i].get());
+          OS << "}";
+        }
+        OS << "{:parts " << AE->getParts() << "}{:part " << AE->getPart() << "} " << "v" << id << " := _ATOMIC_OP" << GA->getRangeType().width << "($$" << GA->getName() << ", ";
         writeExpr(OS, AE->getOffset().get());
         OS << ");";
       });
