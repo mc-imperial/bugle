@@ -1,6 +1,8 @@
 #ifndef OPENCL_ATOMICS_H
 #define OPENCL_ATOMICS_H
 
+typedef __global unsigned int * counter32_t;
+
 #ifdef __OPENCL_VERSION__
 #define ATOMIC_DECL(OP) \
     int __atomic_##OP##_global_int(volatile __global int * x, int y); \
