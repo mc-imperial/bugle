@@ -86,6 +86,64 @@ ATOMIC_SINGLE_DECL(dec)
 
 #undef ATOMIC_SINGLE_DECL
 
+#define ATOM32_DECL(OP) \
+    _CLC_INLINE _CLC_OVERLOAD int atom_##OP(__global int * x, int y) { \
+      return __atomic_##OP##_global_int(x, y); \
+    } \
+    _CLC_INLINE _CLC_OVERLOAD unsigned int atom_##OP(__global unsigned int * x, unsigned int y) { \
+      return __atomic_##OP##_global_unsigned_int(x, y); \
+    } \
+    _CLC_INLINE _CLC_OVERLOAD int atom_##OP(__local int * x, int y) { \
+      return __atomic_##OP##_local_int(x, y); \
+    } \
+    _CLC_INLINE _CLC_OVERLOAD unsigned int atom_##OP(__local unsigned int * x, unsigned int y) { \
+      return __atomic_##OP##_local_unsigned_int(x, y); \
+    }
+
+ATOM32_DECL(add)
+ATOM32_DECL(sub)
+ATOM32_DECL(xchg)
+/*ATOM32_DECL(cmpxchg)*/
+ATOM32_DECL(min)
+ATOM32_DECL(max)
+ATOM32_DECL(and)
+ATOM32_DECL(or)
+ATOM32_DECL(xor)
+
+#undef ATOM32_DECL
+
+_CLC_INLINE _CLC_OVERLOAD int atom_cmpxchg(__global int * x, int y, int z) {
+  return __atomic_cmpxchg_global_int(x, y, z);
+}
+_CLC_INLINE _CLC_OVERLOAD unsigned int atom_cmpxchg(__global unsigned int * x, unsigned int y, unsigned int z) {
+  return __atomic_cmpxchg_global_unsigned_int(x, y, z);
+}
+_CLC_INLINE _CLC_OVERLOAD int atom_cmpxchg(__local int * x, int y, int z) {
+  return __atomic_cmpxchg_local_int(x, y, z);
+}
+_CLC_INLINE _CLC_OVERLOAD unsigned int atom_cmpxchg(__local unsigned int * x, unsigned int y, unsigned int z) {
+  return __atomic_cmpxchg_local_unsigned_int(x, y, z);
+}
+
+#define ATOM32_SINGLE_DECL(OP) \
+    _CLC_INLINE _CLC_OVERLOAD int atom_##OP(__global int * x) { \
+      return __atomic_##OP##_global_int(x); \
+    } \
+    _CLC_INLINE _CLC_OVERLOAD unsigned int atom_##OP(__global unsigned int * x) { \
+      return __atomic_##OP##_global_unsigned_int(x); \
+    } \
+    _CLC_INLINE _CLC_OVERLOAD int atom_##OP(__local int * x) { \
+      return __atomic_##OP##_local_int(x); \
+    } \
+    _CLC_INLINE _CLC_OVERLOAD unsigned int atom_##OP(__local unsigned int * x) { \
+      return __atomic_##OP##_local_unsigned_int(x); \
+    }
+
+ATOM32_SINGLE_DECL(inc)
+ATOM32_SINGLE_DECL(dec)
+
+#undef ATOM32_SINGLE_DECL
+
 #define ATOM_DECL(OP) \
     long __atomic_##OP##_global_long(volatile __global long * x, long y); \
     unsigned long __atomic_##OP##_global_unsigned_long(volatile __global unsigned long * x, unsigned long y); \
