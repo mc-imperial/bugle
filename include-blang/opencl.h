@@ -12,6 +12,7 @@
 #include <bugle.h>
 #include <clc/clc.h>
 #include <opencl_builtins.h>
+#include <opencl_limits.h>
 #include <opencl_atomics.h>
 
 #include "annotations/annotations.h"
