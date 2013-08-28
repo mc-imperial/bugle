@@ -110,7 +110,10 @@ _FLOAT_UNARY_MACRO(half_sin)
 _FLOAT_UNARY_MACRO(half_sqrt)
 _FLOAT_UNARY_MACRO(half_tan)
 
-
+_FLOAT_BINARY_MACRO(fmod)
+_FLOAT_UNARY_MACRO(log10)
+_FLOAT_UNARY_MACRO(log1p)
+_FLOAT_UNARY_MACRO(logb)
 
 
 // 6.11.3: Integer functions
