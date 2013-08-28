@@ -145,7 +145,7 @@ __device__ float __fdividef(float x, float y);
 __device__ float __sinf(float x);
 __device__ float __cosf(float x);
 __device__ float __tanf(float x);
-__device__ float __sincosf(float x, float *sptr, float *cptr);
+__device__ void  __sincosf(float x, float *sptr, float *cptr);
 __device__ float __logf(float x);
 __device__ float __log2f(float x);
 __device__ float __log10f(float x);
