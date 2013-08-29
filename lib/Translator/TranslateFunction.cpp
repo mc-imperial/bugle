@@ -1494,7 +1494,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         if (E.isNull())
           return;
       } else {
-        assert(CI->getType()->isVoidTy() && "Intrinsic unsupported, can't no-op");
+        assert(0 && "Unsupported intrinsic instruction");
         llvm::errs() << "Warning: intrinsic " << Intrinsic::getName(ID)
                      << " not supported, treating as no-op\n";
         return;
