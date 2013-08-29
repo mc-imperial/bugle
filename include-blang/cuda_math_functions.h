@@ -1,3 +1,6 @@
+__device__ float abs(float x);
+__device__ float fabsf(float x);
+
 /* TABLE C-1 */
 __device__ float rsqrtf(float x);
 __device__ float sqrtf(float x);

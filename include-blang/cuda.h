@@ -37,9 +37,6 @@ struct _3DimensionalVector {
 #define __syncthreads() \
   bugle_barrier(true, true)
 
-
-__device__ float abs (float x);
-
 #ifdef __cplusplus
 }
 #endif
