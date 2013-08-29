@@ -14,6 +14,8 @@
 #define __global__ __attribute__((global))
 #define __host__ __attribute__((host))
 #define __shared__ __attribute__((shared))
+#define __inline__ __attribute__((always_inline))
+#define __forceinline__ __attribute__((always_inline))
 
 #include <bugle.h>
 
