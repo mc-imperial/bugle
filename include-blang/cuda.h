@@ -9,6 +9,8 @@
 #error Cannot include both opencl.h and cuda.h
 #endif
 
+#define __CUDACC__
+
 #define __constant__ __attribute__((constant))
 #define __device__ __attribute__((device))
 #define __global__ __attribute__((global))
@@ -16,6 +18,18 @@
 #define __shared__ __attribute__((shared))
 #define __inline__ __attribute__((always_inline))
 #define __forceinline__ __attribute__((always_inline))
+
+/* Use an empty definition for alignment. Alternatively we could use:
+
+     #define __align__(n) __attribute__((aligned(n)))
+
+   but this causes bugle to default to byte-size operations even for larger
+   data types.
+*/
+#define __align__(n)
+
+#define NULL 0
+typedef unsigned int size_t;
 
 #include <bugle.h>
 
@@ -173,8 +187,5 @@ __axiom(gridDim.y == __GRID_DIM_1)
 #ifdef __GRID_DIM_2
 __axiom(gridDim.z == __GRID_DIM_2)
 #endif
-
-
-
 
 #endif
