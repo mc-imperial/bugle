@@ -1,6 +1,10 @@
 #ifndef ANNOTATIONS_H
 #define ANNOTATIONS_H
 
+#ifdef NO_ANNOTATIONS_H
+#error no_annotations.h must be included after annotations.h
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
