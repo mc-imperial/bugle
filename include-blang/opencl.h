@@ -11,11 +11,11 @@
 
 #include <bugle.h>
 #include <clc/clc.h>
+#include <annotations/annotations.h>
 #include <opencl_builtins.h>
 #include <opencl_limits.h>
 #include <opencl_atomics.h>
 
-#include "annotations/annotations.h"
 
 /* Images */
 #define image2d_t __bugle_image2d_t

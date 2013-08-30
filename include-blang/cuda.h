@@ -31,15 +31,14 @@
 #define NULL 0
 typedef unsigned int size_t;
 
+#include <bugle.h>
+#include <annotations/annotations.h>
 #include <cuda_math_constants.h>
 #include <cuda_math_functions.h>
 #include <cuda_vectors.h>
 #include <cuda_textures.h>
 #include <cuda_atomics.h>
 
-#include <bugle.h>
-
-#include <annotations/annotations.h>
 
 #ifdef __cplusplus
 extern "C" {

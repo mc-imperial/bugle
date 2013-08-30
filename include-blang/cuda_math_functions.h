@@ -17,8 +17,26 @@ __device__ unsigned int __sad(int x, int y, unsigned int z);
 __device__ unsigned long long int __umul64hi(unsigned long long int x, unsigned long long int y);
 __device__ unsigned int __umulhi(unsigned int x, unsigned int y);
 __device__ unsigned int __usad(unsigned int x, unsigned int y, unsigned int z);
-__device__ int __mul24(int x, int y);
-__device__ unsigned int __umul24(unsigned int x, unsigned int y);
+
+__device__ static __inline__ int __mul24(int x, int y) {
+  /* assumptions:
+     - result only well-defined for input values in range [-2^23, 2^23-1]
+     - trunctation to the 32 least significant bits of the result is automatic
+  */
+  __assert(x >= -8388608 && x < 8388608);
+  __assert(y >= -8388608 && y < 8388608);
+  return x * y;
+}
+
+__device__ static __inline__ unsigned int __umul24(unsigned int x, unsigned int y) {
+  /* assumptions:
+     - result only well-defined for input values in range [0, 2^24-1]
+     - trunctation to the 32 least significant bits of the result is automatic
+  */
+  __assert(x < 16777216);
+  __assert(y < 16777216);
+  return x * y;
+}
 
 /* TABLE C-1 */
 __device__ float rsqrtf(float x);
