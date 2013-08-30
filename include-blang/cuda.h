@@ -35,6 +35,7 @@ typedef unsigned int size_t;
 
 #include <cuda_vectors.h>
 #include <cuda_atomics.h>
+#include <cuda_textures.h>
 
 #include <annotations/annotations.h>
 
@@ -42,6 +43,7 @@ typedef unsigned int size_t;
 extern "C" {
 #endif
 
+#include <cuda_math_constants.h>
 #include <cuda_math_functions.h>
 
 struct _3DimensionalVector {

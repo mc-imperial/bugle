@@ -1,5 +1,27 @@
+#ifndef CUDA_MATH_H
+#define CUDA_MATH_H
+
 __device__ float abs(float x);
 __device__ float fabsf(float x);
+
+/* INTEGER INTRINSICS */
+__device__ unsigned int __brev(unsigned int x);
+__device__ unsigned long long int __brevll(unsigned long long int x);
+__device__ unsigned int __byte_perm (unsigned int x,unsigned int y, unsigned int s);
+__device__ int __clz(int x);
+__device__ int __clzll(long long int x);
+__device__ int __ffs(int x);
+__device__ int __ffsll(long long int x);
+__device__ long long int __mul64hi(long long int x, long long int y);
+__device__ int __mulhi(int x, int y);
+__device__ int __popc(unsigned int x);
+__device__ int __popcll(unsigned long long int x);
+__device__ unsigned int __sad(int x, int y, unsigned int z);
+__device__ unsigned long long int __umul64hi(unsigned long long int x, unsigned long long int y);
+__device__ unsigned int __umulhi(unsigned int x, unsigned int y);
+__device__ unsigned int __usad(unsigned int x, unsigned int y, unsigned int z);
+__device__ int __mul24(int x, int y);
+__device__ unsigned int __umul24(unsigned int x, unsigned int y);
 
 /* TABLE C-1 */
 __device__ float rsqrtf(float x);
@@ -111,7 +133,7 @@ __device__ double fma(double x, double y, double z);
 __device__ int bugle_frexp_exp(double x);
 __device__ double bugle_frexp_frac(double x);
 
-static __attribute__((always_inline)) __device__ double frexp(double x, int *exp) {
+__device__ static __inline__ double frexp(double x, int *exp) {
   *exp = bugle_frexp_exp(x);
   return bugle_frexp_frac(x);
 }
@@ -217,3 +239,5 @@ __device__ double __dsqrt_rn(double x);
 __device__ double __dsqrt_rz(double x);
 __device__ double __dsqrt_ru(double x);
 __device__ double __dsqrt_rd(double x);
+
+#endif
