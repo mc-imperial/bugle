@@ -71,7 +71,8 @@ class TranslateFunction {
                    handleBarrierInvariantBinary,
                    handleAddNoovflUnsigned, handleAddNoovflSigned,
                    handleAddNoovflPredicate,
-                   handleAdd, handleIte, handleUninterpretedFunction;
+                   handleAdd, handleIte, handleUninterpretedFunction,
+                   handleMemcpy;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize,

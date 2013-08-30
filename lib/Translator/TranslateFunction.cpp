@@ -284,7 +284,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
                                      "_unsigned_long_long_int", "",
          ""
       };
-      
+
       const std::string* atomics =
         ((SL == TranslateModule::SL_OpenCL) ? opencl : cuda);
 
@@ -348,6 +348,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::sqrt] = &TranslateFunction::handleSqrt;
     ints[Intrinsic::dbg_value] = &TranslateFunction::handleNoop;
     ints[Intrinsic::dbg_declare] = &TranslateFunction::handleNoop;
+    ints[Intrinsic::memcpy] = &TranslateFunction::handleMemcpy;
   }
   return SpecialFunctionMap;
 }
@@ -361,7 +362,7 @@ void TranslateFunction::translate() {
   if (isGPUEntryPoint)
     BF->addAttribute("kernel");
 
-  if ((TM->SL == TranslateModule::SL_OpenCL || 
+  if ((TM->SL == TranslateModule::SL_OpenCL ||
        TM->SL == TranslateModule::SL_CUDA)
        && F->getName() == "bugle_barrier")
     BF->addAttribute("barrier");
@@ -848,8 +849,64 @@ ref<Expr> TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB
   return 0;
 }
 
+ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  auto MCI = dyn_cast<MemCpyInst>(CI);
+  auto Const = dyn_cast<ConstantInt>(MCI->getLength());
 
+  if (!Const) {
+    // Could emit a loop
+    assert(0 && "Unsupported non-integer constant length memcpy");
+    llvm::errs() << "Warning: memcpy with non-integer constant length"
+                 << " not supported, treating as no-op\n";
+    return 0;
+  }
 
+  ref<Expr> Src = translateValue(MCI->getSource(), BBB),
+            Dst = translateValue(MCI->getDest(), BBB),
+            SrcPtrArr = ArrayIdExpr::create(Src, TM->defaultRange()),
+            DstPtrArr = ArrayIdExpr::create(Dst, TM->defaultRange()),
+            SrcPtrOfs = ArrayOffsetExpr::create(Src),
+            DstPtrOfs = ArrayOffsetExpr::create(Dst);
+  unsigned Len = Const->getZExtValue();
+  Type SrcRangeTy = SrcPtrArr->getType().range(),
+       DstRangeTy = DstPtrArr->getType().range();
+  assert(SrcRangeTy.width % 8 == 0);
+  assert(DstRangeTy.width % 8 == 0);
+  unsigned NumElements = Len / (SrcRangeTy.width/8);
+  ref<Expr> SrcDiv = Expr::createExactBVUDiv(SrcPtrOfs, SrcRangeTy.width/8);
+  ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width/8);
+  // Handle matching source and destination range types where Len can be
+  // rewritten as an integral number of element read/writes
+  if (SrcRangeTy == DstRangeTy &&
+      !SrcDiv.isNull() && !DstDiv.isNull() &&
+      (Len % (SrcRangeTy.width/8) == 0) && 0 < NumElements) {
+    for (unsigned i = 0; i != NumElements; ++i) {
+      ref<Expr> LoadOfs =
+        BVAddExpr::create(SrcDiv, BVConstExpr::create(Src->getType().width, i));
+      ref<Expr> Val = LoadExpr::create(SrcPtrArr, LoadOfs, LoadsAreTemporal);
+      ref<Expr> StoreOfs =
+        BVAddExpr::create(DstDiv, BVConstExpr::create(Dst->getType().width, i));
+      addEvalStmt(BBB, CI, Val);
+      StoreStmt* SS = new StoreStmt(DstPtrArr, StoreOfs, Val);
+      addLocToStmt(SS);
+      BBB->addStmt(SS);
+    }
+  } else {
+    TM->NeedAdditionalByteArrayModels = true;
+    std::set<GlobalArray *> Globals;
+    if (SrcPtrArr->computeArrayCandidates(Globals) &&
+        DstPtrArr->computeArrayCandidates(Globals)) {
+      std::transform(Globals.begin(), Globals.end(),
+          std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
+          [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+    } else {
+      TM->NextModelAllAsByteArray = true;
+    }
+  }
+  return 0;
+}
 
 static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {
   auto CE = dyn_cast<BVConstExpr>(dim);
