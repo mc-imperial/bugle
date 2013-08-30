@@ -1,9 +1,6 @@
 #ifndef CUDA_MATH_H
 #define CUDA_MATH_H
 
-__device__ float abs(float x);
-__device__ float fabsf(float x);
-
 /* INTEGER INTRINSICS */
 __device__ unsigned int __brev(unsigned int x);
 __device__ unsigned long long int __brevll(unsigned long long int x);
@@ -89,6 +86,9 @@ __device__ long int lrintf(float x);
 __device__ long int  lroundf(float x);
 __device__ long long int llrintf(float x);
 __device__ long long int llroundf(float x);
+__device__ float fabsf(float x);
+__device__ float fmaxf(float x, float y);
+__device__ float fminf(float x, float y);
 
 /* TABLE C-2 */
 __device__ double rsqrt(double x);
@@ -164,6 +164,9 @@ __device__ long int lrint(double x);
 __device__ long int  lround(double x);
 __device__ long long int llrint(double x);
 __device__ long long int llround(double x);
+__device__ double fabs(double x);
+__device__ double fmax(double x, double y);
+__device__ double fmin(double x, double y);
 
 /* Table C-3 and C-4 */
 __device__ float __fdividef(float x, float y);
@@ -177,6 +180,7 @@ __device__ float __log10f(float x);
 __device__ float __expf(float x);
 __device__ float __exp10f(float x);
 __device__ float __powf(float x, float y);
+__device__ float __saturatef(float x);
 
 __device__ float __fadd_rn(float x, float y);
 __device__ float __fadd_rz(float x, float y);
@@ -239,5 +243,29 @@ __device__ double __dsqrt_rn(double x);
 __device__ double __dsqrt_rz(double x);
 __device__ double __dsqrt_ru(double x);
 __device__ double __dsqrt_rd(double x);
+
+/* Overloaded functions */
+
+__device__ float abs(float x);
+__device__ float saturate(float x);
+__device__ int max(int x, int y);
+
+/* min functions */
+
+__device__ int min(int x, int y);
+__device__ unsigned int umin(unsigned int x, unsigned int y);
+__device__ long long int llmin(long long int x, long long int y);
+__device__ unsigned long long int ullmin(unsigned long long int x, unsigned long long int y);
+__device__ unsigned int min(unsigned int x, unsigned int y);
+__device__ unsigned int min(int x, unsigned int y);
+__device__ unsigned int min(unsigned int x, int y);
+__device__ long long int min(long long int x, long long int y);
+__device__ unsigned long long int min(unsigned long long int x, unsigned long long int y);
+__device__ unsigned long long int min(long long int x, unsigned long long int y);
+__device__ unsigned long long int min(unsigned long long int x, long long int y);
+__device__ float min(float x, float y);
+__device__ double min(double x, double y);
+__device__ double min(float x, double y);
+__device__ double min(double x, float y);
 
 #endif
