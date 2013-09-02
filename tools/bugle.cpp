@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 
   llvm_shutdown_obj Y;  // Call llvm_shutdown() on exit.
   LLVMContext &Context = getGlobalContext();
-  
+
   cl::ParseCommandLineOptions(argc, argv,
     "LLVM to Boogie translator\n");
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv) {
 
   std::auto_ptr<bugle::IntegerRepresentation> IntRep(0);
   if (IntegerRepresentation.empty() || IntegerRepresentation == "bv")
-	IntRep.reset(new bugle::BVIntegerRepresentation());
+    IntRep.reset(new bugle::BVIntegerRepresentation());
   else if (IntegerRepresentation == "math")
     IntRep.reset(new bugle::MathIntegerRepresentation);
   else {

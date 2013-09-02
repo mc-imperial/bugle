@@ -1145,9 +1145,9 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
   if (!isa<VectorType>(Ty))
     return F(Ty, Op);
 
-  auto VT = cast<VectorType>(Ty), OpVT = cast<VectorType>(OpTy);
+  auto VT = cast<VectorType>(Ty);
   unsigned NumElems = VT->getNumElements();
-  assert(OpVT->getNumElements() == NumElems);
+  assert(cast<VectorType>(OpTy)->getNumElements() == NumElems);
   unsigned ElemWidth = Op->getType().width / NumElems;
   std::vector<ref<Expr>> Elems;
   for (unsigned i = 0; i < NumElems; ++i) {
@@ -1166,9 +1166,9 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
   if (!isa<VectorType>(Ty))
     return F(LHS, RHS);
 
-  auto VT = cast<VectorType>(Ty), OpVT = cast<VectorType>(OpTy);
+  auto VT = cast<VectorType>(Ty);
   unsigned NumElems = VT->getNumElements();
-  assert(OpVT->getNumElements() == NumElems);
+  assert(cast<VectorType>(OpTy)->getNumElements() == NumElems);
   unsigned ElemWidth = LHS->getType().width / NumElems;
   std::vector<ref<Expr>> Elems;
   for (unsigned i = 0; i < NumElems; ++i) {
@@ -1649,13 +1649,16 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     ValueExprMap[I] =
       TM->unmodelValue(PN, VarRefExpr::create(getPhiVariable(PN)));
     return;
-  } else if (auto UI = dyn_cast<UnreachableInst>(I)) {
+  } else if (dyn_cast<UnreachableInst>(I)) {
     Stmt *assertStmt = new AssertStmt(BoolConstExpr::create(false));
     addLocToStmt(assertStmt);
     BBB->addStmt(assertStmt);
     return;
   } else {
     assert(0 && "Unsupported instruction");
+    llvm::errs() << "Warning: instruction " << I->getOpcodeName()
+                 << " not supported, treating as no-op\n";
+    return;
   }
   if (DumpTranslatedExprs) {
     I->dump();

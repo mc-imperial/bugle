@@ -889,10 +889,9 @@ ref<Expr> AddNoovflExpr::create(ref<Expr> first, ref<Expr> second,
 
 ref<Expr> AddNoovflPredicateExpr::create(const std::vector<ref<Expr>> &exprs) {
   assert(!exprs.empty());
-  unsigned width = exprs[0]->getType().width;
   for (auto i = exprs.begin(), e = exprs.end(); i != e; ++i) {
     assert((*i)->getType().isKind(Type::BV));
-    assert((*i)->getType().width == width);
+    assert((*i)->getType().width == exprs[0]->getType().width);
   }
   return new AddNoovflPredicateExpr(exprs);
 }

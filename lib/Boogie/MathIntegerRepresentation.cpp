@@ -7,17 +7,17 @@ std::string MathIntegerRepresentation::getType(unsigned bitWidth) {
 }
 
 std::string MathIntegerRepresentation::getLiteralSuffix(unsigned bitWidth) {
-	return "";
+  return "";
 }
 
 std::string MathIntegerRepresentation::getLiteral(unsigned literal, unsigned bitWidth) {
-	std::stringstream ss;
+  std::stringstream ss;
   ss << literal;
-	return ss.str();
+  return ss.str();
 }
 
 std::string MathIntegerRepresentation::getZeroExtend(unsigned FromWidth, unsigned ToWidth) {
-	std::stringstream ss;
+  std::stringstream ss;
   ss << "function {:inline true} BV" << FromWidth << "_ZEXT" << ToWidth
     << "(x : int) : int {\n"
     << "  x\n"
@@ -60,6 +60,9 @@ std::string MathIntegerRepresentation::getArithmeticBinary(std::string Name,
       << "  x " << infixOp << " y\n"
       << "}";
     return ss.str();
+  default:
+    /* do nothing */
+    break;
   }
 
   if (Kind == Expr::BVAnd) {
@@ -138,13 +141,13 @@ std::string MathIntegerRepresentation::getBooleanBinary(std::string Name,
   default: assert(0 && "huh?"); return 0;
   }
 
-	std::stringstream ss;
-	ss << "function {:inline true} BV"
+  std::stringstream ss;
+  ss << "function {:inline true} BV"
            << Width
            << "_" << Name << "(x : int, y : int) : bool {\n"
            << "  x " << infixOp << " y\n"
            << "}";
-	return ss.str();
+  return ss.str();
 }
 
 void MathIntegerRepresentation::printVal(llvm::raw_ostream &OS, const llvm::APInt &Val) {
