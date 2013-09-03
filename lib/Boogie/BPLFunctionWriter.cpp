@@ -68,7 +68,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       auto DstArray = ASE->getDst().get();
       auto SrcArray = ASE->getSrc().get();
 
-      assert(!(isa<NullArrayRefExpr>(DstArray) || 
+      assert(!(isa<NullArrayRefExpr>(DstArray) ||
         isa<NullArrayRefExpr>(SrcArray) ||
         MW->M->global_begin() == MW->M->global_end()));
 
@@ -118,7 +118,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         }
         assert(AE->getType() == GA->getRangeType());
         OS << "call {:atomic} {:atomic_function \"" << AE->getFunction() << "\"}";
-        for (auto i = 0; i < AE->getArgs().size(); i++) {
+        for (unsigned int i = 0; i < AE->getArgs().size(); i++) {
           OS << "{:arg" << (i+1) << " ";
           writeExpr(OS,AE->getArgs()[i].get());
           OS << "}";
@@ -173,7 +173,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       writeExpr(OS, i->get());
     }
     OS << ";\n";
-  } else if (auto GS = dyn_cast<GotoStmt>(S)) { 
+  } else if (auto GS = dyn_cast<GotoStmt>(S)) {
     OS << "  goto ";
     for (auto b = GS->getBlocks().begin(), i = b, e = GS->getBlocks().end();
          i != e; ++i) {

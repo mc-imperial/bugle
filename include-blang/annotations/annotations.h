@@ -12,7 +12,7 @@ extern "C" {
 /* Turning temporal nature of loads on and off */
 _DEVICE_QUALIFIER void __non_temporal_loads_begin(void);
 _DEVICE_QUALIFIER void __non_temporal_loads_end(void);
-    
+
 /* Loop invariant */
 _DEVICE_QUALIFIER void __invariant(bool expr);
 _DEVICE_QUALIFIER void __global_invariant(bool expr);
@@ -87,7 +87,7 @@ _FUNCTION_FROM_POINTER_TO_TYPE(ptr_base, ptr_base_t);
 
 /* Pointer offset */
 _FUNCTION_FROM_POINTER_TO_TYPE(ptr_offset, int);
-    
+
 /* Read/write set is empty */
 #define __no_read(p) !__read(p)
 #define __no_write(p) !__write(p)
@@ -104,7 +104,7 @@ _FUNCTION_FROM_POINTER_TO_TYPE(not_accessed, int)
 /* Used in specifications to say how a pointer is accessed */
 _FUNCTION_FROM_POINTER_TO_VOID(reads_from);
 _FUNCTION_FROM_POINTER_TO_VOID(writes_to);
-    
+
 #ifdef __OPENCL_VERSION__
 void __array_snapshot_local(__local void* dst, __local void* src);
 void __array_snapshot_global(__global void* dst, __global void* src);
@@ -120,8 +120,8 @@ _CLC_OVERLOAD _CLC_INLINE void __array_snapshot(__global void* dst, __global voi
 
 #ifdef __CUDA_ARCH__
 _DEVICE_QUALIFIER void __array_snapshot(void* dst, void* src);
-#endif    
-    
+#endif
+
 /* Inter-thread predicates */
 
 _DEVICE_QUALIFIER int __other_int(int expr);
@@ -155,7 +155,7 @@ _DEVICE_QUALIFIER bool __other_bool(bool expr);
 /* Barrier invariants */
 
 #include "barrier_invariants.h"
-    
+
 /* Helpers */
 
 #define __is_pow2(x) ((((x) & (x - 1)) == 0))

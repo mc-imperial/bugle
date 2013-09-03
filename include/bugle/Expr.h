@@ -9,7 +9,7 @@
 #define BUGLE_EXPR_H
 
 namespace llvm {
- 
+
 class Value;
 
 }
@@ -119,7 +119,7 @@ public:
     FUno,
     PtrLt,
     PtrLe,
-  	Implies,
+    Implies,
 
     BinaryFirst = Eq,
     BinaryLast = Implies
@@ -604,7 +604,7 @@ public:
 class UninterpretedFunctionExpr : public Expr {
   UninterpretedFunctionExpr(const std::string &name, Type returnType,
                             const std::vector<ref<Expr>> &args) :
-    Expr(returnType), 
+    Expr(returnType),
     name(name), args(args) { }
   const std::string name;
   const std::vector<ref<Expr>> args;
