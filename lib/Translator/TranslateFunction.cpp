@@ -857,9 +857,9 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
 
   if (!Const) {
     // Could emit a loop
-    assert(0 && "Unsupported non-integer constant length memcpy");
     llvm::errs() << "Warning: memcpy with non-integer constant length"
                  << " not supported, treating as no-op\n";
+    assert(0 && "Unsupported non-integer constant length memcpy");
     return 0;
   }
 
@@ -1551,9 +1551,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         if (E.isNull())
           return;
       } else {
-        assert(0 && "Unsupported intrinsic instruction");
         llvm::errs() << "Warning: intrinsic " << Intrinsic::getName(ID)
                      << " not supported, treating as no-op\n";
+        assert(0 && "Unsupported intrinsic instruction");
         return;
       }
     } else {
@@ -1655,9 +1655,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     BBB->addStmt(assertStmt);
     return;
   } else {
-    assert(0 && "Unsupported instruction");
     llvm::errs() << "Warning: instruction " << I->getOpcodeName()
                  << " not supported, treating as no-op\n";
+    assert(0 && "Unsupported instruction");
     return;
   }
   if (DumpTranslatedExprs) {
