@@ -349,6 +349,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::dbg_value] = &TranslateFunction::handleNoop;
     ints[Intrinsic::dbg_declare] = &TranslateFunction::handleNoop;
     ints[Intrinsic::memcpy] = &TranslateFunction::handleMemcpy;
+    ints[Intrinsic::trap] = &TranslateFunction::handleTrap;
   }
   return SpecialFunctionMap;
 }
@@ -905,6 +906,15 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
       TM->NextModelAllAsByteArray = true;
     }
   }
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleTrap(bugle::BasicBlock *BBB,
+                                        llvm::CallInst *CI,
+                                        const std::vector<ref<Expr>> &Args) {
+  Stmt *assertStmt = new AssertStmt(BoolConstExpr::create(false));
+  addLocToStmt(assertStmt);
+  BBB->addStmt(assertStmt);
   return 0;
 }
 
