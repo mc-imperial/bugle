@@ -31,13 +31,14 @@ class BPLFunctionWriter : BPLExprWriter {
 
   void maybeWriteCaseSplit(llvm::raw_ostream &OS, Expr *PtrArr,
                            SourceLoc *SLoc,
-                           std::function<void(GlobalArray *)> F);
+                           std::function<void(GlobalArray *, unsigned int)> F);
   void writeVar(llvm::raw_ostream &OS, Var *V);
   void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0);
   void writeStmt(llvm::raw_ostream &OS, Stmt *S);
   void writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB);
   void writeSourceLoc(llvm::raw_ostream &OS, const SourceLoc *sourceloc);
-  void writeSourceLocMarker(llvm::raw_ostream &OS, const SourceLoc *sourceloc);
+  void writeSourceLocMarker(llvm::raw_ostream &OS, const SourceLoc *sourceloc,
+                            unsigned int indent);
 
 public:
   BPLFunctionWriter(BPLModuleWriter *MW, llvm::raw_ostream &OS,

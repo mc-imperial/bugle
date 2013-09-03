@@ -16,10 +16,10 @@ using namespace bugle;
 void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
                                             Expr *PtrArr,
                                             SourceLoc *SLoc,
-                                         std::function<void(GlobalArray *)> F) {
+                                            std::function<void(GlobalArray *, unsigned int)> F) {
   if (isa<NullArrayRefExpr>(PtrArr) ||
       MW->M->global_begin() == MW->M->global_end()) {
-    OS << "assert {:bad_pointer_access} ";
+    OS << "  assert {:bad_pointer_access} ";
     writeSourceLoc(OS, SLoc);
     OS << "false;\n";
   } else {
@@ -29,15 +29,16 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
     }
 
     if (Globals.size() == 1) {
-      F(*Globals.begin());
+      F(*Globals.begin(), 2);
       OS << "\n";
     } else {
       MW->UsesPointers = true;
+      OS << "  ";
       for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
         OS << "if (";
         writeExpr(OS, PtrArr);
-        OS << " == $arrayId$$" << (*i)->getName() << ") {\n    ";
-        F(*i);
+        OS << " == $arrayId$$" << (*i)->getName() << ") {\n";
+        F(*i, 4);
         OS << "\n  } else ";
       }
       OS << "{\n    assert {:bad_pointer_access} ";
@@ -63,7 +64,6 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     assert(!ES->getExpr()->preventEvalStmt);
     assert(SSAVarIds.find(ES->getExpr().get()) == SSAVarIds.end());
     unsigned id = SSAVarIds.size();
-    OS << "  ";
     if (auto ASE = dyn_cast<ArraySnapshotExpr>(ES->getExpr())) {
       auto DstArray = ASE->getDst().get();
       auto SrcArray = ASE->getSrc().get();
@@ -83,7 +83,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       }
 
       if (GlobalsDst.size() == 1 && GlobalsSrc.size() == 1) {
-        OS << "$$" << (*GlobalsDst.begin())->getName() << " := " <<
+        OS << "  $$" << (*GlobalsDst.begin())->getName() << " := " <<
           "$$" << (*GlobalsSrc.begin())->getName() << ";\n";
       } else {
         assert (0 && "Array snapshots on pointers not yet supported");
@@ -91,44 +91,50 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       return;
     }
     if (isa<CallExpr>(ES->getExpr())) {
-      OS << "call ";
+      OS << "  call ";
       writeSourceLoc(OS, ES->getSourceLoc());
     }
     if (isa<AddNoovflExpr>(ES->getExpr())) {
-      OS << "call ";
+      OS << "  call ";
     }
     if (isa<HavocExpr>(ES->getExpr())) {
-      OS << "havoc v" << id << ";\n";
+      OS << "  havoc v" << id << ";\n";
     } else if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, LE->getArray().get(), ES->getSourceLoc(),
-          [&](GlobalArray *GA) {
+          [&](GlobalArray *GA, unsigned int indent) {
         if (GA->isGlobalOrGroupShared()) {
-          writeSourceLocMarker(OS, ES->getSourceLoc());
+          writeSourceLocMarker(OS, ES->getSourceLoc(), indent);
         }
         assert(LE->getType() == GA->getRangeType());
+        OS << std::string(indent, ' ');
         OS << "v" << id << " := $$" << GA->getName() << "[";
         writeExpr(OS, LE->getOffset().get());
         OS << "];";
       });
     } else if (auto AE = dyn_cast<AtomicExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, AE->getArray().get(), ES->getSourceLoc(),
-          [&](GlobalArray *GA) {
+          [&](GlobalArray *GA, unsigned int indent) {
         if (GA->isGlobalOrGroupShared()) {
-          writeSourceLocMarker(OS, ES->getSourceLoc());
+          writeSourceLocMarker(OS, ES->getSourceLoc(), indent);
         }
         assert(AE->getType() == GA->getRangeType());
-        OS << "call {:atomic} {:atomic_function \"" << AE->getFunction() << "\"}";
+        OS << std::string(indent, ' ');
+        OS << "call {:atomic} ";
+        OS << "{:atomic_function \"" << AE->getFunction() << "\"}";
         for (unsigned int i = 0; i < AE->getArgs().size(); i++) {
           OS << "{:arg" << (i+1) << " ";
           writeExpr(OS,AE->getArgs()[i].get());
           OS << "}";
         }
-        OS << "{:parts " << AE->getParts() << "}{:part " << AE->getPart() << "} " << "v" << id << " := _ATOMIC_OP" << GA->getRangeType().width << "($$" << GA->getName() << ", ";
+        OS << "{:parts " << AE->getParts() << "}";
+        OS << "{:part " << AE->getPart() << "} ";
+        OS << "v" << id << " := _ATOMIC_OP" << GA->getRangeType().width;
+        OS << "($$" << GA->getName() << ", ";
         writeExpr(OS, AE->getOffset().get());
         OS << ");";
       });
     } else {
-      OS << "v" << id << " := ";
+      OS << "  v" << id << " := ";
       writeExpr(OS, ES->getExpr().get());
       OS << ";\n";
     }
@@ -146,12 +152,13 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ");\n";
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     maybeWriteCaseSplit(OS, SS->getArray().get(), SS->getSourceLoc(),
-        [&](GlobalArray *GA) {
+        [&](GlobalArray *GA, unsigned int indent) {
       if(GA->isGlobalOrGroupShared()) {
-        writeSourceLocMarker(OS, SS->getSourceLoc());
+        writeSourceLocMarker(OS, SS->getSourceLoc(), indent);
       }
       assert(SS->getValue()->getType() == GA->getRangeType());
-      OS << "  $$" << GA->getName() << "[";
+      OS << std::string(indent, ' ');
+      OS << "$$" << GA->getName() << "[";
       writeExpr(OS, SS->getOffset().get());
       OS << "] := ";
       writeExpr(OS, SS->getValue().get());
@@ -243,9 +250,10 @@ void BPLFunctionWriter::writeSourceLoc(llvm::raw_ostream &OS,
 }
 
 void BPLFunctionWriter::writeSourceLocMarker(llvm::raw_ostream &OS,
-                                       const SourceLoc *sourceloc) {
+                                             const SourceLoc *sourceloc,
+                                             unsigned int indent) {
   if (sourceloc != NULL) {
-    OS << "  assert {:sourceloc}";
+    OS << std::string(indent, ' ') << "assert {:sourceloc}";
     writeSourceLoc(OS, sourceloc);
     OS << "true;\n";
   }
