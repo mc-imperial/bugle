@@ -598,7 +598,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         writeExpr(OS, LE->getOffset().get());
         OS << "]";
       } else {
-        assert(0 && "Load expressions from pointers not supported yet");
+        llvm::errs() << "Error: load expressions from pointers not supported\n";
+        std::exit(1);
       }
 
     }
@@ -625,7 +626,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         writeExpr(OS, AE->getOffset().get());
         OS << ")";
       } else {
-        assert(0 && "Atomic expressions from pointers not supported yet");
+        llvm::errs() << "Error: atomic expressions from pointers not supported\n";
+        std::exit(1);
       }
 
     }
@@ -649,7 +651,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       if (Globals.size() == 1) {
         OS << "$$" << (*Globals.begin())->getName();
       } else {
-        assert (0 && "Underlying array expressions for pointers not yet supported");
+        llvm::errs() << "Error: underlying array expressions for pointers not supported\n";
+        std::exit(1);
       }
   } else if (auto MOE = dyn_cast<MemberOfExpr>(E)) {
     // If this is the dumper, show the expression.  Otherwise, this is a no-op.

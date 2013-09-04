@@ -86,7 +86,8 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         OS << "  $$" << (*GlobalsDst.begin())->getName() << " := " <<
           "$$" << (*GlobalsSrc.begin())->getName() << ";\n";
       } else {
-        assert (0 && "Array snapshots on pointers not yet supported");
+        llvm::errs() << "Error: array snapshots on pointers not supported\n";
+        std::exit(1);
       }
       return;
     }

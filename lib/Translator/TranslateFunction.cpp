@@ -430,8 +430,8 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V,  bugle::BasicBlock *
     // ignore metadata values
     return 0;
   }
-  assert(0 && "Unsupported value");
-  return 0;
+  llvm::errs() << "Error: unsupported value\n";
+  std::exit(1);
 }
 
 Var *TranslateFunction::getPhiVariable(llvm::PHINode *PN) {
@@ -858,10 +858,9 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
 
   if (!Const) {
     // Could emit a loop
-    llvm::errs() << "Warning: memcpy with non-integer constant length"
-                 << " not supported, treating as no-op\n";
-    assert(0 && "Unsupported non-integer constant length memcpy");
-    return 0;
+    llvm::errs() << "Error: memcpy with non-integer constant length"
+                 << " not supported\n";
+    std::exit(1);
   }
 
   ref<Expr> Src = translateValue(MCI->getSource(), BBB),
@@ -1222,8 +1221,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     case BinaryOperator::Or:   F = BVOrExpr::create;   break;
     case BinaryOperator::Xor:  F = BVXorExpr::create;  break;
     default:
-      assert(0 && "Unsupported binary operator");
-      return;
+      llvm::errs() << "Error: unsupported binary operator\n";
+      std::exit(1);
     }
     E = maybeTranslateSIMDInst(BBB, BO->getType(), BO->getType(), LHS, RHS, F);
   } else if (auto GEPI = dyn_cast<GetElementPtrInst>(I)) {
@@ -1371,7 +1370,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         case ICmpInst::ICMP_UGE:
         case ICmpInst::ICMP_SGE: E = Expr::createPtrLe(RHS, LHS); break;
         default:
-          assert(0 && "Unsupported ptr icmp");
+          llvm::errs() << "Error: unsupported ptr icmp\n";
+          std::exit(1);
         }
       } else {
         assert(RHS->getType().isKind(Type::BV));
@@ -1385,7 +1385,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         case ICmpInst::ICMP_SLT: E = BVSltExpr::create(LHS, RHS); break;
         case ICmpInst::ICMP_SLE: E = BVSleExpr::create(LHS, RHS); break;
         default:
-          assert(0 && "Unsupported icmp");
+          llvm::errs() << "Error: unsupported icmp\n";
+          std::exit(1);
         }
       }
       addEvalStmt(BBB, I, E);
@@ -1545,7 +1546,11 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     E = Expr::createBVConcatN(Elems);
   } else if (auto CI = dyn_cast<CallInst>(I)) {
     auto F = CI->getCalledFunction();
-    assert(F && "Only direct calls for now");
+
+    if (!F) {
+      llvm::errs() << "Error: only direct calls supported\n";
+      std::exit(1);
+    }
 
     CallSite CS(CI);
     std::vector<ref<Expr>> Args;
@@ -1561,10 +1566,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         if (E.isNull())
           return;
       } else {
-        llvm::errs() << "Warning: intrinsic " << Intrinsic::getName(ID)
-                     << " not supported, treating as no-op\n";
-        assert(0 && "Unsupported intrinsic instruction");
-        return;
+        llvm::errs() << "Error: intrinsic " << Intrinsic::getName(ID)
+                     << " not supported\n";
+        std::exit(1);
       }
     } else {
       auto SFI = SpecialFunctionMap.Functions.find(F->getName());
@@ -1665,10 +1669,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     BBB->addStmt(assertStmt);
     return;
   } else {
-    llvm::errs() << "Warning: instruction " << I->getOpcodeName()
-                 << " not supported, treating as no-op\n";
-    assert(0 && "Unsupported instruction");
-    return;
+    llvm::errs() << "Error: instruction " << I->getOpcodeName()
+                 << " not supported\n";
+    std::exit(1);
   }
   if (DumpTranslatedExprs) {
     I->dump();
