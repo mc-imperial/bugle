@@ -19,6 +19,21 @@
 #define __inline__ __attribute__((always_inline))
 #define __forceinline__ __attribute__((always_inline))
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct _3DimensionalVector {
+  unsigned x, y, z;
+} threadIdx, blockIdx, blockDim, gridDim;
+
+#define __syncthreads() \
+  bugle_barrier(true, true)
+
+#ifdef __cplusplus
+}
+#endif
+
 /* Use an empty definition for alignment. Alternatively we could use:
 
      #define __align__(n) __attribute__((aligned(n)))
@@ -38,22 +53,7 @@ typedef unsigned int size_t;
 #include <cuda_vectors.h>
 #include <cuda_textures.h>
 #include <cuda_atomics.h>
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct _3DimensionalVector {
-  unsigned x, y, z;
-} threadIdx, blockIdx, blockDim, gridDim;
-
-#define __syncthreads() \
-  bugle_barrier(true, true)
-
-#ifdef __cplusplus
-}
-#endif
+#include <cuda_curand.h>
 
 /* Thread block dimensions */
 
