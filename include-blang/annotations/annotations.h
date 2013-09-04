@@ -9,6 +9,15 @@
 extern "C" {
 #endif
 
+#ifdef __OPENCL_VERSION__
+#define _BUGLE_INLINE _CLC_INLINE
+#endif
+
+#ifdef __CUDA_ARCH__
+#define _BUGLE_INLINE static __attribute__((always_inline))
+#endif
+
+
 /* Turning temporal nature of loads on and off */
 _DEVICE_QUALIFIER void __non_temporal_loads_begin(void);
 _DEVICE_QUALIFIER void __non_temporal_loads_end(void);
@@ -181,10 +190,10 @@ NOOVFL_DECL(long)
 #define ITE_DECL(TYPE) \
     _DEVICE_QUALIFIER TYPE __ite_##TYPE(bool b, TYPE x, TYPE y); \
     _DEVICE_QUALIFIER unsigned TYPE __ite_unsigned_##TYPE(bool b, unsigned TYPE x, unsigned TYPE y); \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) TYPE __ite(bool b, TYPE x, TYPE y) { \
+    _DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) TYPE __ite(bool b, TYPE x, TYPE y) { \
       return __ite_##TYPE(b, x, y); \
     } \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __ite(bool b, unsigned TYPE x, unsigned TYPE y) { \
+    _DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) unsigned TYPE __ite(bool b, unsigned TYPE x, unsigned TYPE y) { \
       return __ite_unsigned_##TYPE(b, x, y); \
     }
 
@@ -200,10 +209,10 @@ ITE_DECL(long)
 #define ADD_DECL(TYPE) \
     _DEVICE_QUALIFIER TYPE __add_##TYPE(TYPE x, TYPE y); \
     _DEVICE_QUALIFIER unsigned TYPE __add_unsigned_##TYPE(unsigned TYPE x, unsigned TYPE y); \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) TYPE __add(TYPE x, TYPE y) { \
+    _DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) TYPE __add(TYPE x, TYPE y) { \
       return __add_##TYPE(x, y); \
     } \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) unsigned TYPE __add(unsigned TYPE x, unsigned TYPE y) { \
+    _DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) unsigned TYPE __add(unsigned TYPE x, unsigned TYPE y) { \
       return __add_unsigned_##TYPE(x, y); \
     }
 
@@ -219,7 +228,7 @@ ADD_DECL(long)
 #define DECLARE_UF_BINARY(NAME, ARG1TYPE, ARG2TYPE, RETURNTYPE) \
     _DEVICE_QUALIFIER RETURNTYPE \
     __uninterpreted_function_##NAME(ARG1TYPE, ARG2TYPE); \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) RETURNTYPE \
+    _DEVICE_QUALIFIER _BUGLE_INLINE RETURNTYPE \
     NAME(ARG1TYPE x, ARG2TYPE y) { \
        return __uninterpreted_function_##NAME(x, y);   \
     }
@@ -227,7 +236,7 @@ ADD_DECL(long)
 #define DECLARE_UF_UNARY(NAME, ARG1TYPE, RETURNTYPE) \
     _DEVICE_QUALIFIER RETURNTYPE \
     __uninterpreted_function_##NAME(ARG1TYPE); \
-    _DEVICE_QUALIFIER static __attribute__((always_inline)) RETURNTYPE \
+    _DEVICE_QUALIFIER _BUGLE_INLINE RETURNTYPE \
     NAME(ARG1TYPE x) { \
        return __uninterpreted_function_##NAME(x);   \
     }

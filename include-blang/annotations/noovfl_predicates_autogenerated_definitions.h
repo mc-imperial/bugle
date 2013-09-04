@@ -250,13 +250,13 @@ _DEVICE_QUALIFIER bool __add_noovfl_unsigned_char_20(
   unsigned char v18,
   unsigned char v19
 );
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0
 ) { return __add_noovfl_unsigned_char_1(
     v0
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1
 ) { return __add_noovfl_unsigned_char_2(
@@ -264,7 +264,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v1
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2
@@ -274,7 +274,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v2
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -286,7 +286,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v3
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -300,7 +300,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v4
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -316,7 +316,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v5
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -334,7 +334,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v6
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -354,7 +354,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v7
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -376,7 +376,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v8
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -400,7 +400,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v9
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -426,7 +426,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v10
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -454,7 +454,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v11
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -484,7 +484,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v12
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -516,7 +516,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v13
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -550,7 +550,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v14
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -586,7 +586,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v15
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -624,7 +624,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v16
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -664,7 +664,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v17
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -706,7 +706,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v18
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned char v0,
   unsigned char v1,
   unsigned char v2,
@@ -1000,13 +1000,13 @@ _DEVICE_QUALIFIER bool __add_noovfl_unsigned_short_20(
   unsigned short v18,
   unsigned short v19
 );
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0
 ) { return __add_noovfl_unsigned_short_1(
     v0
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1
 ) { return __add_noovfl_unsigned_short_2(
@@ -1014,7 +1014,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v1
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2
@@ -1024,7 +1024,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v2
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1036,7 +1036,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v3
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1050,7 +1050,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v4
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1066,7 +1066,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v5
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1084,7 +1084,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v6
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1104,7 +1104,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v7
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1126,7 +1126,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v8
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1150,7 +1150,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v9
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1176,7 +1176,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v10
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1204,7 +1204,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v11
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1234,7 +1234,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v12
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1266,7 +1266,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v13
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1300,7 +1300,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v14
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1336,7 +1336,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v15
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1374,7 +1374,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v16
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1414,7 +1414,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v17
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1456,7 +1456,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v18
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned short v0,
   unsigned short v1,
   unsigned short v2,
@@ -1750,13 +1750,13 @@ _DEVICE_QUALIFIER bool __add_noovfl_unsigned_int_20(
   unsigned int v18,
   unsigned int v19
 );
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0
 ) { return __add_noovfl_unsigned_int_1(
     v0
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1
 ) { return __add_noovfl_unsigned_int_2(
@@ -1764,7 +1764,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v1
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2
@@ -1774,7 +1774,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v2
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -1786,7 +1786,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v3
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -1800,7 +1800,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v4
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -1816,7 +1816,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v5
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -1834,7 +1834,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v6
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -1854,7 +1854,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v7
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -1876,7 +1876,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v8
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -1900,7 +1900,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v9
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -1926,7 +1926,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v10
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -1954,7 +1954,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v11
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -1984,7 +1984,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v12
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -2016,7 +2016,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v13
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -2050,7 +2050,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v14
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -2086,7 +2086,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v15
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -2124,7 +2124,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v16
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -2164,7 +2164,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v17
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -2206,7 +2206,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v18
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned int v0,
   unsigned int v1,
   unsigned int v2,
@@ -2500,13 +2500,13 @@ _DEVICE_QUALIFIER bool __add_noovfl_unsigned_long_20(
   unsigned long v18,
   unsigned long v19
 );
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0
 ) { return __add_noovfl_unsigned_long_1(
     v0
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1
 ) { return __add_noovfl_unsigned_long_2(
@@ -2514,7 +2514,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v1
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2
@@ -2524,7 +2524,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v2
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2536,7 +2536,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v3
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2550,7 +2550,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v4
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2566,7 +2566,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v5
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2584,7 +2584,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v6
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2604,7 +2604,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v7
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2626,7 +2626,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v8
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2650,7 +2650,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v9
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2676,7 +2676,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v10
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2704,7 +2704,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v11
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2734,7 +2734,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v12
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2766,7 +2766,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v13
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2800,7 +2800,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v14
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2836,7 +2836,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v15
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2874,7 +2874,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v16
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2914,7 +2914,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v17
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,
@@ -2956,7 +2956,7 @@ _DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloada
     v18
     );
 }
-_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) bool __add_noovfl(
+_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) bool __add_noovfl(
   unsigned long v0,
   unsigned long v1,
   unsigned long v2,

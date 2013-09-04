@@ -27,7 +27,7 @@ def main(argv=None):
       print ");"
 
     for i in range(1, n + 1):
-      print "_DEVICE_QUALIFIER static __attribute__((always_inline)) __attribute__((overloadable)) %s __add_noovfl(" % retn_ty
+      print "_DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) %s __add_noovfl(" % retn_ty
       print "  " + ",\n  ".join([ '%s v%d' % (expr_ty, j) for j in range(i) ])
       print ") { return __add_noovfl_%s_%d(" % (expr_ty.replace(' ', '_'), i)
       print "    " + ",\n    ".join([ 'v%d' % j for j in range(i) ])
