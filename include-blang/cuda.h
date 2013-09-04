@@ -1,8 +1,10 @@
 #ifndef CUDA_H
 #define CUDA_H
 
-#pragma GCC diagnostic ignored "-Wunused-function"
 #pragma GCC diagnostic ignored "-Wc++11-long-long"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 
 #ifndef __CUDA_ARCH__
 #error __CUDA_ARCH__ must be defined
@@ -190,5 +192,7 @@ __axiom(gridDim.y == __GRID_DIM_1)
 #ifdef __GRID_DIM_2
 __axiom(gridDim.z == __GRID_DIM_2)
 #endif
+
+#pragma GCC diagnostic pop
 
 #endif

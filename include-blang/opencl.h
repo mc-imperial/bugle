@@ -1,8 +1,6 @@
 #ifndef OPENCL_H
 #define OPENCL_H
 
-#pragma GCC diagnostic ignored "-Wunused-function"
-
 #ifndef __OPENCL_VERSION__
 #error __OPENCL_VERSION__ must be defined
 #endif
@@ -263,7 +261,5 @@ __axiom(get_num_groups(1) == __NUM_GROUPS_1)
 #ifdef __NUM_GROUPS_2
 __axiom(get_num_groups(2) == __NUM_GROUPS_2)
 #endif
-
-
 
 #endif
