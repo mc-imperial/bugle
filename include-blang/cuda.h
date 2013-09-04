@@ -1,6 +1,8 @@
 #ifndef CUDA_H
 #define CUDA_H
 
+#pragma GCC diagnostic ignored "-Wunused-function"
+
 #ifndef __CUDA_ARCH__
 #error __CUDA_ARCH__ must be defined
 #endif

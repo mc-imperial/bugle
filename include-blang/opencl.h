@@ -1,6 +1,8 @@
 #ifndef OPENCL_H
 #define OPENCL_H
 
+#pragma GCC diagnostic ignored "-Wunused-function"
+
 #ifndef __OPENCL_VERSION__
 #error __OPENCL_VERSION__ must be defined
 #endif
