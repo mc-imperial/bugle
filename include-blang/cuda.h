@@ -2,6 +2,7 @@
 #define CUDA_H
 
 #pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wc++11-long-long"
 
 #ifndef __CUDA_ARCH__
 #error __CUDA_ARCH__ must be defined
@@ -103,12 +104,12 @@ typedef unsigned int size_t;
 // Generate axioms for different work group sizes
 
 #ifdef __1D_THREAD_BLOCK
-__axiom(blockDim.y == 1);
-__axiom(blockDim.z == 1);
+__axiom(blockDim.y == 1)
+__axiom(blockDim.z == 1)
 #endif
 
 #ifdef __2D_THREAD_BLOCK
-__axiom(blockDim.z == 1);
+__axiom(blockDim.z == 1)
 #endif
 
 
@@ -158,12 +159,12 @@ __axiom(blockDim.z == 1);
 // Generate axioms for different grid sizes
 
 #ifdef __1D_GRID
-__axiom(gridDim.y == 1);
-__axiom(gridDim.z == 1);
+__axiom(gridDim.y == 1)
+__axiom(gridDim.z == 1)
 #endif
 
 #ifdef __2D_GRID
-__axiom(gridDim.z == 1);
+__axiom(gridDim.z == 1)
 #endif
 
 #ifdef __BLOCK_DIM_0

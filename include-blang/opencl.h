@@ -177,12 +177,12 @@ int get_image_width (image2d_t image);
 // Generate axioms for different work group sizes
 
 #ifdef __1D_WORK_GROUP
-__axiom(get_local_size(1) == 1);
-__axiom(get_local_size(2) == 1);
+__axiom(get_local_size(1) == 1)
+__axiom(get_local_size(2) == 1)
 #endif
 
 #ifdef __2D_WORK_GROUP
-__axiom(get_local_size(2) == 1);
+__axiom(get_local_size(2) == 1)
 #endif
 
 
@@ -232,12 +232,12 @@ __axiom(get_local_size(2) == 1);
 // Generate axioms for different grid sizes
 
 #ifdef __1D_GRID
-__axiom(get_num_groups(1) == 1);
-__axiom(get_num_groups(2) == 1);
+__axiom(get_num_groups(1) == 1)
+__axiom(get_num_groups(2) == 1)
 #endif
 
 #ifdef __2D_GRID
-__axiom(get_num_groups(2) == 1);
+__axiom(get_num_groups(2) == 1)
 #endif
 
 #ifdef __LOCAL_SIZE_0

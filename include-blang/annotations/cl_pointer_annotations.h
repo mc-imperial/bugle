@@ -24,7 +24,7 @@
     (const volatile __##MEMORY_SPACE void* p); \
     _CLC_OVERLOAD _CLC_INLINE void \
     __##NAME(const volatile __##MEMORY_SPACE void* p) { \
-      return __##NAME##_##MEMORY_SPACE(p); \
+      __##NAME##_##MEMORY_SPACE(p); \
     }
 
 #define _FUNCTION_FROM_POINTER_TO_VOID(NAME) \

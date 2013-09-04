@@ -77,9 +77,12 @@ curand (T *state) {
 // Block specific restrictions are not checked
 __device__ static __inline__ unsigned int
 curand (curandStateMtgp32_t *state) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
   unsigned char index = (blockDim.z * blockDim.y * threadIdx.z)
                         + (blockDim.x * threadIdx.y)
                         + threadIdx.x;
+#pragma GCC diagnostic pop
   state->fake_state[index] += __bugle_random_uint();
   return __bugle_random_uint();
 }

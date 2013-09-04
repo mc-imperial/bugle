@@ -92,10 +92,10 @@ _FUNCTION_FROM_POINTER_TO_TYPE(read_offset, int)
 _FUNCTION_FROM_POINTER_TO_TYPE(write_offset, int)
 
 /* Pointer base */
-_FUNCTION_FROM_POINTER_TO_TYPE(ptr_base, ptr_base_t);
+_FUNCTION_FROM_POINTER_TO_TYPE(ptr_base, ptr_base_t)
 
 /* Pointer offset */
-_FUNCTION_FROM_POINTER_TO_TYPE(ptr_offset, int);
+_FUNCTION_FROM_POINTER_TO_TYPE(ptr_offset, int)
 
 /* Read/write set is empty */
 #define __no_read(p) !__read(p)
@@ -111,24 +111,24 @@ _FUNCTION_FROM_POINTER_TO_TYPE(not_accessed, int)
 #define __accessed(p, e) (__not_accessed(p) != e)
 
 /* Used in specifications to say how a pointer is accessed */
-_FUNCTION_FROM_POINTER_TO_VOID(reads_from);
-_FUNCTION_FROM_POINTER_TO_VOID(writes_to);
+_FUNCTION_FROM_POINTER_TO_VOID(reads_from)
+_FUNCTION_FROM_POINTER_TO_VOID(writes_to)
 
 #ifdef __OPENCL_VERSION__
 void __array_snapshot_local(__local void* dst, __local void* src);
 void __array_snapshot_global(__global void* dst, __global void* src);
 
 _CLC_OVERLOAD _CLC_INLINE void __array_snapshot(__local void* dst, __local void* src) {
-    return __array_snapshot_local(dst, src);
+    __array_snapshot_local(dst, src);
 }
 
 _CLC_OVERLOAD _CLC_INLINE void __array_snapshot(__global void* dst, __global void* src) {
-    return __array_snapshot_global(dst, src);
+    __array_snapshot_global(dst, src);
 }
 #endif
 
 #ifdef __CUDA_ARCH__
-_DEVICE_QUALIFIER void __array_snapshot(void* dst, void* src);
+__device__ void __array_snapshot(void* dst, void* src);
 #endif
 
 /* Inter-thread predicates */
@@ -156,9 +156,17 @@ _DEVICE_QUALIFIER bool __other_bool(bool expr);
 #define __axiom_inner(x,y) __concatenate(x,y)
 
 #ifdef __cplusplus
-#define __axiom(expr) extern "C" _DEVICE_QUALIFIER bool __axiom_inner(__axiom, __COUNTER__) () { return expr; }
+#define __axiom_middle(expr, counter) \
+  extern "C" _DEVICE_QUALIFIER bool __axiom_inner(__axiom, counter) (void); \
+  extern "C" _DEVICE_QUALIFIER bool __axiom_inner(__axiom, counter) (void) \
+  { return expr; }
+#define __axiom(expr) __axiom_middle(expr,__COUNTER__)
 #else
-#define __axiom(expr) bool __axiom_inner(__axiom, __COUNTER__) () { return expr; }
+#define __axiom_middle(expr, counter) \
+  bool __axiom_inner(__axiom, counter) (void); \
+  bool __axiom_inner(__axiom, counter) (void) \
+  { return expr; }
+#define __axiom(expr) __axiom_middle(expr, __COUNTER__)
 #endif
 
 /* Barrier invariants */

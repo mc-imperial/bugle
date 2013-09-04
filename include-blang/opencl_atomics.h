@@ -73,13 +73,13 @@ _CLC_INLINE _CLC_OVERLOAD unsigned int atomic_cmpxchg(volatile __local unsigned 
     _CLC_INLINE _CLC_OVERLOAD int atomic_##OP(volatile __global int * x) { \
       return __atomic_##OP##_global_int(x); \
     } \
-    _CLC_INLINE _CLC_OVERLOAD int atomic_##OP(volatile __global unsigned int * x) { \
+    _CLC_INLINE _CLC_OVERLOAD unsigned int atomic_##OP(volatile __global unsigned int * x) { \
       return __atomic_##OP##_global_unsigned_int(x); \
     } \
     _CLC_INLINE _CLC_OVERLOAD int atomic_##OP(volatile __local int * x) { \
       return __atomic_##OP##_local_int(x); \
     } \
-    _CLC_INLINE _CLC_OVERLOAD int atomic_##OP(volatile __local unsigned int * x) { \
+    _CLC_INLINE _CLC_OVERLOAD unsigned int atomic_##OP(volatile __local unsigned int * x) { \
       return __atomic_##OP##_local_unsigned_int(x); \
     }
 
