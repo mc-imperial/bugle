@@ -1,6 +1,7 @@
 #ifndef CUDA_H
 #define CUDA_H
 
+#pragma GCC diagnostic error "-Wimplicit-function-declaration"
 #pragma GCC diagnostic ignored "-Wc++11-long-long"
 
 #pragma GCC diagnostic push
