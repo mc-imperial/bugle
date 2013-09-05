@@ -41,6 +41,28 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
+  execute_process(
+    COMMAND ${LLVM_CONFIG_EXECUTABLE} --src-root
+    OUTPUT_VARIABLE LLVM_SRC
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  execute_process(
+    COMMAND ${LLVM_CONFIG_EXECUTABLE} --obj-root
+    OUTPUT_VARIABLE LLVM_BUILD
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+
+  set(PLUGIN_CFLAGS "${LLVM_CFLAGS} -I\"${LLVM_SRC}/tools/clang/include\" -I\"${LLVM_BUILD}/tools/clang/include\"")
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    set(PLUGIN_CFLAGS "${PLUGIN_CFLAGS} -Wno-strict-aliasing")
+  endif()
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(PLUGIN_LDFLAGS "-Wl,-undefined,dynamic_lookup")
+  endif()
+
   set(CFLAGS_CXX11 "-std=c++0x")
 
   set(EXT ".c")
@@ -160,3 +182,16 @@ target_link_libraries(bugleTranslator bugleBoogie ${LLVM_LIBS} ${LLVM_LDFLAGS})
 target_link_libraries(bugleTransform bugleBoogie)
 target_link_libraries(bugleBoogie bugleUtil)
 target_link_libraries(bugle bugleAnalysis bugleBoogie bugleTranslator bugleTransform bugleUtil)
+
+if(NOT WIN32 OR MSYS OR CYGWIN)
+
+add_library(BugleInlineCheckPlugin SHARED
+  lib/InlineCheckPlugin/InlineCheckPlugin.cpp
+)
+
+set_target_properties(BugleInlineCheckPlugin
+    PROPERTIES COMPILE_FLAGS "${CFLAGS_CXX11} ${PLUGIN_CFLAGS}")
+
+target_link_libraries(BugleInlineCheckPlugin ${PLUGIN_LIBS} ${PLUGIN_LDFLAGS})
+
+endif()
