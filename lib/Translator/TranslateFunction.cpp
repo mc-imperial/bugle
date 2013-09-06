@@ -348,6 +348,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::sqrt] = &TranslateFunction::handleSqrt;
     ints[Intrinsic::dbg_value] = &TranslateFunction::handleNoop;
     ints[Intrinsic::dbg_declare] = &TranslateFunction::handleNoop;
+    ints[Intrinsic::memset] = &TranslateFunction::handleMemset;
     ints[Intrinsic::memcpy] = &TranslateFunction::handleMemcpy;
     ints[Intrinsic::trap] = &TranslateFunction::handleTrap;
   }
@@ -847,6 +848,62 @@ ref<Expr> TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB
   auto CS = new CallStmt(BF, Args);
   addLocToStmt(CS);
   BBB->addStmt(CS);
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  auto MSI = dyn_cast<MemSetInst>(CI);
+  auto Const = dyn_cast<ConstantInt>(MSI->getLength());
+  if (!Const) {
+    // Could emit a loop
+    llvm::errs() << "Error: memset with non-integer constant length"
+                 << " not supported\n";
+    std::exit(1);
+  }
+  auto ConstValue = dyn_cast<ConstantInt>(MSI->getValue());
+  if (!ConstValue) {
+    // Could deal with expr
+    llvm::errs() << "Error: memset with non-integer constant value"
+                 << " not supported\n";
+    std::exit(1);
+  }
+  ref<Expr> Dst = translateValue(MSI->getDest(), BBB),
+            DstPtrArr = ArrayIdExpr::create(Dst, TM->defaultRange()),
+            DstPtrOfs = ArrayOffsetExpr::create(Dst);
+  unsigned Len = Const->getZExtValue();
+  unsigned Val = ConstValue->getZExtValue();
+  Type DstRangeTy = DstPtrArr->getType().range();
+  assert(DstRangeTy.width % 8 == 0);
+  unsigned NumElements = Len / (DstRangeTy.width/8);
+  ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width/8);
+  // Handle when Len can be rewritten as an integral number of element writes
+  // Special case if Val is 0
+  if (!DstDiv.isNull() &&
+      (Len % (DstRangeTy.width/8) == 0) && 0 < NumElements &&
+      (Val == 0 || DstRangeTy.width == 8)
+     ) {
+    for (unsigned i = 0; i != NumElements; ++i) {
+      ref<Expr> ValExpr = BVConstExpr::create(DstRangeTy.width, Val);
+      ref<Expr> StoreOfs =
+        BVAddExpr::create(DstDiv, BVConstExpr::create(Dst->getType().width, i));
+      addEvalStmt(BBB, CI, ValExpr);
+      StoreStmt* SS = new StoreStmt(DstPtrArr, StoreOfs, ValExpr);
+      addLocToStmt(SS);
+      BBB->addStmt(SS);
+    }
+  } else {
+    TM->NeedAdditionalByteArrayModels = true;
+    std::set<GlobalArray *> Globals;
+    if (DstPtrArr->computeArrayCandidates(Globals)) {
+      std::transform(Globals.begin(), Globals.end(),
+          std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
+          [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+    } else {
+      TM->NextModelAllAsByteArray = true;
+    }
+  }
   return 0;
 }
 
