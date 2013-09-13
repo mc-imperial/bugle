@@ -38,12 +38,12 @@ public:
   };
 
   enum AddressSpaces {
-    // These constants match R600AddrSpaceMap in Targets.cpp
+    // These constants match NVPTXAddrSpaceMap in Targets.cpp
     // There does not appear to be a header file in which they
     // are symbolically defined
     global = 1, // opencl_global, cuda_device
-    constant = 2, // opencl_constant, cuda_constant
-    group_shared = 3 // opencl_local, cuda_shared
+    group_shared = 3, // opencl_local, cuda_shared
+    constant = 4 // opencl_constant, cuda_constant
   };
 
 private:
