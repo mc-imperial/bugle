@@ -154,7 +154,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     maybeWriteCaseSplit(OS, SS->getArray().get(), SS->getSourceLoc(),
         [&](GlobalArray *GA, unsigned int indent) {
-      if(GA->isGlobalOrGroupShared()) {
+      if(GA->isGlobalOrGroupSharedOrConstant()) {
         writeSourceLocMarker(OS, SS->getSourceLoc(), indent);
       }
       assert(SS->getValue()->getType() == GA->getRangeType());

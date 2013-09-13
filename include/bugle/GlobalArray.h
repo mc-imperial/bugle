@@ -38,6 +38,12 @@ public:
            != attrib_end());
   }
 
+  bool isGlobalOrGroupSharedOrConstant() const {
+    return isGlobalOrGroupShared()
+        || (std::find(attrib_begin(), attrib_end(), "constant")
+           != attrib_end());
+  }
+
   void setNotAccessedExpr() {
     notAccessedExpr = true;
   }
