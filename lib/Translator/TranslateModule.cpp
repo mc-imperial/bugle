@@ -392,13 +392,13 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
 
   auto &GlobalValSet = NextModelPtrAsGlobalOffset[Val];
   std::transform(GlobalSet.begin(), GlobalSet.end(),
-                 std::inserter(GlobalValSet, GlobalValSet.begin()), 
+                 std::inserter(GlobalValSet, GlobalValSet.begin()),
                  [&](GlobalArray *A) { return GlobalValueMap[A]; });
   NeedAdditionalGlobalOffsetModels = true;
 
   if (ModelGlobalsAsByteArray) {
     std::transform(GlobalSet.begin(), GlobalSet.end(),
-                   std::inserter(ModelAsByteArray, ModelAsByteArray.begin()), 
+                   std::inserter(ModelAsByteArray, ModelAsByteArray.begin()),
                    [&](GlobalArray *A) { return GlobalValueMap[A]; });
     NeedAdditionalByteArrayModels = true;
   }
@@ -467,7 +467,7 @@ void TranslateModule::translate() {
     // offset, and potentially avoid the case split.
     if (!ModelAllAsByteArray && NextModelAllAsByteArray) {
       for (auto i = CallSites.begin(), e = CallSites.end(); i != e; ++i) {
-             unsigned pidx = 0;
+        unsigned pidx = 0;
         for (auto pi = i->first->arg_begin(), pe = i->first->arg_end();
              pi != pe; ++pi, ++pidx) {
           std::vector<ref<Expr>> Parms;

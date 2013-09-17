@@ -19,7 +19,7 @@ class Function {
   OwningPtrVector<BasicBlock> blocks;
   OwningPtrVector<Var> args, returns, locals;
   UniqueNameSet bbNames, varNames;
-  
+
 public:
   Function(const std::string &name) : name(name), entryPoint(false) {}
   BasicBlock *addBasicBlock(const std::string &name) {
