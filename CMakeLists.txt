@@ -120,10 +120,6 @@ endif()
 
 include_directories(include)
 
-add_library(bugleAnalysis STATIC
-  lib/Analysis/PointerAnalysis.cpp
-)
-
 add_library(bugleBoogie STATIC
   lib/Boogie/BPLExprWriter.cpp
   lib/Boogie/BPLFunctionWriter.cpp
@@ -174,24 +170,24 @@ add_executable(bugle
   tools/bugle.cpp
 )
 
-set_target_properties(bugle bugleAnalysis bugleBoogie bugleTransform
+set_target_properties(bugle bugleBoogie bugleTransform
                       bugleTranslator bugleUtil
     PROPERTIES COMPILE_FLAGS "${CFLAGS_CXX11} ${LLVM_CFLAGS}")
 
 target_link_libraries(bugleTranslator bugleBoogie ${LLVM_LIBS} ${LLVM_LDFLAGS})
 target_link_libraries(bugleTransform bugleBoogie)
 target_link_libraries(bugleBoogie bugleUtil)
-target_link_libraries(bugle bugleAnalysis bugleBoogie bugleTranslator bugleTransform bugleUtil)
+target_link_libraries(bugle bugleBoogie bugleTranslator bugleTransform bugleUtil)
 
 if(NOT WIN32 OR MSYS OR CYGWIN)
 
-add_library(BugleInlineCheckPlugin SHARED
+add_library(bugleInlineCheckPlugin SHARED
   lib/InlineCheckPlugin/InlineCheckPlugin.cpp
 )
 
-set_target_properties(BugleInlineCheckPlugin
+set_target_properties(bugleInlineCheckPlugin
     PROPERTIES COMPILE_FLAGS "${CFLAGS_CXX11} ${PLUGIN_CFLAGS}")
 
-target_link_libraries(BugleInlineCheckPlugin ${PLUGIN_LIBS} ${PLUGIN_LDFLAGS})
+target_link_libraries(bugleInlineCheckPlugin ${PLUGIN_LIBS} ${PLUGIN_LDFLAGS})
 
 endif()
