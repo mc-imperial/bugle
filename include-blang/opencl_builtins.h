@@ -1,7 +1,7 @@
 #ifndef OPENCL_BUILTINS_H
 #define OPENCL_BUILTINS_H
 
-// 6.11.2: Math functions
+// 6.12.2: Math functions
 
 #define _MATH_UNARY_FUNC_OVERLOAD(NAME, GENTYPE) \
     GENTYPE __##NAME##_##GENTYPE(GENTYPE x); \
@@ -115,8 +115,27 @@ _FLOAT_UNARY_MACRO(log10)
 _FLOAT_UNARY_MACRO(log1p)
 _FLOAT_UNARY_MACRO(logb)
 
+#define INFINITY (1.0f/0.0f)
+#define NAN      (0.0f/0.0f)
 
-// 6.11.3: Integer functions
+// 6.12.2.1 Floating point macros and pragmas
+
+#define M_E_F                   2.7182818284590452354f  /* e */
+#define M_LOG2E_F               1.4426950408889634074f  /* log_2 e */
+#define M_LOG10E_F              0.43429448190325182765f /* log_10 e */
+#define M_LN2_F                 0.69314718055994530942f /* log_e 2 */
+#define M_LN10_F                2.30258509299404568402f /* log_e 10 */
+#define M_PI_F                  3.14159265358979323846f /* pi */
+#define M_PI_2_F                1.57079632679489661923f /* pi/2 */
+#define M_PI_4_F                0.78539816339744830962f /* pi/4 */
+#define M_1_PI_F                0.31830988618379067154f /* 1/pi */
+#define M_2_PI_F                0.63661977236758134308f /* 2/pi */
+#define M_2_SQRTPI_F            1.12837916709551257390f /* 2/sqrt(pi) */
+#define M_SQRT2_F               1.41421356237309504880f /* sqrt(2) */
+#define M_SQRT1_2_F             0.70710678118654752440f /* 1/sqrt(2) */
+
+
+// 6.12.3: Integer functions
 
 #define _INTEGER_UNARY_MACRO(NAME)          \
     _MATH_UNARY_FUNC_OVERLOAD(NAME, char); \
@@ -268,7 +287,7 @@ _FLOAT_UNARY_MACRO(logb)
     _MATH_TERNARY_FUNC_OVERLOAD(NAME, ulong8); \
     _MATH_TERNARY_FUNC_OVERLOAD(NAME, ulong16);
 
-// 6.11.5: Geometric functions
+// 6.12.5: Geometric functions
 
 _CLC_INLINE _CLC_OVERLOAD float fast_length(float p) {
     return half_sqrt(p*p);
@@ -297,28 +316,6 @@ _CLC_INLINE _CLC_OVERLOAD float3 fast_normalize(float3 p) {
 _CLC_INLINE _CLC_OVERLOAD float4 fast_normalize(float4 p) {
     return p*half_rsqrt(p.x*p.x + p.y*p.y + p.z*p.z + p.w*p.w);
 }
-
-
-
-
-
-
-
-// 6.11.2.1 Floating point macros and pragmas
-
-#define M_E_F                   2.7182818284590452354f  /* e */
-#define M_LOG2E_F               1.4426950408889634074f  /* log_2 e */
-#define M_LOG10E_F              0.43429448190325182765f /* log_10 e */
-#define M_LN2_F                 0.69314718055994530942f /* log_e 2 */
-#define M_LN10_F                2.30258509299404568402f /* log_e 10 */
-#define M_PI_F                  3.14159265358979323846f /* pi */
-#define M_PI_2_F                1.57079632679489661923f /* pi/2 */
-#define M_PI_4_F                0.78539816339744830962f /* pi/4 */
-#define M_1_PI_F                0.31830988618379067154f /* 1/pi */
-#define M_2_PI_F                0.63661977236758134308f /* 2/pi */
-#define M_2_SQRTPI_F    1.12837916709551257390f /* 2/sqrt(pi) */
-#define M_SQRT2_F               1.41421356237309504880f /* sqrt(2) */
-#define M_SQRT1_2_F             0.70710678118654752440f /* 1/sqrt(2) */
 
 #endif
 
