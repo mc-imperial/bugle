@@ -147,9 +147,17 @@ _DEVICE_QUALIFIER bool __other_bool(bool expr);
 #define __all(X) ((X) & __other_bool(X))
 #define __exclusive(X) (!(__all(X)))
 
+#ifdef __OPENCL_VERSION__
 #define __same_group (get_group_id(0) == __other_int(get_group_id(0)) \
                     & get_group_id(1) == __other_int(get_group_id(1)) \
                     & get_group_id(2) == __other_int(get_group_id(2)))
+#endif
+
+#ifdef __CUDA_ARCH__
+#define __same_group (blockIdx.x == __other_int(blockIdx.x) \
+                    & blockIdx.y == __other_int(blockIdx.y) \
+                    & blockIdx.z == __other_int(blockIdx.z))
+#endif
 
 /* Axioms */
 #define __concatenate(x,y) x##y
