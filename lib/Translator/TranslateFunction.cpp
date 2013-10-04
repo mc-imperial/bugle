@@ -78,8 +78,6 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
   SpecialFnMapTy &SpecialFunctionMap = SpecialFunctionMaps[SL];
   if (SpecialFunctionMap.Functions.empty()) {
     auto &fns = SpecialFunctionMap.Functions;
-    fns["llvm.lifetime.start"] = &TranslateFunction::handleNoop;
-    fns["llvm.lifetime.end"] = &TranslateFunction::handleNoop;
     fns["bugle_assert"] = &TranslateFunction::handleAssert;
     fns["__assert"] = &TranslateFunction::handleAssert;
     fns["__invariant"] = &TranslateFunction::handleAssert;
@@ -351,6 +349,10 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::memset] = &TranslateFunction::handleMemset;
     ints[Intrinsic::memcpy] = &TranslateFunction::handleMemcpy;
     ints[Intrinsic::trap] = &TranslateFunction::handleTrap;
+    ints[Intrinsic::lifetime_start] = &TranslateFunction::handleNoop;
+    ints[Intrinsic::lifetime_end] = &TranslateFunction::handleNoop;
+
+
   }
   return SpecialFunctionMap;
 }
