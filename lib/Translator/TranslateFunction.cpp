@@ -1359,7 +1359,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       StoreElTy = TM->translateType(VT->getElementType());
     assert(StoreTy.width % 8 == 0);
     ref<Expr> Div;
-    if (ArrRangeTy == StoreElTy &&
+    // If ArrRangeTy is Any, then we are using a null pointer for storing
+    if ((ArrRangeTy == StoreElTy || ArrRangeTy == Type(Type::Any)) &&
         !(Div = Expr::createExactBVUDiv(PtrOfs, StoreElTy.width/8)).isNull()) {
       if (VT) {
         for (unsigned i = 0; i != VT->getNumElements(); ++i) {

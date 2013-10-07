@@ -18,6 +18,6 @@ StoreStmt::StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value) :
     array(array), offset(offset), value(value) {
   assert(array->getType().array);
   assert(offset->getType().isKind(Type::BV));
-  assert(value->getType().isKind(array->getType().kind));
-  assert(value->getType().width == array->getType().width);
+  assert(array->getType().kind == Type::Any || value->getType().isKind(array->getType().kind));
+  assert(array->getType().kind == Type::Any || value->getType().width == array->getType().width);
 }
