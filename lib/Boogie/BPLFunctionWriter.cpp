@@ -35,6 +35,8 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
       MW->UsesPointers = true;
       OS << "  ";
       for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
+        if (*i == 0)
+          continue; // Null pointer; dealt with as last case
         OS << "if (";
         writeExpr(OS, PtrArr);
         OS << " == $arrayId$$" << (*i)->getName() << ") {\n";

@@ -274,7 +274,7 @@ ref<Expr> TranslateModule::modelValue(Value *V, ref<Expr> E) {
       Ofs = Expr::createExactBVUDiv(Ofs, GA->getRangeType().width/8);
       assert(!Ofs.isNull() && "Couldn't create div this time!");
 
-      if (OI->second.size() == 1) {
+      if (OI->second.size() == 1 && PtrMayBeNull.find(V) == PtrMayBeNull.end()) {
         return Ofs;
       } else {
         return PointerExpr::create(ArrayIdExpr::create(E, defaultRange()), Ofs);
@@ -289,7 +289,9 @@ ref<Expr> TranslateModule::modelValue(Value *V, ref<Expr> E) {
 // its conventional Boogie type (translateType).
 bugle::Type TranslateModule::getModelledType(Value *V) {
   auto OI = ModelPtrAsGlobalOffset.find(V);
-  if (OI != ModelPtrAsGlobalOffset.end() && OI->second.size() == 1) {
+  if (OI != ModelPtrAsGlobalOffset.end() &&
+      OI->second.size() == 1 &&
+      PtrMayBeNull.find(V) == PtrMayBeNull.end()) {
     return Type(Type::BV, TD.getPointerSizeInBits());
   } else {
     llvm::Type *VTy = V->getType();
@@ -307,7 +309,7 @@ ref<Expr> TranslateModule::unmodelValue(Value *V, ref<Expr> E) {
     auto GA = getGlobalArray(*OI->second.begin());
     auto WidthCst = BVConstExpr::create(TD.getPointerSizeInBits(),
                                         GA->getRangeType().width/8);
-    if (OI->second.size() == 1) {
+    if (OI->second.size() == 1 && PtrMayBeNull.find(V) == PtrMayBeNull.end()) {
       return PointerExpr::create(GlobalArrayRefExpr::create(GA),
                                  BVMulExpr::create(E, WidthCst));
     } else {
@@ -315,6 +317,9 @@ ref<Expr> TranslateModule::unmodelValue(Value *V, ref<Expr> E) {
       std::transform(OI->second.begin(), OI->second.end(),
                      std::inserter(Globals, Globals.begin()),
                      [&](Value *V) { return getGlobalArray(V); });
+
+      if (PtrMayBeNull.find(V) != PtrMayBeNull.end())
+        Globals.insert(0);
 
       return PointerExpr::create(MemberOfExpr::create(ArrayIdExpr::create(E,
                                                                 defaultRange()),
@@ -387,8 +392,10 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
 
   // Success!  Record the global set.
   auto i = GlobalSet.find(0);
-  if (i != GlobalSet.end())
+  if (i != GlobalSet.end()) {
+    NextPtrMayBeNull.insert(Val);
     GlobalSet.erase(i);
+  }
 
   auto &GlobalValSet = NextModelPtrAsGlobalOffset[Val];
   std::transform(GlobalSet.begin(), GlobalSet.end(),
@@ -492,5 +499,6 @@ void TranslateModule::translate() {
     }
 
     ModelPtrAsGlobalOffset = NextModelPtrAsGlobalOffset;
+    PtrMayBeNull = NextPtrMayBeNull;
   } while (NeedAdditionalByteArrayModels || NeedAdditionalGlobalOffsetModels);
 }

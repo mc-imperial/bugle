@@ -69,6 +69,8 @@ private:
   bool NeedAdditionalGlobalOffsetModels;
   std::map<llvm::Value *, std::set<llvm::Value *>>
     ModelPtrAsGlobalOffset, NextModelPtrAsGlobalOffset;
+  std::set<llvm::Value *>
+    PtrMayBeNull, NextPtrMayBeNull;
 
   ref<Expr> translateCUDABuiltinGlobal(std::string Prefix,
                                        llvm::GlobalVariable *GV);
