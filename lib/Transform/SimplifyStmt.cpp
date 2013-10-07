@@ -19,6 +19,10 @@ bool isTemporal(Expr *e) {
   return isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e) || isa<AtomicExpr>(e);
 }
 
+bool isNullPointerLoad(Expr *e) {
+  return isa<LoadExpr>(e) && e->getType() == Type::Any;
+}
+
 void ProcessBasicBlock(BasicBlock *BB) {
   OwningPtrVector<Stmt> &V = BB->getStmtVector();
   if (V.empty())
@@ -33,7 +37,7 @@ void ProcessBasicBlock(BasicBlock *BB) {
         continue;
       }
 
-      if (E->refCount == 1 || (!isTemporal(E) && E->refCount <= 2)) {
+      if ((E->refCount == 1 && !isNullPointerLoad(E)) || (!isTemporal(E) && E->refCount <= 2)) {
         auto ii = i;
         bool begin = false;
         if (i == V.begin())
