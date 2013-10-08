@@ -860,25 +860,36 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
                                           const std::vector<ref<Expr>> &Args) {
   auto MSI = dyn_cast<MemSetInst>(CI);
   auto Const = dyn_cast<ConstantInt>(MSI->getLength());
+
   if (!Const) {
     // Could emit a loop
     llvm::errs() << "Error: memset with non-integer constant length"
                  << " not supported\n";
     std::exit(1);
   }
+
   auto ConstValue = dyn_cast<ConstantInt>(MSI->getValue());
+
   if (!ConstValue) {
     // Could deal with expr
     llvm::errs() << "Error: memset with non-integer constant value"
                  << " not supported\n";
     std::exit(1);
   }
+
   ref<Expr> Dst = translateValue(MSI->getDest(), BBB),
             DstPtrArr = ArrayIdExpr::create(Dst, TM->defaultRange()),
             DstPtrOfs = ArrayOffsetExpr::create(Dst);
   unsigned Len = Const->getZExtValue();
   unsigned Val = ConstValue->getZExtValue();
   Type DstRangeTy = DstPtrArr->getType().range();
+
+  if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
+    llvm::errs() << "Error: memset with null pointer destination or"
+                 << " detinations of mixed types not supported\n";
+    std::exit(1);
+  }
+
   assert(DstRangeTy.width % 8 == 0);
   unsigned NumElements = Len / (DstRangeTy.width/8);
   ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width/8);
@@ -933,6 +944,19 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
   unsigned Len = Const->getZExtValue();
   Type SrcRangeTy = SrcPtrArr->getType().range(),
        DstRangeTy = DstPtrArr->getType().range();
+
+  if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
+    llvm::errs() << "Error: memset with null pointer destination or"
+    << " detinations of mixed types not supported\n";
+    std::exit(1);
+  }
+
+  if (SrcRangeTy == Type(Type::Any) || SrcRangeTy == Type(Type::Unknown)) {
+    llvm::errs() << "Error: memset with null pointer source or"
+    << " sources of mixed types not supported\n";
+    std::exit(1);
+  }
+
   assert(SrcRangeTy.width % 8 == 0);
   assert(DstRangeTy.width % 8 == 0);
   unsigned NumElements = Len / (SrcRangeTy.width/8);
