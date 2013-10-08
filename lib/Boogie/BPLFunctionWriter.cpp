@@ -25,7 +25,10 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
   } else {
     std::set<GlobalArray *> Globals;
     if (!PtrArr->computeArrayCandidates(Globals)) {
+      // If we could not compute any candidates, then we take all arrays
+      // and the null pointer as candidates.
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
+      Globals.insert(0);
     }
 
     if (Globals.size() == 1) {

@@ -409,8 +409,10 @@ void TranslateFunction::translate() {
     TM->computeValueModel(i->first, PhiVarMap[i->first], i->second);
   }
 
-  // See if we can model the return value.
-  TM->computeValueModel(F, 0, ReturnVals);
+  // See if we can model the return value. This requires the function to have
+  // a body.
+  if (BBList.begin() != BBList.end())
+    TM->computeValueModel(F, 0, ReturnVals);
 }
 
 ref<Expr> TranslateFunction::translateValue(llvm::Value *V,  bugle::BasicBlock *BBB) {
