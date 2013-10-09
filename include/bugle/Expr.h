@@ -241,7 +241,7 @@ class LoadExpr : public Expr {
   bool isTemporal;
 
 public:
-  static ref<Expr> create(ref<Expr> array, ref<Expr> offset, bool isTemporal);
+  static ref<Expr> create(ref<Expr> array, ref<Expr> offset, Type type, bool isTemporal);
 
   EXPR_KIND(Load)
   ref<Expr> getArray() const { return array; }

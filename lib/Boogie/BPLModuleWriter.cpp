@@ -21,10 +21,10 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
     OS << MW->IntRep->getType(t.width);
     break;
   case Type::Pointer:
-  case Type::Any: // Represents null pointer type
     UsesPointers = true;
     OS << "ptr";
     break;
+  case Type::Any:
   case Type::Unknown:
     assert(0 && "Module writer found unexpected type");
   }

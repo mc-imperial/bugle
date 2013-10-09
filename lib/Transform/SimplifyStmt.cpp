@@ -20,7 +20,10 @@ bool isTemporal(Expr *e) {
 }
 
 bool isNullPointerLoad(Expr *e) {
-  return isa<LoadExpr>(e) && e->getType() == Type::Any;
+  if(auto LE = dyn_cast<LoadExpr>(e)) {
+    return LE->getArray()->getType().range() == Type::Any;
+  }
+  return false;
 }
 
 void ProcessBasicBlock(BasicBlock *BB) {

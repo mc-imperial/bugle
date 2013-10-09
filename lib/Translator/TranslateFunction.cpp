@@ -970,7 +970,7 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
     for (unsigned i = 0; i != NumElements; ++i) {
       ref<Expr> LoadOfs =
         BVAddExpr::create(SrcDiv, BVConstExpr::create(Src->getType().width, i));
-      ref<Expr> Val = LoadExpr::create(SrcPtrArr, LoadOfs, LoadsAreTemporal);
+      ref<Expr> Val = LoadExpr::create(SrcPtrArr, LoadOfs, SrcRangeTy, LoadsAreTemporal);
       ref<Expr> StoreOfs =
         BVAddExpr::create(DstDiv, BVConstExpr::create(Dst->getType().width, i));
       addEvalStmt(BBB, CI, Val);
@@ -1338,7 +1338,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           ref<Expr> ElemOfs =
             BVAddExpr::create(Div,
                               BVConstExpr::create(Div->getType().width, i));
-          ref<Expr> ValElem = LoadExpr::create(PtrArr, ElemOfs, LoadsAreTemporal);
+          ref<Expr> ValElem = LoadExpr::create(PtrArr, ElemOfs, LoadElTy, LoadsAreTemporal);
           addEvalStmt(BBB, I, ValElem);
           if (LoadElTy.isKind(Type::Pointer))
             ValElem = PtrToBVExpr::create(ValElem);
@@ -1346,7 +1346,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         }
         E = Expr::createBVConcatN(ElemsLoaded);
       } else {
-        E = LoadExpr::create(PtrArr, Div, LoadsAreTemporal);
+        E = LoadExpr::create(PtrArr, Div, LoadElTy, LoadsAreTemporal);
       }
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
       std::vector<ref<Expr> > BytesLoaded;
@@ -1354,7 +1354,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         ref<Expr> PtrByteOfs =
           BVAddExpr::create(PtrOfs,
                             BVConstExpr::create(PtrOfs->getType().width, i));
-        ref<Expr> ValByte = LoadExpr::create(PtrArr, PtrByteOfs, LoadsAreTemporal);
+        ref<Expr> ValByte = LoadExpr::create(PtrArr, PtrByteOfs, ArrRangeTy, LoadsAreTemporal);
         BytesLoaded.push_back(ValByte);
         addEvalStmt(BBB, I, ValByte);
       }

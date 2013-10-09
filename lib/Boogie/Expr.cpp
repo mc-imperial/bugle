@@ -88,7 +88,7 @@ ref<Expr> PointerExpr::create(ref<Expr> array, ref<Expr> offset) {
   return new PointerExpr(array, offset);
 }
 
-ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset, bool isTemporal) {
+ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset, Type type, bool isTemporal) {
   Type at = array->getType();
   assert(at.array);
   assert(offset->getType().isKind(Type::BV));
@@ -101,7 +101,7 @@ ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset, bool isTemporal) {
     return CA->getArray()[Ofs];
   }
 
-  return new LoadExpr(at.range(), array, offset, isTemporal);
+  return new LoadExpr(type, array, offset, isTemporal);
 }
 
 ref<Expr> AtomicExpr::create(ref<Expr> array, ref<Expr> offset, std::vector<ref<Expr>> args, std::string function, unsigned int parts, unsigned int part) {
