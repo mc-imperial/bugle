@@ -373,7 +373,9 @@ ref<Expr> BoolToBVExpr::create(ref<Expr> bv) {
 }
 
 ref<Expr> EqExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType() == rhs->getType());
+  assert((lhs->getType() == Type(Type::ArrayOf, Type::Any) && rhs->getType().array) ||
+         (rhs->getType() == Type(Type::ArrayOf, Type::Any) && lhs->getType().array) ||
+         (lhs->getType() == rhs->getType()));
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
