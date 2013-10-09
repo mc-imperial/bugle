@@ -68,9 +68,54 @@ bool TranslateFunction::isSpecialFunction(TranslateModule::SourceLanguage SL,
 }
 
 void TranslateFunction::addUninterpretedFunction(TranslateModule::SourceLanguage SL,
-                                           const std::string &fnName) {
+                                                 const std::string &fnName) {
   SpecialFnMapTy &SpecialFunctionMap = initSpecialFunctionMap(SL);
   SpecialFunctionMap.Functions[fnName] = &TranslateFunction::handleUninterpretedFunction;
+}
+
+bool TranslateFunction::isAxiomFunction(StringRef fnName) {
+  return fnName.startswith("__axiom");
+}
+
+bool TranslateFunction::isUninterpretedFunction(StringRef fnName) {
+  return fnName.startswith("__uninterpreted_function_");
+}
+
+bool TranslateFunction::isSpecificationFunction(StringRef fnName) {
+  return fnName.startswith("__spec");
+}
+
+bool TranslateFunction::isPreOrPostCondition(llvm::StringRef fnName) {
+  if (fnName == "bugle_requires") return true;
+  if (fnName == "__requires") return true;
+  if (fnName == "__global_requires") return true;
+  if (fnName == "bugle_ensures") return true;
+  if (fnName == "__ensures") return true;
+  if (fnName == "__global_ensures") return true;
+  return false;
+}
+
+bool TranslateFunction::isBarrierFunction(TranslateModule::SourceLanguage SL,
+                                          StringRef fnName)
+{
+  return (SL == TranslateModule::SL_OpenCL || SL == TranslateModule::SL_CUDA) &&
+         fnName == "bugle_barrier";
+}
+
+bool TranslateFunction::isNormalFunction(TranslateModule::SourceLanguage SL,
+                                         llvm::Function *F) {
+  if (F->isIntrinsic()) return false;
+  if (isAxiomFunction(F->getName())) return false;
+  if (isUninterpretedFunction(F->getName())) return false;
+  if (isSpecialFunction(SL, F->getName())) return false;
+  if (isSpecificationFunction(F->getName())) return false;
+  if (isBarrierFunction(SL, F->getName())) return false;
+  return true;
+}
+
+bool TranslateFunction::isStandardEntryPoint(TranslateModule::SourceLanguage SL,
+                                             StringRef fnName) {
+  return SL == TranslateModule::SL_C && fnName == "main";
 }
 
 TranslateFunction::SpecialFnMapTy &
@@ -360,16 +405,17 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
 void TranslateFunction::translate() {
   initSpecialFunctionMap(TM->SL);
 
-  if (isGPUEntryPoint || F->getName() == "main")
+  if (isGPUEntryPoint || isStandardEntryPoint(TM->SL, F->getName()))
     BF->setEntryPoint(true);
 
   if (isGPUEntryPoint)
     BF->addAttribute("kernel");
 
-  if ((TM->SL == TranslateModule::SL_OpenCL ||
-       TM->SL == TranslateModule::SL_CUDA)
-       && F->getName() == "bugle_barrier")
+  if (isBarrierFunction(TM->SL, F->getName()))
     BF->addAttribute("barrier");
+
+  if (isSpecificationFunction(F->getName()))
+    BF->setSpecification(true);
 
   unsigned PtrSize = TM->TD.getPointerSizeInBits();
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {

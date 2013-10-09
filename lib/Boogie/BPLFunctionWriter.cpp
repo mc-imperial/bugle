@@ -270,10 +270,6 @@ void BPLFunctionWriter::writeVar(llvm::raw_ostream &OS, Var *V) {
   MW->writeType(OS, V->getType());
 }
 
-static bool isSpecificationFunction(llvm::StringRef Name) {
-  return Name.startswith("__spec");
-}
-
 void BPLFunctionWriter::write() {
   OS << "procedure ";
   for (auto i = F->attrib_begin(), e = F->attrib_end(); i != e; ++i) {
@@ -301,7 +297,7 @@ void BPLFunctionWriter::write() {
   if (F->begin() == F->end()) {
     OS << ";\n";
   } else {
-    if(isSpecificationFunction(F->getName())) {
+    if(F->isSpecification()) {
       OS << ";";
     }
     OS << "\n";
@@ -344,7 +340,7 @@ void BPLFunctionWriter::write() {
       OS << ";\n";
     }
 
-    if (isSpecificationFunction(F->getName())) {
+    if (F->isSpecification()) {
       OS << "\n";
       return;
     }

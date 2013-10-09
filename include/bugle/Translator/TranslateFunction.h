@@ -115,7 +115,18 @@ public:
   static bool isSpecialFunction(TranslateModule::SourceLanguage SL,
                                 const std::string &fnName);
   static void addUninterpretedFunction(TranslateModule::SourceLanguage SL,
-                                           const std::string &fnName);
+                                       const std::string &fnName);
+  static bool isAxiomFunction(llvm::StringRef fnName);
+  static bool isUninterpretedFunction(llvm::StringRef fnName);
+  static bool isSpecificationFunction(llvm::StringRef fnName);
+  static bool isPreOrPostCondition(llvm::StringRef fnName);
+  static bool isBarrierFunction(TranslateModule::SourceLanguage SL,
+                                llvm::StringRef fnName);
+  static bool isNormalFunction(TranslateModule::SourceLanguage SL,
+                               llvm::Function *F);
+  static bool isStandardEntryPoint(TranslateModule::SourceLanguage SL,
+                                   llvm::StringRef fnName);
+
   void translate();
 };
 

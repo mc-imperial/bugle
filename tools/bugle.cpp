@@ -104,11 +104,11 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  bugle::TranslateModule TM(M.get(), SL);
-
+  std::set<std::string> EP;
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
-    TM.addGPUEntryPoint(&*i);
+    EP.insert(&*i);
 
+  bugle::TranslateModule TM(M.get(), SL, EP);
   TM.translate();
   std::auto_ptr<bugle::Module> BM(TM.takeModule());
 

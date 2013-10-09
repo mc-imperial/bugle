@@ -241,27 +241,17 @@ ref<Expr> TranslateModule::translateBitCast(llvm::Type *SrcTy,
   return Op;
 }
 
-void TranslateModule::addGPUEntryPoint(StringRef Name) {
-  GPUEntryPoints.insert(Name);
-}
-
-static bool isAxiomFunction(StringRef Name) {
-  return Name.startswith("__axiom");
-}
-
-static bool isUninterpretedFunction(StringRef Name) {
-  return Name.startswith("__uninterpreted_function_");
-}
-
-static bool isKernelEntryPoint(llvm::Module *M, Value *V) {
-  if (NamedMDNode *NMD = M->getNamedMetadata("nvvm.annotations")) {
+bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
+                                      std::set<std::string> &EP) {
+    if (NamedMDNode *NMD = M->getNamedMetadata("nvvm.annotations")) {
     for (int i = 0, e = NMD->getNumOperands(); i != e; ++i) {
       MDNode *MD = NMD->getOperand(i);
-      if (MD->getOperand(0) == V && MD->getOperand(1)->getName() == "kernel")
+      if (MD->getOperand(0) == F && MD->getOperand(1)->getName() == "kernel")
         return true;
     }
   }
-  return false;
+
+  return EP.find(F->getName()) != EP.end();
 }
 
 // Convert the given unmodelled expression E to modelled form.
@@ -429,11 +419,12 @@ void TranslateModule::translate() {
 
     for (auto i = M->begin(), e = M->end(); i != e; ++i) {
 
-      if (isUninterpretedFunction(i->getName())) {
-          TranslateFunction::addUninterpretedFunction(SL, i->getName());
+      if (TranslateFunction::isUninterpretedFunction(i->getName())) {
+        TranslateFunction::addUninterpretedFunction(SL, i->getName());
       }
 
-      if (i->isIntrinsic() || isAxiomFunction(i->getName()) ||
+      if (i->isIntrinsic() ||
+          TranslateFunction::isAxiomFunction(i->getName()) ||
           TranslateFunction::isSpecialFunction(SL, i->getName()))
         continue;
 
@@ -448,7 +439,7 @@ void TranslateModule::translate() {
       if (i->isIntrinsic())
         continue;
 
-      if (isAxiomFunction(i->getName())) {
+      if (TranslateFunction::isAxiomFunction(i->getName())) {
         bugle::Function F("");
         Type RT = translateType(i->getFunctionType()->getReturnType());
         Var *RV = F.addReturn(RT, "ret");
@@ -461,9 +452,7 @@ void TranslateModule::translate() {
         BM->addAxiom(Expr::createNeZero(S->getValues()[0]));
       } else if (!TranslateFunction::isSpecialFunction(SL, i->getName())) {
         TranslateFunction TF(this, FunctionMap[&*i], &*i);
-        TF.isGPUEntryPoint =
-          isKernelEntryPoint(M, i) ||
-          (GPUEntryPoints.find(i->getName()) != GPUEntryPoints.end());
+        TF.isGPUEntryPoint = isGPUEntryPoint(i, M, GPUEntryPoints);
         TF.translate();
       }
     }

@@ -106,12 +106,14 @@ private:
   }
 
 public:
-  TranslateModule(llvm::Module *M, SourceLanguage SL) :
-    BM(0), M(M), TD(M), SL(SL),
+  TranslateModule(llvm::Module *M, SourceLanguage SL,
+                  std::set<std::string> &EP) :
+    BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP),
     NeedAdditionalByteArrayModels(false),
     ModelAllAsByteArray(false),
     NextModelAllAsByteArray(false) {}
-  void addGPUEntryPoint(llvm::StringRef Name);
+  static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
+                              std::set<std::string> &EP);
   void translate();
   bugle::Module *takeModule() { return BM; }
 
