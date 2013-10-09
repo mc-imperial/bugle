@@ -28,7 +28,7 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
       // If we could not compute any candidates, then we take all arrays
       // and the null pointer as candidates.
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert(0);
+      Globals.insert((bugle::GlobalArray*)0);
     }
 
     if (Globals.size() == 1) {
@@ -38,7 +38,7 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
       MW->UsesPointers = true;
       OS << "  ";
       for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
-        if (*i == 0)
+        if (*i == (bugle::GlobalArray*)0)
           continue; // Null pointer; dealt with as last case
         OS << "if (";
         writeExpr(OS, PtrArr);

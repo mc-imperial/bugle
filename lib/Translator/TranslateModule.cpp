@@ -319,7 +319,7 @@ ref<Expr> TranslateModule::unmodelValue(Value *V, ref<Expr> E) {
                      [&](Value *V) { return getGlobalArray(V); });
 
       if (PtrMayBeNull.find(V) != PtrMayBeNull.end())
-        Globals.insert(0);
+        Globals.insert((bugle::GlobalArray*)0);
 
       return PointerExpr::create(MemberOfExpr::create(ArrayIdExpr::create(E,
                                                                 defaultRange()),
@@ -391,7 +391,7 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
   }
 
   // Success!  Record the global set.
-  auto i = GlobalSet.find(0);
+  auto i = GlobalSet.find((bugle::GlobalArray*)0);
   if (i != GlobalSet.end()) {
     NextPtrMayBeNull.insert(Val);
     GlobalSet.erase(i);

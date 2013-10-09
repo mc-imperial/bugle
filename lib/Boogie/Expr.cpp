@@ -326,7 +326,7 @@ ref<Expr> MemberOfExpr::create(ref<Expr> expr,
   Type t = Expr::getArrayCandidateType(elems);
 #ifndef NDEBUG
   for (auto i = elems.begin(), e = elems.end(); i != e; ++i) {
-    assert(*i == 0 || (*i)->getRangeType() == t);
+    assert(*i == (bugle::GlobalArray*)0 || (*i)->getRangeType() == t);
   }
 #endif
 
