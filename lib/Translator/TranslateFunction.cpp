@@ -886,7 +886,7 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
 
   if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
     llvm::errs() << "Error: memset with null pointer destination or"
-                 << " detinations of mixed types not supported\n";
+                 << " destinations of mixed types not supported\n";
     std::exit(1);
   }
 
@@ -947,13 +947,13 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
 
   if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
     llvm::errs() << "Error: memset with null pointer destination or"
-    << " detinations of mixed types not supported\n";
+                 << " destinations of mixed types not supported\n";
     std::exit(1);
   }
 
   if (SrcRangeTy == Type(Type::Any) || SrcRangeTy == Type(Type::Unknown)) {
     llvm::errs() << "Error: memset with null pointer source or"
-    << " sources of mixed types not supported\n";
+                 << " sources of mixed types not supported\n";
     std::exit(1);
   }
 
