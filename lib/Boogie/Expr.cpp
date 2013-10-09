@@ -89,8 +89,7 @@ ref<Expr> PointerExpr::create(ref<Expr> array, ref<Expr> offset) {
 }
 
 ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset, Type type, bool isTemporal) {
-  Type at = array->getType();
-  assert(at.array);
+  assert(array->getType().array);
   assert(offset->getType().isKind(Type::BV));
 
   if (auto CA = dyn_cast<ConstantArrayRefExpr>(array)) {
