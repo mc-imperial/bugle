@@ -24,7 +24,7 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
   set(LLVM_CFLAGS "${LLVM_CFLAGS} -fno-exceptions -fno-rtti")
 
   execute_process(
-    COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs bitreader target
+    COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs bitreader target transformutils
     OUTPUT_VARIABLE LLVM_LIBS
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
@@ -98,7 +98,7 @@ else()
 
   set(LLVM_CFLAGS "\"/I${LLVM_SRC}/include\" \"/I${LLVM_BUILD}/include\" -D_SCL_SECURE_NO_WARNINGS -wd4146 -wd4244 -wd4355 -wd4482 -wd4800")
   set(LLVM_LDFLAGS "")
-  set(LLVM_LIBS "${LLVM_LIBDIR}/LLVMTarget.lib" "${LLVM_LIBDIR}/LLVMMC.lib" "${LLVM_LIBDIR}/LLVMObject.lib" "${LLVM_LIBDIR}/LLVMBitReader.lib" "${LLVM_LIBDIR}/LLVMCore.lib" "${LLVM_LIBDIR}/LLVMSupport.lib")
+  set(LLVM_LIBS "${LLVM_LIBDIR}/LLVMTransformUtils.lib" "${LLVM_LIBDIR}/LLVMipa.lib" "${LLVM_LIBDIR}/LLVMAnalysis.lib" "${LLVM_LIBDIR}/LLVMTarget.lib" "${LLVM_LIBDIR}/LLVMMC.lib" "${LLVM_LIBDIR}/LLVMObject.lib" "${LLVM_LIBDIR}/LLVMBitReader.lib" "${LLVM_LIBDIR}/LLVMCore.lib" "${LLVM_LIBDIR}/LLVMSupport.lib")
 
   set(CFLAGS_CXX11 "")
 
@@ -148,6 +148,15 @@ add_library(bugleBoogie STATIC
   include/bugle/Var.h
 )
 
+add_library(buglePreprocessing STATIC
+  lib/Preprocessing/CycleDetectPass.cpp
+  lib/Preprocessing/InlinePass.cpp
+  lib/Preprocessing/RemoveBodyPass.cpp
+  include/bugle/Preprocessing/CycleDetectPass.h
+  include/bugle/Preprocessing/InlinePass.h
+  include/bugle/Preprocessing/RemoveBodyPass.h
+)
+
 add_library(bugleTranslator STATIC
   lib/Translator/TranslateModule.cpp
   lib/Translator/TranslateFunction.cpp
@@ -170,14 +179,15 @@ add_executable(bugle
   tools/bugle.cpp
 )
 
-set_target_properties(bugle bugleBoogie bugleTransform
+set_target_properties(bugle bugleBoogie buglePreprocessing bugleTransform
                       bugleTranslator bugleUtil
     PROPERTIES COMPILE_FLAGS "${CFLAGS_CXX11} ${LLVM_CFLAGS}")
 
 target_link_libraries(bugleTranslator bugleBoogie ${LLVM_LIBS} ${LLVM_LDFLAGS})
 target_link_libraries(bugleTransform bugleBoogie)
+target_link_libraries(buglePreprocessing bugleTranslator)
 target_link_libraries(bugleBoogie bugleUtil)
-target_link_libraries(bugle bugleBoogie bugleTranslator bugleTransform bugleUtil)
+target_link_libraries(bugle bugleBoogie buglePreprocessing bugleTranslator bugleTransform bugleUtil)
 
 if(NOT WIN32 OR MSYS OR CYGWIN)
 

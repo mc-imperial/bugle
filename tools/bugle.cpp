@@ -17,6 +17,9 @@
 #include "bugle/BPLModuleWriter.h"
 #include "bugle/IntegerRepresentation.h"
 #include "bugle/Module.h"
+#include "bugle/Preprocessing/CycleDetectPass.h"
+#include "bugle/Preprocessing/InlinePass.h"
+#include "bugle/Preprocessing/RemoveBodyPass.h"
 #include "bugle/Transform/SimplifyStmt.h"
 #include "bugle/Translator/TranslateModule.h"
 
@@ -41,6 +44,9 @@ SourceLanguage("l", cl::desc("Module source language (c, cu, cl; default c)"),
 static cl::opt<std::string>
 IntegerRepresentation("i", cl::desc("Integer representation (bv, math; default bv)"),
     cl::value_desc("intrep"));
+
+static cl::opt<bool>
+Inlining("inline", cl::ValueDisallowed, cl::desc("Inline all function calls"));
 
 int main(int argc, char **argv) {
   sys::PrintStackTraceOnErrorSignal();
@@ -107,6 +113,15 @@ int main(int argc, char **argv) {
   std::set<std::string> EP;
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
     EP.insert(&*i);
+
+
+  PassManager PM;
+  if (Inlining) {
+    PM.add(new bugle::CycleDetectPass());
+    PM.add(new bugle::InlinePass(SL, EP));
+    PM.add(new bugle::RemoveBodyPass(M.get(), SL, EP));
+  }
+  PM.run(*M.get());
 
   bugle::TranslateModule TM(M.get(), SL, EP);
   TM.translate();
