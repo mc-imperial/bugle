@@ -106,7 +106,8 @@ int main(int argc, char **argv) {
   else if (IntegerRepresentation == "math")
     IntRep.reset(new bugle::MathIntegerRepresentation);
   else {
-    errs() << "Unsupported integer representation: " << IntegerRepresentation << "\n";
+    errs() << "Unsupported integer representation: "
+           << IntegerRepresentation << "\n";
     return 1;
   }
 
