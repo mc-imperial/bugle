@@ -1050,11 +1050,17 @@ ref<Expr> TranslateFunction::handleTrap(bugle::BasicBlock *BBB,
 
 static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {
   auto CE = dyn_cast<BVConstExpr>(dim);
+  if (!CE) {
+    llvm::errs() << "Error: unsupported variable dimension\n";
+    std::exit(1);
+  }
   switch (CE->getValue().getZExtValue()) {
   case 0: return prefix + "_x";
   case 1: return prefix + "_y";
   case 2: return prefix + "_z";
-  default: assert(0 && "Unsupported dimension!"); return 0;
+  default:
+    llvm::errs() << "Error: unsupported dimension\n";
+    std::exit(1);
   }
 }
 
