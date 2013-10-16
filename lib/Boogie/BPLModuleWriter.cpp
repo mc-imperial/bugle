@@ -3,6 +3,7 @@
 #include "bugle/IntegerRepresentation.h"
 #include "bugle/Module.h"
 #include "bugle/Type.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace bugle;
@@ -26,7 +27,7 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
     break;
   case Type::Any:
   case Type::Unknown:
-    assert(0 && "Module writer found unexpected type");
+    llvm_unreachable("Module writer found unexpected type");
   }
 }
 

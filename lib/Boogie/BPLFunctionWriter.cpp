@@ -10,6 +10,7 @@
 #include "bugle/SourceLoc.h"
 #include "bugle/Stmt.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/ErrorHandling.h"
 
 using namespace bugle;
 
@@ -159,7 +160,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     maybeWriteCaseSplit(OS, SS->getArray().get(), SS->getSourceLoc(),
         [&](GlobalArray *GA, unsigned int indent) {
-      if(GA->isGlobalOrGroupSharedOrConstant()) {
+      if (GA->isGlobalOrGroupSharedOrConstant()) {
         writeSourceLocMarker(OS, SS->getSourceLoc(), indent);
       }
       assert(SS->getValue()->getType() == GA->getRangeType());
@@ -203,11 +204,11 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (auto AtS = dyn_cast<AssertStmt>(S)) {
     OS << "  assert ";
-    if(AtS->isCandidate()) {
+    if (AtS->isCandidate()) {
       OS << "{:tag \"user\"} ";
     }
     writeSourceLoc(OS, AtS->getSourceLoc());
-    if(AtS->isCandidate()) {
+    if (AtS->isCandidate()) {
       unsigned candidateNumber = MW->nextCandidateNumber();
       OS << "_c" << candidateNumber << " ==> ";
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -218,11 +219,11 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (auto AtS = dyn_cast<GlobalAssertStmt>(S)) {
     OS << "  assert {:do_not_predicate} ";
-    if(AtS->isCandidate()) {
+    if (AtS->isCandidate()) {
       OS << "{:tag \"user\"} ";
     }
     writeSourceLoc(OS, AtS->getSourceLoc());
-    if(AtS->isCandidate()) {
+    if (AtS->isCandidate()) {
       unsigned candidateNumber = MW->nextCandidateNumber();
       OS << "_c" << candidateNumber << " ==> ";
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -234,7 +235,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   } else if (isa<ReturnStmt>(S)) {
     OS << "  return;\n";
   } else {
-    assert(0 && "Unsupported statement");
+    llvm_unreachable("Unsupported statement");
   }
 }
 
@@ -297,7 +298,7 @@ void BPLFunctionWriter::write() {
   if (F->begin() == F->end()) {
     OS << ";\n";
   } else {
-    if(F->isSpecification()) {
+    if (F->isSpecification()) {
       OS << ";";
     }
     OS << "\n";

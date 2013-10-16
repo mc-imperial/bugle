@@ -160,9 +160,9 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__add_noovfl_unsigned_long"] = &TranslateFunction::handleAddNoovflUnsigned;
     const unsigned NOOVFL_PREDICATE_MAX_ARITY = 20;
     const std::string tys[] = { "char", "short", "int", "long" };
-    for(unsigned j = 0; j < 4; ++j) {
+    for (unsigned j = 0; j < 4; ++j) {
       std::string t = tys[j];
-      for(unsigned i = 0; i <= NOOVFL_PREDICATE_MAX_ARITY; ++i) {
+      for (unsigned i = 0; i <= NOOVFL_PREDICATE_MAX_ARITY; ++i) {
         std::string S = "__add_noovfl_unsigned_";
         llvm::raw_string_ostream SS(S);
         SS << t << "_" << i;
@@ -334,25 +334,25 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       int i = 0;
       while (atomics[i] != "") {
         std::string t = atomics[i];
-        i++;
+        ++i;
         while (atomics[i] != "") {
           fns[t + atomics[i]] = &TranslateFunction::handleAtomic;
-          i++;
+          ++i;
         }
-        i++;
+        ++i;
       }
     }
 
     if (SL == TranslateModule::SL_OpenCL ||
         SL == TranslateModule::SL_CUDA) {
       const unsigned BARRIER_INVARIANT_MAX_ARITY = 20;
-      for(unsigned i = 0; i <= BARRIER_INVARIANT_MAX_ARITY; ++i) {
+      for (unsigned i = 0; i <= BARRIER_INVARIANT_MAX_ARITY; ++i) {
         std::string S = "__barrier_invariant_";
         llvm::raw_string_ostream SS(S);
         SS << i;
         fns[SS.str()] = &TranslateFunction::handleBarrierInvariant;
       }
-      for(unsigned i = 0; i <= BARRIER_INVARIANT_MAX_ARITY; ++i) {
+      for (unsigned i = 0; i <= BARRIER_INVARIANT_MAX_ARITY; ++i) {
         std::string S = "__barrier_invariant_binary_";
         llvm::raw_string_ostream SS(S);
         SS << i;
@@ -515,7 +515,7 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
 }
 
 void TranslateFunction::addLocToStmt(Stmt *stmt) {
-  if(0 != currentSourceLoc.get()) {
+  if (0 != currentSourceLoc.get()) {
     stmt->setSourceLoc(new SourceLoc(*currentSourceLoc));
   }
 }
@@ -731,8 +731,8 @@ ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
   ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr, false);
   Type range = arrayIdExpr->getType().range();
 
-  if(range.isKind(Type::BV)) {
-    if(range.width > 8) {
+  if (range.isKind(Type::BV)) {
+    if (range.width > 8) {
       result = BVMulExpr::create(BVConstExpr::create(
                                  TM->TD.getPointerSizeInBits(),
                                  range.width/8), result);
@@ -748,8 +748,8 @@ ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
   ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr, true);
   Type range = arrayIdExpr->getType().range();
 
-  if(range.isKind(Type::BV)) {
-    if(range.width > 8) {
+  if (range.isKind(Type::BV)) {
+    if (range.width > 8) {
       result = BVMulExpr::create(BVConstExpr::create(
                                  TM->TD.getPointerSizeInBits(),
                                  range.width/8), result);
@@ -801,17 +801,14 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
     PtrOfs = BVSDivExpr::create(PtrOfs,BVConstExpr::create(TM->TD.getPointerSizeInBits(), range.width/8));
 
   std::vector<ref<Expr>> args;
-  for (unsigned i = 1; i < CI->getNumArgOperands(); i++)
+  for (unsigned i = 1; i < CI->getNumArgOperands(); ++i)
     args.push_back(translateValue(CI->getArgOperand(i),BBB));
 
   std::vector<ref<Expr>> returns;
 
   unsigned int parts = CI->getType()->getPrimitiveSizeInBits() / range.width;
-  ref<Expr> E;
-  for (unsigned int i = 0; i < parts; i++) {
-
-    E = AtomicExpr::create(PtrArr, PtrOfs, args, CI->getCalledFunction()->getName(), parts, i+1);
-
+  for (unsigned int i = 0; i < parts; ++i) {
+    ref<Expr> E = AtomicExpr::create(PtrArr, PtrOfs, args, CI->getCalledFunction()->getName(), parts, i+1);
     auto S = new EvalStmt(E);
     addLocToStmt(S);
     BBB->addStmt(S);
@@ -829,7 +826,7 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
   assert (CI->getNumArgOperands() > 1);
 
   auto BF = BarrierInvariants[CI->getNumArgOperands()];
-  if(!BF) {
+  if (!BF) {
     std::string S = CI->getCalledFunction()->getName().str();
     llvm::raw_string_ostream SS(S);
     SS << (CI->getNumArgOperands() - 1);
@@ -840,7 +837,7 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
     for (auto i = Args.begin(), e = Args.end(); i != e; ++i, ++count) {
       std::string S;
       llvm::raw_string_ostream SS(S);
-      if(count == 0) {
+      if (count == 0) {
         SS << "expr";
       } else {
         SS << "instantiation";
@@ -869,7 +866,7 @@ ref<Expr> TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB
     " followed by a sequence of *pairs* of instantiation arguments");
 
   auto BF = BinaryBarrierInvariants[CI->getNumArgOperands()];
-  if(!BF) {
+  if (!BF) {
     std::string S = CI->getCalledFunction()->getName().str();
     llvm::raw_string_ostream SS(S);
     SS << ((CI->getNumArgOperands() - 1)/2);
@@ -880,7 +877,7 @@ ref<Expr> TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB
     for (auto i = Args.begin(), e = Args.end(); i != e; ++i, ++count) {
       std::string S;
       llvm::raw_string_ostream SS(S);
-      if(count == 0) {
+      if (count == 0) {
         SS << "expr";
       } else {
         SS << "instantiation";
@@ -1625,7 +1622,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     if (auto VT = dyn_cast<VectorType>(SI->getCondition()->getType())) {
       unsigned elementBitWidth = TrueVal->getType().width / VT->getNumElements();
       E = 0;
-      for(unsigned i = 0; i < VT->getNumElements(); ++i) {
+      for (unsigned i = 0; i < VT->getNumElements(); ++i) {
         ref<Expr> Ite = IfThenElseExpr::create(BVToBoolExpr::create(BVExtractExpr::create(Cond, i, 1)),
                                                                     BVExtractExpr::create(TrueVal, i*elementBitWidth, elementBitWidth),
                                                                     BVExtractExpr::create(FalseVal, i*elementBitWidth, elementBitWidth));

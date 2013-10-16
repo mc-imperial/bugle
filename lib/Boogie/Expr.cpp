@@ -861,11 +861,8 @@ ref<Expr> AccessOffsetExpr::create(ref<Expr> array, bool isWrite) {
 
 ref<Expr> NotAccessedExpr::create(ref<Expr> array) {
   assert(array->getType().array);
-  if (auto GARE = dyn_cast<GlobalArrayRefExpr>(array)) {
-    GARE->getArray()->setNotAccessedExpr();
-  } else {
-    assert(0 && "NotAccessedExpr must have array name argument");
-  }
+  auto GARE = dyn_cast<GlobalArrayRefExpr>(array);
+  GARE->getArray()->setNotAccessedExpr();
   return new NotAccessedExpr(array);
 }
 

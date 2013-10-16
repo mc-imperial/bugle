@@ -1,4 +1,5 @@
 #include "bugle/IntegerRepresentation.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 namespace bugle {
@@ -51,7 +52,7 @@ std::string BVIntegerRepresentation::getArithmeticBinary(std::string Name, bugle
   case Expr::BVAnd:  SMTName = "bvand";  break;
   case Expr::BVOr:   SMTName = "bvor";   break;
   case Expr::BVXor:  SMTName = "bvxor";  break;
-  default: assert(0 && "huh?"); return 0;
+  default: llvm_unreachable("huh?");
   }
 
 	std::stringstream ss;
@@ -74,7 +75,7 @@ std::string BVIntegerRepresentation::getBooleanBinary(std::string Name, bugle::E
   case Expr::BVSge: SMTName = "bvsge"; break;
   case Expr::BVSlt: SMTName = "bvslt"; break;
   case Expr::BVSle: SMTName = "bvsle"; break;
-  default: assert(0 && "huh?"); return 0;
+  default: llvm_unreachable("huh?");
   }
 
 	std::stringstream ss;
@@ -102,8 +103,7 @@ bool BVIntegerRepresentation::abstractsExtract() {
 }
 
 std::string BVIntegerRepresentation::getExtract() {
-  assert(0 && "BVIntegerRepresentation should generate Boogie extract syntax");
-  return 0;
+  llvm_unreachable("BVIntegerRepresentation should generate Boogie extract syntax");
 }
 
 bool BVIntegerRepresentation::abstractsConcat() {
@@ -111,8 +111,7 @@ bool BVIntegerRepresentation::abstractsConcat() {
 }
 
 std::string BVIntegerRepresentation::getConcat() {
-  assert(0 && "BVIntegerRepresentation should generate Boogie concatenation syntax");
-  return 0;
+  llvm_unreachable("BVIntegerRepresentation should generate Boogie concatenation syntax");
 }
 
 std::string BVIntegerRepresentation::getConcatExpr(const std::string &Lhs, const std::string &Rhs) {

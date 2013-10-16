@@ -1,5 +1,5 @@
-#include "bugle/Module.h"
 #include "bugle/Preprocessing/RemoveBodyPass.h"
+#include "bugle/Module.h"
 #include "bugle/Translator/TranslateFunction.h"
 #include "bugle/Translator/TranslateModule.h"
 #include "llvm/Pass.h"

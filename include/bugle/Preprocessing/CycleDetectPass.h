@@ -10,7 +10,9 @@ class CycleDetectPass : public llvm::ModulePass {
 public:
   static char ID;
 
-  CycleDetectPass();
+  CycleDetectPass() : ModulePass(ID) {
+    initializeCallGraphAnalysisGroup(*llvm::PassRegistry::getPassRegistry());
+  }
 
   virtual const char *getPassName() const {
     return "CallGraph Cycle Detection";

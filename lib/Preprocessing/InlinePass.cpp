@@ -1,8 +1,9 @@
-#include "bugle/Module.h"
 #include "bugle/Preprocessing/InlinePass.h"
+#include "bugle/Module.h"
 #include "bugle/Translator/TranslateFunction.h"
 #include "bugle/Translator/TranslateModule.h"
 #include "llvm/Pass.h"
+#include "llvm/Analysis/CallGraph.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/raw_ostream.h"
@@ -44,7 +45,9 @@ bool InlinePass::doInline(llvm::Instruction *I, llvm::Function *OF) {
     return false;
 
   CallSite CS(CI);
-  InlineFunctionInfo IFI(0,0);
+  DataLayout *TD = getAnalysisIfAvailable<DataLayout>();
+  CallGraph &CG = getAnalysis<CallGraph>();
+  InlineFunctionInfo IFI(&CG, TD);
   if (InlineFunction(CI, IFI))
     return true;
   else
@@ -53,11 +56,11 @@ bool InlinePass::doInline(llvm::Instruction *I, llvm::Function *OF) {
 
 void InlinePass::doInline(llvm::BasicBlock *B, llvm::Function *OF) {
   // Re-process block as long as we did some inlining.
-  bool appliedInlining = true;
-  while (appliedInlining) {
+  bool AppliedInlining = true;
+  while (AppliedInlining) {
     for (auto i = B->begin(), e = B->end(); i != e; ++i) {
-      appliedInlining = doInline(i, OF);
-      if (appliedInlining)
+      AppliedInlining = doInline(i, OF);
+      if (AppliedInlining)
         break;
     }
   }

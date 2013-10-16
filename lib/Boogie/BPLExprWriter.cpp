@@ -52,7 +52,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     std::string s; llvm::raw_string_ostream ss(s);
     writeExpr(ss, EE->getSubExpr().get(), 9);
     OS << MW->IntRep->getExtractExpr(ss.str(), EE->getOffset() + EE->getType().width, EE->getOffset());
-    if(MW->IntRep->abstractsExtract()) {
+    if (MW->IntRep->abstractsExtract()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << MW->IntRep->getExtract();
       }, false);
@@ -106,7 +106,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(lhsSS, ConcatE->getLHS().get(), 4);
     writeExpr(rhsSS, ConcatE->getRHS().get(), 5);
     OS << MW->IntRep->getConcatExpr(lhsSS.str(), rhsSS.str());
-    if(MW->IntRep->abstractsConcat()) {
+    if (MW->IntRep->abstractsConcat()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << MW->IntRep->getConcat();
       }, false);
@@ -189,13 +189,13 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       OS << MW->IntRep->getArithmeticBinary("ADD", bugle::Expr::Kind::BVAdd, width + 1);
     }, false);
 
-    if(MW->IntRep->abstractsConcat()) {
+    if (MW->IntRep->abstractsConcat()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << MW->IntRep->getConcat();
       }, false);
     }
 
-    if(MW->IntRep->abstractsExtract()) {
+    if (MW->IntRep->abstractsExtract()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << MW->IntRep->getExtract();
       }, false);
@@ -297,13 +297,13 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       OS << "}";
     }, false);
 
-    if(MW->IntRep->abstractsConcat()) {
+    if (MW->IntRep->abstractsConcat()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << MW->IntRep->getConcat();
       }, false);
     }
 
-    if(MW->IntRep->abstractsExtract()) {
+    if (MW->IntRep->abstractsExtract()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << MW->IntRep->getExtract();
       }, false);
@@ -312,7 +312,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   } else if (auto UFE = dyn_cast<UninterpretedFunctionExpr>(E)) {
     OS << UFE->getName() << "(";
     for (unsigned i = 0; i < UFE->getNumOperands(); ++i) {
-      if(i > 0) {
+      if (i > 0) {
         OS << ", ";
       }
       writeExpr(OS, UFE->getOperand(i).get());
@@ -322,7 +322,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
       OS << "function " << UFE->getName() << "(";
       for (unsigned i = 0; i < UFE->getNumOperands(); ++i) {
-        if(i > 0) {
+        if (i > 0) {
           OS << ", ";
         }
         MW->writeType(OS, UFE->getOperand(i)->getType());
@@ -354,11 +354,10 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeAccessLoggingVar(OS, AOE->getArray().get(), "OFFSET", AOE->getAccessKind(),
       MW->IntRep->getLiteral(0, 32));
   } else if (auto NAE = dyn_cast<NotAccessedExpr>(E)) {
-    if (auto GARE = dyn_cast<GlobalArrayRefExpr>(NAE->getArray().get())) {
-      OS << "_NOT_ACCESSED_$$" << GARE->getArray()->getName();
-    } else {
-      assert(0 && "NotAccessedExpr must have array name argument");
-    }
+    auto GARE = dyn_cast<GlobalArrayRefExpr>(NAE->getArray().get());
+    if (!GARE)
+      llvm_unreachable("NotAccessedExpr must have array name argument");
+    OS << "_NOT_ACCESSED_$$" << GARE->getArray()->getName();
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
     case Expr::BVToPtr:
@@ -436,7 +435,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         IntS << "GET_IMAGE_HEIGHT";
         break;
       default:
-       assert(0 && "Unsupported unary expr opcode"); return;
+        llvm_unreachable("Unsupported unary expr opcode");
       }
       OS << IntS.str();
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -452,8 +451,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       break;
     }
     default:
-      assert(0 && "Unsupported unary expr");
-      break;
+      llvm_unreachable("Unsupported unary expr");
     }
     OS << "(";
     writeExpr(OS, UnE->getSubExpr().get());
@@ -488,7 +486,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::BVAnd:  IntName = "AND";  break;
       case Expr::BVOr:   IntName = "OR";   break;
       case Expr::BVXor:  IntName = "XOR";  break;
-      default: assert(0 && "huh?"); return;
+      default: llvm_unreachable("huh?");
       }
       OS << "BV" << BinE->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -514,7 +512,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::BVSge: IntName = "SGE"; break;
       case Expr::BVSlt: IntName = "SLT"; break;
       case Expr::BVSle: IntName = "SLE"; break;
-      default: assert(0 && "huh?"); return;
+      default: llvm_unreachable("huh?");
       }
       OS << "BV" << BinE->getLHS()->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -534,7 +532,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::FMul: IntName = "FMUL"; break;
       case Expr::FDiv: IntName = "FDIV"; break;
       case Expr::FPow: IntName = "FPOW"; break;
-      default: assert(0 && "huh?"); return;
+      default: llvm_unreachable("huh?");
       }
       OS << IntName << BinE->getType().width;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -555,7 +553,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::FEq:  IntName = "FEQ";  break;
       case Expr::FLt:  IntName = "FLT";  break;
       case Expr::FUno: IntName = "FUNO"; break;
-      default: assert(0 && "huh?"); return;
+      default: llvm_unreachable("huh?");
       }
       OS << IntName << BinE->getLHS()->getType().width;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -568,8 +566,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       break;
     }
     default:
-      assert(0 && "Unsupported binary expr");
-      break;
+      llvm_unreachable("Unsupported binary expr");
     }
     OS << "(";
     writeExpr(OS, BinE->getLHS().get());
@@ -579,7 +576,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   } else if (auto LE = dyn_cast<LoadExpr>(E)) {
     // If this is the dumper, show the expression in a simple form.
     // Otherwise, generate appropriate code
-    if(!MW) {
+    if (!MW) {
       writeExpr(OS, LE->getArray().get(), 9);
       OS << "[";
       writeExpr(OS, LE->getOffset().get());
@@ -606,7 +603,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   } else if (auto AE = dyn_cast<AtomicExpr>(E)) {
     // If this is the dumper, show the expression in a simple form.
     // Otherwise, generate appropriate code
-    if(!MW) {
+    if (!MW) {
       OS << "_ATOMIC_OP(";
       writeExpr(OS, AE->getArray().get(), 9);
       OS << ", ";
@@ -633,7 +630,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     }
   } else if (auto ASE = dyn_cast<ArraySnapshotExpr>(E)) {
     // If this is the dumper, show the expression.  Otherwise, this is a no-op
-    if(!MW) {
+    if (!MW) {
       writeExpr(OS, ASE->getDst().get(), 9);
       OS << " := ";
       writeExpr(OS, ASE->getSrc().get());
@@ -668,7 +665,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     if (!MW)
       OS << ")";
   } else {
-    assert(0 && "Unsupported expression");
+    llvm_unreachable("Unsupported expression");
   }
 }
 
@@ -677,7 +674,7 @@ void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS,
                                           std::string accessLoggingVar, 
                                           std::string accessKind, 
                                           std::string unit) {
-  if(auto GARE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
+  if (auto GARE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
     OS << "_" << accessKind << "_" << accessLoggingVar << "_$$" 
        << GARE->getArray()->getName();
   } else {

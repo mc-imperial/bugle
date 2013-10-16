@@ -4,6 +4,7 @@
 #include "bugle/Preprocessing/CycleDetectPass.h"
 #include "bugle/Translator/TranslateModule.h"
 #include "llvm/Pass.h"
+#include "llvm/Analysis/CallGraph.h"
 
 namespace bugle {
 
@@ -30,6 +31,7 @@ public:
   }
 
   virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
+    AU.addRequired<llvm::CallGraph>();
     AU.addRequired<CycleDetectPass>();
   }
 

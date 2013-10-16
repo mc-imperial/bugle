@@ -13,14 +13,14 @@ bool hasSideEffects(Expr *e) {
 }
 
 bool isTemporal(Expr *e) {
-  if(auto LE = dyn_cast<LoadExpr>(e)) {
+  if (auto LE = dyn_cast<LoadExpr>(e)) {
     return LE->getIsTemporal();
   }
   return isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e) || isa<AtomicExpr>(e);
 }
 
 bool isNullPointerLoad(Expr *e) {
-  if(auto LE = dyn_cast<LoadExpr>(e)) {
+  if (auto LE = dyn_cast<LoadExpr>(e)) {
     return LE->getArray()->getType().range() == Type::Any;
   }
   return false;

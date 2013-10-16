@@ -1,14 +1,12 @@
 #include "bugle/Preprocessing/CycleDetectPass.h"
 #include "llvm/Pass.h"
 #include "llvm/ADT/SCCIterator.h"
+#include "llvm/Analysis/CallGraph.h"
+#include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
 using namespace bugle;
-
-CycleDetectPass::CycleDetectPass() : ModulePass(ID) {
-  initializeCallGraphAnalysisGroup(*PassRegistry::getPassRegistry());
-}
 
 bool CycleDetectPass::runOnModule(llvm::Module &M) {
   CallGraphNode* N = getAnalysis<CallGraph>().getRoot();

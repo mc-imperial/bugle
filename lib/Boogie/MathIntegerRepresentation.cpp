@@ -1,4 +1,5 @@
 #include "bugle/IntegerRepresentation.h"
+#include "llvm/Support/ErrorHandling.h"
 
 namespace bugle {
 
@@ -53,7 +54,7 @@ std::string MathIntegerRepresentation::getArithmeticBinary(std::string Name,
     case Expr::BVSDiv: infixOp = "div"; break;
     case Expr::BVURem:
     case Expr::BVSRem: infixOp = "mod"; break;
-    default: assert(0 && "huh?"); return 0;
+    default: llvm_unreachable("huh?");
     }
     ss << "{:inline true} BV" << Width << "_" << Name
       << "(x : int, y : int) : int {\n"
@@ -122,7 +123,7 @@ std::string MathIntegerRepresentation::getArithmeticBinary(std::string Name,
     ss << " BV" << Width << "_" << Name
       << "(int, int) : int;";
     return ss.str();
-  default: assert(0 && "huh?"); return 0;
+  default: llvm_unreachable("huh?");
   }
 }
 
@@ -138,7 +139,7 @@ std::string MathIntegerRepresentation::getBooleanBinary(std::string Name,
   case Expr::BVSge: infixOp = ">="; break;
   case Expr::BVSlt: infixOp = "<"; break;
   case Expr::BVSle: infixOp = "<="; break;
-  default: assert(0 && "huh?"); return 0;
+  default: llvm_unreachable("huh?");
   }
 
   std::stringstream ss;
