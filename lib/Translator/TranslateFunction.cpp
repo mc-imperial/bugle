@@ -790,34 +790,46 @@ ref<Expr> TranslateFunction::handleArraySnapshot(bugle::BasicBlock *BBB,
 
 ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
     llvm::CallInst *CI, const std::vector<ref<Expr>> &Args) {
-
-  assert(CI->getType()->getPrimitiveSizeInBits() % 32 == 0);
-
-  ref<Expr> Ptr = translateValue(CI->getArgOperand(0), BBB),
-            PtrArr = ArrayIdExpr::create(Ptr, TM->translateType(CI->getType()) ),
+  assert(Args.size() > 0);
+  ref<Expr> Ptr = Args[0],
+            PtrArr = ArrayIdExpr::create(Ptr, TM->translateType(CI->getType())),
             PtrOfs = ArrayOffsetExpr::create(Ptr);
-  Type range = PtrArr->getType().range();
-  if (range.width > 8)
-    PtrOfs = BVSDivExpr::create(PtrOfs,BVConstExpr::create(TM->TD.getPointerSizeInBits(), range.width/8));
+  Type ArrRangeTy = PtrArr->getType().range();
+  Type AtomicTy = TM->translateType(CI->getType());
+  assert(AtomicTy.width%32 == 0);
+  if (ArrRangeTy.width > 8)
+    PtrOfs = BVSDivExpr::create(PtrOfs,
+                                BVConstExpr::create(TM->TD.getPointerSizeInBits(),
+                                                    ArrRangeTy.width/8));
 
-  std::vector<ref<Expr>> args;
-  for (unsigned i = 1; i < CI->getNumArgOperands(); ++i)
-    args.push_back(translateValue(CI->getArgOperand(i),BBB));
+  std::vector<ref<Expr>> AtomicArgs;
+  for (unsigned i = 1, e = Args.size(); i < e; ++i)
+    AtomicArgs.push_back(Args[i]);
 
-  std::vector<ref<Expr>> returns;
-
-  unsigned int parts = CI->getType()->getPrimitiveSizeInBits() / range.width;
-  for (unsigned int i = 0; i < parts; ++i) {
-    ref<Expr> E = AtomicExpr::create(PtrArr, PtrOfs, args, CI->getCalledFunction()->getName(), parts, i+1);
-    auto S = new EvalStmt(E);
-    addLocToStmt(S);
-    BBB->addStmt(S);
-    returns.push_back(E);
-
-    PtrOfs = BVAddExpr::create(PtrOfs, BVConstExpr::create(TM->TD.getPointerSizeInBits(), 1));
+  ref<Expr> result;
+  // If ArrRangeTy is Any, then we are using a null pointer.
+  if (ArrRangeTy != Type(Type::Any)) {
+    std::vector<ref<Expr>> Elems;
+    unsigned NumElems = AtomicTy.width/ArrRangeTy.width;
+    for (unsigned i = 0; i < NumElems; ++i) {
+      ref<Expr> E = AtomicExpr::create(PtrArr, PtrOfs, AtomicArgs,
+                                       CI->getCalledFunction()->getName(),
+                                       NumElems, i+1);
+      EvalStmt* ES = new EvalStmt(E);
+      addLocToStmt(ES);
+      BBB->addStmt(ES);
+      Elems.push_back(E);
+      PtrOfs = BVAddExpr::create(PtrOfs,
+                                 BVConstExpr::create(TM->TD.getPointerSizeInBits(), 1));
+    }
+    result = Expr::createBVConcatN(Elems);
+  } else {
+    // If we have a null pointer, add a fake load expression.
+    ref<Expr> Div = BVConstExpr::createZero(AtomicTy.width/32);
+    result = LoadExpr::create(PtrArr, Div, AtomicTy, true);
   }
 
-  return Expr::createBVConcatN(returns);
+  return result;
 }
 
 ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
