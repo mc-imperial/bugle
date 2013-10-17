@@ -6,7 +6,7 @@
 #if defined(__clang__) || defined(__GNUC__)
 #define NO_RETURN __attribute__((noreturn))
 #elif defined(_MSC_VER)
-#define NORETURN __declspec(noreturn)
+#define NO_RETURN __declspec(noreturn)
 #endif
 
 namespace bugle {
