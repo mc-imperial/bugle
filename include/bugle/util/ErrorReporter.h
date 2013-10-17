@@ -3,6 +3,12 @@
 
 #include <string>
 
+#if defined(__clang__) || defined(__GNUC__)
+#define NO_RETURN __attribute__((noreturn))
+#elif defined(_MSC_VER)
+#define NORETURN __declspec(noreturn)
+#endif
+
 namespace bugle {
 
 class ErrorReporter {
@@ -14,8 +20,8 @@ private:
 
 public:
   static void setApplicationName(const std::string &AN);
-  [[noreturn]] static void reportFatalError(const std::string &msg);
-  [[noreturn]] static void reportImplementationLimitation(const std::string &msg);
+  NO_RETURN static void reportFatalError(const std::string &msg);
+  NO_RETURN static void reportImplementationLimitation(const std::string &msg);
 };
 
 }
