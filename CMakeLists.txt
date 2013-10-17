@@ -170,7 +170,9 @@ add_library(bugleTransform STATIC
 )
 
 add_library(bugleUtil STATIC
+  lib/Util/ErrorReporter.cpp
   lib/Util/UniqueNameSet.cpp
+  include/bugle/util/ErrorReporter.h
   include/bugle/util/UniqueNameSet.h
   include/bugle/util/Functional.h
 )

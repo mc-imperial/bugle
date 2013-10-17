@@ -2,11 +2,11 @@
 #include "bugle/Module.h"
 #include "bugle/Translator/TranslateFunction.h"
 #include "bugle/Translator/TranslateModule.h"
+#include "bugle/util/ErrorReporter.h"
 #include "llvm/Pass.h"
 #include "llvm/Analysis/CallGraph.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/CallSite.h"
-#include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 
 using namespace llvm;
@@ -26,9 +26,8 @@ bool InlinePass::doInline(llvm::Instruction *I, llvm::Function *OF) {
   if (!(TranslateModule::isGPUEntryPoint(OF, M, GPUEntryPoints) ||
         TranslateFunction::isStandardEntryPoint(SL, OF->getName()))) {
     if (TranslateFunction::isPreOrPostCondition(F->getName())) {
-      llvm::errs() << "Cannot inline, found function with"
-                   << " pre- or post-condition\n";
-      std::exit(1);
+      ErrorReporter::reportFatalError(
+                   "Cannot inline, found function with pre- or post-condition");
     } else { // Do not perform inlining on non-entry point functions.
       return false;
     }

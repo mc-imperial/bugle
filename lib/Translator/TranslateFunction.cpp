@@ -6,6 +6,7 @@
 #include "bugle/Expr.h"
 #include "bugle/GlobalArray.h"
 #include "bugle/Module.h"
+#include "bugle/util/ErrorReporter.h"
 #include "bugle/util/Functional.h"
 #include "llvm/DebugInfo.h"
 #include "llvm/IR/BasicBlock.h"
@@ -481,8 +482,7 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V,  bugle::BasicBlock *
     // ignore metadata values
     return 0;
   }
-  llvm::errs() << "Error: unsupported value\n";
-  std::exit(1);
+  ErrorReporter::reportImplementationLimitation("Unsupported value");
 }
 
 Var *TranslateFunction::getPhiVariable(llvm::PHINode *PN) {
@@ -826,7 +826,7 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
   } else {
     // If we have a null pointer, add a fake load expression.
     ref<Expr> Div = BVConstExpr::createZero(AtomicTy.width/32);
-    result = LoadExpr::create(PtrArr, Div, AtomicTy, true);
+    result = LoadExpr::create(PtrArr, Div, AtomicTy, LoadsAreTemporal);
   }
 
   return result;
@@ -918,18 +918,16 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
 
   if (!Const) {
     // Could emit a loop
-    llvm::errs() << "Error: memset with non-integer constant length"
-                 << " not supported\n";
-    std::exit(1);
+    ErrorReporter::reportImplementationLimitation(
+                       "memset with non-integer constant length not supported");
   }
 
   auto ConstValue = dyn_cast<ConstantInt>(MSI->getValue());
 
   if (!ConstValue) {
     // Could deal with expr
-    llvm::errs() << "Error: memset with non-integer constant value"
-                 << " not supported\n";
-    std::exit(1);
+    ErrorReporter::reportImplementationLimitation(
+                        "memset with non-integer constant value not supported");
   }
 
   ref<Expr> Dst = translateValue(MSI->getDest(), BBB),
@@ -940,9 +938,9 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
   Type DstRangeTy = DstPtrArr->getType().range();
 
   if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
-    llvm::errs() << "Error: memset with null pointer destination or"
-                 << " destinations of mixed types not supported\n";
-    std::exit(1);
+    ErrorReporter::reportImplementationLimitation(
+                                  "memset with null pointer destination or"
+                                  " destinations of mixed types not supported");
   }
 
   assert(DstRangeTy.width % 8 == 0);
@@ -985,9 +983,8 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
 
   if (!Const) {
     // Could emit a loop
-    llvm::errs() << "Error: memcpy with non-integer constant length"
-                 << " not supported\n";
-    std::exit(1);
+    ErrorReporter::reportImplementationLimitation(
+                       "memcpy with non-integer constant length not supported");
   }
 
   ref<Expr> Src = translateValue(MCI->getSource(), BBB),
@@ -1001,15 +998,15 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
        DstRangeTy = DstPtrArr->getType().range();
 
   if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
-    llvm::errs() << "Error: memset with null pointer destination or"
-                 << " destinations of mixed types not supported\n";
-    std::exit(1);
+    ErrorReporter::reportImplementationLimitation(
+                                  "memset with null pointer destination or"
+                                  " destinations of mixed types not supported");
   }
 
   if (SrcRangeTy == Type(Type::Any) || SrcRangeTy == Type(Type::Unknown)) {
-    llvm::errs() << "Error: memset with null pointer source or"
-                 << " sources of mixed types not supported\n";
-    std::exit(1);
+    ErrorReporter::reportImplementationLimitation(
+                                       "memset with null pointer source or"
+                                       " sources of mixed types not supported");
   }
 
   assert(SrcRangeTy.width % 8 == 0);
@@ -1059,17 +1056,14 @@ ref<Expr> TranslateFunction::handleTrap(bugle::BasicBlock *BBB,
 
 static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {
   auto CE = dyn_cast<BVConstExpr>(dim);
-  if (!CE) {
-    llvm::errs() << "Error: unsupported variable dimension\n";
-    std::exit(1);
-  }
+  if (!CE)
+    ErrorReporter::reportImplementationLimitation("Unsupported variable dimension");
   switch (CE->getValue().getZExtValue()) {
   case 0: return prefix + "_x";
   case 1: return prefix + "_y";
   case 2: return prefix + "_z";
   default:
-    llvm::errs() << "Error: unsupported dimension\n";
-    std::exit(1);
+    ErrorReporter::reportImplementationLimitation("Unsupported dimension");
   }
 }
 
@@ -1367,8 +1361,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     case BinaryOperator::Or:   F = BVOrExpr::create;   break;
     case BinaryOperator::Xor:  F = BVXorExpr::create;  break;
     default:
-      llvm::errs() << "Error: unsupported binary operator\n";
-      std::exit(1);
+      ErrorReporter::reportImplementationLimitation("Unsupported binary operator");
     }
     E = maybeTranslateSIMDInst(BBB, BO->getType(), BO->getType(), LHS, RHS, F);
   } else if (auto GEPI = dyn_cast<GetElementPtrInst>(I)) {
@@ -1517,8 +1510,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         case ICmpInst::ICMP_UGE:
         case ICmpInst::ICMP_SGE: E = Expr::createPtrLe(RHS, LHS); break;
         default:
-          llvm::errs() << "Error: unsupported ptr icmp\n";
-          std::exit(1);
+          ErrorReporter::reportImplementationLimitation("Unsupported ptr icmp");
         }
       } else {
         assert(RHS->getType().isKind(Type::BV));
@@ -1532,8 +1524,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         case ICmpInst::ICMP_SLT: E = BVSltExpr::create(LHS, RHS); break;
         case ICmpInst::ICMP_SLE: E = BVSleExpr::create(LHS, RHS); break;
         default:
-          llvm::errs() << "Error: unsupported icmp\n";
-          std::exit(1);
+          ErrorReporter::reportImplementationLimitation("Unsupported icmp");
         }
       }
       addEvalStmt(BBB, I, E);
@@ -1694,10 +1685,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   } else if (auto CI = dyn_cast<CallInst>(I)) {
     auto F = CI->getCalledFunction();
 
-    if (!F) {
-      llvm::errs() << "Error: only direct calls supported\n";
-      std::exit(1);
-    }
+    if (!F)
+      ErrorReporter::reportImplementationLimitation("Only direct calls supported");
 
     CallSite CS(CI);
     std::vector<ref<Expr>> Args;
@@ -1713,9 +1702,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         if (E.isNull())
           return;
       } else {
-        llvm::errs() << "Error: intrinsic " << Intrinsic::getName(ID)
-                     << " not supported\n";
-        std::exit(1);
+        std::string msg = "Intrinsic " + Intrinsic::getName(ID) + " not supported";
+        ErrorReporter::reportImplementationLimitation(msg);
       }
     } else {
       auto SFI = SpecialFunctionMap.Functions.find(F->getName());
@@ -1816,9 +1804,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     BBB->addStmt(assertStmt);
     return;
   } else {
-    llvm::errs() << "Error: instruction " << I->getOpcodeName()
-                 << " not supported\n";
-    std::exit(1);
+    std::string name = I->getOpcodeName();
+    std::string msg = "Instruction " + name + " not supported";
+    ErrorReporter::reportImplementationLimitation(msg);
   }
   if (DumpTranslatedExprs) {
     I->dump();

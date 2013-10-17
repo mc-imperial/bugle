@@ -1,6 +1,5 @@
 #include "bugle/BPLFunctionWriter.h"
 #include "bugle/BPLModuleWriter.h"
-#include "llvm/Support/raw_ostream.h"
 #include "bugle/BasicBlock.h"
 #include "bugle/Casting.h"
 #include "bugle/Expr.h"
@@ -9,8 +8,10 @@
 #include "bugle/Module.h"
 #include "bugle/SourceLoc.h"
 #include "bugle/Stmt.h"
+#include "bugle/util/ErrorReporter.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace bugle;
 
@@ -92,8 +93,8 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         OS << "  $$" << (*GlobalsDst.begin())->getName() << " := " <<
           "$$" << (*GlobalsSrc.begin())->getName() << ";\n";
       } else {
-        llvm::errs() << "Error: array snapshots on pointers not supported\n";
-        std::exit(1);
+        ErrorReporter::reportImplementationLimitation(
+                                   "Array snapshots on pointers not supported");
       }
       return;
     }

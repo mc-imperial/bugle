@@ -1,9 +1,8 @@
 #include "bugle/Preprocessing/CycleDetectPass.h"
+#include "bugle/util/ErrorReporter.h"
 #include "llvm/Pass.h"
 #include "llvm/ADT/SCCIterator.h"
 #include "llvm/Analysis/CallGraph.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
 using namespace bugle;
@@ -13,8 +12,8 @@ bool CycleDetectPass::runOnModule(llvm::Module &M) {
   scc_iterator<CallGraphNode*> i = scc_begin(N), e = scc_end(N);
   while (i != e) {
     if (i.hasLoop()) {
-      llvm::errs() << "Cannot inline, detected cycle in callgraph\n";
-      std::exit(1);
+      ErrorReporter::reportFatalError(
+                                  "Cannot inline, detected cycle in callgraph");
     }
     ++i;
   }

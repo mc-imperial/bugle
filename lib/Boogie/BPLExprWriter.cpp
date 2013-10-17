@@ -5,6 +5,7 @@
 #include "bugle/Expr.h"
 #include "bugle/Function.h"
 #include "bugle/GlobalArray.h"
+#include "bugle/util/ErrorReporter.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
 #include <cmath>
@@ -595,8 +596,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         writeExpr(OS, LE->getOffset().get());
         OS << "]";
       } else {
-        llvm::errs() << "Error: load expressions from pointers not supported\n";
-        std::exit(1);
+        ErrorReporter::reportImplementationLimitation(
+                                "Load expressions from pointers not supported");
       }
 
     }
@@ -623,8 +624,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         writeExpr(OS, AE->getOffset().get());
         OS << ")";
       } else {
-        llvm::errs() << "Error: atomic expressions from pointers not supported\n";
-        std::exit(1);
+        ErrorReporter::reportImplementationLimitation(
+                              "Atomic expressions from pointers not supported");
       }
 
     }
@@ -648,8 +649,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       if (Globals.size() == 1) {
         OS << "$$" << (*Globals.begin())->getName();
       } else {
-        llvm::errs() << "Error: underlying array expressions for pointers not supported\n";
-        std::exit(1);
+        ErrorReporter::reportImplementationLimitation(
+                     "Underlying array expressions for pointers not supported");
       }
   } else if (auto MOE = dyn_cast<MemberOfExpr>(E)) {
     // If this is the dumper, show the expression.  Otherwise, this is a no-op.

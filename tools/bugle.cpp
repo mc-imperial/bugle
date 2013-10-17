@@ -12,7 +12,6 @@
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
-#include "llvm/Support/raw_ostream.h"
 
 #include "bugle/BPLModuleWriter.h"
 #include "bugle/IntegerRepresentation.h"
@@ -22,6 +21,7 @@
 #include "bugle/Preprocessing/RemoveBodyPass.h"
 #include "bugle/Transform/SimplifyStmt.h"
 #include "bugle/Translator/TranslateModule.h"
+#include "bugle/util/ErrorReporter.h"
 
 using namespace llvm;
 
@@ -61,6 +61,8 @@ int main(int argc, char **argv) {
   cl::ParseCommandLineOptions(argc, argv,
     "LLVM to Boogie translator\n");
 
+  bugle::ErrorReporter::setApplicationName(argv[0]);
+
   std::string ErrorMessage;
   std::auto_ptr<Module> M;
 
@@ -80,12 +82,10 @@ int main(int argc, char **argv) {
   }
 
   if (M.get() == 0) {
-    errs() << argv[0] << ": ";
     if (ErrorMessage.size())
-      errs() << ErrorMessage << "\n";
+      bugle::ErrorReporter::reportFatalError(ErrorMessage);
     else
-      errs() << "bitcode didn't read correctly.\n";
-    return 1;
+      bugle::ErrorReporter::reportFatalError("Bitcode did not read correctly");
   }
 
   bugle::TranslateModule::SourceLanguage SL;
@@ -96,8 +96,8 @@ int main(int argc, char **argv) {
   else if (SourceLanguage == "cl")
     SL = bugle::TranslateModule::SL_OpenCL;
   else {
-    errs() << "Unsupported source language: " << SourceLanguage << "\n";
-    return 1;
+    std::string msg = "Unsupported source language: " + SourceLanguage;
+    bugle::ErrorReporter::reportFatalError(msg);
   }
 
   std::auto_ptr<bugle::IntegerRepresentation> IntRep(0);
@@ -106,15 +106,14 @@ int main(int argc, char **argv) {
   else if (IntegerRepresentation == "math")
     IntRep.reset(new bugle::MathIntegerRepresentation);
   else {
-    errs() << "Unsupported integer representation: "
-           << IntegerRepresentation << "\n";
-    return 1;
+    std::string msg = "Unsupported integer representation: "
+      + IntegerRepresentation;
+
   }
 
   std::set<std::string> EP;
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
     EP.insert(&*i);
-
 
   PassManager PM;
   if (Inlining) {
@@ -139,10 +138,8 @@ int main(int argc, char **argv) {
 
   std::string ErrorInfo;
   tool_output_file F(OutFile.c_str(), ErrorInfo);
-  if (!ErrorInfo.empty()) {
-    errs() << ErrorInfo << '\n';
-    return 1;
-  }
+  if (!ErrorInfo.empty())
+    bugle::ErrorReporter::reportFatalError(ErrorInfo);
 
   bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get());
   MW.write();

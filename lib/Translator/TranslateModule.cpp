@@ -4,11 +4,11 @@
 #include "bugle/Function.h"
 #include "bugle/Module.h"
 #include "bugle/Stmt.h"
+#include "bugle/util/ErrorReporter.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
-#include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
 using namespace bugle;
@@ -116,8 +116,7 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
       return translateBitCast(CE->getOperand(0)->getType(), CE->getType(),
                               translateConstant(CE->getOperand(0)));
     default:
-      llvm::errs() << "Error: unhandled constant expression\n";
-      std::exit(1);
+      ErrorReporter::reportImplementationLimitation("Unhandled constant expression");
     }
   }
   if (auto GV = dyn_cast<GlobalVariable>(C)) {
@@ -155,8 +154,7 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     return PointerExpr::create(NullArrayRefExpr::create(), 
                             BVConstExpr::createZero(TD.getPointerSizeInBits()));
   }
-  llvm::errs() << "Error: unhandled constant\n";
-  std::exit(1);
+  ErrorReporter::reportImplementationLimitation("Unhandled constant");
 }
 
 bugle::Type TranslateModule::translateType(llvm::Type *T) {
