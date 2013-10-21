@@ -15,11 +15,12 @@ class ErrorReporter {
 private:
   ErrorReporter();
 
-  static std::string ApplicationName;
+  static std::string FileName;
   static void printErrorMsg(const std::string &msg);
 
 public:
-  static void setApplicationName(const std::string &AN);
+  static void setFileName(const std::string &FN);
+  NO_RETURN static void reportParameterError(const std::string &msg);
   NO_RETURN static void reportFatalError(const std::string &msg);
   NO_RETURN static void reportImplementationLimitation(const std::string &msg);
 };

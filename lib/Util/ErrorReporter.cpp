@@ -6,23 +6,31 @@
 using namespace bugle;
 using namespace llvm;
 
-std::string ErrorReporter::ApplicationName;
+std::string ErrorReporter::FileName;
 
 void ErrorReporter::printErrorMsg(const std::string &msg) {
-  errs() << ApplicationName << ": ";
-  if (errs().has_colors()) errs().changeColor(raw_ostream::Colors::RED, true);
+  errs() << FileName << ": ";
+  if (errs().has_colors()) errs().changeColor(raw_ostream::Colors::RED);
   errs() << "error:";
   if (errs().has_colors()) errs().resetColor();
   errs() << " " << msg << "\n";
 }
 
-void ErrorReporter::setApplicationName(const std::string &AN) {
-  std::string::size_type pos = AN.find_last_of("\\/");
+void ErrorReporter::setFileName(const std::string &FN) {
+  std::string::size_type pos = FN.find_last_of("\\/");
 
-  if (pos != std::string::npos && pos != AN.length() - 1)
-    ApplicationName = AN.substr(pos + 1);
+  if (pos != std::string::npos && pos != FN.length() - 1)
+    FileName = FN.substr(pos + 1);
   else
-    ApplicationName = AN;
+    FileName = FN;
+}
+
+void ErrorReporter::reportParameterError(const std::string &msg) {
+  if (errs().has_colors()) errs().changeColor(raw_ostream::Colors::RED);
+  errs() << "error:";
+  if (errs().has_colors()) errs().resetColor();
+  errs() << " " << msg << "\n";
+  std::exit(1);
 }
 
 void ErrorReporter::reportFatalError(const std::string &msg) {

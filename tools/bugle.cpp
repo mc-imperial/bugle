@@ -61,7 +61,12 @@ int main(int argc, char **argv) {
   cl::ParseCommandLineOptions(argc, argv,
     "LLVM to Boogie translator\n");
 
-  bugle::ErrorReporter::setApplicationName(argv[0]);
+  std::string DisplayFilename;
+  if (InputFilename == "-")
+    DisplayFilename = "<stdin>";
+  else
+    DisplayFilename = InputFilename;
+  bugle::ErrorReporter::setFileName(DisplayFilename);
 
   std::string ErrorMessage;
   std::auto_ptr<Module> M;
@@ -69,11 +74,6 @@ int main(int argc, char **argv) {
   // Use the bitcode streaming interface
   DataStreamer *streamer = getDataFileStreamer(InputFilename, &ErrorMessage);
   if (streamer) {
-    std::string DisplayFilename;
-    if (InputFilename == "-")
-      DisplayFilename = "<stdin>";
-    else
-      DisplayFilename = InputFilename;
     M.reset(getStreamedBitcodeModule(DisplayFilename, streamer, Context,
                                      &ErrorMessage));
     if (M.get() != 0 && M->MaterializeAllPermanently(&ErrorMessage)) {
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
     SL = bugle::TranslateModule::SL_OpenCL;
   else {
     std::string msg = "Unsupported source language: " + SourceLanguage;
-    bugle::ErrorReporter::reportFatalError(msg);
+    bugle::ErrorReporter::reportParameterError(msg);
   }
 
   std::auto_ptr<bugle::IntegerRepresentation> IntRep(0);
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
   else {
     std::string msg = "Unsupported integer representation: "
       + IntegerRepresentation;
-
+    bugle::ErrorReporter::reportParameterError(msg);
   }
 
   std::set<std::string> EP;

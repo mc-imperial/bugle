@@ -27,7 +27,7 @@ bool InlinePass::doInline(llvm::Instruction *I, llvm::Function *OF) {
         TranslateFunction::isStandardEntryPoint(SL, OF->getName()))) {
     if (TranslateFunction::isPreOrPostCondition(F->getName())) {
       ErrorReporter::reportFatalError(
-                   "Cannot inline, found function with pre- or post-condition");
+                   "Cannot inline, detected function with pre- or post-condition");
     } else { // Do not perform inlining on non-entry point functions.
       return false;
     }
