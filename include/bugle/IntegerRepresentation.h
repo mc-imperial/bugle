@@ -26,7 +26,7 @@ public:
   virtual bool abstractsExtract() = 0;
   virtual bool abstractsConcat() = 0;
 
-
+  virtual ~IntegerRepresentation() {};
 };
 
 

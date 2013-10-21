@@ -242,7 +242,7 @@ ref<Expr> TranslateModule::translateBitCast(llvm::Type *SrcTy,
 bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
                                       std::set<std::string> &EP) {
     if (NamedMDNode *NMD = M->getNamedMetadata("nvvm.annotations")) {
-    for (int i = 0, e = NMD->getNumOperands(); i != e; ++i) {
+    for (unsigned i = 0, e = NMD->getNumOperands(); i != e; ++i) {
       MDNode *MD = NMD->getOperand(i);
       if (MD->getOperand(0) == F && MD->getOperand(1)->getName() == "kernel")
         return true;

@@ -174,7 +174,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     }
     OS << ")";
   } else if (auto ANOVE = dyn_cast<AddNoovflExpr>(E)) {
-    int width = ANOVE->getFirst()->getType().width;
+    unsigned width = ANOVE->getFirst()->getType().width;
     OS << "$__add_noovfl_" << (ANOVE->getIsSigned() ? "signed" : "unsigned")
       << "_" << width << "(";
     writeExpr(OS, ANOVE->getFirst().get());
@@ -253,8 +253,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     }
   } else if (auto ANOVPE = dyn_cast<AddNoovflPredicateExpr>(E)) {
     auto exprs = ANOVPE->getExprs();
-    int n = exprs.size();
-    int width = exprs[0]->getType().width;
+    unsigned n = exprs.size();
+    unsigned width = exprs[0]->getType().width;
     OS << "__add_noovfl_" << n << "(";
     for (auto b = exprs.begin(), i = b, e = exprs.end(); i != e; ++i) {
       OS << (i != b ? ", " : "");
@@ -262,11 +262,11 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     }
     OS << ")";
 
-    int b = std::ceil(std::log((float)n) / std::log(2.0));
+    unsigned b = (unsigned)std::ceil(std::log((float)n) / std::log(2.0));
     std::stringstream ss;
     ss << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, b), "v0");
     std::string lhs = ss.str();
-    for (int i=1; i<n; ++i) {
+    for (unsigned i=1; i<n; ++i) {
       std::stringstream ss;
       std::stringstream vi;
       vi << "v" << i;
@@ -283,7 +283,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
 
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
       OS << "function {:inline true} __add_noovfl_" << n << "(";
-      for (int i=0; i<n; ++i) {
+      for (unsigned i=0; i<n; ++i) {
         OS << (i > 0 ? ", " : "") << "v" << i << ":" << MW->IntRep->getType(width);
       }
       OS << ") : " << MW->IntRep->getType(1) << " {";
