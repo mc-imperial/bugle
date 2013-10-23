@@ -16,12 +16,12 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
   endif()
 
   execute_process(
-    COMMAND ${LLVM_CONFIG_EXECUTABLE} --cflags
-    OUTPUT_VARIABLE LLVM_CFLAGS
+    COMMAND ${LLVM_CONFIG_EXECUTABLE} --cxxflags
+    OUTPUT_VARIABLE LLVM_CXXFLAGS
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
-  set(LLVM_CFLAGS "${LLVM_CFLAGS} -fno-exceptions -fno-rtti")
+  set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fno-exceptions -fno-rtti")
 
   execute_process(
     COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs bitreader target transformutils
@@ -53,17 +53,17 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
-  set(PLUGIN_CFLAGS "${LLVM_CFLAGS} -I\"${LLVM_SRC}/tools/clang/include\" -I\"${LLVM_BUILD}/tools/clang/include\"")
+  set(PLUGIN_CXXFLAGS "${LLVM_CXXFLAGS} -I\"${LLVM_SRC}/tools/clang/include\" -I\"${LLVM_BUILD}/tools/clang/include\"")
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(PLUGIN_CFLAGS "${PLUGIN_CFLAGS} -Wno-strict-aliasing")
+    set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++0x")
+    set(PLUGIN_CXXFLAGS "${PLUGIN_CXXFLAGS} -Wno-strict-aliasing")
   endif()
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++11")
     set(PLUGIN_LDFLAGS "-Wl,-undefined,dynamic_lookup")
   endif()
-
-  set(CFLAGS_CXX11 "-std=c++0x")
 
   set(EXT ".c")
   set(OUTEXT "bpl")
@@ -96,11 +96,9 @@ else()
     message(FATAL_ERROR "Invalid LLVM build directory: ${LLVM_BUILD}")
   endif()
 
-  set(LLVM_CFLAGS "\"/I${LLVM_SRC}/include\" \"/I${LLVM_BUILD}/include\" -D_SCL_SECURE_NO_WARNINGS -wd4146 -wd4244 -wd4355 -wd4482 -wd4800")
+  set(LLVM_CXXFLAGS "\"/I${LLVM_SRC}/include\" \"/I${LLVM_BUILD}/include\" -D_SCL_SECURE_NO_WARNINGS -wd4146 -wd4244 -wd4355 -wd4482 -wd4800")
   set(LLVM_LDFLAGS "")
   set(LLVM_LIBS "${LLVM_LIBDIR}/LLVMTransformUtils.lib" "${LLVM_LIBDIR}/LLVMipa.lib" "${LLVM_LIBDIR}/LLVMAnalysis.lib" "${LLVM_LIBDIR}/LLVMTarget.lib" "${LLVM_LIBDIR}/LLVMMC.lib" "${LLVM_LIBDIR}/LLVMObject.lib" "${LLVM_LIBDIR}/LLVMBitReader.lib" "${LLVM_LIBDIR}/LLVMCore.lib" "${LLVM_LIBDIR}/LLVMSupport.lib")
-
-  set(CFLAGS_CXX11 "")
 
   set(OUTEXT "bpl")
   set(CLANG_OPTS "")
@@ -183,7 +181,7 @@ add_executable(bugle
 
 set_target_properties(bugle bugleBoogie buglePreprocessing bugleTransform
                       bugleTranslator bugleUtil
-    PROPERTIES COMPILE_FLAGS "${CFLAGS_CXX11} ${LLVM_CFLAGS}")
+    PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS}")
 
 target_link_libraries(bugleTranslator bugleBoogie ${LLVM_LIBS} ${LLVM_LDFLAGS})
 target_link_libraries(bugleTransform bugleBoogie)
@@ -198,7 +196,7 @@ add_library(bugleInlineCheckPlugin SHARED
 )
 
 set_target_properties(bugleInlineCheckPlugin
-    PROPERTIES COMPILE_FLAGS "${CFLAGS_CXX11} ${PLUGIN_CFLAGS}")
+    PROPERTIES COMPILE_FLAGS "${PLUGIN_CXXFLAGS}")
 
 target_link_libraries(bugleInlineCheckPlugin ${PLUGIN_LIBS} ${PLUGIN_LDFLAGS})
 
