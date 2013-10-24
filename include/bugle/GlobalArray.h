@@ -31,17 +31,27 @@ public:
     return attributes.end();
   }
 
+  bool isGlobal() const {
+    return std::find(attrib_begin(), attrib_end(), "global")
+      != attrib_end();
+  }
+
+  bool isGroupShared() const {
+    return std::find(attrib_begin(), attrib_end(), "group_shared")
+      != attrib_end();
+  }
+
+  bool isConstant() const {
+    return std::find(attrib_begin(), attrib_end(), "constant")
+      != attrib_end();
+  }
+
   bool isGlobalOrGroupShared() const {
-    return (std::find(attrib_begin(), attrib_end(), "global")
-             != attrib_end())
-        || (std::find(attrib_begin(), attrib_end(), "group_shared")
-           != attrib_end());
+    return isGlobal() || isGroupShared();
   }
 
   bool isGlobalOrGroupSharedOrConstant() const {
-    return isGlobalOrGroupShared()
-        || (std::find(attrib_begin(), attrib_end(), "constant")
-           != attrib_end());
+    return isGlobal() || isGroupShared() || isConstant();
   }
 
   void setNotAccessedExpr() {
