@@ -77,11 +77,10 @@ _CLC_INLINE _CLC_OVERLOAD COLOUR_TYPE NAME(image2d_t image, sampler_t sampler, C
   return img[__y*CL_DEVICE_IMAGE2D_MAX_WIDTH + __x]; \
 }
 
-READ_IMAGE_2D(read_imagef, float4, uint2)
 READ_IMAGE_2D(read_imagef, float4, int2)
-READ_IMAGE_2D(read_imagei, int4, uint2)
+READ_IMAGE_2D(read_imagef, float4, float2)
 READ_IMAGE_2D(read_imagei, int4, int2)
-READ_IMAGE_2D(read_imageui, uint4, uint2)
+READ_IMAGE_2D(read_imagei, int4, float2)
 READ_IMAGE_2D(read_imageui, uint4, int2)
 
 #define WRITE_IMAGE_2D(NAME, COLOUR_TYPE, COORD_TYPE)                 \
@@ -90,11 +89,8 @@ _CLC_INLINE _CLC_OVERLOAD void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TY
   img[coord.y*CL_DEVICE_IMAGE2D_MAX_WIDTH + coord.x] = color; \
 }
 
-WRITE_IMAGE_2D(write_imagef, float4, uint2)
 WRITE_IMAGE_2D(write_imagef, float4, int2)
-WRITE_IMAGE_2D(write_imagei, int4, uint2)
 WRITE_IMAGE_2D(write_imagei, int4, int2)
-WRITE_IMAGE_2D(write_imageui, uint4, uint2)
 WRITE_IMAGE_2D(write_imageui, uint4, int2)
 
 #define __MAX_VALUES_PER_COORD_3D (1<<8)
@@ -108,12 +104,12 @@ _CLC_INLINE _CLC_OVERLOAD COLOUR_TYPE NAME(image2d_t image, sampler_t sampler, C
   return img[(__z*CL_DEVICE_IMAGE3D_MAX_HEIGHT + __y)*CL_DEVICE_IMAGE3D_MAX_WIDTH + __x]; \
 }
 
-READ_IMAGE_3D(read_imagef, float4, uint4)
 READ_IMAGE_3D(read_imagef, float4, int4)
-READ_IMAGE_3D(read_imagei, int4, uint4)
+READ_IMAGE_3D(read_imagef, float4, float4)
 READ_IMAGE_3D(read_imagei, int4, int4)
-READ_IMAGE_3D(read_imageui, uint4, uint4)
+READ_IMAGE_3D(read_imagei, int4, float4)
 READ_IMAGE_3D(read_imageui, uint4, int4)
+READ_IMAGE_3D(read_imageui, uint4, float4)
 
 #define WRITE_IMAGE_3D(NAME, COLOUR_TYPE, COORD_TYPE)                 \
 _CLC_INLINE _CLC_OVERLOAD void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TYPE color) { \
@@ -121,11 +117,8 @@ _CLC_INLINE _CLC_OVERLOAD void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TY
   img[(coord.z*CL_DEVICE_IMAGE3D_MAX_HEIGHT + coord.y)*CL_DEVICE_IMAGE3D_MAX_WIDTH + coord.x] = color; \
 }
 
-WRITE_IMAGE_3D(write_imagef, float4, uint4)
 WRITE_IMAGE_3D(write_imagef, float4, int4)
-WRITE_IMAGE_3D(write_imagei, int4, uint4)
 WRITE_IMAGE_3D(write_imagei, int4, int4)
-WRITE_IMAGE_3D(write_imageui, uint4, uint4)
 WRITE_IMAGE_3D(write_imageui, uint4, int4)
 
 #pragma OPENCL EXTENSION cl_clang_storage_class_specifiers: disable
