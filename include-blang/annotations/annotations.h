@@ -38,13 +38,44 @@ _DEVICE_QUALIFIER void __candidate_global_invariant(bool expr);
     __global_invariant(X), \
     __non_temporal_loads_end()
 
+#define __candidate_invariant(X) \
+    __non_temporal_loads_begin(), \
+    __candidate_invariant(X), \
+    __non_temporal_loads_end()
+
+#define __candidate_global_invariant(X) \
+    __non_temporal_loads_begin(), \
+    __candidate_global_invariant(X), \
+    __non_temporal_loads_end()
+
+
 /* Function precondition */
 _DEVICE_QUALIFIER void __requires(bool expr);
 _DEVICE_QUALIFIER void __global_requires(bool expr);
 
+#define __requires(X) \
+    __non_temporal_loads_begin(), \
+    __requires(X), \
+    __non_temporal_loads_end()
+
+#define __global_requires(X) \
+    __non_temporal_loads_begin(), \
+    __global_requires(X), \
+    __non_temporal_loads_end()
+
 /* Function postcondition */
 _DEVICE_QUALIFIER void __ensures(bool expr);
 _DEVICE_QUALIFIER void __global_ensures(bool expr);
+
+#define __ensures(X) \
+    __non_temporal_loads_begin(), \
+    __ensures(X), \
+    __non_temporal_loads_end()
+
+#define __global_ensures(X) \
+    __non_temporal_loads_begin(), \
+    __global_ensures(X), \
+    __non_temporal_loads_end()
 
 /* Return value of function, for use in postconditions */
 _DEVICE_QUALIFIER int __return_val_int(void);
@@ -59,13 +90,36 @@ _DEVICE_QUALIFIER int __old_int(int);
 _DEVICE_QUALIFIER bool __old_bool(bool);
 
 /* Assumption */
-#define __assume(e) bugle_assume(e)
+#define __assume(X) \
+    __non_temporal_loads_begin(), \
+    bugle_assume(X), \
+    __non_temporal_loads_end()
 
 /* Assertion */
 _DEVICE_QUALIFIER void __assert(bool expr);
 _DEVICE_QUALIFIER void __global_assert(bool expr);
 _DEVICE_QUALIFIER void __candidate_assert(bool expr);
 _DEVICE_QUALIFIER void __candidate_global_assert(bool expr);
+
+#define __unsafe_assert(X) \
+    __non_temporal_loads_begin(), \
+    __assert(X), \
+    __non_temporal_loads_end()
+
+#define __unsafe_global_assert(X) \
+    __non_temporal_loads_begin(), \
+    __global_assert(X), \
+    __non_temporal_loads_end()
+
+#define __unsafe_candidate_assert(X) \
+    __non_temporal_loads_begin(), \
+    __candidate_assert(X), \
+    __non_temporal_loads_end()
+
+#define __unsafe_candidate_global_assert(X) \
+    __non_temporal_loads_begin(), \
+    __candidate_global_assert(X), \
+    __non_temporal_loads_end()
 
 /* Used to express whether a thread is enabled at a particuar point */
 _DEVICE_QUALIFIER bool __enabled(void);
