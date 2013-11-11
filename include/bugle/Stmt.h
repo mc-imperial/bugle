@@ -21,7 +21,6 @@ public:
     Return,
     Assume,
     Assert,
-    GlobalAssert,
     Call
   };
 
@@ -120,28 +119,19 @@ public:
 
 class AssertStmt : public Stmt {
   ref<Expr> pred;
+  bool global;
   bool candidate;
+  bool invariant;
 
 public:
-  AssertStmt(ref<Expr> pred, bool candidate = false) : pred(pred),
-             candidate(candidate) {}
+  AssertStmt(ref<Expr> pred, bool global, bool candidate, bool invariant) :
+      pred(pred), global(global), candidate(candidate), invariant(invariant) {}
 
   STMT_KIND(Assert)
   ref<Expr> getPredicate() const { return pred; }
+  bool isGlobal() const { return global; }
   bool isCandidate() const { return candidate; }
-};
-
-class GlobalAssertStmt : public Stmt {
-  ref<Expr> pred;
-  bool candidate;
-
-public:
-  GlobalAssertStmt(ref<Expr> pred, bool candidate = false) : pred(pred),
-            candidate(candidate) {}
-
-  STMT_KIND(GlobalAssert)
-  ref<Expr> getPredicate() const { return pred; }
-  bool isCandidate() const { return candidate; }
+  bool isInvariant() const { return invariant; }
 };
 
 class CallStmt : public Stmt {

@@ -55,9 +55,12 @@ class TranslateFunction {
   SpecialFnMapTy &SpecialFunctionMap;
   static SpecialFnMapTy SpecialFunctionMaps[TranslateModule::SL_Count];
 
-  SpecialFnHandler handleNoop, handleAssert, handleAssertFail, handleAssume, 
-                   handleGlobalAssert, handleCandidateAssert,
-                   handleCandidateGlobalAssert, handleNonTemporalLoadsBegin,
+  SpecialFnHandler handleNoop, handleAssertFail, handleAssume, 
+                   handleAssert, handleGlobalAssert, handleCandidateAssert,
+                   handleCandidateGlobalAssert,
+                   handleInvariant, handleGlobalInvariant, handleCandidateInvariant,
+                   handleCandidateGlobalInvariant,
+                   handleNonTemporalLoadsBegin,
                    handleNonTemporalLoadsEnd, 
                    handleRequires, handleEnsures, handleGlobalRequires, 
                    handleGlobalEnsures, handleReadsFrom, handleWritesTo,
@@ -104,6 +107,8 @@ class TranslateFunction {
   void addLocToStmt(Stmt *stmt);
   SourceLoc *extractSourceLoc(llvm::Instruction *I);
   void addEvalStmt(BasicBlock *BBB, llvm::Instruction *I, ref<Expr> E);
+  void addAssertStmt(BasicBlock *BBB, const ref<Expr> &Arg,
+                     bool isGlobal, bool isCandidate, bool isInvariant);
 
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF,

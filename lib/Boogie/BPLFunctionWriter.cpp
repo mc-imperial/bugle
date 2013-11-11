@@ -205,23 +205,14 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (auto AtS = dyn_cast<AssertStmt>(S)) {
     OS << "  assert ";
+    if (AtS->isGlobal()) {
+      OS << "{:do_not_predicate} ";
+    }
     if (AtS->isCandidate()) {
       OS << "{:tag \"user\"} ";
     }
-    writeSourceLoc(OS, AtS->getSourceLoc());
-    if (AtS->isCandidate()) {
-      unsigned candidateNumber = MW->nextCandidateNumber();
-      OS << "_c" << candidateNumber << " ==> ";
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "const {:existential true} _c" << candidateNumber << " : bool";
-      }, true);
-    }
-    writeExpr(OS, AtS->getPredicate().get());
-    OS << ";\n";
-  } else if (auto AtS = dyn_cast<GlobalAssertStmt>(S)) {
-    OS << "  assert {:do_not_predicate} ";
-    if (AtS->isCandidate()) {
-      OS << "{:tag \"user\"} ";
+    if (AtS->isInvariant()) {
+      OS << "{:originated_from_invariant} ";
     }
     writeSourceLoc(OS, AtS->getSourceLoc());
     if (AtS->isCandidate()) {
