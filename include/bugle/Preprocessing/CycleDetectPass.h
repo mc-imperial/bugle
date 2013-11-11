@@ -11,7 +11,11 @@ public:
   static char ID;
 
   CycleDetectPass() : ModulePass(ID) {
+#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 3)
+    initializeCallGraphPass(*llvm::PassRegistry::getPassRegistry());
+#else
     initializeCallGraphAnalysisGroup(*llvm::PassRegistry::getPassRegistry());
+#endif
   }
 
   virtual const char *getPassName() const {
