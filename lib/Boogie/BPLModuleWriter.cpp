@@ -93,7 +93,8 @@ void BPLModuleWriter::write() {
       auto bw = MW->IntRep->getType((*i)->getRangeType().width);
       OS << "procedure _ATOMIC_OP" << (*i)->getRangeType().width << "(x : ["
          << pw << "]" << bw << ", y : "
-         << pw << ") returns (z : " << bw << ");\n";
+         << pw << ") returns (z : " << bw << ", A : ["
+         << MW->IntRep->getType(32) << "]" << bw << ");\n";
       sizes = size | sizes;
     }
   }
