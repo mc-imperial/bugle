@@ -113,6 +113,9 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
                           });
     }
     case Instruction::BitCast:
+#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 3)
+    case Instruction::AddrSpaceCast:
+#endif
       return translateBitCast(CE->getOperand(0)->getType(), CE->getType(),
                               translateConstant(CE->getOperand(0)));
     default:
