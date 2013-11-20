@@ -19,7 +19,7 @@ public:
   }
 
   virtual const char *getPassName() const {
-    return "CallGraph Cycle Detection";
+    return "CallGraph cycle detection";
   }
 
   virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {

@@ -3,6 +3,7 @@
 #include "bugle/Translator/TranslateFunction.h"
 #include "bugle/Translator/TranslateModule.h"
 #include "llvm/Pass.h"
+#include "llvm/IR/Function.h"
 
 using namespace llvm;
 using namespace bugle;

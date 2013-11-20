@@ -25,6 +25,14 @@ void ErrorReporter::setFileName(const std::string &FN) {
     FileName = FN;
 }
 
+void ErrorReporter::emitWarning(const std::string &msg) {
+  errs() << FileName << ": ";
+  if (errs().has_colors()) errs().changeColor(raw_ostream::Colors::MAGENTA);
+  errs() << "warning:";
+  if (errs().has_colors()) errs().resetColor();
+  errs() << " " << msg << "\n";
+}
+
 void ErrorReporter::reportParameterError(const std::string &msg) {
   if (errs().has_colors()) errs().changeColor(raw_ostream::Colors::RED);
   errs() << "error:";

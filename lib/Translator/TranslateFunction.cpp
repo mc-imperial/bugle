@@ -1735,7 +1735,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         if (E.isNull())
           return;
       } else {
-        std::string msg = "Intrinsic " + Intrinsic::getName(ID) + " not supported";
+        std::string msg = "Intrinsic '" + Intrinsic::getName(ID) + "' not supported";
         ErrorReporter::reportImplementationLimitation(msg);
       }
     } else {
@@ -1838,7 +1838,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     return;
   } else {
     std::string name = I->getOpcodeName();
-    std::string msg = "Instruction " + name + " not supported";
+    std::string msg = "Instruction '" + name + "' not supported";
     ErrorReporter::reportImplementationLimitation(msg);
   }
   if (DumpTranslatedExprs) {

@@ -20,6 +20,7 @@ private:
 
 public:
   static void setFileName(const std::string &FN);
+  static void emitWarning(const std::string &msg);
   NO_RETURN static void reportParameterError(const std::string &msg);
   NO_RETURN static void reportFatalError(const std::string &msg);
   NO_RETURN static void reportImplementationLimitation(const std::string &msg);

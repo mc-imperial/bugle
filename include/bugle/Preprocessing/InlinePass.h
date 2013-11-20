@@ -23,11 +23,11 @@ private:
 public:
   static char ID;
 
- InlinePass(TranslateModule::SourceLanguage SL, std::set<std::string> &EP) :
-  ModulePass(ID), M(0), SL(SL), GPUEntryPoints(EP) {}
+  InlinePass(TranslateModule::SourceLanguage SL, std::set<std::string> &EP) :
+    ModulePass(ID), M(0), SL(SL), GPUEntryPoints(EP) {}
 
   virtual const char *getPassName() const {
-    return "Function Inlining";
+    return "Function inlining";
   }
 
   virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
