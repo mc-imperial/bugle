@@ -75,6 +75,7 @@ class TranslateFunction {
                    handleAddNoovflUnsigned, handleAddNoovflSigned,
                    handleAddNoovflPredicate,
                    handleAdd, handleIte, handleUninterpretedFunction,
+                   handleAtomicHasTakenValue,
                    handleMemset, handleMemcpy, handleTrap;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,

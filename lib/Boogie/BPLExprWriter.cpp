@@ -331,6 +331,35 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       OS << ") : ";
       MW->writeType(OS, UFE->getType());
     });
+  } else if (auto AHTVE = dyn_cast<AtomicHasTakenValueExpr>(E)) {
+      auto Array = AHTVE->getArray().get();
+      assert(!(isa<NullArrayRefExpr>(Array) || 
+        MW->M->global_begin() == MW->M->global_end()));
+
+      std::set<GlobalArray *> Globals;
+      if (!Array->computeArrayCandidates(Globals)) {
+        Globals.insert(MW->M->global_begin(), MW->M->global_end());
+      }
+
+      if (Globals.size() == 1) {
+        OS << "_USED_$$" << (*Globals.begin())->getName()
+           << "[";
+        writeExpr(OS, AHTVE->getOffset().get());
+        OS << "][";
+        writeExpr(OS, AHTVE->getValue().get());
+        OS << "]";
+        MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+          OS << "var _USED_$$" << (*Globals.begin())->getName()
+             << " : ["; 
+          MW->writeType(OS, AHTVE->getOffset()->getType());
+          OS << "][";
+          MW->writeType(OS, AHTVE->getValue()->getType());
+          OS << "]bool";
+        });
+      } else {
+        ErrorReporter::reportImplementationLimitation(
+                     "\"Atomic has taken value\" expressions for pointers not supported");
+      }
   } else if (auto PLTE = dyn_cast<PtrLtExpr>(E)) {
     OS << "PTR_LT(";
     writeExpr(OS, PLTE->getLHS().get());

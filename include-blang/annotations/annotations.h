@@ -114,6 +114,21 @@ _FUNCTION_FROM_POINTER_TO_TYPE(not_accessed, int)
 _FUNCTION_FROM_POINTER_TO_VOID(reads_from)
 _FUNCTION_FROM_POINTER_TO_VOID(writes_to)
 
+
+#ifdef __OPENCL_VERSION__
+bool __atomic_has_taken_value_local(__local unsigned *atomic_array, unsigned offset, unsigned value);
+bool __atomic_has_taken_value_global(__global unsigned *atomic_array, unsigned offset, unsigned value);
+
+_CLC_OVERLOAD _CLC_INLINE bool __atomic_has_taken_value(__local unsigned *atomic_array, unsigned offset, unsigned value) {
+    return __atomic_has_taken_value_local(atomic_array, offset, value);
+}
+
+_CLC_OVERLOAD _CLC_INLINE bool __atomic_has_taken_value(__global unsigned *atomic_array, unsigned offset, unsigned value) {
+    return __atomic_has_taken_value_global(atomic_array, offset, value);
+}
+#endif
+                              
+
 #ifdef __OPENCL_VERSION__
 void __array_snapshot_local(__local void* dst, __local void* src);
 void __array_snapshot_global(__global void* dst, __global void* src);

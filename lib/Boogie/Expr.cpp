@@ -898,3 +898,8 @@ ref<Expr> UninterpretedFunctionExpr::create(const std::string &name,
     Type returnType, const std::vector<ref<Expr>> &args) {
   return new UninterpretedFunctionExpr(name, returnType, args);
 }
+
+ref<Expr> AtomicHasTakenValueExpr::create(ref<Expr> atomicArray, 
+    ref<Expr> offset, ref<Expr> value) {
+  return new AtomicHasTakenValueExpr(atomicArray, offset, value);
+}

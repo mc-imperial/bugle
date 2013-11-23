@@ -159,6 +159,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__add_noovfl_unsigned_short"] = &TranslateFunction::handleAddNoovflUnsigned;
     fns["__add_noovfl_unsigned_int"] = &TranslateFunction::handleAddNoovflUnsigned;
     fns["__add_noovfl_unsigned_long"] = &TranslateFunction::handleAddNoovflUnsigned;
+    fns["__atomic_has_taken_value_local"] = &TranslateFunction::handleAtomicHasTakenValue;
+    fns["__atomic_has_taken_value_global"] = &TranslateFunction::handleAtomicHasTakenValue;
     const unsigned NOOVFL_PREDICATE_MAX_ARITY = 20;
     const std::string tys[] = { "char", "short", "int", "long" };
     for (unsigned j = 0; j < 4; ++j) {
@@ -1312,6 +1314,12 @@ ref<Expr> TranslateFunction::handleIte(bugle::BasicBlock *BBB,
   return IfThenElseExpr::create(BVToBoolExpr::create(Args[0]), Args[1], Args[2]);
 }
 
+ref<Expr> TranslateFunction::handleAtomicHasTakenValue(bugle::BasicBlock *BBB,
+                                       llvm::CallInst *CI,
+                                       const std::vector<ref<Expr>> &Args) {
+  return BoolToBVExpr::create(
+    AtomicHasTakenValueExpr::create(Args[0], Args[1], Args[2]));
+}
 
 void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB,
                                     llvm::Instruction *I, ref<Expr> E) {

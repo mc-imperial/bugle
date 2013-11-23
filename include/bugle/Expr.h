@@ -46,6 +46,7 @@ public:
     AddNoovflPredicate,
     UninterpretedFunction,
     MemberOf,
+    AtomicHasTakenValue,
 
     // Unary
     Not,
@@ -619,6 +620,24 @@ public:
   ref<Expr> getOperand(unsigned index) const { return args[index]; }
 };
 
+class AtomicHasTakenValueExpr : public Expr {
+  AtomicHasTakenValueExpr(ref<Expr> atomicArray, ref<Expr> offset, 
+    ref<Expr> value) : Expr(Type::Bool), atomicArray(atomicArray), 
+    offset(offset), value(value)
+  { }
+  ref<Expr> atomicArray;
+  ref<Expr> offset;
+  ref<Expr> value;
+
+public:
+  static ref<Expr> create(ref<Expr> atomicArray, ref<Expr> offset, 
+         ref<Expr> value);
+
+  EXPR_KIND(AtomicHasTakenValue)
+  ref<Expr> getArray() const { return atomicArray; }
+  ref<Expr> getOffset() const { return offset; }
+  ref<Expr> getValue() const { return value; }
+};
 
 
 }
