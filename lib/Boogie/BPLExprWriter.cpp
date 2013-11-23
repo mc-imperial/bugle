@@ -349,7 +349,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         writeExpr(OS, AHTVE->getValue().get());
         OS << "]";
         MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-          OS << "var {:atomic_tracker} _USED_$$" << (*Globals.begin())->getName()
+          OS << "var {:atomic_usedmap} _USED_$$" << (*Globals.begin())->getName()
              << " : ["; 
           MW->writeType(OS, AHTVE->getOffset()->getType());
           OS << "][";
