@@ -161,6 +161,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__add_noovfl_unsigned_long"] = &TranslateFunction::handleAddNoovflUnsigned;
     fns["__atomic_has_taken_value_local"] = &TranslateFunction::handleAtomicHasTakenValue;
     fns["__atomic_has_taken_value_global"] = &TranslateFunction::handleAtomicHasTakenValue;
+    fns["__atomic_has_taken_value"] = &TranslateFunction::handleAtomicHasTakenValue;
     const unsigned NOOVFL_PREDICATE_MAX_ARITY = 20;
     const std::string tys[] = { "char", "short", "int", "long" };
     for (unsigned j = 0; j < 4; ++j) {
