@@ -126,10 +126,10 @@ _CLC_OVERLOAD _CLC_INLINE bool __atomic_has_taken_value(__local unsigned *atomic
 _CLC_OVERLOAD _CLC_INLINE bool __atomic_has_taken_value(__global unsigned *atomic_array, unsigned offset, unsigned value) {
     return __atomic_has_taken_value_global(atomic_array, offset, value);
 }
-#else
+
+#ifdef __CUDA_ARCH__
 __device__ bool __atomic_has_taken_value(unsigned *atomic_array, unsigned offset, unsigned value);
 #endif
-                              
 
 #ifdef __OPENCL_VERSION__
 void __array_snapshot_local(__local void* dst, __local void* src);
