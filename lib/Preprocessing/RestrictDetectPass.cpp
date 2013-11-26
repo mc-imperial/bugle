@@ -15,9 +15,15 @@ void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
       continue;
 
     switch (i->getType()->getPointerAddressSpace()) {
+    case TranslateModule::AddressSpaces::standard:
+      if (SL == TranslateModule::SL_CUDA)
+        AL.push_back(i);
+      break;
     case TranslateModule::AddressSpaces::global:
       AL.push_back(i);
-    default: ;
+      break;
+    default:
+      break;
     }
   }
 
@@ -40,7 +46,7 @@ void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
 }
 
 bool RestrictDetectPass::runOnFunction(llvm::Function &F) {
-  if (SL != TranslateModule::SL_OpenCL)
+  if (!(SL == TranslateModule::SL_OpenCL || SL == TranslateModule::SL_CUDA))
     return false;
   if (!TranslateFunction::isNormalFunction(SL, &F))
     return false;

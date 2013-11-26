@@ -41,6 +41,7 @@ public:
     // These constants match NVPTXAddrSpaceMap in Targets.cpp
     // There does not appear to be a header file in which they
     // are symbolically defined
+    standard = 0, // the standard value assigned
     global = 1, // opencl_global, cuda_device
     group_shared = 3, // opencl_local, cuda_shared
     constant = 4 // opencl_constant, cuda_constant
