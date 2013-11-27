@@ -31,7 +31,11 @@ public:
   }
 
   virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
+#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
+    AU.addRequired<llvm::CallGraphWrapperPass>();
+#else
     AU.addRequired<llvm::CallGraph>();
+#endif
     AU.addRequired<CycleDetectPass>();
   }
 

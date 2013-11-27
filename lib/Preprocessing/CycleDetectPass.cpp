@@ -8,7 +8,11 @@ using namespace llvm;
 using namespace bugle;
 
 bool CycleDetectPass::runOnModule(llvm::Module &M) {
+#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
+  CallGraphNode* N = getAnalysis<CallGraphWrapperPass>().getRoot();
+#else
   CallGraphNode* N = getAnalysis<CallGraph>().getRoot();
+#endif
   scc_iterator<CallGraphNode*> i = scc_begin(N), e = scc_end(N);
   while (i != e) {
     if (i.hasLoop()) {
