@@ -151,9 +151,6 @@ public:
   virtual Kind getKind() const = 0;
   const Type &getType() const { return type; }
 
-  void print(llvm::raw_ostream &OS);
-  void dump();
-
   static bool classof(const Expr *) { return true; }
 };
 

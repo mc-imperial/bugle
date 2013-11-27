@@ -25,11 +25,6 @@
 using namespace bugle;
 using namespace llvm;
 
-static cl::opt<bool>
-DumpTranslatedExprs("dump-translated-exprs", cl::Hidden, cl::init(false),
-  cl::desc("Dump each translated expression below the instruction which "
-           "generated it"));
-
 TranslateFunction::SpecialFnMapTy
   TranslateFunction::SpecialFunctionMaps[TranslateModule::SL_Count];
 
@@ -1849,10 +1844,6 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     std::string name = I->getOpcodeName();
     std::string msg = "Instruction '" + name + "' not supported";
     ErrorReporter::reportImplementationLimitation(msg);
-  }
-  if (DumpTranslatedExprs) {
-    I->dump();
-    E->dump();
   }
   ValueExprMap[I] = E;
   addEvalStmt(BBB, I, E);

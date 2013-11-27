@@ -7,18 +7,6 @@
 
 using namespace bugle;
 
-void Expr::print(llvm::raw_ostream &OS) {
-  BPLExprWriter EW(0);
-  EW.writeExpr(OS, this);
-}
-
-void Expr::dump() {
-  print(llvm::errs());
-  llvm::errs() << "\n";
-}
-
-#include <iostream>
-
 bool Expr::computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const {
   if (auto GARE = dyn_cast<GlobalArrayRefExpr>(this)) {
     GlobalSet.insert(GARE->getArray());
