@@ -9,11 +9,11 @@ using namespace bugle;
 
 bool CycleDetectPass::runOnModule(llvm::Module &M) {
 #if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
-  CallGraphNode* N = getAnalysis<CallGraphWrapperPass>().getRoot();
+  CallGraph &CG = getAnalysis<CallGraphWrapperPass>().getCallGraph();
 #else
-  CallGraphNode* N = getAnalysis<CallGraph>().getRoot();
+  CallGraph &CG = getAnalysis<CallGraph>();
 #endif
-  scc_iterator<CallGraphNode*> i = scc_begin(N), e = scc_end(N);
+  scc_iterator<CallGraph*> i = scc_begin(&CG), e = scc_end(&CG);
   while (i != e) {
     if (i.hasLoop()) {
       ErrorReporter::reportFatalError(
