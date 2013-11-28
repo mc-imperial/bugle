@@ -40,7 +40,9 @@ void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
       msg += ", ";
   } while (i != e);
 
-  msg += " of '" + F.getName().str() + "' to be non-aliased; ";
+  std::string name
+    = ErrorReporter::demangleName(F.getName(), SL == TranslateModule::SL_CUDA);
+  msg += " of '" + name + "' to be non-aliased; ";
   msg += "please consider adding a restrict qualifier to these arguments";
   ErrorReporter::emitWarning(msg);
 }

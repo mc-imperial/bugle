@@ -3,6 +3,14 @@
 #include <cstdlib>
 #include <string>
 
+#if defined(__clang__) || defined(__GNUC__)
+#include <cxxabi.h>
+#elif defined(_MSC_VER)
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <Dbghelp.h>
+#endif
+
 using namespace bugle;
 using namespace llvm;
 
@@ -23,6 +31,36 @@ void ErrorReporter::setFileName(const std::string &FN) {
     FileName = FN.substr(pos + 1);
   else
     FileName = FN;
+}
+
+std::string ErrorReporter::demangleName(const std::string &name, bool isCPPName) {
+  if (!isCPPName)
+    return std::string(name);
+
+#if defined(__clang__) || defined(__GNUC__)
+  int status;
+  std::string demangledName = name;
+  char *DN = abi::__cxa_demangle(name.c_str(), NULL, NULL, &status);
+  if (status == 0) {
+    demangledName = DN;
+    free(DN);
+  }
+  return demangledName;
+#elif defined(_MSC_VER)
+  char DN[1024];
+  std::string mangledName;
+  // Mangled Microsoft C++ names start with a 0x1 in clang
+  if (name[0] != 0x1)
+    mangledName = name;
+  else
+    mangledName = name.substr(1);
+
+  if (0 != UnDecorateSymbolName(name.substr(1).c_str(), DN, sizeof(DN),
+                           UNDNAME_COMPLETE))
+    return std::string(DN);
+  else
+    return std::string(name);
+#endif
 }
 
 void ErrorReporter::emitWarning(const std::string &msg) {
