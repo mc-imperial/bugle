@@ -55,8 +55,8 @@ std::string ErrorReporter::demangleName(const std::string &name, bool isCPPName)
   else
     mangledName = name.substr(1);
 
-  if (0 != UnDecorateSymbolName(name.substr(1).c_str(), DN, sizeof(DN),
-                           UNDNAME_COMPLETE))
+  if (0 != UnDecorateSymbolName(mangledName.c_str(), DN, sizeof(DN),
+                                UNDNAME_COMPLETE))
     return std::string(DN);
   else
     return std::string(name);
