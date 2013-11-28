@@ -198,6 +198,13 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
 
   bugle::Type T(Type::BV, 8);
   auto PT = cast<PointerType>(V->getType());
+
+  if (PT->getElementType()->isPointerTy()
+      && (PT->getAddressSpace() == AddressSpaces::global ||
+          PT->getAddressSpace() == AddressSpaces::constant))
+    ErrorReporter::reportImplementationLimitation("Global (constant) pointers"
+                                                  " not supported");
+
   if (!(ModelAllAsByteArray ||
         ModelAsByteArray.find(V) != ModelAsByteArray.end()))
     T = translateArrayRangeType(PT->getElementType());
