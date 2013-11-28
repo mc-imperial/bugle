@@ -2,9 +2,9 @@
 
 #if defined(__1D_WORK_GROUP) || defined(__1D_THREAD_BLOCK)
 
-#define __read_permission(X) \
+#define __read_permission(T, X) \
     { \
-        void* volatile __read_permission_temp = (void*)X;       \
+        volatile T __read_permission_temp = X; \
     }
 
 #endif
