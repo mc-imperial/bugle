@@ -11,7 +11,6 @@ class StringRef;
 
 namespace bugle {
 
-bool isBoogieIdentChar(char c);
 std::string makeBoogieIdent(llvm::StringRef S);
 
 }
