@@ -1,5 +1,6 @@
 #include "bugle/IntegerRepresentation.h"
 #include "llvm/Support/ErrorHandling.h"
+#include <sstream>
 
 namespace bugle {
 

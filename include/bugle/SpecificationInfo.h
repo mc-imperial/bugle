@@ -1,7 +1,9 @@
 #ifndef BUGLE_SPECIFICATIONINFO_H
 #define BUGLE_SPECIFICATIONINFO_H
 
-#include <bugle/Ref.h>
+#include "bugle/SourceLoc.h"
+#include "bugle/Ref.h"
+#include <vector>
 
 namespace bugle {
 
@@ -12,13 +14,13 @@ class SpecificationInfo
 {
 private:
   ref<Expr> expr;
-  std::unique_ptr<SourceLoc> sourceloc;
+  SourceLocsRef sourcelocs;
 
 public:
-  SpecificationInfo(Expr *expr, SourceLoc *sourceloc) :
-    expr(expr), sourceloc(sourceloc) {}
+  SpecificationInfo(Expr *expr, const SourceLocsRef &sourcelocs) :
+    expr(expr), sourcelocs(sourcelocs) {}
   ref<Expr> getExpr() const { return expr; }
-  SourceLoc *getSourceLoc() const { return sourceloc.get(); }
+  const SourceLocsRef &getSourceLocs() const { return sourcelocs; }
 };
 }
 

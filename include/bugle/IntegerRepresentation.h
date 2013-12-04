@@ -1,9 +1,6 @@
 #ifndef BUGLE_TRANSLATOR_INTEGERREPRESENTATION_H
 #define BUGLE_TRANSLATOR_INTEGERREPRESENTATION_H
 
-#include <assert.h>
-#include <sstream>
-
 #include "bugle/Expr.h"
 
 namespace bugle {
@@ -47,9 +44,7 @@ public:
   virtual void printVal(llvm::raw_ostream &OS, const llvm::APInt &Val);
   virtual bool abstractsExtract();
   virtual bool abstractsConcat();
-
 };
-
 
 
 class MathIntegerRepresentation : public IntegerRepresentation {
@@ -69,22 +64,9 @@ public:
   virtual void printVal(llvm::raw_ostream &OS, const llvm::APInt &Val);
   virtual bool abstractsExtract();
   virtual bool abstractsConcat();
-
 };
 
 
-
 }
-
-
-
-
-
-
-
-
-
-
-
 
 #endif

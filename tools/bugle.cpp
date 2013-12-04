@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
   bugle::ErrorReporter::setFileName(DisplayFilename);
 
   std::string ErrorMessage;
-  std::auto_ptr<Module> M;
+  std::unique_ptr<Module> M;
 
   // Use the bitcode streaming interface
   DataStreamer *streamer = getDataFileStreamer(InputFilename, &ErrorMessage);
@@ -101,7 +101,7 @@ int main(int argc, char **argv) {
     bugle::ErrorReporter::reportParameterError(msg);
   }
 
-  std::auto_ptr<bugle::IntegerRepresentation> IntRep(0);
+  std::unique_ptr<bugle::IntegerRepresentation> IntRep;
   if (IntegerRepresentation.empty() || IntegerRepresentation == "bv")
     IntRep.reset(new bugle::BVIntegerRepresentation());
   else if (IntegerRepresentation == "math")
@@ -127,7 +127,7 @@ int main(int argc, char **argv) {
 
   bugle::TranslateModule TM(M.get(), SL, EP);
   TM.translate();
-  std::auto_ptr<bugle::Module> BM(TM.takeModule());
+  std::unique_ptr<bugle::Module> BM(TM.takeModule());
 
   bugle::simplifyStmt(BM.get());
 

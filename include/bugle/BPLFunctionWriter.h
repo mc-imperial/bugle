@@ -2,9 +2,11 @@
 #define BUGLE_BPLFUNCTIONWRITER_H
 
 #include "bugle/BPLExprWriter.h"
+#include "bugle/SourceLoc.h"
 #include "llvm/ADT/DenseMap.h"
-#include <set>
 #include <functional>
+#include <set>
+#include <vector>
 
 namespace llvm {
 
@@ -19,7 +21,6 @@ class BasicBlock;
 class Expr;
 class Function;
 class GlobalArray;
-class SourceLoc;
 class Stmt;
 class Var;
 
@@ -30,15 +31,16 @@ class BPLFunctionWriter : BPLExprWriter {
   std::set<GlobalArray *> ModifiesSet;
 
   void maybeWriteCaseSplit(llvm::raw_ostream &OS, Expr *PtrArr,
-                           SourceLoc *SLoc,
+                           const SourceLocsRef &SLocs,
                            std::function<void(GlobalArray *, unsigned int)> F);
   void writeVar(llvm::raw_ostream &OS, Var *V);
   void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0);
   void writeStmt(llvm::raw_ostream &OS, Stmt *S);
   void writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB);
-  void writeSourceLoc(llvm::raw_ostream &OS, const SourceLoc *sourceloc);
-  void writeSourceLocMarker(llvm::raw_ostream &OS, const SourceLoc *sourceloc,
-                            unsigned int indent);
+  void writeSourceLocs(llvm::raw_ostream &OS, const SourceLocsRef &sourcelocs);
+  void writeSourceLocsMarker(llvm::raw_ostream &OS,
+                             const SourceLocsRef &sourcelocs,
+                             const unsigned int indent);
 
 public:
   BPLFunctionWriter(BPLModuleWriter *MW, llvm::raw_ostream &OS,
