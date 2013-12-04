@@ -119,20 +119,20 @@ void BPLModuleWriter::write() {
       else if ((*i)->isGroupShared())
         prefix += "{:group_shared} ";
 
-      OS << prefix << "_READ_HAS_OCCURRED_$$"
-         << (*i)->getName() << " : bool;\n";
-      OS << prefix << "_WRITE_HAS_OCCURRED_$$"
-         << (*i)->getName() << " : bool;\n";
-      OS << prefix << "_ATOMIC_HAS_OCCURRED_$$"
+      OS << prefix << "{:elem_width " << (*i)->getRangeType().width
+         << "} " << "_READ_HAS_OCCURRED_$$"
          << (*i)->getName() << " : bool;\n";
       OS << prefix << "{:elem_width " << (*i)->getRangeType().width
-         << "} _READ_OFFSET_$$" << (*i)->getName() << " : "
+         << "} " << "_WRITE_HAS_OCCURRED_$$"
+         << (*i)->getName() << " : bool;\n";
+      OS << prefix << "{:elem_width " << (*i)->getRangeType().width
+         << "} " << "_ATOMIC_HAS_OCCURRED_$$"
+         << (*i)->getName() << " : bool;\n";
+      OS << prefix << "_READ_OFFSET_$$" << (*i)->getName() << " : "
          << MW->IntRep->getType(32) << ";\n";
-      OS << prefix << "{:elem_width " << (*i)->getRangeType().width
-         << "} _WRITE_OFFSET_$$" << (*i)->getName() << " : "
+      OS << prefix << "_WRITE_OFFSET_$$" << (*i)->getName() << " : "
          << MW->IntRep->getType(32) << ";\n";
-      OS << prefix << "{:elem_width " << (*i)->getRangeType().width
-         << "} _ATOMIC_OFFSET_$$" << (*i)->getName() << " : "
+      OS << prefix << "_ATOMIC_OFFSET_$$" << (*i)->getName() << " : "
          << MW->IntRep->getType(32) << ";\n";
 
       if ((*i)->getNotAccessedExpr()) {
