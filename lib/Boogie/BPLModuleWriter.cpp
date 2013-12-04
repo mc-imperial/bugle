@@ -115,9 +115,9 @@ void BPLModuleWriter::write() {
     if ((*i)->isGlobalOrGroupShared()) {
       std::string prefix = "var {:race_checking} ";
       if ((*i)->isGlobal())
-        prefix += "{:GLOBAL} ";
+        prefix += "{:global} ";
       else if ((*i)->isGroupShared())
-        prefix += "{:GROUP_SHARED} ";
+        prefix += "{:group_shared} ";
 
       OS << prefix << "_READ_HAS_OCCURRED_$$"
          << (*i)->getName() << " : bool;\n";
