@@ -16,13 +16,12 @@
 using namespace bugle;
 
 void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
-                                            Expr *PtrArr,
-                                            SourceLoc *SLoc,
-                                            std::function<void(GlobalArray *, unsigned int)> F) {
+                           Expr *PtrArr, const SourceLocsRef &SLocs,
+                           std::function<void(GlobalArray *, unsigned int)> F) {
   if (isa<NullArrayRefExpr>(PtrArr) ||
       MW->M->global_begin() == MW->M->global_end()) {
     OS << "  assert {:bad_pointer_access} ";
-    writeSourceLoc(OS, SLoc);
+    writeSourceLocs(OS, SLocs);
     OS << "false;\n";
   } else {
     std::set<GlobalArray *> Globals;
@@ -49,7 +48,7 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
         OS << "\n  } else ";
       }
       OS << "{\n    assert {:bad_pointer_access} ";
-      writeSourceLoc(OS, SLoc);
+      writeSourceLocs(OS, SLocs);
       OS << "false;\n  }\n";
     }
   }
@@ -100,7 +99,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     }
     if (isa<CallExpr>(ES->getExpr())) {
       OS << "  call ";
-      writeSourceLoc(OS, ES->getSourceLoc());
+      writeSourceLocs(OS, ES->getSourceLocs());
     }
     if (isa<AddNoovflExpr>(ES->getExpr())) {
       OS << "  call ";
@@ -108,10 +107,10 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     if (isa<HavocExpr>(ES->getExpr())) {
       OS << "  havoc v" << id << ";\n";
     } else if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
-      maybeWriteCaseSplit(OS, LE->getArray().get(), ES->getSourceLoc(),
+      maybeWriteCaseSplit(OS, LE->getArray().get(), ES->getSourceLocs(),
           [&](GlobalArray *GA, unsigned int indent) {
         if (GA->isGlobalOrGroupShared()) {
-          writeSourceLocMarker(OS, ES->getSourceLoc(), indent);
+          writeSourceLocsMarker(OS, ES->getSourceLocs(), indent);
         }
         assert(LE->getType() == GA->getRangeType());
         OS << std::string(indent, ' ');
@@ -120,10 +119,10 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         OS << "];";
       });
     } else if (auto AE = dyn_cast<AtomicExpr>(ES->getExpr())) {
-      maybeWriteCaseSplit(OS, AE->getArray().get(), ES->getSourceLoc(),
+      maybeWriteCaseSplit(OS, AE->getArray().get(), ES->getSourceLocs(),
           [&](GlobalArray *GA, unsigned int indent) {
         if (GA->isGlobalOrGroupShared()) {
-          writeSourceLocMarker(OS, ES->getSourceLoc(), indent);
+          writeSourceLocsMarker(OS, ES->getSourceLocs(), indent);
         }
         assert(AE->getType() == GA->getRangeType());
         OS << std::string(indent, ' ');
@@ -149,7 +148,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     SSAVarIds[ES->getExpr().get()] = id;
   } else if (auto CS = dyn_cast<CallStmt>(S)) {
     OS << "  call ";
-    writeSourceLoc(OS, CS->getSourceLoc());
+    writeSourceLocs(OS, CS->getSourceLocs());
     OS << "$" << CS->getCallee()->getName() << "(";
     for (auto b = CS->getArgs().begin(), i = b, e = CS->getArgs().end();
          i != e; ++i) {
@@ -159,10 +158,10 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     }
     OS << ");\n";
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
-    maybeWriteCaseSplit(OS, SS->getArray().get(), SS->getSourceLoc(),
+    maybeWriteCaseSplit(OS, SS->getArray().get(), SS->getSourceLocs(),
         [&](GlobalArray *GA, unsigned int indent) {
       if (GA->isGlobalOrGroupSharedOrConstant()) {
-        writeSourceLocMarker(OS, SS->getSourceLoc(), indent);
+        writeSourceLocsMarker(OS, SS->getSourceLocs(), indent);
       }
       assert(SS->getValue()->getType() == GA->getRangeType());
       OS << std::string(indent, ' ');
@@ -214,7 +213,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     if (AtS->isInvariant()) {
       OS << "{:originated_from_invariant} ";
     }
-    writeSourceLoc(OS, AtS->getSourceLoc());
+    writeSourceLocs(OS, AtS->getSourceLocs());
     if (AtS->isCandidate()) {
       unsigned candidateNumber = MW->nextCandidateNumber();
       OS << "_c" << candidateNumber << " ==> ";
@@ -237,25 +236,28 @@ void BPLFunctionWriter::writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB) {
     writeStmt(OS, *i);
 }
 
-void BPLFunctionWriter::writeSourceLoc(llvm::raw_ostream &OS,
-                                       const SourceLoc *sourceloc) {
-  if (sourceloc != NULL) {
-    OS << "{:line " << sourceloc->getLineNo() << "}";
-    OS << "{:col " << sourceloc->getColNo() << "}";
-    OS << "{:fname \"" << sourceloc->getFileName() << "\"}";
-    OS << "{:dir \"" << sourceloc->getPath() << "\"}";
-    OS << " ";
-  }
+void BPLFunctionWriter::writeSourceLocs(llvm::raw_ostream &OS,
+                                        const SourceLocsRef &sourcelocs) {
+  assert(sourcelocs.get());
+  if (sourcelocs->size() == 0)
+    return;
+  SourceLoc &sourceloc = sourcelocs.get()->back();
+  OS << "{:line " << sourceloc.getLineNo() << "}";
+  OS << "{:col " << sourceloc.getColNo() << "}";
+  OS << "{:fname \"" << sourceloc.getFileName() << "\"}";
+  OS << "{:dir \"" << sourceloc.getPath() << "\"}";
+  OS << " ";
 }
 
-void BPLFunctionWriter::writeSourceLocMarker(llvm::raw_ostream &OS,
-                                             const SourceLoc *sourceloc,
-                                             unsigned int indent) {
-  if (sourceloc != NULL) {
-    OS << std::string(indent, ' ') << "assert {:sourceloc}";
-    writeSourceLoc(OS, sourceloc);
-    OS << "true;\n";
-  }
+void BPLFunctionWriter::writeSourceLocsMarker(llvm::raw_ostream &OS,
+                                              const SourceLocsRef &sourcelocs,
+                                              const unsigned int indent) {
+  assert(sourcelocs.get());
+  if (sourcelocs->size() == 0)
+    return;
+  OS << std::string(indent, ' ') << "assert {:sourceloc}";
+  writeSourceLocs(OS, sourcelocs);
+  OS << "true;\n";
 }
 
 void BPLFunctionWriter::writeVar(llvm::raw_ostream &OS, Var *V) {
@@ -301,28 +303,28 @@ void BPLFunctionWriter::write() {
 
     for (auto i = F->requires_begin(), e = F->requires_end(); i != e; ++i) {
       OS << "requires ";
-      writeSourceLoc(OS, (*i)->getSourceLoc());
+      writeSourceLocs(OS, (*i)->getSourceLocs());
       writeExpr(OS, (*i)->getExpr().get());
       OS << ";\n";
     }
 
     for (auto i = F->globalRequires_begin(), e = F->globalRequires_end(); i != e; ++i) {
       OS << "requires {:do_not_predicate} ";
-      writeSourceLoc(OS, (*i)->getSourceLoc());
+      writeSourceLocs(OS, (*i)->getSourceLocs());
       writeExpr(OS, (*i)->getExpr().get());
       OS << ";\n";
     }
 
     for (auto i = F->ensures_begin(), e = F->ensures_end(); i != e; ++i) {
       OS << "ensures ";
-      writeSourceLoc(OS, (*i)->getSourceLoc());
+      writeSourceLocs(OS, (*i)->getSourceLocs());
       writeExpr(OS, (*i)->getExpr().get());
       OS << ";\n";
     }
 
     for (auto i = F->globalEnsures_begin(), e = F->globalEnsures_end(); i != e; ++i) {
       OS << "ensures {:do_not_predicate} ";
-      writeSourceLoc(OS, (*i)->getSourceLoc());
+      writeSourceLocs(OS, (*i)->getSourceLocs());
       writeExpr(OS, (*i)->getExpr().get());
       OS << ";\n";
     }

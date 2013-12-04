@@ -50,7 +50,7 @@ class TranslateFunction {
   bool LoadsAreTemporal;
   std::map<unsigned, bugle::Function *> BarrierInvariants;
   std::map<unsigned, bugle::Function *> BinaryBarrierInvariants;
-  std::unique_ptr<SourceLoc> currentSourceLoc;
+  SourceLocsRef currentSourceLocs;
 
   SpecialFnMapTy &SpecialFunctionMap;
   static SpecialFnMapTy SpecialFunctionMaps[TranslateModule::SL_Count];
@@ -105,8 +105,7 @@ class TranslateFunction {
   Var *getPhiVariable(llvm::PHINode *PN);
   void addPhiAssigns(BasicBlock *BBB, llvm::BasicBlock *Pred,
                      llvm::BasicBlock *Succ);
-  void addLocToStmt(Stmt *stmt);
-  SourceLoc *extractSourceLoc(llvm::Instruction *I);
+  SourceLocsRef extractSourceLocs(llvm::Instruction *I);
   void addEvalStmt(BasicBlock *BBB, llvm::Instruction *I, ref<Expr> E);
   void addAssertStmt(BasicBlock *BBB, const ref<Expr> &Arg,
                      bool isGlobal, bool isCandidate, bool isInvariant);
@@ -115,6 +114,7 @@ public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF,
                     llvm::Function *F)
     : TM(TM), BF(BF), F(F), ReturnVar(0), LoadsAreTemporal(true),
+      currentSourceLocs(new SourceLocs),
       SpecialFunctionMap(initSpecialFunctionMap(TM->SL)) {}
   bool isGPUEntryPoint;
 

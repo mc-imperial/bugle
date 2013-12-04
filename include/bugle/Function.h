@@ -1,13 +1,15 @@
 #ifndef BUGLE_FUNCTION_H
 #define BUGLE_FUNCTION_H
 
-#include <set>
-#include <string>
 #include "bugle/BasicBlock.h"
 #include "bugle/Ident.h"
 #include "bugle/OwningPtrVector.h"
+#include "bugle/SourceLoc.h"
 #include "bugle/SpecificationInfo.h"
 #include "bugle/util/UniqueNameSet.h"
+#include <vector>
+#include <set>
+#include <string>
 
 namespace bugle {
 
@@ -15,7 +17,8 @@ class Function {
   std::string name;
   std::set<std::string> attributes;
   bool entryPoint, specification;
-  OwningPtrVector<SpecificationInfo> requires, globalRequires, ensures, globalEnsures, modifies;
+  OwningPtrVector<SpecificationInfo> requires, globalRequires, ensures,
+                                     globalEnsures, modifies;
   OwningPtrVector<BasicBlock> blocks;
   OwningPtrVector<Var> args, returns, locals;
   UniqueNameSet bbNames, varNames;
@@ -45,20 +48,20 @@ public:
   void addAttribute(const std::string &attrib) {
     attributes.insert(attrib);
   }
-  void addRequires(ref<Expr> r, SourceLoc *s) {
-    requires.push_back(new SpecificationInfo(r.get(), s));
+  void addRequires(ref<Expr> r, const SourceLocsRef &ss) {
+    requires.push_back(new SpecificationInfo(r.get(), ss));
   }
-  void addGlobalRequires(ref<Expr> r, SourceLoc *s) {
-    globalRequires.push_back(new SpecificationInfo(r.get(), s));
+  void addGlobalRequires(ref<Expr> r, const SourceLocsRef &ss) {
+    globalRequires.push_back(new SpecificationInfo(r.get(), ss));
   }
-  void addEnsures(ref<Expr> e, SourceLoc *s) {
-    ensures.push_back(new SpecificationInfo(e.get(), s));
+  void addEnsures(ref<Expr> e, const SourceLocsRef &ss) {
+    ensures.push_back(new SpecificationInfo(e.get(), ss));
   }
-  void addGlobalEnsures(ref<Expr> e, SourceLoc *s) {
-    globalEnsures.push_back(new SpecificationInfo(e.get(), s));
+  void addGlobalEnsures(ref<Expr> e, const SourceLocsRef &ss) {
+    globalEnsures.push_back(new SpecificationInfo(e.get(), ss));
   }
-  void addModifies(ref<Expr> e, SourceLoc *s) {
-    modifies.push_back(new SpecificationInfo(e.get(), s));
+  void addModifies(ref<Expr> e, const SourceLocsRef &ss) {
+    modifies.push_back(new SpecificationInfo(e.get(), ss));
   }
 
   const std::string &getName() { return name; }

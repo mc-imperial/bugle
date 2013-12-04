@@ -1,9 +1,9 @@
+#ifndef BUGLE_STMT_H
+#define BUGLE_STMT_H
+
 #include "bugle/Expr.h"
 #include "bugle/Ref.h"
 #include "bugle/SourceLoc.h"
-
-#ifndef BUGLE_STMT_H
-#define BUGLE_STMT_H
 
 namespace bugle {
 
@@ -26,10 +26,14 @@ public:
 
   virtual ~Stmt() {}
   virtual Kind getKind() const = 0;
-  void setSourceLoc(SourceLoc* sourceloc) { Stmt::sourceloc.reset(sourceloc); }
-  SourceLoc* getSourceLoc() { return sourceloc.get(); }
+  void setSourceLocs(const SourceLocsRef &sourcelocs) {
+    Stmt::sourcelocs = sourcelocs;
+  }
+  SourceLocsRef &getSourceLocs() {
+    return sourcelocs;
+  }
 private:
-  std::unique_ptr<SourceLoc> sourceloc;
+  SourceLocsRef sourcelocs;
 };
 
 #define STMT_KIND(kind) \

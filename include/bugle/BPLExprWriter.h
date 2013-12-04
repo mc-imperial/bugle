@@ -15,8 +15,9 @@ class BPLModuleWriter;
 class Expr;
 
 class BPLExprWriter {
-  virtual void writeAccessLoggingVar(llvm::raw_ostream &OS, 
-	  bugle::Expr* array, std::string accessLoggingVar, std::string accessKind, std::string unit);
+  virtual void writeAccessLoggingVar(llvm::raw_ostream &OS, bugle::Expr* array,
+                                     std::string accessLoggingVar,
+                                     std::string accessKind, std::string unit);
 
 protected:
   BPLModuleWriter *MW;

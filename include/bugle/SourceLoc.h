@@ -1,6 +1,8 @@
 #ifndef BUGLE_SOURCELOC_H
 #define BUGLE_SOURCELOC_H
 
+#include <vector>
+
 namespace bugle {
 
 class SourceLoc
@@ -25,5 +27,10 @@ public:
   const std::string &getFileName() const { return fname;  }
   const std::string &getPath()     const { return path;   }
 };
+
+typedef std::vector<SourceLoc> SourceLocs;
+typedef std::shared_ptr<SourceLocs> SourceLocsRef;
+
 }
+
 #endif
