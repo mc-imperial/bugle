@@ -6,6 +6,7 @@
 #include "bugle/Expr.h"
 #include "bugle/GlobalArray.h"
 #include "bugle/Module.h"
+#include "bugle/RaceInstrumenter.h"
 #include "bugle/util/ErrorReporter.h"
 #include "bugle/util/Functional.h"
 #include "llvm/DebugInfo.h"
@@ -664,9 +665,11 @@ ref<Expr> TranslateFunction::handleReadsFrom(bugle::BasicBlock *BBB,
   BF->addModifies(AccessHasOccurredExpr::create(
         ArrayIdExpr::create(Args[0], TM->defaultRange()), false),
         extractSourceLocs(CI));
-  BF->addModifies(AccessOffsetExpr::create(
-        ArrayIdExpr::create(Args[0], TM->defaultRange()), false),
-        extractSourceLocs(CI));
+  if (TM->RaceInst == bugle::RaceInstrumenter::STANDARD) {
+    BF->addModifies(AccessOffsetExpr::create(
+          ArrayIdExpr::create(Args[0], TM->defaultRange()), false),
+          extractSourceLocs(CI));
+  }
   return 0;
 }
 
@@ -676,9 +679,11 @@ ref<Expr> TranslateFunction::handleWritesTo(bugle::BasicBlock *BBB,
   BF->addModifies(AccessHasOccurredExpr::create(
         ArrayIdExpr::create(Args[0], TM->defaultRange()), true),
         extractSourceLocs(CI));
-  BF->addModifies(AccessOffsetExpr::create(
-        ArrayIdExpr::create(Args[0], TM->defaultRange()), true),
-        extractSourceLocs(CI));
+  if (TM->RaceInst == bugle::RaceInstrumenter::STANDARD) {
+    BF->addModifies(AccessOffsetExpr::create(
+          ArrayIdExpr::create(Args[0], TM->defaultRange()), true),
+          extractSourceLocs(CI));
+  }
   BF->addModifies(UnderlyingArrayExpr::create(
         ArrayIdExpr::create(Args[0], TM->defaultRange())),
         extractSourceLocs(CI));

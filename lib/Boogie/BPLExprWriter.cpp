@@ -2,6 +2,7 @@
 #include "bugle/BPLModuleWriter.h"
 #include "bugle/IntegerRepresentation.h"
 #include "bugle/Module.h"
+#include "bugle/RaceInstrumenter.h"
 #include "bugle/Expr.h"
 #include "bugle/Function.h"
 #include "bugle/GlobalArray.h"
@@ -379,10 +380,9 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, IMPLIESE->getRHS().get());
     OS << ")";
   } else if (auto AHOE = dyn_cast<AccessHasOccurredExpr>(E)) {
-    writeAccessLoggingVar(OS, AHOE->getArray().get(), "HAS_OCCURRED", AHOE->getAccessKind(), "false");
+    writeAccessHasOccurredVar(OS, AHOE->getArray().get(), AHOE->getAccessKind());
   } else if (auto AOE = dyn_cast<AccessOffsetExpr>(E)) {
-    writeAccessLoggingVar(OS, AOE->getArray().get(), "OFFSET", AOE->getAccessKind(),
-      MW->IntRep->getLiteral(0, 32));
+    writeAccessOffsetVar(OS, AOE->getArray().get(), AOE->getAccessKind());
   } else if (auto NAE = dyn_cast<NotAccessedExpr>(E)) {
     auto GARE = dyn_cast<GlobalArrayRefExpr>(NAE->getArray().get());
     if (!GARE)
@@ -699,14 +699,14 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   }
 }
 
-void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS, 
+void BPLExprWriter::writeAccessHasOccurredVar(llvm::raw_ostream &OS, 
                                           bugle::Expr* PtrArr, 
-                                          std::string accessLoggingVar, 
-                                          std::string accessKind, 
-                                          std::string unit) {
+                                          std::string accessKind) {
+
+  std::string prefix = "_" + accessKind + "_HAS_OCCURRED_$$";
+
   if (auto GARE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
-    OS << "_" << accessKind << "_" << accessLoggingVar << "_$$" 
-       << GARE->getArray()->getName();
+    OS << prefix << GARE->getArray()->getName();
   } else {
     std::set<GlobalArray *> Globals;
     if (!PtrArr->computeArrayCandidates(Globals)) {
@@ -714,8 +714,7 @@ void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS,
     }
 
     if (Globals.size() == 1) {
-      OS << "_" << accessKind << "_" << accessLoggingVar << "_$$" 
-         << (*Globals.begin())->getName();
+      OS << prefix << (*Globals.begin())->getName();
     } else {
       if (MW) {
         MW->UsesPointers = true;
@@ -724,13 +723,58 @@ void BPLExprWriter::writeAccessLoggingVar(llvm::raw_ostream &OS,
              i != e; ++i) {
           OS << "if (";
           writeExpr(OS, PtrArr);
-          OS << " == $arrayId$$" << (*i)->getName() << ") then _" 
-             << accessKind << "_" << accessLoggingVar << "_$$" 
-             << (*i)->getName() << " else ";
+          OS << " == $arrayId$$" << (*i)->getName() << ") then " 
+             << prefix << (*i)->getName() << " else ";
         }
-        OS << unit << ")";
+        OS << "false)";
       } else {
-        OS << "<" << accessLoggingVar << "-case-split>";
+        OS << "<HAS_OCCURRED-case-split>";
+      }
+    }
+  }
+}
+
+void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS, 
+                                          bugle::Expr* PtrArr, 
+                                          std::string accessKind) {
+
+  if (MW->RaceInst == bugle::RaceInstrumenter::WATCHDOG_SINGLE) {
+    OS << "_WATCHED_OFFSET";
+    return;
+  }
+
+  std::string prefix;
+  if(MW->RaceInst == bugle::RaceInstrumenter::STANDARD) {
+    prefix = "_" + accessKind + "_OFFSET_$$";
+  } else {
+    assert(MW->RaceInst == bugle::RaceInstrumenter::WATCHDOG_MULTIPLE);
+    prefix = "_WATCHED_OFFSET_$$";
+  }
+
+  if (auto GARE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
+    OS << prefix << GARE->getArray()->getName();
+  } else {
+    std::set<GlobalArray *> Globals;
+    if (!PtrArr->computeArrayCandidates(Globals)) {
+      Globals.insert(MW->M->global_begin(), MW->M->global_end());
+    }
+
+    if (Globals.size() == 1) {
+      OS << prefix << (*Globals.begin())->getName();
+    } else {
+      if (MW) {
+        MW->UsesPointers = true;
+        OS << "(";
+        for (auto i = MW->M->global_begin(), e = MW->M->global_end();
+             i != e; ++i) {
+          OS << "if (";
+          writeExpr(OS, PtrArr);
+          OS << " == $arrayId$$" << (*i)->getName() << ") then " 
+             << prefix << (*i)->getName() << " else ";
+        }
+        OS << MW->IntRep->getLiteral(0, 32) << ")";
+      } else {
+        OS << "<OFFSET-case-split>";
       }
     }
   }

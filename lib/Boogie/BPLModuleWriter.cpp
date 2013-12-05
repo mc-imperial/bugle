@@ -2,6 +2,7 @@
 #include "bugle/BPLFunctionWriter.h"
 #include "bugle/IntegerRepresentation.h"
 #include "bugle/Module.h"
+#include "bugle/RaceInstrumenter.h"
 #include "bugle/Type.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
@@ -89,12 +90,12 @@ void BPLModuleWriter::write() {
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
     unsigned long int size = (1 << (((*i)->getRangeType().width/8) ));
     if (!(size & sizes)) {
-      auto pw = MW->IntRep->getType(M->getPointerWidth());
-      auto bw = MW->IntRep->getType((*i)->getRangeType().width);
+      auto pw = IntRep->getType(M->getPointerWidth());
+      auto bw = IntRep->getType((*i)->getRangeType().width);
       OS << "procedure _ATOMIC_OP" << (*i)->getRangeType().width << "(x : ["
          << pw << "]" << bw << ", y : "
          << pw << ") returns (z : " << bw << ", A : ["
-         << MW->IntRep->getType(32) << "]" << bw << ");\n";
+         << IntRep->getType(32) << "]" << bw << ");\n";
       sizes = size | sizes;
     }
   }
@@ -107,37 +108,52 @@ void BPLModuleWriter::write() {
       OS << "{:" << *ai << "} ";
     }
     OS << "$$" << (*i)->getName() << " : ["
-       << MW->IntRep->getType(M->getPointerWidth())
+       << IntRep->getType(M->getPointerWidth())
        << "]";
     writeType(OS, (*i)->getRangeType());
     OS << ";\n";
 
     if ((*i)->isGlobalOrGroupShared()) {
-      std::string prefix = "var {:race_checking} ";
-      if ((*i)->isGlobal())
-        prefix += "{:global} ";
-      else if ((*i)->isGroupShared())
-        prefix += "{:group_shared} ";
 
-      OS << prefix << "{:elem_width " << (*i)->getRangeType().width
+      std::string attributes = " {:race_checking} ";
+      if ((*i)->isGlobal())
+        attributes += "{:global} ";
+      else if ((*i)->isGroupShared())
+        attributes += "{:group_shared} ";
+
+      OS << "var" << attributes << "{:elem_width " << (*i)->getRangeType().width
          << "} " << "_READ_HAS_OCCURRED_$$"
          << (*i)->getName() << " : bool;\n";
-      OS << prefix << "{:elem_width " << (*i)->getRangeType().width
+      OS << "var" << attributes << "{:elem_width " << (*i)->getRangeType().width
          << "} " << "_WRITE_HAS_OCCURRED_$$"
          << (*i)->getName() << " : bool;\n";
-      OS << prefix << "{:elem_width " << (*i)->getRangeType().width
+      OS << "var" << attributes << "{:elem_width " << (*i)->getRangeType().width
          << "} " << "_ATOMIC_HAS_OCCURRED_$$"
          << (*i)->getName() << " : bool;\n";
-      OS << prefix << "_READ_OFFSET_$$" << (*i)->getName() << " : "
-         << MW->IntRep->getType(32) << ";\n";
-      OS << prefix << "_WRITE_OFFSET_$$" << (*i)->getName() << " : "
-         << MW->IntRep->getType(32) << ";\n";
-      OS << prefix << "_ATOMIC_OFFSET_$$" << (*i)->getName() << " : "
-         << MW->IntRep->getType(32) << ";\n";
+
+      switch (RaceInst) {
+      case RaceInstrumenter::STANDARD:
+        OS << "var" << attributes << "_READ_OFFSET_$$" << (*i)->getName() << " : "
+           << IntRep->getType(32) << ";\n";
+        OS << "var" << attributes << "_WRITE_OFFSET_$$" << (*i)->getName() << " : "
+           << IntRep->getType(32) << ";\n";
+        OS << "var" << attributes << "_ATOMIC_OFFSET_$$" << (*i)->getName() << " : "
+           << IntRep->getType(32) << ";\n";
+      break;
+      case RaceInstrumenter::WATCHDOG_MULTIPLE:
+        OS << "const" << attributes << "_WATCHED_OFFSET_$$" << (*i)->getName() << " : "
+           << IntRep->getType(32) << ";\n";
+      break;
+      case RaceInstrumenter::WATCHDOG_SINGLE:
+        // Nothing to output in this case: below we output the single watched offset
+      break;
+      default:
+        assert(0 && "Invalid race instrumenter");
+      }
 
       if ((*i)->getNotAccessedExpr()) {
         OS << "var {:check_access} _NOT_ACCESSED_$$" << (*i)->getName() << " : "
-           << MW->IntRep->getType(M->getPointerWidth()) << ";\n";
+           << IntRep->getType(M->getPointerWidth()) << ";\n";
       }
     }
 
@@ -146,6 +162,9 @@ void BPLModuleWriter::write() {
 
     OS << "\n";
   }
+
+  if (RaceInst == RaceInstrumenter::WATCHDOG_SINGLE)
+    OS << "const _WATCHED_OFFSET : " << IntRep->getType(32) << ";\n";
 
   if (UsesPointers)
     OS << "const unique $arrayId$$null : arrayId;\n\n";

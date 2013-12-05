@@ -1,0 +1,12 @@
+#ifndef BUGLE_RACEINSTRUMENTATION_H
+#define BUGLE_RACEINSTRUMENTATION_H
+
+namespace bugle {
+
+enum RaceInstrumenter {
+  STANDARD, WATCHDOG_SINGLE, WATCHDOG_MULTIPLE
+};
+
+}
+
+#endif

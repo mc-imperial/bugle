@@ -25,6 +25,7 @@ class Expr;
 class Function;
 class GlobalArray;
 class Module;
+enum RaceInstrumenter;
 class Var;
 
 class TranslateModule {
@@ -52,6 +53,7 @@ private:
   llvm::Module *M;
   llvm::DataLayout TD;
   SourceLanguage SL;
+  RaceInstrumenter RaceInst;
 
   llvm::DenseMap<llvm::Function *, bugle::Function *> FunctionMap;
   llvm::DenseMap<llvm::Constant *, ref<Expr>> ConstantMap;
@@ -108,8 +110,9 @@ private:
 
 public:
   TranslateModule(llvm::Module *M, SourceLanguage SL,
-                  std::set<std::string> &EP) :
-    BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP),
+                  std::set<std::string> &EP,
+                  RaceInstrumenter RaceInst) :
+    BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RaceInst),
     NeedAdditionalByteArrayModels(false),
     ModelAllAsByteArray(false),
     NextModelAllAsByteArray(false) {}

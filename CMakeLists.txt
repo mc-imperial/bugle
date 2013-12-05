@@ -139,6 +139,7 @@ add_library(bugleBoogie STATIC
   include/bugle/IntegerRepresentation.h
   include/bugle/Module.h
   include/bugle/OwningPtrVector.h
+  include/bugle/RaceInstrumenter.h
   include/bugle/Ref.h
   include/bugle/SourceLoc.h
   include/bugle/SpecificationInfo.h

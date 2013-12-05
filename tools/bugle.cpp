@@ -20,6 +20,7 @@
 #include "bugle/Preprocessing/InlinePass.h"
 #include "bugle/Preprocessing/RemoveBodyPass.h"
 #include "bugle/Preprocessing/RestrictDetectPass.h"
+#include "bugle/RaceInstrumenter.h"
 #include "bugle/Transform/SimplifyStmt.h"
 #include "bugle/Translator/TranslateModule.h"
 #include "bugle/util/ErrorReporter.h"
@@ -48,6 +49,9 @@ IntegerRepresentation("i", cl::desc("Integer representation (bv, math; default b
 
 static cl::opt<bool>
 Inlining("inline", cl::ValueDisallowed, cl::desc("Inline all function calls"));
+
+static cl::opt<std::string>
+RaceInstrumentation("race-instrumentation", cl::desc("Race instrumentation method to use (standard, watchdog-single, watchdog-multiple; default standard)"));
 
 int main(int argc, char **argv) {
   sys::PrintStackTraceOnErrorSignal();
@@ -112,6 +116,19 @@ int main(int argc, char **argv) {
     bugle::ErrorReporter::reportParameterError(msg);
   }
 
+  bugle::RaceInstrumenter RaceInst;
+  if (RaceInstrumentation.empty() || RaceInstrumentation == "standard")
+    RaceInst = bugle::RaceInstrumenter::STANDARD;
+  else if (RaceInstrumentation == "watchdog-single")
+    RaceInst = bugle::RaceInstrumenter::WATCHDOG_SINGLE;
+  else if (RaceInstrumentation == "watchdog-multiple")
+    RaceInst = bugle::RaceInstrumenter::WATCHDOG_MULTIPLE;
+  else {
+    std::string msg = "Unsupported race instrumentation: "
+      + RaceInstrumentation;
+    bugle::ErrorReporter::reportParameterError(msg);
+  }
+
   std::set<std::string> EP;
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
     EP.insert(&*i);
@@ -125,7 +142,7 @@ int main(int argc, char **argv) {
   PM.add(new bugle::RestrictDetectPass(M.get(), SL, EP));
   PM.run(*M.get());
 
-  bugle::TranslateModule TM(M.get(), SL, EP);
+  bugle::TranslateModule TM(M.get(), SL, EP, RaceInst);
   TM.translate();
   std::unique_ptr<bugle::Module> BM(TM.takeModule());
 
@@ -143,7 +160,7 @@ int main(int argc, char **argv) {
   if (!ErrorInfo.empty())
     bugle::ErrorReporter::reportFatalError(ErrorInfo);
 
-  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get());
+  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get(), RaceInst);
   MW.write();
 
   F.keep();
