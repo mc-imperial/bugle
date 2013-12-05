@@ -126,6 +126,7 @@ add_library(bugleBoogie STATIC
   lib/Boogie/Expr.cpp
   lib/Boogie/Ident.cpp
   lib/Boogie/MathIntegerRepresentation.cpp
+  lib/Boogie/SourceLocWriter.cpp
   lib/Boogie/Stmt.cpp
   include/bugle/BPLExprWriter.h
   include/bugle/BPLFunctionWriter.h
@@ -141,6 +142,7 @@ add_library(bugleBoogie STATIC
   include/bugle/OwningPtrVector.h
   include/bugle/Ref.h
   include/bugle/SourceLoc.h
+  include/bugle/SourceLocWriter.h
   include/bugle/SpecificationInfo.h
   include/bugle/Stmt.h
   include/bugle/Type.h

@@ -16,12 +16,14 @@ namespace bugle {
 
 class IntegerRepresentation;
 class Module;
+class SourceLocWriter;
 struct Type;
 
 class BPLModuleWriter : BPLExprWriter {
   llvm::raw_ostream &OS;
   bugle::Module *M;
   bugle::IntegerRepresentation *IntRep;
+  bugle::SourceLocWriter *SLW;
   std::set<std::string> IntrinsicSet;
   bool UsesPointers;
   std::string GlobalInitRequires;
@@ -35,9 +37,10 @@ class BPLModuleWriter : BPLExprWriter {
 
 public:
   BPLModuleWriter(llvm::raw_ostream &OS, bugle::Module *M, 
-	              bugle::IntegerRepresentation *IntRep) :
-    BPLExprWriter(this), OS(OS), M(M), IntRep(IntRep), UsesPointers(false),
-    candidateNumber(0) {}
+	              bugle::IntegerRepresentation *IntRep,
+                  bugle::SourceLocWriter *SLW)
+    : BPLExprWriter(this), OS(OS), M(M), IntRep(IntRep), SLW(SLW),
+    UsesPointers(false), candidateNumber(0) {}
 
   void write();
 
