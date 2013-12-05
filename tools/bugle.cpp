@@ -16,6 +16,7 @@
 #include "bugle/BPLModuleWriter.h"
 #include "bugle/IntegerRepresentation.h"
 #include "bugle/Module.h"
+#include "bugle/SourceLocWriter.h"
 #include "bugle/Preprocessing/CycleDetectPass.h"
 #include "bugle/Preprocessing/InlinePass.h"
 #include "bugle/Preprocessing/RemoveBodyPass.h"
@@ -33,6 +34,10 @@ InputFilename(cl::Positional, cl::desc("<input bitcode file>"),
 static cl::opt<std::string>
 OutputFilename("o", cl::desc("Override output filename"),
     cl::init(""), cl::value_desc("filename"));
+
+static cl::opt<std::string>
+SourceLocationFilename("s", cl::desc("File for saving source locations"),
+    cl::init(""),cl::value_desc("filename"));
 
 static cl::opt<std::string>
 GPUEntryPoints("k", cl::ZeroOrMore, cl::desc("GPU entry point function name"),
@@ -143,9 +148,24 @@ int main(int argc, char **argv) {
   if (!ErrorInfo.empty())
     bugle::ErrorReporter::reportFatalError(ErrorInfo);
 
-  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get());
+  tool_output_file *L = 0;
+  if (!SourceLocationFilename.empty()) {
+    L = new tool_output_file(SourceLocationFilename.c_str(), ErrorInfo);
+    if (!ErrorInfo.empty())
+      bugle::ErrorReporter::reportFatalError(ErrorInfo);
+  }
+  std::unique_ptr<bugle::SourceLocWriter> SLW(new bugle::SourceLocWriter(L));
+
+  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get(), SLW.get());
   MW.write();
 
+  F.os().flush();
   F.keep();
+
+  if (L != 0) {
+    L->os().flush();
+    L->keep();
+  }
+
   return 0;
 }
