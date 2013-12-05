@@ -1,6 +1,7 @@
 #ifndef BUGLE_SOURCELOC_H
 #define BUGLE_SOURCELOC_H
 
+#include <memory>
 #include <vector>
 
 namespace bugle {
