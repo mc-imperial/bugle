@@ -78,6 +78,7 @@ private:
 
   void translateGlobalInit(GlobalArray *GA, unsigned Offset,
                            llvm::Constant *Init);
+  bool hasInitializer(llvm::GlobalVariable *GV);
   ref<Expr> translateGlobalVariable(llvm::GlobalVariable *GV);
   void addGlobalArrayAttribs(GlobalArray *GA, llvm::PointerType *PT);
   bugle::GlobalArray *getGlobalArray(llvm::Value *V);
