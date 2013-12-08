@@ -50,16 +50,15 @@ const std::string &BPLModuleWriter::getGlobalInitRequires() {
   if (GlobalInitRequires.empty() &&
       M->global_init_begin() != M->global_init_end()) {
     llvm::raw_string_ostream SS(GlobalInitRequires);
-    SS << "requires ";
     for (auto i = M->global_init_begin(), e = M->global_init_end();
          i != e; ++i) {
-      if (i != M->global_init_begin())
-        SS << " &&\n         ";
-      SS << "$$" << i->array->getName() << "[" 
-        << MW->IntRep->getLiteral(i->offset, M->getPointerWidth()) << "] == ";
+      SS << "requires "
+         << "$$" << i->array->getName() << "["
+         << MW->IntRep->getLiteral(i->offset, M->getPointerWidth())
+         << "] == ";
       writeExpr(SS, i->init.get());
+      SS << ";\n";
     }
-    SS << ";\n";
   }
   return GlobalInitRequires;
 }
@@ -101,7 +100,6 @@ void BPLModuleWriter::write() {
   }
 
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
-
     OS << "var ";
     for (auto ai = (*i)->attrib_begin(), ae = (*i)->attrib_end(); ai != ae;
          ++ai) {

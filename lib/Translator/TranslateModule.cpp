@@ -70,6 +70,24 @@ ref<Expr> TranslateModule::translateCUDABuiltinGlobal(std::string Prefix,
   return ConstantArrayRefExpr::create(Arr);
 }
 
+bool TranslateModule::hasInitializer(GlobalVariable *GV) {
+  if (!GV->hasInitializer())
+    return false;
+
+  // OpenCL __local and CUDA __shared__ variables have bogus initializers
+  if ((SL == SL_OpenCL || SL == SL_CUDA) &&
+      GV->getType()->getAddressSpace() == AddressSpaces::group_shared)
+    return false;
+
+  // CUDA __constant__ variables have initializers that may have been
+  // overwritten by the host program
+  if (SL == SL_CUDA &&
+      GV->getType()->getAddressSpace() == AddressSpaces::constant)
+    return false;
+
+  return true;
+}
+
 ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
   if (SL == SL_CUDA) {
     if (GV->getName() == "gridDim")
@@ -83,9 +101,7 @@ ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
   }
 
   GlobalArray *GA = getGlobalArray(GV);
-  if (GV->hasInitializer() &&
-      // OpenCL __local and CUDA __shared__ variables have bogus initialisers.
-      !((SL == SL_OpenCL || SL == SL_CUDA) && GV->getType()->getAddressSpace() == AddressSpaces::group_shared))
+  if (hasInitializer(GV))
     translateGlobalInit(GA, 0, GV->getInitializer());
   return GlobalArrayRefExpr::create(GA);
 }
