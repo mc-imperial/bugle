@@ -145,8 +145,6 @@ void BPLModuleWriter::write() {
       case RaceInstrumenter::WATCHDOG_SINGLE:
         // Nothing to output in this case: below we output the single watched offset
       break;
-      default:
-        assert(0 && "Invalid race instrumenter");
       }
 
       if ((*i)->getNotAccessedExpr()) {
