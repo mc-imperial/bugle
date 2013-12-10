@@ -115,7 +115,7 @@ public:
     ModelAllAsByteArray(false),
     NextModelAllAsByteArray(false) {}
   static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
-                              std::set<std::string> &EP);
+                              SourceLanguage SL, std::set<std::string> &EP);
   void translate();
   bugle::Module *takeModule() { return BM; }
 

@@ -12,7 +12,7 @@ bool RemoveBodyPass::runOnFunction(llvm::Function &F) {
   if (!TranslateFunction::isNormalFunction(SL, &F))
     return false;
 
-  if (TranslateModule::isGPUEntryPoint(&F, M, GPUEntryPoints) ||
+  if (TranslateModule::isGPUEntryPoint(&F, M, SL, GPUEntryPoints) ||
       TranslateFunction::isStandardEntryPoint(SL, F.getName()))
     return false;
 

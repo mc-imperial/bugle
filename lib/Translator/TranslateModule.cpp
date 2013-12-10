@@ -266,12 +266,23 @@ ref<Expr> TranslateModule::translateBitCast(llvm::Type *SrcTy,
 }
 
 bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
+                                      SourceLanguage SL,
                                       std::set<std::string> &EP) {
-    if (NamedMDNode *NMD = M->getNamedMetadata("nvvm.annotations")) {
+  if (NamedMDNode *NMD = M->getNamedMetadata("nvvm.annotations")) {
     for (unsigned i = 0, e = NMD->getNumOperands(); i != e; ++i) {
       MDNode *MD = NMD->getOperand(i);
       if (MD->getOperand(0) == F && MD->getOperand(1)->getName() == "kernel")
         return true;
+    }
+  }
+
+  if (SL == SL_OpenCL) {
+    if (NamedMDNode *NMD = M->getNamedMetadata("opencl.kernels")) {
+      for (unsigned i = 0, e =  NMD->getNumOperands(); i != e; ++i) {
+        MDNode *MD = NMD->getOperand(i);
+        if (MD->getOperand(0) == F)
+          return true;
+      }
     }
   }
 
@@ -476,7 +487,7 @@ void TranslateModule::translate() {
         BM->addAxiom(Expr::createNeZero(S->getValues()[0]));
       } else if (!TranslateFunction::isSpecialFunction(SL, i->getName())) {
         TranslateFunction TF(this, FunctionMap[&*i], &*i);
-        TF.isGPUEntryPoint = isGPUEntryPoint(i, M, GPUEntryPoints);
+        TF.isGPUEntryPoint = isGPUEntryPoint(i, M, SL, GPUEntryPoints);
         TF.translate();
       }
     }
