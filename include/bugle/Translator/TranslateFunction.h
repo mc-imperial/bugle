@@ -55,35 +55,32 @@ class TranslateFunction {
   SpecialFnMapTy &SpecialFunctionMap;
   static SpecialFnMapTy SpecialFunctionMaps[TranslateModule::SL_Count];
 
-  SpecialFnHandler handleNoop, handleAssertFail, handleAssume, 
-                   handleAssert, handleGlobalAssert, handleCandidateAssert,
+  SpecialFnHandler handleNoop, handleAssertFail, handleAssume, handleAssert,
+                   handleGlobalAssert, handleCandidateAssert,
                    handleCandidateGlobalAssert,
-                   handleInvariant, handleGlobalInvariant, handleCandidateInvariant,
-                   handleCandidateGlobalInvariant,
-                   handleNonTemporalLoadsBegin,
-                   handleNonTemporalLoadsEnd, 
-                   handleRequires, handleEnsures, handleGlobalRequires, 
+                   handleInvariant, handleGlobalInvariant,
+                   handleCandidateInvariant, handleCandidateGlobalInvariant,
+                   handleNonTemporalLoadsBegin, handleNonTemporalLoadsEnd,
+                   handleRequires, handleEnsures, handleGlobalRequires,
                    handleGlobalEnsures, handleReadsFrom, handleWritesTo,
-                   handleAll, handleExclusive, 
-                   handleEnabled, handleOtherInt, handleOtherBool, 
-                   handleOtherPtrBase, handleOld, handleReturnVal, handleImplies, 
-                   handleReadHasOccurred, handleWriteHasOccurred, handleReadOffset, 
-                   handleWriteOffset, handlePtrOffset, handlePtrBase,
-                   handleNotAccessed,
-                   handleArraySnapshot, handleBarrierInvariant, 
-                   handleBarrierInvariantBinary,
-                   handleAddNoovflUnsigned, handleAddNoovflSigned,
-                   handleAddNoovflPredicate,
-                   handleAdd, handleIte, handleUninterpretedFunction,
-                   handleAtomicHasTakenValue,
-                   handleMemset, handleMemcpy, handleTrap;
+                   handleAll, handleExclusive, handleEnabled, handleOtherInt,
+                   handleOtherBool, handleOtherPtrBase, handleOld,
+                   handleReturnVal, handleImplies, handleReadHasOccurred,
+                   handleWriteHasOccurred, handleReadOffset, handleWriteOffset,
+                   handlePtrOffset, handlePtrBase, handleNotAccessed,
+                   handleArraySnapshot, handleBarrierInvariant,
+                   handleBarrierInvariantBinary, handleAddNoovflUnsigned,
+                   handleAddNoovflSigned, handleAddNoovflPredicate, handleAdd,
+                   handleIte, handleUninterpretedFunction,
+                   handleAtomicHasTakenValue, handleMemset, handleMemcpy,
+                   handleTrap;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize,
                    handleGetImageWidth, handleGetImageHeight;
 
-  SpecialFnHandler handleCos, handleExp, handleFabs, handleFloor, handleFrexpExp,
-                   handleFrexpFrac, handleFma, handleSqrt, 
+  SpecialFnHandler handleCos, handleExp, handleFabs, handleFloor,
+                   handleFrexpExp, handleFrexpFrac, handleFma, handleSqrt,
                    handleLog, handlePow, handleSin, handleRsqrt;
 
   SpecialFnHandler handleAtomic;

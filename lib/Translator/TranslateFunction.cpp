@@ -894,7 +894,6 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
   return 0;
 }
 
-
 ref<Expr> TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
@@ -1321,8 +1320,8 @@ void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
-                             llvm::Type *Ty, llvm::Type *OpTy,
-                             ref<Expr> Op,
+                          llvm::Type *Ty, llvm::Type *OpTy,
+                          ref<Expr> Op,
                           std::function<ref<Expr>(llvm::Type *, ref<Expr>)> F) {
   if (!isa<VectorType>(Ty))
     return F(Ty, Op);
