@@ -1,6 +1,7 @@
 #ifndef BUGLE_TRANSLATOR_TRANSLATEMODULE_H
 #define BUGLE_TRANSLATOR_TRANSLATEMODULE_H
 
+#include "bugle/RaceInstrumenter.h"
 #include "bugle/Ref.h"
 #include "bugle/Type.h"
 #include "klee/util/GetElementPtrTypeIterator.h"
@@ -25,7 +26,6 @@ class Expr;
 class Function;
 class GlobalArray;
 class Module;
-enum RaceInstrumenter;
 class Var;
 
 class TranslateModule {
@@ -53,12 +53,11 @@ private:
   llvm::Module *M;
   llvm::DataLayout TD;
   SourceLanguage SL;
+  std::set<std::string> GPUEntryPoints;
   RaceInstrumenter RaceInst;
 
   llvm::DenseMap<llvm::Function *, bugle::Function *> FunctionMap;
   llvm::DenseMap<llvm::Constant *, ref<Expr>> ConstantMap;
-
-  std::set<std::string> GPUEntryPoints;
 
   llvm::DenseMap<GlobalArray *, llvm::Value *> GlobalValueMap;
   llvm::DenseMap<llvm::Value *, GlobalArray *> ValueGlobalMap;
@@ -91,8 +90,7 @@ private:
   Type translateType(llvm::Type *T);
   Type translateArrayRangeType(llvm::Type *T);
 
-  ref<Expr> translateGEP(ref<Expr> Ptr,
-                         klee::gep_type_iterator begin,
+  ref<Expr> translateGEP(ref<Expr> Ptr, klee::gep_type_iterator begin,
                          klee::gep_type_iterator end,
                          std::function<ref<Expr>(llvm::Value *)> xlate);
   ref<Expr> translateBitCast(llvm::Type *SrcTy, llvm::Type *DestTy,
@@ -111,14 +109,13 @@ private:
 
 public:
   TranslateModule(llvm::Module *M, SourceLanguage SL,
-                  std::set<std::string> &EP,
-                  RaceInstrumenter RaceInst) :
+                  std::set<std::string> &EP, RaceInstrumenter RaceInst) :
     BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RaceInst),
     NeedAdditionalByteArrayModels(false),
     ModelAllAsByteArray(false),
     NextModelAllAsByteArray(false) {}
   static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
-                              std::set<std::string> &EP);
+                              SourceLanguage SL, std::set<std::string> &EP);
   void translate();
   bugle::Module *takeModule() { return BM; }
 

@@ -52,7 +52,7 @@ bool RestrictDetectPass::runOnFunction(llvm::Function &F) {
     return false;
   if (!TranslateFunction::isNormalFunction(SL, &F))
     return false;
-  if (!TranslateModule::isGPUEntryPoint(&F, M, GPUEntryPoints))
+  if (!TranslateModule::isGPUEntryPoint(&F, M, SL, GPUEntryPoints))
     return false;
 
   doRestrictCheck(F);

@@ -94,7 +94,7 @@ void BPLModuleWriter::write() {
       OS << "procedure _ATOMIC_OP" << (*i)->getRangeType().width << "(x : ["
          << pw << "]" << bw << ", y : "
          << pw << ") returns (z : " << bw << ", A : ["
-         << IntRep->getType(32) << "]" << bw << ");\n";
+         << pw << "]" << bw << ");\n";
       sizes = size | sizes;
     }
   }
@@ -112,7 +112,6 @@ void BPLModuleWriter::write() {
     OS << ";\n";
 
     if ((*i)->isGlobalOrGroupShared()) {
-
       std::string attributes = " {:race_checking} ";
       if ((*i)->isGlobal())
         attributes += "{:global} ";
@@ -132,21 +131,19 @@ void BPLModuleWriter::write() {
       switch (RaceInst) {
       case RaceInstrumenter::STANDARD:
         OS << "var" << attributes << "_READ_OFFSET_$$" << (*i)->getName() << " : "
-           << IntRep->getType(32) << ";\n";
+           << IntRep->getType(M->getPointerWidth()) << ";\n";
         OS << "var" << attributes << "_WRITE_OFFSET_$$" << (*i)->getName() << " : "
-           << IntRep->getType(32) << ";\n";
+           << IntRep->getType(M->getPointerWidth()) << ";\n";
         OS << "var" << attributes << "_ATOMIC_OFFSET_$$" << (*i)->getName() << " : "
-           << IntRep->getType(32) << ";\n";
+           << IntRep->getType(M->getPointerWidth()) << ";\n";
       break;
       case RaceInstrumenter::WATCHDOG_MULTIPLE:
         OS << "const" << attributes << "_WATCHED_OFFSET_$$" << (*i)->getName() << " : "
-           << IntRep->getType(32) << ";\n";
+           << IntRep->getType(M->getPointerWidth()) << ";\n";
       break;
       case RaceInstrumenter::WATCHDOG_SINGLE:
         // Nothing to output in this case: below we output the single watched offset
       break;
-      default:
-        assert(0 && "Invalid race instrumenter");
       }
 
       if ((*i)->getNotAccessedExpr()) {
@@ -162,7 +159,7 @@ void BPLModuleWriter::write() {
   }
 
   if (RaceInst == RaceInstrumenter::WATCHDOG_SINGLE)
-    OS << "const _WATCHED_OFFSET : " << IntRep->getType(32) << ";\n";
+    OS << "const _WATCHED_OFFSET : " << IntRep->getType(M->getPointerWidth()) << ";\n";
 
   if (UsesPointers)
     OS << "const unique $arrayId$$null : arrayId;\n\n";

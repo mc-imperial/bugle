@@ -23,7 +23,7 @@ bool InlinePass::doInline(llvm::Instruction *I, llvm::Function *OF) {
   if (!F)
     return false;
 
-  if (!(TranslateModule::isGPUEntryPoint(OF, M, GPUEntryPoints) ||
+  if (!(TranslateModule::isGPUEntryPoint(OF, M, SL, GPUEntryPoints) ||
         TranslateFunction::isStandardEntryPoint(SL, OF->getName()))) {
     if (TranslateFunction::isPreOrPostCondition(F->getName())) {
       ErrorReporter::reportFatalError(
@@ -39,7 +39,7 @@ bool InlinePass::doInline(llvm::Instruction *I, llvm::Function *OF) {
 
   // Do not inline entry points in entry points, they may have pre- and
   // post-conditions.
-  if (TranslateModule::isGPUEntryPoint(F, M, GPUEntryPoints) ||
+  if (TranslateModule::isGPUEntryPoint(F, M, SL, GPUEntryPoints) ||
       TranslateFunction::isStandardEntryPoint(SL, F->getName()))
     return false;
 
