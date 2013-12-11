@@ -941,6 +941,9 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
   auto MSI = dyn_cast<MemSetInst>(CI);
   auto Const = dyn_cast<ConstantInt>(MSI->getLength());
 
+  if (auto ZEI = dyn_cast<ZExtInst>(MSI->getLength()))
+    Const = dyn_cast<ConstantInt>(ZEI->getOperand(0));
+
   if (!Const) {
     // Could emit a loop
     ErrorReporter::reportImplementationLimitation(
@@ -1005,6 +1008,9 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
                                           const std::vector<ref<Expr>> &Args) {
   auto MCI = dyn_cast<MemCpyInst>(CI);
   auto Const = dyn_cast<ConstantInt>(MCI->getLength());
+
+  if (auto ZEI = dyn_cast<ZExtInst>(MCI->getLength()))
+    Const = dyn_cast<ConstantInt>(ZEI->getOperand(0));
 
   if (!Const) {
     // Could emit a loop
