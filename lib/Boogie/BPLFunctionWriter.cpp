@@ -244,10 +244,6 @@ void BPLFunctionWriter::writeSourceLocs(llvm::raw_ostream &OS,
     return;
   unsigned locnum = MW->SLW->writeSourceLocs(sourcelocs);
   SourceLoc &sourceloc = sourcelocs.get()->back();
-  OS << "{:line " << sourceloc.getLineNo() << "} ";
-  OS << "{:col " << sourceloc.getColNo() << "} ";
-  OS << "{:fname \"" << sourceloc.getFileName() << "\"} ";
-  OS << "{:dir \"" << sourceloc.getPath() << "\"} ";
   OS << "{:sourceloc_num " << locnum << "}";
   OS << " ";
 }
