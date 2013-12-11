@@ -35,14 +35,19 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned Offset,
   } else {
     ref<Expr> Const = translateConstant(Init);
     unsigned InitByteWidth = Const->getType().width/8;
-    if (GA->getRangeType() == Const->getType() && Offset % InitByteWidth == 0) {
+    Type GATy = GA->getRangeType();
+    if (GATy == Const->getType() && Offset % InitByteWidth == 0) {
       BM->addGlobalInit(GA, Offset/InitByteWidth, Const);
-    } else if (GA->getRangeType() == Type(Type::BV, 8)) {
+    } else if (GATy.isKind(Type::BV) && Offset % (GATy.width/8) == 0 &&
+               InitByteWidth % (GATy.width/8) == 0) {
       if (Init->getType()->isPointerTy())
         Const = PtrToBVExpr::create(Const);
 
-      for (unsigned i = 0; i < Const->getType().width/8; ++i)
-        BM->addGlobalInit(GA, Offset+i, BVExtractExpr::create(Const, i*8, 8));
+      unsigned GAWidth = GATy.width;
+      for (unsigned i = 0; i < Const->getType().width/GAWidth; ++i) {
+        BM->addGlobalInit(GA, Offset+i,
+                          BVExtractExpr::create(Const, i*GAWidth, GAWidth));
+      }
     } else {
       NeedAdditionalByteArrayModels = true;
       ModelAsByteArray.insert(GlobalValueMap[GA]);
