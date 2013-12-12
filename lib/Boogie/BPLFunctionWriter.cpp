@@ -243,7 +243,6 @@ void BPLFunctionWriter::writeSourceLocs(llvm::raw_ostream &OS,
   if (sourcelocs->size() == 0)
     return;
   unsigned locnum = MW->SLW->writeSourceLocs(sourcelocs);
-  SourceLoc &sourceloc = sourcelocs.get()->back();
   OS << "{:sourceloc_num " << locnum << "}";
   OS << " ";
 }
