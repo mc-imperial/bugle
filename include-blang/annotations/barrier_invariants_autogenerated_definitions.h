@@ -3,254 +3,254 @@
 _DEVICE_QUALIFIER void __barrier_invariant_0(bool expr
 );
 _DEVICE_QUALIFIER void __barrier_invariant_1(bool expr
-  , unsigned int inst_expr_0
+  , size_t inst_expr_0
 );
 _DEVICE_QUALIFIER void __barrier_invariant_2(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
+  , size_t inst_expr_0
+  , size_t inst_expr_1
 );
 _DEVICE_QUALIFIER void __barrier_invariant_3(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
 );
 _DEVICE_QUALIFIER void __barrier_invariant_4(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
 );
 _DEVICE_QUALIFIER void __barrier_invariant_5(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
 );
 _DEVICE_QUALIFIER void __barrier_invariant_6(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
 );
 _DEVICE_QUALIFIER void __barrier_invariant_7(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
 );
 _DEVICE_QUALIFIER void __barrier_invariant_8(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
 );
 _DEVICE_QUALIFIER void __barrier_invariant_9(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
 );
 _DEVICE_QUALIFIER void __barrier_invariant_10(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
+  , size_t inst_expr_9
 );
 _DEVICE_QUALIFIER void __barrier_invariant_11(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
+  , size_t inst_expr_9
+  , size_t inst_expr_10
 );
 _DEVICE_QUALIFIER void __barrier_invariant_12(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
+  , size_t inst_expr_9
+  , size_t inst_expr_10
+  , size_t inst_expr_11
 );
 _DEVICE_QUALIFIER void __barrier_invariant_13(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
+  , size_t inst_expr_9
+  , size_t inst_expr_10
+  , size_t inst_expr_11
+  , size_t inst_expr_12
 );
 _DEVICE_QUALIFIER void __barrier_invariant_14(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
+  , size_t inst_expr_9
+  , size_t inst_expr_10
+  , size_t inst_expr_11
+  , size_t inst_expr_12
+  , size_t inst_expr_13
 );
 _DEVICE_QUALIFIER void __barrier_invariant_15(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
+  , size_t inst_expr_9
+  , size_t inst_expr_10
+  , size_t inst_expr_11
+  , size_t inst_expr_12
+  , size_t inst_expr_13
+  , size_t inst_expr_14
 );
 _DEVICE_QUALIFIER void __barrier_invariant_16(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
-  , unsigned int inst_expr_15
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
+  , size_t inst_expr_9
+  , size_t inst_expr_10
+  , size_t inst_expr_11
+  , size_t inst_expr_12
+  , size_t inst_expr_13
+  , size_t inst_expr_14
+  , size_t inst_expr_15
 );
 _DEVICE_QUALIFIER void __barrier_invariant_17(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
-  , unsigned int inst_expr_15
-  , unsigned int inst_expr_16
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
+  , size_t inst_expr_9
+  , size_t inst_expr_10
+  , size_t inst_expr_11
+  , size_t inst_expr_12
+  , size_t inst_expr_13
+  , size_t inst_expr_14
+  , size_t inst_expr_15
+  , size_t inst_expr_16
 );
 _DEVICE_QUALIFIER void __barrier_invariant_18(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
-  , unsigned int inst_expr_15
-  , unsigned int inst_expr_16
-  , unsigned int inst_expr_17
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
+  , size_t inst_expr_9
+  , size_t inst_expr_10
+  , size_t inst_expr_11
+  , size_t inst_expr_12
+  , size_t inst_expr_13
+  , size_t inst_expr_14
+  , size_t inst_expr_15
+  , size_t inst_expr_16
+  , size_t inst_expr_17
 );
 _DEVICE_QUALIFIER void __barrier_invariant_19(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
-  , unsigned int inst_expr_15
-  , unsigned int inst_expr_16
-  , unsigned int inst_expr_17
-  , unsigned int inst_expr_18
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
+  , size_t inst_expr_9
+  , size_t inst_expr_10
+  , size_t inst_expr_11
+  , size_t inst_expr_12
+  , size_t inst_expr_13
+  , size_t inst_expr_14
+  , size_t inst_expr_15
+  , size_t inst_expr_16
+  , size_t inst_expr_17
+  , size_t inst_expr_18
 );
 _DEVICE_QUALIFIER void __barrier_invariant_20(bool expr
-  , unsigned int inst_expr_0
-  , unsigned int inst_expr_1
-  , unsigned int inst_expr_2
-  , unsigned int inst_expr_3
-  , unsigned int inst_expr_4
-  , unsigned int inst_expr_5
-  , unsigned int inst_expr_6
-  , unsigned int inst_expr_7
-  , unsigned int inst_expr_8
-  , unsigned int inst_expr_9
-  , unsigned int inst_expr_10
-  , unsigned int inst_expr_11
-  , unsigned int inst_expr_12
-  , unsigned int inst_expr_13
-  , unsigned int inst_expr_14
-  , unsigned int inst_expr_15
-  , unsigned int inst_expr_16
-  , unsigned int inst_expr_17
-  , unsigned int inst_expr_18
-  , unsigned int inst_expr_19
+  , size_t inst_expr_0
+  , size_t inst_expr_1
+  , size_t inst_expr_2
+  , size_t inst_expr_3
+  , size_t inst_expr_4
+  , size_t inst_expr_5
+  , size_t inst_expr_6
+  , size_t inst_expr_7
+  , size_t inst_expr_8
+  , size_t inst_expr_9
+  , size_t inst_expr_10
+  , size_t inst_expr_11
+  , size_t inst_expr_12
+  , size_t inst_expr_13
+  , size_t inst_expr_14
+  , size_t inst_expr_15
+  , size_t inst_expr_16
+  , size_t inst_expr_17
+  , size_t inst_expr_18
+  , size_t inst_expr_19
 );
 #if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
 #define __barrier_invariant_0(X) !!! Barrier invariants currently only supported for 1D thread groups !!!
@@ -423,254 +423,254 @@ _DEVICE_QUALIFIER void __barrier_invariant_20(bool expr
 void __barrier_invariant_binary_0(bool expr
 );
 void __barrier_invariant_binary_1(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
 );
 void __barrier_invariant_binary_2(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
 );
 void __barrier_invariant_binary_3(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
 );
 void __barrier_invariant_binary_4(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
 );
 void __barrier_invariant_binary_5(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
 );
 void __barrier_invariant_binary_6(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
 );
 void __barrier_invariant_binary_7(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
 );
 void __barrier_invariant_binary_8(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
 );
 void __barrier_invariant_binary_9(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
 );
 void __barrier_invariant_binary_10(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
+  , size_t inst_expr_9_0, size_t inst_expr_9_1
 );
 void __barrier_invariant_binary_11(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
+  , size_t inst_expr_9_0, size_t inst_expr_9_1
+  , size_t inst_expr_10_0, size_t inst_expr_10_1
 );
 void __barrier_invariant_binary_12(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
+  , size_t inst_expr_9_0, size_t inst_expr_9_1
+  , size_t inst_expr_10_0, size_t inst_expr_10_1
+  , size_t inst_expr_11_0, size_t inst_expr_11_1
 );
 void __barrier_invariant_binary_13(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
+  , size_t inst_expr_9_0, size_t inst_expr_9_1
+  , size_t inst_expr_10_0, size_t inst_expr_10_1
+  , size_t inst_expr_11_0, size_t inst_expr_11_1
+  , size_t inst_expr_12_0, size_t inst_expr_12_1
 );
 void __barrier_invariant_binary_14(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
+  , size_t inst_expr_9_0, size_t inst_expr_9_1
+  , size_t inst_expr_10_0, size_t inst_expr_10_1
+  , size_t inst_expr_11_0, size_t inst_expr_11_1
+  , size_t inst_expr_12_0, size_t inst_expr_12_1
+  , size_t inst_expr_13_0, size_t inst_expr_13_1
 );
 void __barrier_invariant_binary_15(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
+  , size_t inst_expr_9_0, size_t inst_expr_9_1
+  , size_t inst_expr_10_0, size_t inst_expr_10_1
+  , size_t inst_expr_11_0, size_t inst_expr_11_1
+  , size_t inst_expr_12_0, size_t inst_expr_12_1
+  , size_t inst_expr_13_0, size_t inst_expr_13_1
+  , size_t inst_expr_14_0, size_t inst_expr_14_1
 );
 void __barrier_invariant_binary_16(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
-  , unsigned int inst_expr_15_0, unsigned int inst_expr_15_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
+  , size_t inst_expr_9_0, size_t inst_expr_9_1
+  , size_t inst_expr_10_0, size_t inst_expr_10_1
+  , size_t inst_expr_11_0, size_t inst_expr_11_1
+  , size_t inst_expr_12_0, size_t inst_expr_12_1
+  , size_t inst_expr_13_0, size_t inst_expr_13_1
+  , size_t inst_expr_14_0, size_t inst_expr_14_1
+  , size_t inst_expr_15_0, size_t inst_expr_15_1
 );
 void __barrier_invariant_binary_17(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
-  , unsigned int inst_expr_15_0, unsigned int inst_expr_15_1
-  , unsigned int inst_expr_16_0, unsigned int inst_expr_16_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
+  , size_t inst_expr_9_0, size_t inst_expr_9_1
+  , size_t inst_expr_10_0, size_t inst_expr_10_1
+  , size_t inst_expr_11_0, size_t inst_expr_11_1
+  , size_t inst_expr_12_0, size_t inst_expr_12_1
+  , size_t inst_expr_13_0, size_t inst_expr_13_1
+  , size_t inst_expr_14_0, size_t inst_expr_14_1
+  , size_t inst_expr_15_0, size_t inst_expr_15_1
+  , size_t inst_expr_16_0, size_t inst_expr_16_1
 );
 void __barrier_invariant_binary_18(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
-  , unsigned int inst_expr_15_0, unsigned int inst_expr_15_1
-  , unsigned int inst_expr_16_0, unsigned int inst_expr_16_1
-  , unsigned int inst_expr_17_0, unsigned int inst_expr_17_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
+  , size_t inst_expr_9_0, size_t inst_expr_9_1
+  , size_t inst_expr_10_0, size_t inst_expr_10_1
+  , size_t inst_expr_11_0, size_t inst_expr_11_1
+  , size_t inst_expr_12_0, size_t inst_expr_12_1
+  , size_t inst_expr_13_0, size_t inst_expr_13_1
+  , size_t inst_expr_14_0, size_t inst_expr_14_1
+  , size_t inst_expr_15_0, size_t inst_expr_15_1
+  , size_t inst_expr_16_0, size_t inst_expr_16_1
+  , size_t inst_expr_17_0, size_t inst_expr_17_1
 );
 void __barrier_invariant_binary_19(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
-  , unsigned int inst_expr_15_0, unsigned int inst_expr_15_1
-  , unsigned int inst_expr_16_0, unsigned int inst_expr_16_1
-  , unsigned int inst_expr_17_0, unsigned int inst_expr_17_1
-  , unsigned int inst_expr_18_0, unsigned int inst_expr_18_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
+  , size_t inst_expr_9_0, size_t inst_expr_9_1
+  , size_t inst_expr_10_0, size_t inst_expr_10_1
+  , size_t inst_expr_11_0, size_t inst_expr_11_1
+  , size_t inst_expr_12_0, size_t inst_expr_12_1
+  , size_t inst_expr_13_0, size_t inst_expr_13_1
+  , size_t inst_expr_14_0, size_t inst_expr_14_1
+  , size_t inst_expr_15_0, size_t inst_expr_15_1
+  , size_t inst_expr_16_0, size_t inst_expr_16_1
+  , size_t inst_expr_17_0, size_t inst_expr_17_1
+  , size_t inst_expr_18_0, size_t inst_expr_18_1
 );
 void __barrier_invariant_binary_20(bool expr
-  , unsigned int inst_expr_0_0, unsigned int inst_expr_0_1
-  , unsigned int inst_expr_1_0, unsigned int inst_expr_1_1
-  , unsigned int inst_expr_2_0, unsigned int inst_expr_2_1
-  , unsigned int inst_expr_3_0, unsigned int inst_expr_3_1
-  , unsigned int inst_expr_4_0, unsigned int inst_expr_4_1
-  , unsigned int inst_expr_5_0, unsigned int inst_expr_5_1
-  , unsigned int inst_expr_6_0, unsigned int inst_expr_6_1
-  , unsigned int inst_expr_7_0, unsigned int inst_expr_7_1
-  , unsigned int inst_expr_8_0, unsigned int inst_expr_8_1
-  , unsigned int inst_expr_9_0, unsigned int inst_expr_9_1
-  , unsigned int inst_expr_10_0, unsigned int inst_expr_10_1
-  , unsigned int inst_expr_11_0, unsigned int inst_expr_11_1
-  , unsigned int inst_expr_12_0, unsigned int inst_expr_12_1
-  , unsigned int inst_expr_13_0, unsigned int inst_expr_13_1
-  , unsigned int inst_expr_14_0, unsigned int inst_expr_14_1
-  , unsigned int inst_expr_15_0, unsigned int inst_expr_15_1
-  , unsigned int inst_expr_16_0, unsigned int inst_expr_16_1
-  , unsigned int inst_expr_17_0, unsigned int inst_expr_17_1
-  , unsigned int inst_expr_18_0, unsigned int inst_expr_18_1
-  , unsigned int inst_expr_19_0, unsigned int inst_expr_19_1
+  , size_t inst_expr_0_0, size_t inst_expr_0_1
+  , size_t inst_expr_1_0, size_t inst_expr_1_1
+  , size_t inst_expr_2_0, size_t inst_expr_2_1
+  , size_t inst_expr_3_0, size_t inst_expr_3_1
+  , size_t inst_expr_4_0, size_t inst_expr_4_1
+  , size_t inst_expr_5_0, size_t inst_expr_5_1
+  , size_t inst_expr_6_0, size_t inst_expr_6_1
+  , size_t inst_expr_7_0, size_t inst_expr_7_1
+  , size_t inst_expr_8_0, size_t inst_expr_8_1
+  , size_t inst_expr_9_0, size_t inst_expr_9_1
+  , size_t inst_expr_10_0, size_t inst_expr_10_1
+  , size_t inst_expr_11_0, size_t inst_expr_11_1
+  , size_t inst_expr_12_0, size_t inst_expr_12_1
+  , size_t inst_expr_13_0, size_t inst_expr_13_1
+  , size_t inst_expr_14_0, size_t inst_expr_14_1
+  , size_t inst_expr_15_0, size_t inst_expr_15_1
+  , size_t inst_expr_16_0, size_t inst_expr_16_1
+  , size_t inst_expr_17_0, size_t inst_expr_17_1
+  , size_t inst_expr_18_0, size_t inst_expr_18_1
+  , size_t inst_expr_19_0, size_t inst_expr_19_1
 );
 #if !defined(__1D_WORK_GROUP) && !defined(__1D_THREAD_BLOCK)
 #define __barrier_invariant_binary_0(X) !!! Barrier invariants currently only supported for 1D thread groups !!!

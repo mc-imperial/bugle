@@ -20,7 +20,7 @@ def main(argv=None):
   for i in range(0, n + 1):
     print "_DEVICE_QUALIFIER void __barrier_invariant_" + str(i) + "(bool expr"
     for j in range(0, i):
-      print "  , unsigned int inst_expr_" + str(j)
+      print "  , size_t inst_expr_" + str(j)
     print ");"
 
   for i in range(0, n + 1):
@@ -48,7 +48,7 @@ def main(argv=None):
   for i in range(0, n + 1):
     print "void __barrier_invariant_binary_" + str(i) + "(bool expr"
     for j in range(0, i):
-      print "  , unsigned int inst_expr_" + str(j) + "_0, unsigned int inst_expr_" + str(j) + "_1"
+      print "  , size_t inst_expr_" + str(j) + "_0, size_t inst_expr_" + str(j) + "_1"
     print ");"
 
   for i in range(0, n + 1):
