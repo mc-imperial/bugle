@@ -76,8 +76,8 @@ class TranslateFunction {
                    handleTrap;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
-                   handleGetNumGroups, handleGetGlobalId, handleGetGlobalSize,
-                   handleGetImageWidth, handleGetImageHeight;
+                   handleGetNumGroups, handleGetImageWidth,
+                   handleGetImageHeight;
 
   SpecialFnHandler handleCos, handleExp, handleFabs, handleFloor,
                    handleFrexpExp, handleFrexpFrac, handleFma, handleSqrt,
