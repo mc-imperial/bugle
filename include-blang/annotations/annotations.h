@@ -88,14 +88,14 @@ _FUNCTION_FROM_POINTER_TO_TYPE(read, bool)
 _FUNCTION_FROM_POINTER_TO_TYPE(write, bool)
 
 /* Read/write offset */
-_FUNCTION_FROM_POINTER_TO_TYPE(read_offset, int)
-_FUNCTION_FROM_POINTER_TO_TYPE(write_offset, int)
+_FUNCTION_FROM_POINTER_TO_TYPE(read_offset, size_t)
+_FUNCTION_FROM_POINTER_TO_TYPE(write_offset, size_t)
 
 /* Pointer base */
 _FUNCTION_FROM_POINTER_TO_TYPE(ptr_base, ptr_base_t)
 
 /* Pointer offset */
-_FUNCTION_FROM_POINTER_TO_TYPE(ptr_offset, int)
+_FUNCTION_FROM_POINTER_TO_TYPE(ptr_offset, size_t)
 
 /* Read/write set is empty */
 #define __no_read(p) !__read(p)
@@ -116,8 +116,8 @@ _FUNCTION_FROM_POINTER_TO_VOID(writes_to)
 
 
 #ifdef __OPENCL_VERSION__
-bool __atomic_has_taken_value_local(__local unsigned *atomic_array, unsigned offset, unsigned value);
-bool __atomic_has_taken_value_global(__global unsigned *atomic_array, unsigned offset, unsigned value);
+bool __atomic_has_taken_value_local(__local unsigned *atomic_array, size_t offset, unsigned value);
+bool __atomic_has_taken_value_global(__global unsigned *atomic_array, size_t offset, unsigned value);
 
 _CLC_OVERLOAD _CLC_INLINE bool __atomic_has_taken_value(__local unsigned *atomic_array, unsigned offset, unsigned value) {
     return __atomic_has_taken_value_local(atomic_array, offset, value);
