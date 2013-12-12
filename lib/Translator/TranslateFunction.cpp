@@ -185,6 +185,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__ite_unsigned_short"] = &TranslateFunction::handleIte;
     fns["__ite_unsigned_int"] = &TranslateFunction::handleIte;
     fns["__ite_unsigned_long"] = &TranslateFunction::handleIte;
+    fns["__ite_size_t"] = &TranslateFunction::handleIte;
     fns["__return_val_int"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_bool"] = &TranslateFunction::handleReturnVal;
