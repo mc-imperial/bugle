@@ -76,6 +76,8 @@ void BPLModuleWriter::write() {
     SS << ";\n";
   }
 
+  OS << "type _SIZE_T_TYPE = bv" << M->getPointerWidth() << ";\n";
+
   if (UsesPointers) {
     OS << "type {:datatype} ptr;\n"
        << "type arrayId;\n"
