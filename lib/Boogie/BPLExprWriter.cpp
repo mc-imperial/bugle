@@ -142,8 +142,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, ITEE->getFalseExpr().get());
     OS << ")";
   } else if (isa<HavocExpr>(E)) {
-    assert(!MW);
-    OS << "havoc";
+    llvm_unreachable("Handled at statement level");
   } else if (auto B2BVE = dyn_cast<BoolToBVExpr>(E)) {
     OS << "(if ";
     writeExpr(OS, B2BVE->getSubExpr().get());
@@ -604,67 +603,41 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, BinE->getRHS().get());
     OS << ")";
   } else if (auto LE = dyn_cast<LoadExpr>(E)) {
-    // If this is the dumper, show the expression in a simple form.
-    // Otherwise, generate appropriate code
-    if (!MW) {
-      writeExpr(OS, LE->getArray().get(), 9);
-      OS << "[";
+    auto PtrArr = LE->getArray().get();
+    assert(!(isa<NullArrayRefExpr>(PtrArr) ||
+             MW->M->global_begin() == MW->M->global_end()));
+    std::set<GlobalArray *> Globals;
+    if (!PtrArr->computeArrayCandidates(Globals)) {
+      Globals.insert(MW->M->global_begin(), MW->M->global_end());
+    }
+
+    if (Globals.size() == 1) {
+      OS << "$$" << (*Globals.begin())->getName() << "[";
       writeExpr(OS, LE->getOffset().get());
       OS << "]";
     } else {
-      auto PtrArr = LE->getArray().get();
-      assert(!(isa<NullArrayRefExpr>(PtrArr) ||
-        MW->M->global_begin() == MW->M->global_end()));
-      std::set<GlobalArray *> Globals;
-      if (!PtrArr->computeArrayCandidates(Globals)) {
-        Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      }
-
-      if (Globals.size() == 1) {
-        OS << "$$" << (*Globals.begin())->getName() << "[";
-        writeExpr(OS, LE->getOffset().get());
-        OS << "]";
-      } else {
-        ErrorReporter::reportImplementationLimitation(
+      ErrorReporter::reportImplementationLimitation(
                                 "Load expressions from pointers not supported");
-      }
-
     }
   } else if (auto AE = dyn_cast<AtomicExpr>(E)) {
-    // If this is the dumper, show the expression in a simple form.
-    // Otherwise, generate appropriate code
-    if (!MW) {
-      OS << "_ATOMIC_OP(";
-      writeExpr(OS, AE->getArray().get(), 9);
-      OS << ", ";
+    auto PtrArr = AE->getArray().get();
+    assert(!(isa<NullArrayRefExpr>(PtrArr) ||
+             MW->M->global_begin() == MW->M->global_end()));
+    std::set<GlobalArray *> Globals;
+    if (!PtrArr->computeArrayCandidates(Globals)) {
+      Globals.insert(MW->M->global_begin(), MW->M->global_end());
+    }
+
+    if (Globals.size() == 1) {
+      OS << "_ATOMIC_OP($$" << (*Globals.begin())->getName() << ", ";
       writeExpr(OS, AE->getOffset().get());
       OS << ")";
     } else {
-      auto PtrArr = AE->getArray().get();
-      assert(!(isa<NullArrayRefExpr>(PtrArr) ||
-        MW->M->global_begin() == MW->M->global_end()));
-      std::set<GlobalArray *> Globals;
-      if (!PtrArr->computeArrayCandidates(Globals)) {
-        Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      }
-
-      if (Globals.size() == 1) {
-        OS << "_ATOMIC_OP($$" << (*Globals.begin())->getName() << ", ";
-        writeExpr(OS, AE->getOffset().get());
-        OS << ")";
-      } else {
-        ErrorReporter::reportImplementationLimitation(
+      ErrorReporter::reportImplementationLimitation(
                               "Atomic expressions from pointers not supported");
-      }
-
     }
-  } else if (auto ASE = dyn_cast<ArraySnapshotExpr>(E)) {
-    // If this is the dumper, show the expression.  Otherwise, this is a no-op
-    if (!MW) {
-      writeExpr(OS, ASE->getDst().get(), 9);
-      OS << " := ";
-      writeExpr(OS, ASE->getSrc().get());
-    }
+  } else if (dyn_cast<ArraySnapshotExpr>(E)) {
+    llvm_unreachable("Handled at statement level");
   } else if (auto UAE = dyn_cast<UnderlyingArrayExpr>(E)) {
       auto Array = UAE->getArray().get();
       assert(!(isa<NullArrayRefExpr>(Array) || 
@@ -682,18 +655,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
                      "Underlying array expressions for pointers not supported");
       }
   } else if (auto MOE = dyn_cast<MemberOfExpr>(E)) {
-    // If this is the dumper, show the expression.  Otherwise, this is a no-op.
-    if (!MW) {
-      OS << "<<member-of";
-      for (auto i = MOE->getElems().begin(), e = MOE->getElems().end(); i != e;
-           ++i) {
-        OS << " " << (*i)->getName();
-      }
-      OS << ">>(";
-    }
     writeExpr(OS, MOE->getSubExpr().get(), Depth);
-    if (!MW)
-      OS << ")";
   } else {
     llvm_unreachable("Unsupported expression");
   }
