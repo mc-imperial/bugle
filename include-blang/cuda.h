@@ -50,7 +50,13 @@ struct _3DimensionalVector {
 #define __align__(n)
 
 #define NULL 0
+#ifdef __CUDA_32__
 typedef unsigned int size_t;
+#endif
+
+#ifdef __CUDA_64__
+typedef unsigned long size_t;
+#endif
 
 #include <bugle.h>
 #include <annotations/annotations.h>
