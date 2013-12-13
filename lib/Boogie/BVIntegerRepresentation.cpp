@@ -56,13 +56,13 @@ std::string BVIntegerRepresentation::getArithmeticBinary(std::string Name, bugle
   default: llvm_unreachable("huh?");
   }
 
-	std::stringstream ss;
-	ss << "function {:bvbuiltin \"" << SMTName << "\"} BV"
-           << Width
-           << "_" << Name << "(bv" << Width
-           << ", bv" << Width
-           << ") : bv" << Width << ";";
-	return ss.str();
+  std::stringstream ss;
+  ss << "function {:bvbuiltin \"" << SMTName << "\"} BV"
+     << Width
+     << "_" << Name << "(bv" << Width
+     << ", bv" << Width
+     << ") : bv" << Width << ";";
+  return ss.str();
 }
 
 std::string BVIntegerRepresentation::getBooleanBinary(std::string Name, bugle::Expr::Kind Kind, unsigned Width) {
@@ -79,13 +79,13 @@ std::string BVIntegerRepresentation::getBooleanBinary(std::string Name, bugle::E
   default: llvm_unreachable("huh?");
   }
 
-	std::stringstream ss;
-	ss << "function {:bvbuiltin \"" << SMTName << "\"} BV"
-           << Width
-           << "_" << Name << "(bv" << Width
-           << ", bv" << Width
-           << ") : bool;";
-	return ss.str();
+  std::stringstream ss;
+  ss << "function {:bvbuiltin \"" << SMTName << "\"} BV"
+     << Width
+     << "_" << Name << "(bv" << Width
+     << ", bv" << Width
+     << ") : bool;";
+  return ss.str();
 }
 
 void BVIntegerRepresentation::printVal(llvm::raw_ostream &OS, const llvm::APInt &Val) {
@@ -120,6 +120,5 @@ std::string BVIntegerRepresentation::getConcatExpr(const std::string &Lhs, const
   ss << Lhs << " ++ " << Rhs;
   return ss.str();
 }
-
 
 }

@@ -424,7 +424,7 @@ void TranslateFunction::translate() {
       if (TM->SL == TranslateModule::SL_CUDA)
         GA->addAttribute("global");
       ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
-                        BVConstExpr::createZero(PtrSize));
+                                              BVConstExpr::createZero(PtrSize));
     } else {
       Var *V = BF->addArgument(TM->getModelledType(&*i), i->getName());
       ValueExprMap[&*i] = TM->unmodelValue(&*i, VarRefExpr::create(V));
