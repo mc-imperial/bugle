@@ -238,7 +238,7 @@ ITE_DECL(long)
 
 #undef ITE_DECL
 
-#ifdef __OPENCL_64__
+#if __OPENCL_VERSION__ && __BUGLE_64__
 _DEVICE_QUALIFIER size_t __ite_size_t(bool b, size_t x, size_t y);
 _DEVICE_QUALIFIER _BUGLE_INLINE __attribute__((overloadable)) size_t __ite(bool b, size_t x, size_t y) {
   return __ite_size_t(b, x, y);
