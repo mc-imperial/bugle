@@ -764,6 +764,16 @@ ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
                                  TM->TD.getPointerSizeInBits(),
                                  range.width/8), result);
     }
+  } else {
+    TM->NeedAdditionalByteArrayModels = true;
+    std::set<GlobalArray *> Globals;
+    if (arrayIdExpr->computeArrayCandidates(Globals)) {
+        std::transform(Globals.begin(), Globals.end(),
+            std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
+            [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+      } else {
+        TM->NextModelAllAsByteArray = true;
+      }
   }
   return result;
 }
@@ -781,6 +791,16 @@ ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
                                  TM->TD.getPointerSizeInBits(),
                                  range.width/8), result);
     }
+  } else {
+    TM->NeedAdditionalByteArrayModels = true;
+    std::set<GlobalArray *> Globals;
+    if (arrayIdExpr->computeArrayCandidates(Globals)) {
+        std::transform(Globals.begin(), Globals.end(),
+            std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
+            [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+      } else {
+        TM->NextModelAllAsByteArray = true;
+      }
   }
   return result;
 }
