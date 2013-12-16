@@ -667,9 +667,11 @@ ref<Expr> TranslateFunction::handleReadsFrom(bugle::BasicBlock *BBB,
         ArrayIdExpr::create(Args[0], TM->defaultRange()), false),
         extractSourceLocs(CI));
   if (TM->RaceInst == bugle::RaceInstrumenter::STANDARD) {
-    BF->addModifies(AccessOffsetExpr::create(
-          ArrayIdExpr::create(Args[0], TM->defaultRange()), false),
-          extractSourceLocs(CI));
+    ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+    ref<Expr> access = AccessOffsetExpr::create(arrayIdExpr,
+                                                TM->TD.getPointerSizeInBits(),
+                                                false);
+    BF->addModifies(access, extractSourceLocs(CI));
   }
   return 0;
 }
@@ -681,9 +683,11 @@ ref<Expr> TranslateFunction::handleWritesTo(bugle::BasicBlock *BBB,
         ArrayIdExpr::create(Args[0], TM->defaultRange()), true),
         extractSourceLocs(CI));
   if (TM->RaceInst == bugle::RaceInstrumenter::STANDARD) {
-    BF->addModifies(AccessOffsetExpr::create(
-          ArrayIdExpr::create(Args[0], TM->defaultRange()), true),
-          extractSourceLocs(CI));
+    ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+    ref<Expr> access = AccessOffsetExpr::create(arrayIdExpr,
+                                                TM->TD.getPointerSizeInBits(),
+                                                true);
+    BF->addModifies(access, extractSourceLocs(CI));
   }
   BF->addModifies(UnderlyingArrayExpr::create(
         ArrayIdExpr::create(Args[0], TM->defaultRange())),
@@ -755,7 +759,9 @@ ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
-  ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr, false);
+  ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr,
+                                              TM->TD.getPointerSizeInBits(),
+                                              false);
   Type range = arrayIdExpr->getType().range();
 
   if (range.isKind(Type::BV)) {
@@ -782,7 +788,9 @@ ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
-  ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr, true);
+  ref<Expr> result = AccessOffsetExpr::create(arrayIdExpr,
+                                              TM->TD.getPointerSizeInBits(),
+                                              true);
   Type range = arrayIdExpr->getType().range();
 
   if (range.isKind(Type::BV)) {
@@ -821,7 +829,8 @@ ref<Expr> TranslateFunction::handleNotAccessed(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
-  ref<Expr> result = NotAccessedExpr::create(arrayIdExpr);
+  ref<Expr> result = NotAccessedExpr::create(arrayIdExpr,
+                                             TM->TD.getPointerSizeInBits());
   return result;
 }
 

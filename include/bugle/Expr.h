@@ -520,13 +520,13 @@ public:
 };
 
 class AccessOffsetExpr : public Expr {
-  AccessOffsetExpr(ref<Expr> array, bool isWrite) :
-    Expr(Type(Type::BV, 32)), array(array), isWrite(isWrite) {}
+  AccessOffsetExpr(ref<Expr> array, unsigned pointerSize, bool isWrite) :
+    Expr(Type(Type::BV, pointerSize)), array(array), isWrite(isWrite) {}
   ref<Expr> array;
   bool isWrite;
 
 public:
-  static ref<Expr> create(ref<Expr> array, bool isWrite);
+  static ref<Expr> create(ref<Expr> array, unsigned pointerSize, bool isWrite);
 
   EXPR_KIND(AccessOffset)
   ref<Expr> getArray() const { return array; }
@@ -534,11 +534,12 @@ public:
 };
 
 class NotAccessedExpr : public Expr {
-  NotAccessedExpr(ref<Expr> array) : Expr(Type(Type::BV, 32)), array(array) {}
+  NotAccessedExpr(ref<Expr> array, unsigned pointerSize) :
+    Expr(Type(Type::BV, pointerSize)), array(array) {}
   ref<Expr> array;
 
 public:
-  static ref<Expr> create(ref<Expr> array);
+  static ref<Expr> create(ref<Expr> array, unsigned pointerSize);
 
   EXPR_KIND(NotAccessed)
   ref<Expr> getArray() const { return array; }

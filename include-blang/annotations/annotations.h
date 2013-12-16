@@ -105,7 +105,7 @@ _FUNCTION_FROM_POINTER_TO_TYPE(ptr_offset, size_t)
 #define __write_implies(p, e) __implies(__write(p), e)
 
 /* Not-accessed logging variable for barrier invariant subexpressions */
-_FUNCTION_FROM_POINTER_TO_TYPE(not_accessed, int)
+_FUNCTION_FROM_POINTER_TO_TYPE(not_accessed, size_t)
 
 /* e is a member of the read-write set */
 #define __accessed(p, e) (__not_accessed(p) != e)
