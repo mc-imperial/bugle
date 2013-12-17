@@ -734,7 +734,7 @@ void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
           OS << " == $arrayId$$" << (*i)->getName() << ") then " 
              << prefix << (*i)->getName() << " else ";
         }
-        OS << MW->IntRep->getLiteral(0, 32) << ")";
+        OS << MW->IntRep->getLiteral(0, MW->M->getPointerWidth()) << ")";
       } else {
         OS << "<OFFSET-case-split>";
       }
