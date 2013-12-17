@@ -777,9 +777,9 @@ ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
         std::transform(Globals.begin(), Globals.end(),
             std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
             [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
-      } else {
-        TM->NextModelAllAsByteArray = true;
-      }
+    } else {
+      TM->NextModelAllAsByteArray = true;
+    }
   }
   return result;
 }
@@ -806,9 +806,9 @@ ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
         std::transform(Globals.begin(), Globals.end(),
             std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
             [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
-      } else {
-        TM->NextModelAllAsByteArray = true;
-      }
+    } else {
+      TM->NextModelAllAsByteArray = true;
+    }
   }
   return result;
 }
