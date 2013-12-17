@@ -1060,13 +1060,13 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
 
   if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
     ErrorReporter::reportImplementationLimitation(
-                                  "memset with null pointer destination or"
+                                  "memcpy with null pointer destination or"
                                   " destinations of mixed types not supported");
   }
 
   if (SrcRangeTy == Type(Type::Any) || SrcRangeTy == Type(Type::Unknown)) {
     ErrorReporter::reportImplementationLimitation(
-                                       "memset with null pointer source or"
+                                       "memcpy with null pointer source or"
                                        " sources of mixed types not supported");
   }
 
