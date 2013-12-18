@@ -94,12 +94,10 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     });
     OS << SVarE->getAttr();
   } else if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(E)) {
-    if (MW)
-      MW->UsesPointers = true;
+    MW->UsesPointers = true;
     OS << "$arrayId$$" << ArrE->getArray()->getName();
   } else if (isa<NullArrayRefExpr>(E)) {
-    if (MW)
-      MW->UsesPointers = true;
+    MW->UsesPointers = true;
     OS << "$arrayId$$null";
   } else if (auto ConcatE = dyn_cast<BVConcatExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
@@ -661,8 +659,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   }
 }
 
-void BPLExprWriter::writeAccessHasOccurredVar(llvm::raw_ostream &OS, 
-                                          bugle::Expr* PtrArr, 
+void BPLExprWriter::writeAccessHasOccurredVar(llvm::raw_ostream &OS,
+                                          bugle::Expr* PtrArr,
                                           std::string accessKind) {
 
   std::string prefix = "_" + accessKind + "_HAS_OCCURRED_$$";
@@ -678,26 +676,22 @@ void BPLExprWriter::writeAccessHasOccurredVar(llvm::raw_ostream &OS,
     if (Globals.size() == 1) {
       OS << prefix << (*Globals.begin())->getName();
     } else {
-      if (MW) {
-        MW->UsesPointers = true;
-        OS << "(";
-        for (auto i = MW->M->global_begin(), e = MW->M->global_end();
-             i != e; ++i) {
-          OS << "if (";
-          writeExpr(OS, PtrArr);
-          OS << " == $arrayId$$" << (*i)->getName() << ") then " 
-             << prefix << (*i)->getName() << " else ";
-        }
-        OS << "false)";
-      } else {
-        OS << "<HAS_OCCURRED-case-split>";
+      MW->UsesPointers = true;
+      OS << "(";
+      for (auto i = MW->M->global_begin(), e = MW->M->global_end();
+           i != e; ++i) {
+        OS << "if (";
+        writeExpr(OS, PtrArr);
+        OS << " == $arrayId$$" << (*i)->getName() << ") then "
+           << prefix << (*i)->getName() << " else ";
       }
+      OS << "false)";
     }
   }
 }
 
-void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS, 
-                                          bugle::Expr* PtrArr, 
+void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
+                                          bugle::Expr* PtrArr,
                                           std::string accessKind) {
 
   if (MW->RaceInst == bugle::RaceInstrumenter::WATCHDOG_SINGLE) {
@@ -724,20 +718,16 @@ void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
     if (Globals.size() == 1) {
       OS << prefix << (*Globals.begin())->getName();
     } else {
-      if (MW) {
-        MW->UsesPointers = true;
-        OS << "(";
-        for (auto i = MW->M->global_begin(), e = MW->M->global_end();
-             i != e; ++i) {
-          OS << "if (";
-          writeExpr(OS, PtrArr);
-          OS << " == $arrayId$$" << (*i)->getName() << ") then " 
-             << prefix << (*i)->getName() << " else ";
-        }
-        OS << MW->IntRep->getLiteral(0, MW->M->getPointerWidth()) << ")";
-      } else {
-        OS << "<OFFSET-case-split>";
+      MW->UsesPointers = true;
+      OS << "(";
+      for (auto i = MW->M->global_begin(), e = MW->M->global_end();
+           i != e; ++i) {
+        OS << "if (";
+        writeExpr(OS, PtrArr);
+        OS << " == $arrayId$$" << (*i)->getName() << ") then "
+           << prefix << (*i)->getName() << " else ";
       }
+      OS << MW->IntRep->getLiteral(0, MW->M->getPointerWidth()) << ")";
     }
   }
 }
