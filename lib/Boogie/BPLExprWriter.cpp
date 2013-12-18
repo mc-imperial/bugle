@@ -673,13 +673,16 @@ void BPLExprWriter::writeAccessHasOccurredVar(llvm::raw_ostream &OS,
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
     }
 
-    if (Globals.size() == 1) {
+    if (Globals.size() == 1 &&
+        (*Globals.begin())->isGlobalOrGroupShared()) {
       OS << prefix << (*Globals.begin())->getName();
     } else {
       MW->UsesPointers = true;
       OS << "(";
       for (auto i = MW->M->global_begin(), e = MW->M->global_end();
            i != e; ++i) {
+        if (!(*i)->isGlobalOrGroupShared())
+          continue; // Accesses of local arrays are not tracked
         OS << "if (";
         writeExpr(OS, PtrArr);
         OS << " == $arrayId$$" << (*i)->getName() << ") then "
@@ -715,13 +718,16 @@ void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
     }
 
-    if (Globals.size() == 1) {
+    if (Globals.size() == 1 &&
+        (*Globals.begin())->isGlobalOrGroupShared()) {
       OS << prefix << (*Globals.begin())->getName();
     } else {
       MW->UsesPointers = true;
       OS << "(";
       for (auto i = MW->M->global_begin(), e = MW->M->global_end();
            i != e; ++i) {
+        if (!(*i)->isGlobalOrGroupShared())
+          continue; // Offsets of local arrays are not tracked
         OS << "if (";
         writeExpr(OS, PtrArr);
         OS << " == $arrayId$$" << (*i)->getName() << ") then "
