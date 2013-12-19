@@ -1,6 +1,8 @@
 #ifndef CUDA_H
 #define CUDA_H
 
+#include <stddef.h>
+
 #pragma GCC diagnostic error "-Wimplicit-function-declaration"
 #pragma GCC diagnostic ignored "-Wc++11-long-long"
 
@@ -48,15 +50,6 @@ struct _3DimensionalVector {
    data types.
 */
 #define __align__(n)
-
-#define NULL 0
-#ifdef __BUGLE_32__
-typedef unsigned int size_t;
-#endif
-
-#ifdef __BUGLE_64__
-typedef unsigned long size_t;
-#endif
 
 #include <bugle.h>
 #include <annotations/annotations.h>
