@@ -1437,6 +1437,11 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     E = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
   } else if (auto LI = dyn_cast<LoadInst>(I)) {
+    // When modelling all as byte arrays, pointer loads will confuse the
+    // pointer and the array element pointed to.
+    if (TM->ModelAllAsByteArray && LI->getType()->isPointerTy())
+      ErrorReporter::reportImplementationLimitation("Pointer loads not"
+                                 " supported when modelling all as byte array");
     ref<Expr> Ptr = translateValue(LI->getPointerOperand(), BBB),
               PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
@@ -1491,6 +1496,12 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       E = TM->translateArbitrary(LoadTy);
     }
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
+    // When modelling all as byte arrays, pointer stores will confuse the
+    // pointer and the array element pointed to.
+    if (TM->ModelAllAsByteArray &&
+        SI->getValueOperand()->getType()->isPointerTy())
+      ErrorReporter::reportImplementationLimitation("Pointer stores not"
+                                 " supported when modelling all as byte array");
     ref<Expr> Ptr = translateValue(SI->getPointerOperand(), BBB),
               Val = translateValue(SI->getValueOperand(), BBB),
               PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),

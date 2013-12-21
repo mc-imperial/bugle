@@ -56,7 +56,13 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned Offset,
 }
 
 void TranslateModule::addGlobalArrayAttribs(GlobalArray *GA, PointerType *PT) {
-  if (SL == SL_OpenCL || SL == SL_CUDA) {
+  // If we have a pointer in CUDA constant address space, only the pointer
+  // is constant, unless used as a pointer, the memory pointed to will be
+  // cudaMalloc'ed and hence be in device memory.
+  if (SL == SL_CUDA && PT->getElementType()->isPointerTy() &&
+      PT->getAddressSpace() == AddressSpaces::constant)
+    GA->addAttribute("global");
+  else if (SL == SL_OpenCL || SL == SL_CUDA) {
     switch (PT->getAddressSpace()) {
       case AddressSpaces::global: GA->addAttribute("global"); break;
       case AddressSpaces::group_shared: GA->addAttribute("group_shared"); break;
@@ -229,12 +235,6 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
   bugle::Type T(Type::BV, 8);
   auto PT = cast<PointerType>(V->getType());
 
-  if (PT->getElementType()->isPointerTy()
-      && (PT->getAddressSpace() == AddressSpaces::global ||
-          PT->getAddressSpace() == AddressSpaces::constant))
-    ErrorReporter::reportImplementationLimitation("Global (constant) pointers"
-                                                  " not supported");
-
   if (!(ModelAllAsByteArray ||
         ModelAsByteArray.find(V) != ModelAsByteArray.end()))
     T = translateArrayRangeType(PT->getElementType());
@@ -259,7 +259,7 @@ ref<Expr> TranslateModule::translateGEP(ref<Expr> Ptr,
                  BVConstExpr::create(BM->getPointerWidth(), addend));
     } else {
       const SequentialType *set = cast<SequentialType>(*i);
-      uint64_t elementSize = 
+      uint64_t elementSize =
         TD.getTypeStoreSize(set->getElementType());
       Value *operand = i.getOperand();
       ref<Expr> index = xlate(operand);
