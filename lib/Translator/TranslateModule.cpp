@@ -139,6 +139,15 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
 #endif
       return translateBitCast(CE->getOperand(0)->getType(), CE->getType(),
                               translateConstant(CE->getOperand(0)));
+    case Instruction::Mul: {
+      ref<Expr> LHS = translateConstant(CE->getOperand(0)),
+                RHS = translateConstant(CE->getOperand(1));
+      return BVMulExpr::create(LHS, RHS);
+    }
+    case Instruction::PtrToInt: {
+      ref<Expr> Op = translateConstant(CE->getOperand(0));
+      return PtrToBVExpr::create(Op);
+    }
     default:
       ErrorReporter::reportImplementationLimitation("Unhandled constant expression");
     }
@@ -175,7 +184,7 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     return BVConstExpr::createZero(TD.getTypeSizeInBits(CAZ->getType()));
   }
   if (isa<ConstantPointerNull>(C)) {
-    return PointerExpr::create(NullArrayRefExpr::create(), 
+    return PointerExpr::create(NullArrayRefExpr::create(),
                             BVConstExpr::createZero(TD.getPointerSizeInBits()));
   }
   ErrorReporter::reportImplementationLimitation("Unhandled constant");
@@ -254,7 +263,7 @@ ref<Expr> TranslateModule::translateGEP(ref<Expr> Ptr,
         TD.getTypeStoreSize(set->getElementType());
       Value *operand = i.getOperand();
       ref<Expr> index = xlate(operand);
-      index = BVSExtExpr::create(BM->getPointerWidth(), index);
+      index = BVZExtExpr::create(BM->getPointerWidth(), index);
       ref<Expr> addend =
         BVMulExpr::create(index,
           BVConstExpr::create(BM->getPointerWidth(), elementSize));

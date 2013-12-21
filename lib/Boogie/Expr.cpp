@@ -337,6 +337,10 @@ ref<Expr> PtrToBVExpr::create(ref<Expr> bv) {
   if (auto e = dyn_cast<BVToPtrExpr>(bv))
     return e->getSubExpr();
 
+  if (auto e = dyn_cast<PointerExpr>(bv))
+    if (dyn_cast<NullArrayRefExpr>(e->getArray()))
+      return BVZExtExpr::create(ty.width, e->getOffset());
+
   return new PtrToBVExpr(Type(Type::BV, ty.width), bv);
 }
 

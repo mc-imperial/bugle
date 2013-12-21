@@ -968,31 +968,28 @@ ref<Expr> TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB
 ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  auto MSI = dyn_cast<MemSetInst>(CI);
-  auto Const = dyn_cast<ConstantInt>(MSI->getLength());
-
-  if (auto ZEI = dyn_cast<ZExtInst>(MSI->getLength()))
-    Const = dyn_cast<ConstantInt>(ZEI->getOperand(0));
-
-  if (!Const) {
+  // Args[0] == cast<MemSetInst>->getDest()
+  // Args[1] == cast<MemSetInst>->getValue()
+  // Args[2] == cast<MemSetInst>->getLength()
+  auto Length = dyn_cast<BVConstExpr>(Args[2]);
+  if (!Length) {
     // Could emit a loop
     ErrorReporter::reportImplementationLimitation(
                        "memset with non-integer constant length not supported");
   }
 
-  auto ConstValue = dyn_cast<ConstantInt>(MSI->getValue());
-
-  if (!ConstValue) {
+  auto Value = dyn_cast<BVConstExpr>(Args[1]);
+  if (!Value) {
     // Could deal with expr
     ErrorReporter::reportImplementationLimitation(
                         "memset with non-integer constant value not supported");
   }
 
-  ref<Expr> Dst = translateValue(MSI->getDest(), BBB),
+  ref<Expr> Dst = Args[0],
             DstPtrArr = ArrayIdExpr::create(Dst, TM->defaultRange()),
             DstPtrOfs = ArrayOffsetExpr::create(Dst);
-  unsigned Len = Const->getZExtValue();
-  unsigned Val = ConstValue->getZExtValue();
+  unsigned Len = Length->getValue().getZExtValue();
+  unsigned Val = Value->getValue().getZExtValue();
   Type DstRangeTy = DstPtrArr->getType().range();
 
   if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
@@ -1036,25 +1033,23 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  auto MCI = dyn_cast<MemCpyInst>(CI);
-  auto Const = dyn_cast<ConstantInt>(MCI->getLength());
-
-  if (auto ZEI = dyn_cast<ZExtInst>(MCI->getLength()))
-    Const = dyn_cast<ConstantInt>(ZEI->getOperand(0));
-
-  if (!Const) {
+  // Args[0] == cast<MemSetInst>->getDest()
+  // Args[1] == cast<MemSetInst>->getSource()
+  // Args[2] == cast<MemSetInst>->getLength()
+  auto Length = dyn_cast<BVConstExpr>(Args[2]);
+  if (!Length) {
     // Could emit a loop
     ErrorReporter::reportImplementationLimitation(
                        "memcpy with non-integer constant length not supported");
   }
 
-  ref<Expr> Src = translateValue(MCI->getSource(), BBB),
-            Dst = translateValue(MCI->getDest(), BBB),
+  ref<Expr> Src = Args[1],
+            Dst = Args[0],
             SrcPtrArr = ArrayIdExpr::create(Src, TM->defaultRange()),
             DstPtrArr = ArrayIdExpr::create(Dst, TM->defaultRange()),
             SrcPtrOfs = ArrayOffsetExpr::create(Src),
             DstPtrOfs = ArrayOffsetExpr::create(Dst);
-  unsigned Len = Const->getZExtValue();
+  unsigned Len = Length->getValue().getZExtValue();
   Type SrcRangeTy = SrcPtrArr->getType().range(),
        DstRangeTy = DstPtrArr->getType().range();
 
