@@ -6,9 +6,9 @@
 #include "bugle/Type.h"
 #include "klee/util/GetElementPtrTypeIterator.h"
 #include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/DenseMap.h"
 #include "llvm/IR/DataLayout.h"
 #include <functional>
+#include <map>
 #include <set>
 
 namespace llvm {
@@ -56,11 +56,11 @@ private:
   std::set<std::string> GPUEntryPoints;
   RaceInstrumenter RaceInst;
 
-  llvm::DenseMap<llvm::Function *, bugle::Function *> FunctionMap;
-  llvm::DenseMap<llvm::Constant *, ref<Expr>> ConstantMap;
+  std::map<llvm::Function *, bugle::Function *> FunctionMap;
+  std::map<llvm::Constant *, ref<Expr>> ConstantMap;
 
-  llvm::DenseMap<GlobalArray *, llvm::Value *> GlobalValueMap;
-  llvm::DenseMap<llvm::Value *, GlobalArray *> ValueGlobalMap;
+  std::map<GlobalArray *, llvm::Value *> GlobalValueMap;
+  std::map<llvm::Value *, GlobalArray *> ValueGlobalMap;
 
   bool NeedAdditionalByteArrayModels;
   std::set<llvm::Value *> ModelAsByteArray;

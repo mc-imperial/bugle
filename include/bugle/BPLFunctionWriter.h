@@ -3,8 +3,8 @@
 
 #include "bugle/BPLExprWriter.h"
 #include "bugle/SourceLoc.h"
-#include "llvm/ADT/DenseMap.h"
 #include <functional>
+#include <map>
 #include <set>
 #include <vector>
 
@@ -27,7 +27,7 @@ class Var;
 class BPLFunctionWriter : BPLExprWriter {
   llvm::raw_ostream &OS;
   bugle::Function *F;
-  llvm::DenseMap<Expr *, unsigned> SSAVarIds;
+  std::map<Expr *, unsigned> SSAVarIds;
   std::set<GlobalArray *> ModifiesSet;
 
   void maybeWriteCaseSplit(llvm::raw_ostream &OS, Expr *PtrArr,

@@ -4,10 +4,10 @@
 #include "bugle/Ref.h"
 #include "bugle/Stmt.h"
 #include "bugle/Translator/TranslateModule.h"
-#include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringMap.h"
-#include <vector>
 #include <functional>
+#include <map>
+#include <vector>
 
 namespace llvm {
 
@@ -41,10 +41,10 @@ class TranslateFunction {
   TranslateModule *TM;
   Function *BF;
   llvm::Function *F;
-  llvm::DenseMap<llvm::BasicBlock *, BasicBlock *> BasicBlockMap;
-  llvm::DenseMap<llvm::Value *, ref<Expr> > ValueExprMap;
-  llvm::DenseMap<llvm::PHINode *, Var *> PhiVarMap;
-  llvm::DenseMap<llvm::PHINode *, std::vector<ref<Expr>>> PhiAssignsMap;
+  std::map<llvm::BasicBlock *, BasicBlock *> BasicBlockMap;
+  std::map<llvm::Value *, ref<Expr> > ValueExprMap;
+  std::map<llvm::PHINode *, Var *> PhiVarMap;
+  std::map<llvm::PHINode *, std::vector<ref<Expr>>> PhiAssignsMap;
   Var *ReturnVar;
   std::vector<ref<Expr>> ReturnVals;
   bool LoadsAreTemporal;
