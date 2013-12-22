@@ -9,6 +9,7 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
 using namespace bugle;
@@ -205,6 +206,8 @@ bugle::Type TranslateModule::translateType(llvm::Type *T) {
   Type::Kind K;
   if (T->isPointerTy())
     K = Type::Pointer;
+  else if (T->isFunctionTy())
+    ErrorReporter::reportImplementationLimitation("Unhandled function pointer");
   else
     K = Type::BV;
 
