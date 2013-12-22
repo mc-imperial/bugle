@@ -1432,6 +1432,10 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     E = TM->translateGEP(Ptr, klee::gep_type_begin(GEPI),
                          klee::gep_type_end(GEPI),
                          [&](Value *V) { return translateValue(V, BBB); });
+  } else if (auto EV = dyn_cast<ExtractValueInst>(I)) {
+    ref<Expr> Vec = translateValue(EV->getAggregateOperand(), BBB);
+    E = TM->translateEV(Vec, klee::ev_type_begin(EV), klee::ev_type_end(EV),
+                        [&](Value *V) { return translateValue(V, BBB); });
   } else if (auto AI = dyn_cast<AllocaInst>(I)) {
     GlobalArray *GA = TM->getGlobalArray(AI);
     E = PointerExpr::create(GlobalArrayRefExpr::create(GA),

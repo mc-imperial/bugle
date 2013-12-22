@@ -257,8 +257,7 @@ ref<Expr> TranslateModule::translateGEP(ref<Expr> Ptr,
       uint64_t addend = sl->getElementOffset((unsigned) ci->getZExtValue());
       PtrOfs = BVAddExpr::create(PtrOfs,
                  BVConstExpr::create(BM->getPointerWidth(), addend));
-    } else {
-      const SequentialType *set = cast<SequentialType>(*i);
+    } else if (SequentialType *set = cast<SequentialType>(*i)) {
       uint64_t elementSize =
         TD.getTypeStoreSize(set->getElementType());
       Value *operand = i.getOperand();
@@ -268,9 +267,31 @@ ref<Expr> TranslateModule::translateGEP(ref<Expr> Ptr,
         BVMulExpr::create(index,
           BVConstExpr::create(BM->getPointerWidth(), elementSize));
       PtrOfs = BVAddExpr::create(PtrOfs, addend);
+    } else {
+      ErrorReporter::reportImplementationLimitation("Unhandled GEP type");
     }
   }
   return PointerExpr::create(PtrArr, PtrOfs);
+}
+
+ref<Expr> TranslateModule::translateEV(ref<Expr> Vec,
+                                       klee::ev_type_iterator begin,
+                                       klee::ev_type_iterator end,
+                                      std::function<ref<Expr>(Value *)> xlate) {
+  ref<Expr> ValElem = Vec;
+  for (auto i = begin; i != end; ++i) {
+    if (StructType *st = dyn_cast<StructType>(*i)) {
+      const StructLayout *sl = TD.getStructLayout(st);
+      const ConstantInt *ci = cast<ConstantInt>(i.getOperand());
+      uint64_t addend = sl->getElementOffset((unsigned) ci->getZExtValue());
+      llvm::Type *Ty = st->getElementType((unsigned) ci->getZExtValue());
+      uint64_t size = TD.getTypeSizeInBits(Ty);
+      ValElem = BVExtractExpr::create(ValElem, addend, size);
+    } else {
+      ErrorReporter::reportImplementationLimitation("Unhandled EV type");
+    }
+  }
+  return ValElem;
 }
 
 ref<Expr> TranslateModule::translateBitCast(llvm::Type *SrcTy,
