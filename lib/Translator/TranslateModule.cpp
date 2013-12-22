@@ -140,11 +140,12 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
                           });
     }
     case Instruction::BitCast:
-#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 3)
-    case Instruction::AddrSpaceCast:
-#endif
       return translateBitCast(CE->getOperand(0)->getType(), CE->getType(),
                               translateConstant(CE->getOperand(0)));
+#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 3)
+    case Instruction::AddrSpaceCast:
+      return translateConstant(CE->getOperand(0));
+#endif
     case Instruction::Mul: {
       ref<Expr> LHS = translateConstant(CE->getOperand(0)),
                 RHS = translateConstant(CE->getOperand(1));
@@ -153,6 +154,10 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     case Instruction::PtrToInt: {
       ref<Expr> Op = translateConstant(CE->getOperand(0));
       return PtrToBVExpr::create(Op);
+    }
+    case Instruction::IntToPtr: {
+      ref<Expr> Op = translateConstant(CE->getOperand(0));
+      return BVToPtrExpr::create(Op);
     }
     default:
       ErrorReporter::reportImplementationLimitation("Unhandled constant expression");
