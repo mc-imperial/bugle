@@ -460,13 +460,18 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
     }
   }
 
-  // Success!  Record the global set.
-  auto i = GlobalSet.find((bugle::GlobalArray*)0);
-  if (i != GlobalSet.end()) {
+  // Remove null pointer candidates
+  auto null = (bugle::GlobalArray*)0;
+  if (GlobalSet.find(null) != GlobalSet.end()) {
     NextPtrMayBeNull.insert(Val);
-    GlobalSet.erase(i);
+    GlobalSet.erase(GlobalSet.find(null));
   }
 
+  // If we only had null pointers, there is nothing to do
+  if (GlobalSet.size() == 0)
+    return;
+
+  // Success!  Record the global set.
   auto &GlobalValSet = NextModelPtrAsGlobalOffset[Val];
   std::transform(GlobalSet.begin(), GlobalSet.end(),
                  std::inserter(GlobalValSet, GlobalValSet.begin()),
