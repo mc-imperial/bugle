@@ -864,7 +864,7 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
 
   ref<Expr> result;
   // If ArrRangeTy is Any, then we are using a null pointer.
-  if (ArrRangeTy != Type(Type::Any)) {
+  if (ArrRangeTy.isKind(Type::BV)) {
     std::vector<ref<Expr>> Elems;
     unsigned NumElems = AtomicTy.width/ArrRangeTy.width;
     for (unsigned i = 0; i < NumElems; ++i) {
@@ -879,10 +879,12 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
                                  BVConstExpr::create(TM->TD.getPointerSizeInBits(), 1));
     }
     result = Expr::createBVConcatN(Elems);
-  } else {
+  } else if (ArrRangeTy == Type(Type::Any)) {
     // If we have a null pointer, add a fake load expression.
-    ref<Expr> Div = BVConstExpr::createZero(AtomicTy.width/32);
+    ref<Expr> Div = BVConstExpr::createZero(AtomicTy.width);
     result = LoadExpr::create(PtrArr, Div, AtomicTy, LoadsAreTemporal);
+  } else {
+    ErrorReporter::reportFatalError("Unhandled atomic array type");
   }
 
   return result;
