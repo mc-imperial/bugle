@@ -48,12 +48,14 @@
 
 // Table 6.8
 
-#define acos __clc_acos
 _FLOAT_UNARY_MACRO(acos)
-
-#define atan2 __clc_atan2
+_FLOAT_UNARY_MACRO(atan)
 _FLOAT_BINARY_MACRO(atan2)
 _FLOAT_UNARY_MACRO(cbrt)
+_FLOAT_BINARY_MACRO(fmod)
+_FLOAT_UNARY_MACRO(log10)
+_FLOAT_UNARY_MACRO(log1p)
+_FLOAT_UNARY_MACRO(logb)
 
 #define _POWN_MACRO(FLOATGENTYPE, INTGENTYPE) \
     FLOATGENTYPE __pown##_##FLOATGENTYPE##_##INTGENTYPE(FLOATGENTYPE x, INTGENTYPE y); \
@@ -109,11 +111,6 @@ _FLOAT_UNARY_MACRO(half_rsqrt)
 _FLOAT_UNARY_MACRO(half_sin)
 _FLOAT_UNARY_MACRO(half_sqrt)
 _FLOAT_UNARY_MACRO(half_tan)
-
-_FLOAT_BINARY_MACRO(fmod)
-_FLOAT_UNARY_MACRO(log10)
-_FLOAT_UNARY_MACRO(log1p)
-_FLOAT_UNARY_MACRO(logb)
 
 #define INFINITY (1.0f/0.0f)
 #define NAN      (0.0f/0.0f)
