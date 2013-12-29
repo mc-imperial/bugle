@@ -461,7 +461,8 @@ void TranslateFunction::translate() {
     TM->computeValueModel(F, 0, ReturnVals);
 }
 
-ref<Expr> TranslateFunction::translateValue(llvm::Value *V,  bugle::BasicBlock *BBB) {
+ref<Expr> TranslateFunction::translateValue(llvm::Value *V,
+                                            bugle::BasicBlock *BBB) {
   if (isa<Instruction>(V) || isa<Argument>(V)) {
     auto MI = ValueExprMap.find(V);
     assert(MI != ValueExprMap.end());

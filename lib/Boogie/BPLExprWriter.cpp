@@ -98,7 +98,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << "$arrayId$$" << ArrE->getArray()->getName();
   } else if (isa<NullArrayRefExpr>(E)) {
     MW->UsesPointers = true;
-    OS << "$arrayId$$null";
+    OS << "$arrayId$$null$";
   } else if (auto ConcatE = dyn_cast<BVConcatExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
     std::string lhsS; llvm::raw_string_ostream lhsSS(lhsS);
@@ -652,7 +652,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         ErrorReporter::reportImplementationLimitation(
                      "Underlying array expressions for pointers not supported");
       }
-  } else if (auto MOE = dyn_cast<MemberOfExpr>(E)) {
+  } else if (auto MOE = dyn_cast<ArrayMemberOfExpr>(E)) {
     writeExpr(OS, MOE->getSubExpr().get(), Depth);
   } else {
     llvm_unreachable("Unsupported expression");

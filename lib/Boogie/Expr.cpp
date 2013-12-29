@@ -11,7 +11,7 @@ bool Expr::computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const {
   if (auto GARE = dyn_cast<GlobalArrayRefExpr>(this)) {
     GlobalSet.insert(GARE->getArray());
     return true;
-  } else if (auto MOE = dyn_cast<MemberOfExpr>(this)) {
+  } else if (auto MOE = dyn_cast<ArrayMemberOfExpr>(this)) {
     GlobalSet.insert(MOE->getElems().begin(), MOE->getElems().end());
     return true;
   } else if (isa<NullArrayRefExpr>(this)) {
@@ -305,8 +305,8 @@ ref<Expr> HavocExpr::create(Type type) {
   return new HavocExpr(type);
 }
 
-ref<Expr> MemberOfExpr::create(ref<Expr> expr,
-                               const std::set<GlobalArray *> &elems) {
+ref<Expr> ArrayMemberOfExpr::create(ref<Expr> expr,
+                                    const std::set<GlobalArray *> &elems) {
   assert(expr->getType().array);
   assert(!elems.empty());
 
@@ -317,7 +317,7 @@ ref<Expr> MemberOfExpr::create(ref<Expr> expr,
   }
 #endif
 
-  return new MemberOfExpr(Type(Type::ArrayOf, t), expr, elems);
+  return new ArrayMemberOfExpr(Type(Type::ArrayOf, t), expr, elems);
 }
 
 ref<Expr> BVToPtrExpr::create(ref<Expr> bv) {

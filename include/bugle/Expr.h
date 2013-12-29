@@ -45,7 +45,7 @@ public:
     AddNoovfl,
     AddNoovflPredicate,
     UninterpretedFunction,
-    MemberOf,
+    ArrayMemberOf,
     AtomicHasTakenValue,
 
     // Unary
@@ -333,8 +333,8 @@ public:
 /// Expression which denotes that its subexpression is an arrayId and a member
 /// of the elems set.  This is an unusual expression in that it only shows
 /// up in the output indirectly via case splits.
-class MemberOfExpr : public Expr {
-  MemberOfExpr(Type t, ref<Expr> expr, const std::set<GlobalArray *> &elems) :
+class ArrayMemberOfExpr : public Expr {
+  ArrayMemberOfExpr(Type t, ref<Expr> expr, const std::set<GlobalArray *> &elems) :
     Expr(t), expr(expr), elems(elems) {}
   ref<Expr> expr;
   std::set<GlobalArray *> elems;
@@ -342,7 +342,7 @@ class MemberOfExpr : public Expr {
 public:
   static ref<Expr> create(ref<Expr> expr, const std::set<GlobalArray *> &elems);
 
-  EXPR_KIND(MemberOf)
+  EXPR_KIND(ArrayMemberOf)
   ref<Expr> getSubExpr() const { return expr; }
   const std::set<GlobalArray *> &getElems() const { return elems; }
 };

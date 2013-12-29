@@ -136,7 +136,8 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         }
         OS << "{:parts " << AE->getParts() << "}";
         OS << "{:part " << AE->getPart() << "} ";
-        OS << "v" << id << ", $$" << GA->getName() << " := _ATOMIC_OP" << GA->getRangeType().width;
+        OS << "v" << id << ", $$" << GA->getName();
+        OS << " := _ATOMIC_OP" << GA->getRangeType().width;
         OS << "($$" << GA->getName() << ", ";
         writeExpr(OS, AE->getOffset().get());
         OS << ");";

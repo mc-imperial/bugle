@@ -7,7 +7,7 @@ using namespace bugle;
 void VarAssignStmt::check() {
   assert(!vars.empty() && vars.size() == values.size());
 #ifndef NDEBUG
-       auto li = vars.begin(), le = vars.end();
+  auto li = vars.begin(), le = vars.end();
   for (auto ri = values.begin(); li != le; ++li, ++ri) {
     assert((*li)->getType() == (*ri)->getType());
   }

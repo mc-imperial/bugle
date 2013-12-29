@@ -392,11 +392,10 @@ ref<Expr> TranslateModule::unmodelValue(Value *V, ref<Expr> E) {
       if (PtrMayBeNull.find(V) != PtrMayBeNull.end())
         Globals.insert((bugle::GlobalArray*)0);
 
-      return PointerExpr::create(MemberOfExpr::create(ArrayIdExpr::create(E,
-                                                                defaultRange()),
-                                                      Globals),
-                                 BVMulExpr::create(ArrayOffsetExpr::create(E),
-                                                   WidthCst));
+      auto AI = ArrayIdExpr::create(E, defaultRange());
+      auto AMO = ArrayMemberOfExpr::create(AI, Globals);
+      auto AO = BVMulExpr::create(ArrayOffsetExpr::create(E), WidthCst);
+      return PointerExpr::create(AMO, AO);
     }
   } else {
     return E;

@@ -164,7 +164,7 @@ void BPLModuleWriter::write() {
     OS << "const _WATCHED_OFFSET : " << IntRep->getType(M->getPointerWidth()) << ";\n";
 
   if (UsesPointers)
-    OS << "const unique $arrayId$$null : arrayId;\n\n";
+    OS << "const unique $arrayId$$null$ : arrayId;\n\n";
 
   for (auto i = IntrinsicSet.begin(), e = IntrinsicSet.end(); i != e; ++i) {
     OS << *i << "\n";
