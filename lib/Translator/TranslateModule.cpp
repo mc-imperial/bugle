@@ -91,10 +91,11 @@ bool TranslateModule::hasInitializer(GlobalVariable *GV) {
       GV->getType()->getAddressSpace() == AddressSpaces::group_shared)
     return false;
 
-  // CUDA __constant__ variables have initializers that may have been
-  // overwritten by the host program
+  // CUDA __constant__ and __device__ variables have initializers that may
+  // have been overwritten by the host program
   if (SL == SL_CUDA &&
-      GV->getType()->getAddressSpace() == AddressSpaces::constant)
+      (GV->getType()->getAddressSpace() == AddressSpaces::constant ||
+       GV->getType()->getAddressSpace() == AddressSpaces::global))
     return false;
 
   return true;
