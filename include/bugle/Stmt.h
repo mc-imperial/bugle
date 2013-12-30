@@ -21,7 +21,8 @@ public:
     Return,
     Assume,
     Assert,
-    Call
+    Call,
+    CallMemberOf
   };
 
   virtual ~Stmt() {}
@@ -150,6 +151,18 @@ public:
   Function *getCallee() const { return callee; }
   const std::vector<ref<Expr>> &getArgs() const { return args; }
 };
+
+class CallMemberOfStmt : public Stmt {
+  ref<Expr> func;
+  std::vector<Stmt *> callStmts;
+
+public:
+  CallMemberOfStmt(ref<Expr> func, std::vector<Stmt *> &callStmts);
+
+  STMT_KIND(CallMemberOf)
+  ref<Expr> getFunc() const { return func; }
+  std::vector<Stmt *> getCallStmts() const { return callStmts; }
+  };
 
 }
 

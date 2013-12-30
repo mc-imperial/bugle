@@ -41,8 +41,13 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned Offset,
       BM->addGlobalInit(GA, Offset/InitByteWidth, Const);
     } else if (GATy.isKind(Type::BV) && Offset % (GATy.width/8) == 0 &&
                InitByteWidth % (GATy.width/8) == 0) {
-      if (Init->getType()->isPointerTy())
-        Const = PtrToBVExpr::create(Const);
+      llvm::Type *InitTy = Init->getType();
+      if (InitTy->isPointerTy()) {
+        if (InitTy->getPointerElementType()->isFunctionTy())
+          Const = FuncPtrToBVExpr::create(Const);
+        else
+          Const = PtrToBVExpr::create(Const);
+      }
 
       unsigned GAWidth = GATy.width;
       for (unsigned i = 0; i < Const->getType().width/GAWidth; ++i) {
@@ -123,6 +128,8 @@ ref<Expr> TranslateModule::translateArbitrary(bugle::Type t) {
   ref<Expr> E = BVConstExpr::createZero(t.width);
   if (t.isKind(Type::Pointer))
     return BVToPtrExpr::create(E);
+  else if (t.isKind(Type::FunctionPointer))
+    return BVToFuncPtrExpr::create(E);
   else
     return E;
 }
@@ -155,11 +162,19 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     }
     case Instruction::PtrToInt: {
       ref<Expr> Op = translateConstant(CE->getOperand(0));
-      return PtrToBVExpr::create(Op);
+      Type OpTy = Op->getType();
+      if (OpTy.isKind(Type::Pointer))
+        return PtrToBVExpr::create(Op);
+      else if (OpTy.isKind(Type::FunctionPointer))
+        return FuncPtrToBVExpr::create(Op);
     }
     case Instruction::IntToPtr: {
       ref<Expr> Op = translateConstant(CE->getOperand(0));
-      return BVToPtrExpr::create(Op);
+      assert(CE->getType()->isPointerTy());
+      if (CE->getType()->getPointerElementType()->isFunctionTy())
+        return BVToFuncPtrExpr::create(Op);
+      else
+        return BVToPtrExpr::create(Op);
     }
     default:
       ErrorReporter::reportImplementationLimitation("Unhandled constant expression");
@@ -169,6 +184,14 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     ref<Expr> Arr = translateGlobalVariable(GV);
     return PointerExpr::create(Arr,
                             BVConstExpr::createZero(TD.getPointerSizeInBits()));
+  }
+  if (auto F = dyn_cast<llvm::Function>(C)) {
+    if (FunctionMap.find(F) == FunctionMap.end()) {
+      std::string name = ErrorReporter::demangleName(F->getName(), SL == SL_CUDA);
+      std::string msg = "Unsupported function pointer '" + name + "'";
+      ErrorReporter::reportImplementationLimitation(msg);
+    }
+    return FunctionPointerExpr::create(F->getName(), TD.getPointerSizeInBits());
   }
   if (auto UV = dyn_cast<UndefValue>(C)) {
     return translateArbitrary(translateType(UV->getType()));
@@ -197,7 +220,10 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     return BVConstExpr::createZero(TD.getTypeSizeInBits(CAZ->getType()));
   }
   if (isa<ConstantPointerNull>(C)) {
-    return PointerExpr::create(NullArrayRefExpr::create(),
+    if (C->getType()->getPointerElementType()->isFunctionTy())
+      return NullFunctionPointerExpr::create(TD.getPointerSizeInBits());
+    else
+      return PointerExpr::create(NullArrayRefExpr::create(),
                             BVConstExpr::createZero(TD.getPointerSizeInBits()));
   }
   ErrorReporter::reportImplementationLimitation("Unhandled constant");
@@ -205,11 +231,13 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
 
 bugle::Type TranslateModule::translateType(llvm::Type *T) {
   Type::Kind K;
-  if (T->isPointerTy())
-    K = Type::Pointer;
-  else if (T->isFunctionTy())
-    ErrorReporter::reportImplementationLimitation("Unhandled function pointer");
-  else
+  if (T->isPointerTy()) {
+    llvm::Type *ElTy = T->getPointerElementType();
+    if (ElTy->isFunctionTy())
+      K = Type::FunctionPointer;
+    else
+      K = Type::Pointer;
+  } else
     K = Type::BV;
 
   return Type(K, TD.getTypeSizeInBits(T));
@@ -306,7 +334,16 @@ ref<Expr> TranslateModule::translateEV(ref<Expr> Vec,
 ref<Expr> TranslateModule::translateBitCast(llvm::Type *SrcTy,
                                             llvm::Type *DestTy,
                                             ref<Expr> Op) {
-  return Op;
+  if (SrcTy->isPointerTy() && DestTy->isPointerTy() &&
+      SrcTy->getPointerElementType()->isFunctionTy() &&
+      !DestTy->getPointerElementType()->isFunctionTy())
+    return FuncPtrToPtrExpr::create(Op);
+  else if (SrcTy->isPointerTy() && DestTy->isPointerTy() &&
+           !SrcTy->getPointerElementType()->isFunctionTy() &&
+           DestTy->getPointerElementType()->isFunctionTy())
+    return PtrToFuncPtrExpr::create(Op);
+  else
+    return Op;
 }
 
 bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
@@ -413,6 +450,8 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
 
   if (!VTy->isPointerTy())
     return;
+  if (VTy->getPointerElementType()->isFunctionTy())
+    return;
   if (ModelPtrAsGlobalOffset.find(Val) != ModelPtrAsGlobalOffset.end())
     return;
 
@@ -484,6 +523,80 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
                    [&](GlobalArray *A) { return GlobalValueMap[A]; });
     NeedAdditionalByteArrayModels = true;
   }
+}
+
+Stmt* TranslateModule::modelCallStmt(llvm::Type *T, llvm::Function *F,
+                                     ref<Expr> Val,
+                                     std::vector<ref<Expr>> &args) {
+  std::map<llvm::Function *, Function *> FS;
+
+  if (F) {
+    auto FI = FunctionMap.find(F);
+    assert(FI != FunctionMap.end() && "Couldn't find function in map!");
+    FS[F] = (FI->second);
+  } else {
+    for (auto i = FunctionMap.begin(), e = FunctionMap.end(); i != e; ++i) {
+      if (i->first->getType() == T && !i->second->isEntryPoint())
+        FS[i->first] = i->second;
+    }
+  }
+
+  std::vector<Stmt *> CSS;
+  for (auto i = FS.begin(), e = FS.end(); i != e; ++i) {
+    std::vector<ref<Expr>> fargs;
+    std::transform(args.begin(), args.end(), i->first->arg_begin(),
+                   std::back_inserter(fargs), [&](ref<Expr> E, Argument &Arg) {
+                     return modelValue(&Arg, E);
+                   });
+    auto CS = new CallStmt(i->second, fargs);
+    CallSites[i->first].push_back(&CS->getArgs());
+    CSS.push_back(CS);
+  }
+
+  if (CSS.size() == 0)
+    ErrorReporter::reportFatalError("No functions for function pointer found");
+
+  if (F)
+    return *CSS.begin();
+  else
+    return new CallMemberOfStmt(Val, CSS);
+}
+
+ref<Expr> TranslateModule::modelCallExpr(llvm::Type *T, llvm::Function *F,
+                                         ref<Expr> Val,
+                                         std::vector<ref<Expr>> &args) {
+  std::map<llvm::Function *, Function *> FS;
+
+  if (F) {
+    auto FI = FunctionMap.find(F);
+    assert(FI != FunctionMap.end() && "Couldn't find function in map!");
+    FS[F] = (FI->second);
+  } else {
+    for (auto i = FunctionMap.begin(), e = FunctionMap.end(); i != e; ++i)
+      if (i->first->getType() == T  && !i->second->isEntryPoint())
+        FS[i->first] = i->second;
+  }
+
+  std::vector<ref<Expr>> CES;
+  for (auto i = FS.begin(), e = FS.end(); i != e; ++i) {
+    std::vector<ref<Expr>> fargs;
+    std::transform(args.begin(), args.end(), i->first->arg_begin(),
+                   std::back_inserter(fargs), [&](ref<Expr> E, Argument &Arg) {
+                     return modelValue(&Arg, E);
+                   });
+    ref<Expr> E = CallExpr::create(i->second, fargs);
+    auto CE = dyn_cast<CallExpr>(E);
+    CallSites[i->first].push_back(&CE->getArgs());
+    CES.push_back(CE);
+  }
+
+  if (CES.size() == 0)
+    ErrorReporter::reportFatalError("No functions for function pointer found");
+
+  if (F)
+    return *CES.begin();
+  else
+    return CallMemberOfExpr::create(Val, CES);
 }
 
 void TranslateModule::translate() {

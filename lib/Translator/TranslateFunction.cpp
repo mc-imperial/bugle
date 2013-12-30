@@ -190,6 +190,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__return_val_int4"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_bool"] = &TranslateFunction::handleReturnVal;
     fns["__return_val_ptr"] = &TranslateFunction::handleReturnVal;
+    fns["__return_val_funptr"] = &TranslateFunction::handleReturnVal;
     fns["__old_int"] = &TranslateFunction::handleOld;
     fns["__old_bool"] = &TranslateFunction::handleOld;
     fns["__other_int"] = &TranslateFunction::handleOtherInt;
@@ -416,7 +417,8 @@ void TranslateFunction::translate() {
 
   unsigned PtrSize = TM->TD.getPointerSizeInBits();
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
-    if (isGPUEntryPoint && i->getType()->isPointerTy()) {
+    if (isGPUEntryPoint && i->getType()->isPointerTy() &&
+        !i->getType()->getPointerElementType()->isFunctionTy()) {
       GlobalArray *GA = TM->getGlobalArray(&*i);
       if (TM->SL == TranslateModule::SL_CUDA)
         GA->addAttribute("global");
@@ -1464,6 +1466,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           addEvalStmt(BBB, I, ValElem);
           if (LoadElTy.isKind(Type::Pointer))
             ValElem = PtrToBVExpr::create(ValElem);
+          else if (LoadElTy.isKind(Type::FunctionPointer))
+            ValElem = FuncPtrToBVExpr::create(ValElem);
           ElemsLoaded.push_back(ValElem);
         }
         E = Expr::createBVConcatN(ElemsLoaded);
@@ -1483,6 +1487,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       E = Expr::createBVConcatN(BytesLoaded);
       if (LoadTy.isKind(Type::Pointer))
         E = BVToPtrExpr::create(E);
+      else if (LoadTy.isKind(Type::FunctionPointer))
+        E = BVToFuncPtrExpr::create(E);
     } else {
       TM->NeedAdditionalByteArrayModels = true;
       std::set<GlobalArray *> Globals;
@@ -1525,6 +1531,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             BVExtractExpr::create(Val, i*StoreElTy.width, StoreElTy.width);
           if (StoreElTy.isKind(Type::Pointer))
             ValElem = BVToPtrExpr::create(ValElem);
+          else if (StoreElTy.isKind(Type::FunctionPointer))
+            ValElem = BVToFuncPtrExpr::create(ValElem);
           StoreStmt* SS = new StoreStmt(PtrArr, ElemOfs, ValElem);
           SS->setSourceLocs(currentSourceLocs);
           BBB->addStmt(SS);
@@ -1537,6 +1545,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
       if (StoreTy.isKind(Type::Pointer)) {
         Val = PtrToBVExpr::create(Val);
+        addEvalStmt(BBB, I, Val);
+      } else if (StoreTy.isKind(Type::FunctionPointer)) {
+        Val = FuncPtrToBVExpr::create(Val);
         addEvalStmt(BBB, I, Val);
       }
       for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
@@ -1583,6 +1594,20 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         case ICmpInst::ICMP_SGT: E = Expr::createPtrLt(RHS, LHS); break;
         case ICmpInst::ICMP_UGE:
         case ICmpInst::ICMP_SGE: E = Expr::createPtrLe(RHS, LHS); break;
+        default:
+          ErrorReporter::reportImplementationLimitation("Unsupported ptr icmp");
+        }
+      } else if (LHS->getType().isKind(Type::FunctionPointer)) {
+        assert(RHS->getType().isKind(Type::FunctionPointer));
+        switch (II->getPredicate()) {
+        case ICmpInst::ICMP_ULT:
+        case ICmpInst::ICMP_SLT: E = Expr::createFuncPtrLt(LHS, RHS); break;
+        case ICmpInst::ICMP_ULE:
+        case ICmpInst::ICMP_SLE: E = Expr::createFuncPtrLe(LHS, RHS); break;
+        case ICmpInst::ICMP_UGT:
+        case ICmpInst::ICMP_SGT: E = Expr::createFuncPtrLt(RHS, LHS); break;
+        case ICmpInst::ICMP_UGE:
+        case ICmpInst::ICMP_SGE: E = Expr::createFuncPtrLe(RHS, LHS); break;
         default:
           ErrorReporter::reportImplementationLimitation("Unsupported ptr icmp");
         }
@@ -1681,10 +1706,18 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     });
   } else if (auto I2PI = dyn_cast<IntToPtrInst>(I)) {
     ref<Expr> Op = translateValue(I2PI->getOperand(0), BBB);
-    E = BVToPtrExpr::create(Op);
+    assert(I2PI->getType()->isPointerTy());
+    if (I2PI->getType()->getPointerElementType()->isFunctionTy())
+      E = BVToFuncPtrExpr::create(Op);
+    else
+      E = BVToPtrExpr::create(Op);
   } else if (auto P2II = dyn_cast<PtrToIntInst>(I)) {
     ref<Expr> Op = translateValue(P2II->getOperand(0), BBB);
-    E = PtrToBVExpr::create(Op);
+    Type OpTy = Op->getType();
+    if (OpTy.isKind(Type::Pointer))
+      E = PtrToBVExpr::create(Op);
+    else if (OpTy.isKind(Type::FunctionPointer))
+      E = FuncPtrToBVExpr::create(Op);
   } else if (auto BCI = dyn_cast<BitCastInst>(I)) {
     ref<Expr> Op = translateValue(BCI->getOperand(0), BBB);
     E = TM->translateBitCast(BCI->getSrcTy(), BCI->getDestTy(), Op);
@@ -1757,11 +1790,6 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     }
     E = Expr::createBVConcatN(Elems);
   } else if (auto CI = dyn_cast<CallInst>(I)) {
-    auto F = CI->getCalledFunction();
-
-    if (!F)
-      ErrorReporter::reportImplementationLimitation("Only direct calls supported");
-
     CallSite CS(CI);
     std::vector<ref<Expr>> Args;
     std::transform(CS.arg_begin(), CS.arg_end(), std::back_inserter(Args),
@@ -1780,32 +1808,29 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         ErrorReporter::reportImplementationLimitation(msg);
       }
     } else {
-      auto SFI = SpecialFunctionMap.Functions.find(F->getName());
+      auto F = CI->getCalledFunction();
+      auto SFI = SpecialFunctionMap.Functions.end();
+      if (F)
+        SFI = SpecialFunctionMap.Functions.find(F->getName());
       if (SFI != SpecialFunctionMap.Functions.end()) {
         E = (this->*SFI->second)(BBB, CI, Args);
         assert(E.isNull() == CI->getType()->isVoidTy());
         if (E.isNull())
           return;
       } else {
-        std::transform(Args.begin(), Args.end(), F->arg_begin(), Args.begin(),
-                       [&](ref<Expr> E, Argument &Arg) {
-                         return TM->modelValue(&Arg, E);
-                       });
-
-        auto FI = TM->FunctionMap.find(F);
-        assert(FI != TM->FunctionMap.end() && "Couldn't find function in map!");
         if (CI->getType()->isVoidTy()) {
-          auto CS = new CallStmt(FI->second, Args);
+          auto V = CI->getCalledValue();
+          auto CS = TM->modelCallStmt(V->getType(), CI->getCalledFunction(),
+                                      translateValue(V, BBB), Args);
           CS->setSourceLocs(currentSourceLocs);
           BBB->addStmt(CS);
-          TM->CallSites[F].push_back(&CS->getArgs());
           return;
         } else {
-          E = CallExpr::create(FI->second, Args);
+          auto V = CI->getCalledValue();
+          E = TM->modelCallExpr(V->getType(), CI->getCalledFunction(),
+                                translateValue(V, BBB), Args);
           addEvalStmt(BBB, I, E);
           ValueExprMap[I] = TM->unmodelValue(F, E);
-          if (auto CE = dyn_cast<CallExpr>(E))
-            TM->CallSites[F].push_back(&CE->getArgs());
           return;
         }
       }

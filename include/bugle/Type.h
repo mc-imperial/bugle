@@ -14,6 +14,7 @@ struct Type {
     Bool,
     BV,
     Pointer,
+    FunctionPointer,
 
     // The following two types are used by the translator as array range types
     // during range deduction.  Unknown effectively means "bottom" and Any means

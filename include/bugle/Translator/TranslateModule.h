@@ -13,6 +13,7 @@
 
 namespace llvm {
 
+class CallInst;
 class Constant;
 class GlobalVariable;
 class Module;
@@ -26,6 +27,7 @@ class Expr;
 class Function;
 class GlobalArray;
 class Module;
+class Stmt;
 class Var;
 
 class TranslateModule {
@@ -105,6 +107,11 @@ private:
   ref<Expr> unmodelValue(llvm::Value *V, ref<Expr> E);
   void computeValueModel(llvm::Value *Val, Var *Var,
                          llvm::ArrayRef<ref<Expr>> Assigns);
+
+  Stmt* modelCallStmt(llvm::Type *T, llvm::Function *F, ref<Expr> Val,
+                      std::vector<ref<Expr>> &args);
+  ref<Expr> modelCallExpr(llvm::Type *T, llvm::Function *F, ref<Expr> Val,
+                          std::vector<ref<Expr>> &args);
 
   Type defaultRange() {
     return ModelAllAsByteArray ? Type(Type::BV, 8) : Type(Type::Unknown);

@@ -21,7 +21,8 @@ bool InlinePass::doInline(llvm::Instruction *I, llvm::Function *OF) {
   auto F = CI->getCalledFunction();
 
   if (!F)
-    return false;
+    ErrorReporter::reportImplementationLimitation(
+                              "Function pointers not compatible with inlining");
 
   if (!(TranslateModule::isGPUEntryPoint(OF, M, SL, GPUEntryPoints) ||
         TranslateFunction::isStandardEntryPoint(SL, OF->getName()))) {

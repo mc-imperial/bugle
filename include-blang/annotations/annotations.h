@@ -81,6 +81,9 @@ _DEVICE_QUALIFIER void __global_ensures(bool expr);
 _DEVICE_QUALIFIER int __return_val_int(void);
 _DEVICE_QUALIFIER bool __return_val_bool(void);
 _DEVICE_QUALIFIER void* __return_val_ptr(void);
+_DEVICE_QUALIFIER void* __return_val_funptr(void);
+#define __return_val_funptr(X) \
+  ((X)__return_val_funptr())
 #ifdef __OPENCL_VERSION__
 _DEVICE_QUALIFIER int4 __return_val_int4(void);
 #endif

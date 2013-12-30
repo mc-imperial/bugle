@@ -29,11 +29,14 @@ public:
     NullArrayRef,
     ConstantArrayRef,
     Pointer,
+    NullFunctionPointer,
+    FunctionPointer,
     Load,
     Atomic,
     VarRef,
     SpecialVarRef,
     Call,
+    CallMemberOf,
     BVExtract,
     IfThenElse,
     Havoc,
@@ -53,6 +56,10 @@ public:
     ArrayOffset,
     BVToPtr,
     PtrToBV,
+    BVToFuncPtr,
+    FuncPtrToBV,
+    PtrToFuncPtr,
+    FuncPtrToPtr,
     BVToBool,
     BoolToBV,
     BVZExt,
@@ -118,6 +125,7 @@ public:
     FEq,
     FUno,
     PtrLt,
+    FuncPtrLt,
     Implies,
 
     BinaryFirst = Eq,
@@ -129,6 +137,8 @@ public:
 
   static ref<Expr> createPtrLt(ref<Expr> lhs, ref<Expr> rhs);
   static ref<Expr> createPtrLe(ref<Expr> lhs, ref<Expr> rhs);
+  static ref<Expr> createFuncPtrLt(ref<Expr> lhs, ref<Expr> rhs);
+  static ref<Expr> createFuncPtrLe(ref<Expr> lhs, ref<Expr> rhs);
   static ref<Expr> createBVConcatN(const std::vector<ref<Expr>> &args);
   static ref<Expr> createNeZero(ref<Expr> bv);
   static ref<Expr> createExactBVUDiv(ref<Expr> lhs, uint64_t rhs,
@@ -228,6 +238,28 @@ public:
   EXPR_KIND(Pointer)
   ref<Expr> getArray() const { return array; }
   ref<Expr> getOffset() const { return offset; }
+};
+
+class NullFunctionPointerExpr : public Expr {
+  NullFunctionPointerExpr(unsigned ptrWidth) :
+    Expr(Type(Type::FunctionPointer, ptrWidth)) {}
+
+public:
+  static ref<Expr> create(unsigned ptrWidth);
+
+  EXPR_KIND(NullFunctionPointer)
+};
+
+class FunctionPointerExpr : public Expr {
+  FunctionPointerExpr(std::string funcName, unsigned ptrWidth) :
+    Expr(Type(Type::FunctionPointer, ptrWidth)), funcName(funcName) {}
+  std::string funcName;
+
+public:
+  static ref<Expr> create(std::string funcName, unsigned ptrWidth);
+
+  EXPR_KIND(FunctionPointer)
+  std::string getFuncName() const { return funcName; }
 };
 
 class LoadExpr : public Expr {
@@ -383,6 +415,10 @@ public:
 UNARY_EXPR(ArrayOffset)
 UNARY_EXPR(BVToPtr)
 UNARY_EXPR(PtrToBV)
+UNARY_EXPR(BVToFuncPtr)
+UNARY_EXPR(FuncPtrToBV)
+UNARY_EXPR(PtrToFuncPtr)
+UNARY_EXPR(FuncPtrToPtr)
 UNARY_EXPR(BVToBool)
 UNARY_EXPR(BoolToBV)
 UNARY_EXPR(FAbs)
@@ -484,6 +520,7 @@ BINARY_EXPR(FLt)
 BINARY_EXPR(FEq)
 BINARY_EXPR(FUno)
 BINARY_EXPR(PtrLt)
+BINARY_EXPR(FuncPtrLt)
 BINARY_EXPR(Implies)
 
 #undef BINARY_EXPR
@@ -501,6 +538,21 @@ public:
   Function *getCallee() const { return callee; }
   const std::vector<ref<Expr>> &getArgs() const { return args; }
 };
+
+class CallMemberOfExpr : public Expr {
+  ref<Expr> func;
+  std::vector<ref<Expr>> callExprs;
+  CallMemberOfExpr(Type t, ref<Expr> func, std::vector<ref<Expr>> callExprs) :
+    Expr(t), func(func), callExprs(callExprs) {}
+
+public:
+  static ref<Expr> create(ref<Expr> func, std::vector<ref<Expr>> &callExprs);
+
+  EXPR_KIND(CallMemberOf)
+  ref<Expr> getFunc() const { return func; }
+  std::vector<ref<Expr>> getCallExprs() const { return callExprs; }
+};
+
 
 class AccessHasOccurredExpr : public Expr {
   AccessHasOccurredExpr(ref<Expr> array, bool isWrite) :

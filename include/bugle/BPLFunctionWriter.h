@@ -18,6 +18,7 @@ namespace bugle {
 
 class BPLModuleWriter;
 class BasicBlock;
+class CallStmt;
 class Expr;
 class Function;
 class GlobalArray;
@@ -35,6 +36,7 @@ class BPLFunctionWriter : BPLExprWriter {
                            std::function<void(GlobalArray *, unsigned int)> F);
   void writeVar(llvm::raw_ostream &OS, Var *V);
   void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0);
+  void writeCallStmt(llvm::raw_ostream &OS, CallStmt *CS);
   void writeStmt(llvm::raw_ostream &OS, Stmt *S);
   void writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB);
   void writeSourceLocs(llvm::raw_ostream &OS, const SourceLocsRef &sourcelocs);

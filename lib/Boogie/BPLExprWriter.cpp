@@ -87,6 +87,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << ", ";
     writeExpr(OS, PtrE->getOffset().get());
     OS << ")";
+  } else if (dyn_cast<NullFunctionPointerExpr>(E)) {
+    MW->UsesFunctionPointers = true;
+    OS << "$functionId$$null$";
+  } else if (auto FuncPtrE = dyn_cast<FunctionPointerExpr>(E)) {
+    MW->UsesFunctionPointers = true;
+    OS << "$functionId$$" << FuncPtrE->getFuncName();
   } else if (auto VarE = dyn_cast<VarRefExpr>(E)) {
     OS << "$" << VarE->getVar()->getName();
   } else if (auto SVarE = dyn_cast<SpecialVarRefExpr>(E)) {
@@ -173,6 +179,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       writeExpr(OS, i->get());
     }
     OS << ")";
+  } else if (dyn_cast<CallMemberOfExpr>(E)) {
+    llvm_unreachable("Handled at statement level");
   } else if (auto ANOVE = dyn_cast<AddNoovflExpr>(E)) {
     unsigned width = ANOVE->getFirst()->getType().width;
     OS << "$__add_noovfl_" << (ANOVE->getIsSigned() ? "signed" : "unsigned")
@@ -373,6 +381,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
     case Expr::BVToPtr:
+    case Expr::BVToFuncPtr:
     case Expr::FAbs:
     case Expr::FCos:
     case Expr::FExp:
@@ -387,10 +396,13 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     case Expr::FSin:
     case Expr::FSqrt:
     case Expr::FRsqrt:
+    case Expr::FuncPtrToBV:
+    case Expr::FuncPtrToPtr:
     case Expr::OtherInt:
     case Expr::OtherBool:
     case Expr::OtherPtrBase:
     case Expr::PtrToBV:
+    case Expr::PtrToFuncPtr:
     case Expr::SIToFP:
     case Expr::UIToFP:
     case Expr::GetImageWidth:
@@ -402,6 +414,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::BVToPtr:      IntS << "BV" << FromWidth
                                     << "_TO_PTR";               break;
       case Expr::PtrToBV:      IntS << "PTR_TO_BV" << ToWidth;  break;
+      case Expr::BVToFuncPtr:  IntS << "BV" << FromWidth
+                                    << "_TO_FUNCPTR";           break;
+      case Expr::FuncPtrToBV:  IntS << "FUNCPTR_TO_BV"
+                                    << ToWidth;                 break;
+      case Expr::PtrToFuncPtr: IntS << "PTR_TO_FUNCPTR";        break;
+      case Expr::FuncPtrToPtr: IntS << "FUNCPTR_TO_PTR";        break;
       case Expr::FAbs:         IntS << "FABS" << ToWidth;       break;
       case Expr::FCos:         IntS << "FCOS" << ToWidth;       break;
       case Expr::FExp:         IntS << "FEXP" << ToWidth;       break;
@@ -562,10 +580,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       });
       break;
     }
-    case Expr::PtrLt: {
+    case Expr::PtrLt:
+    case Expr::FuncPtrLt: {
       const char *IntName;
       switch (BinE->getKind()) {
       case Expr::PtrLt:     IntName = "PTR_LT"; break;
+      case Expr::FuncPtrLt: IntName = "FUNCPTR_LT"; break;
       default:  llvm_unreachable("huh?");
       }
       OS << IntName;

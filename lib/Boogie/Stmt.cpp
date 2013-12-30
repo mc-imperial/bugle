@@ -21,3 +21,12 @@ StoreStmt::StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value) :
   assert(array->getType().kind == Type::Any || value->getType().isKind(array->getType().kind));
   assert(array->getType().kind == Type::Any || value->getType().width == array->getType().width);
 }
+
+CallMemberOfStmt::CallMemberOfStmt(ref<Expr> func,
+                                   std::vector<Stmt *> &callStmts) :
+    func(func), callStmts(callStmts) {
+#ifndef NDEBUG
+  for (auto i = callStmts.begin(), e = callStmts.end(); i != e; ++i)
+    assert(isa<CallStmt>(*i));
+#endif
+}

@@ -76,6 +76,14 @@ ref<Expr> PointerExpr::create(ref<Expr> array, ref<Expr> offset) {
   return new PointerExpr(array, offset);
 }
 
+ref<Expr> NullFunctionPointerExpr::create(unsigned ptrWidth) {
+  return new NullFunctionPointerExpr(ptrWidth);
+}
+
+ref<Expr> FunctionPointerExpr::create(std::string funcName, unsigned ptrWidth) {
+  return new FunctionPointerExpr(funcName, ptrWidth);
+}
+
 ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset, Type type, bool isTemporal) {
   assert(array->getType().array);
   assert(offset->getType().isKind(Type::BV));
@@ -344,6 +352,52 @@ ref<Expr> PtrToBVExpr::create(ref<Expr> ptr) {
       return BVZExtExpr::create(ty.width, e->getOffset());
 
   return new PtrToBVExpr(Type(Type::BV, ty.width), ptr);
+}
+
+ref<Expr> BVToFuncPtrExpr::create(ref<Expr> bv) {
+  const Type &ty = bv->getType();
+  assert(ty.isKind(Type::BV));
+
+  if (auto e = dyn_cast<FuncPtrToBVExpr>(bv))
+    return e->getSubExpr();
+
+  return new BVToFuncPtrExpr(Type(Type::FunctionPointer, ty.width), bv);
+}
+
+ref<Expr> FuncPtrToBVExpr::create(ref<Expr> ptr) {
+  const Type &ty = ptr->getType();
+  assert(ty.isKind(Type::FunctionPointer));
+
+  if (auto e = dyn_cast<BVToFuncPtrExpr>(ptr))
+    return e->getSubExpr();
+
+  return new FuncPtrToBVExpr(Type(Type::BV, ty.width), ptr);
+}
+
+ref<Expr> PtrToFuncPtrExpr::create(ref<Expr> ptr) {
+  const Type &ty = ptr->getType();
+  if (ty.isKind(Type::FunctionPointer))
+    return ptr;
+
+  assert(ty.isKind(Type::Pointer));
+
+  if (auto e = dyn_cast<FuncPtrToPtrExpr>(ptr))
+    return e->getSubExpr();
+
+  return new PtrToFuncPtrExpr(Type(Type::FunctionPointer, ty.width), ptr);
+}
+
+ref<Expr> FuncPtrToPtrExpr::create(ref<Expr> ptr) {
+  const Type &ty = ptr->getType();
+  if (ty.isKind(Type::Pointer))
+    return ptr;
+
+  assert(ty.isKind(Type::FunctionPointer));
+
+  if (auto e = dyn_cast<PtrToFuncPtrExpr>(ptr))
+    return e->getSubExpr();
+
+  return new FuncPtrToPtrExpr(Type(Type::Pointer, ty.width), ptr);
 }
 
 ref<Expr> BVToBoolExpr::create(ref<Expr> bv) {
@@ -798,6 +852,23 @@ ref<Expr> PtrLtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new PtrLtExpr(Type(Type::Bool), lhs, rhs);
 }
 
+ref<Expr> Expr::createFuncPtrLt(ref<Expr> lhs, ref<Expr> rhs) {
+  return FuncPtrLtExpr::create(lhs, rhs);
+}
+
+ref<Expr> Expr::createFuncPtrLe(ref<Expr> lhs, ref<Expr> rhs) {
+  return IfThenElseExpr::create(EqExpr::create(lhs, rhs),
+                                BoolConstExpr::create(true),
+                                FuncPtrLtExpr::create(lhs, rhs));
+}
+
+ref<Expr> FuncPtrLtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().isKind(Type::FunctionPointer));
+  assert(rhs->getType().isKind(Type::FunctionPointer));
+
+  return new FuncPtrLtExpr(Type(Type::Bool), lhs, rhs);
+}
+
 ref<Expr> ImpliesExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhs->getType().isKind(Type::Bool));
   assert(rhs->getType().isKind(Type::Bool));
@@ -808,6 +879,20 @@ ref<Expr> ImpliesExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 ref<Expr> CallExpr::create(Function *f, const std::vector<ref<Expr>> &args) {
   assert(f->return_begin()+1 == f->return_end());
   return new CallExpr((*f->return_begin())->getType(), f, args);
+}
+
+ref<Expr> CallMemberOfExpr::create(ref<Expr> f, std::vector<ref<Expr>> &ces) {
+  assert(f->getType().isKind(Type::FunctionPointer));
+  assert(ces.size() > 0);
+  Type T = (*ces.begin())->getType();
+#ifndef NDEBUG
+  for (auto i = ces.begin(), e = ces.end(); i != e; ++i) {
+    auto CE = dyn_cast<CallExpr>(*i);
+    assert(CE);
+    assert(CE->getType() == T);
+  }
+#endif
+  return new CallMemberOfExpr(T, f, ces);
 }
 
 ref<Expr> OldExpr::create(ref<Expr> op) {

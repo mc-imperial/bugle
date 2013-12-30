@@ -66,6 +66,18 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   return BPLExprWriter::writeExpr(OS, E, Depth);
 }
 
+void BPLFunctionWriter::writeCallStmt(llvm::raw_ostream &OS, CallStmt *CS) {
+  OS << "$" << CS->getCallee()->getName() << "(";
+  for (auto b = CS->getArgs().begin(), i = b, e = CS->getArgs().end();
+       i != e; ++i) {
+    if (i != b)
+      OS << ", ";
+    writeExpr(OS, i->get());
+  }
+  OS << ")";
+
+}
+
 void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   if (auto ES = dyn_cast<EvalStmt>(S)) {
     assert(!ES->getExpr()->preventEvalStmt);
@@ -107,6 +119,25 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     }
     if (isa<HavocExpr>(ES->getExpr())) {
       OS << "  havoc v" << id << ";\n";
+    } else if (auto CMOE = dyn_cast<CallMemberOfExpr>(ES->getExpr())) {
+      auto CES = CMOE->getCallExprs();
+      auto SL = ES->getSourceLocs();
+      auto F = CMOE->getFunc();
+      OS << "  ";
+      for (auto i = CES.begin(), e = CES.end(); i != e; ++i) {
+        auto CE = cast<CallExpr>(i->get());
+        OS << "if (";
+        writeExpr(OS, F.get());
+        OS << " == $functionId$$" << CE->getCallee()->getName() << ") {\n";
+        OS << "    call ";
+        writeSourceLocs(OS, SL);
+        OS << "v" << id << " := ";
+        writeExpr(OS, CE);
+        OS << ";\n  } else ";
+      }
+      OS << "{\n    assert {:bad_pointer_access} ";
+      writeSourceLocs(OS, SL);
+      OS << "false;\n  }\n";
     } else if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, LE->getArray().get(), ES->getSourceLocs(),
           [&](GlobalArray *GA, unsigned int indent) {
@@ -151,14 +182,26 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   } else if (auto CS = dyn_cast<CallStmt>(S)) {
     OS << "  call ";
     writeSourceLocs(OS, CS->getSourceLocs());
-    OS << "$" << CS->getCallee()->getName() << "(";
-    for (auto b = CS->getArgs().begin(), i = b, e = CS->getArgs().end();
-         i != e; ++i) {
-      if (i != b)
-        OS << ", ";
-      writeExpr(OS, i->get());
+    writeCallStmt(OS, CS);
+    OS << ";\n";
+  } else if (auto CMOS = dyn_cast<CallMemberOfStmt>(S)) {
+    auto CSS = CMOS->getCallStmts();
+    auto SL = S->getSourceLocs();
+    auto F = CMOS->getFunc();
+    OS << "  ";
+    for (auto i = CSS.begin(), e = CSS.end(); i != e; ++i) {
+      CS = cast<CallStmt>(*i);
+      OS << "if (";
+      writeExpr(OS, F.get());
+      OS << " == $functionId$$" << CS->getCallee()->getName() << ") {\n";
+      OS << "    call ";
+      writeSourceLocs(OS, SL);
+      writeCallStmt(OS, CS);
+      OS << ";\n  } else ";
     }
-    OS << ");\n";
+    OS << "{\n    assert {:bad_pointer_access} ";
+    writeSourceLocs(OS, SL);
+    OS << "false;\n  }\n";
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     maybeWriteCaseSplit(OS, SS->getArray().get(), SS->getSourceLocs(),
         [&](GlobalArray *GA, unsigned int indent) {

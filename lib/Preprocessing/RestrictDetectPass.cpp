@@ -11,7 +11,11 @@ using namespace bugle;
 void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
   std::vector<Argument *> AL;
   for (auto i = F.arg_begin(), e = F.arg_end(); i != e; ++i) {
-    if (i->hasNoAliasAttr() || !i->getType()->isPointerTy())
+    if (!i->getType()->isPointerTy())
+      continue;
+    if (i->hasNoAliasAttr())
+      continue;
+    if (i->getType()->getPointerElementType()->isFunctionTy())
       continue;
 
     switch (i->getType()->getPointerAddressSpace()) {

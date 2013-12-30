@@ -26,6 +26,10 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
     UsesPointers = true;
     OS << "ptr";
     break;
+  case Type::FunctionPointer:
+    UsesFunctionPointers = true;
+    OS << "functionPtr";
+    break;
   case Type::Any:
   case Type::Unknown:
     llvm_unreachable("Module writer found unexpected type");
@@ -159,6 +163,17 @@ void BPLModuleWriter::write() {
 
   if (UsesPointers)
     OS << "const unique $arrayId$$null$ : arrayId;\n\n";
+
+  if (UsesFunctionPointers) {
+    OS << "type functionPtr;\n";
+
+    for (auto i = M->begin(), e = M->end(); i != e; ++i) {
+      OS << "const unique $functionId$$" << (*i)->getName()
+         << " : functionPtr;\n";
+    }
+
+    OS << "const unique $functionId$$null$ : functionPtr;\n\n";
+  }
 
   for (auto i = IntrinsicSet.begin(), e = IntrinsicSet.end(); i != e; ++i) {
     OS << *i << "\n";
