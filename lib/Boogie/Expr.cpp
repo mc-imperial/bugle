@@ -91,7 +91,9 @@ ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset, Type type, bool is
   return new LoadExpr(type, array, offset, isTemporal);
 }
 
-ref<Expr> AtomicExpr::create(ref<Expr> array, ref<Expr> offset, std::vector<ref<Expr>> args, std::string function, unsigned int parts, unsigned int part) {
+ref<Expr> AtomicExpr::create(ref<Expr> array, ref<Expr> offset,
+                             std::vector<ref<Expr>> args, std::string function,
+                             unsigned parts, unsigned part) {
   Type at = array->getType();
   assert(at.array);
   assert(offset->getType().isKind(Type::BV));
@@ -330,18 +332,18 @@ ref<Expr> BVToPtrExpr::create(ref<Expr> bv) {
   return new BVToPtrExpr(Type(Type::Pointer, ty.width), bv);
 }
 
-ref<Expr> PtrToBVExpr::create(ref<Expr> bv) {
-  const Type &ty = bv->getType();
+ref<Expr> PtrToBVExpr::create(ref<Expr> ptr) {
+  const Type &ty = ptr->getType();
   assert(ty.isKind(Type::Pointer));
 
-  if (auto e = dyn_cast<BVToPtrExpr>(bv))
+  if (auto e = dyn_cast<BVToPtrExpr>(ptr))
     return e->getSubExpr();
 
-  if (auto e = dyn_cast<PointerExpr>(bv))
+  if (auto e = dyn_cast<PointerExpr>(ptr))
     if (dyn_cast<NullArrayRefExpr>(e->getArray()))
       return BVZExtExpr::create(ty.width, e->getOffset());
 
-  return new PtrToBVExpr(Type(Type::BV, ty.width), bv);
+  return new PtrToBVExpr(Type(Type::BV, ty.width), ptr);
 }
 
 ref<Expr> BVToBoolExpr::create(ref<Expr> bv) {
@@ -794,13 +796,6 @@ ref<Expr> PtrLtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(rhs->getType().isKind(Type::Pointer));
 
   return new PtrLtExpr(Type(Type::Bool), lhs, rhs);
-}
-
-ref<Expr> PtrLeExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert(lhs->getType().isKind(Type::Pointer));
-  assert(rhs->getType().isKind(Type::Pointer));
-
-  return new PtrLeExpr(Type(Type::Bool), lhs, rhs);
 }
 
 ref<Expr> ImpliesExpr::create(ref<Expr> lhs, ref<Expr> rhs) {

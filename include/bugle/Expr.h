@@ -119,7 +119,6 @@ public:
     FEq,
     FUno,
     PtrLt,
-    PtrLe,
     Implies,
 
     BinaryFirst = Eq,
@@ -486,7 +485,6 @@ BINARY_EXPR(FLt)
 BINARY_EXPR(FEq)
 BINARY_EXPR(FUno)
 BINARY_EXPR(PtrLt)
-BINARY_EXPR(PtrLe)
 BINARY_EXPR(Implies)
 
 #undef BINARY_EXPR

@@ -76,15 +76,14 @@ void BPLModuleWriter::write() {
     SS << ";\n";
   }
 
-  OS << "type _SIZE_T_TYPE = bv" << M->getPointerWidth() << ";\n";
+  OS << "type _SIZE_T_TYPE = bv" << M->getPointerWidth() << ";\n\n";
 
   if (UsesPointers) {
     OS << "type {:datatype} ptr;\n"
        << "type arrayId;\n"
        << "function {:constructor} MKPTR(base: arrayId, offset: "
        << MW->IntRep->getType(M->getPointerWidth())
-       << ") : ptr;\n"
-       << "function PTR_LT(lhs: ptr, rhs: ptr) : bool;\n\n";
+       << ") : ptr;\n\n";
   }
 
   unsigned long int sizes = 0;

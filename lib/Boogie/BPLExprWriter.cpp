@@ -358,18 +358,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         ErrorReporter::reportImplementationLimitation(
                      "\"Atomic has taken value\" expressions for pointers not supported");
       }
-  } else if (auto PLTE = dyn_cast<PtrLtExpr>(E)) {
-    OS << "PTR_LT(";
-    writeExpr(OS, PLTE->getLHS().get());
-    OS << ", ";
-    writeExpr(OS, PLTE->getRHS().get());
-    OS << ")";
-  } else if (auto PLEE = dyn_cast<PtrLeExpr>(E)) {
-    OS << "PTR_LE(";
-    writeExpr(OS, PLEE->getLHS().get());
-    OS << ", ";
-    writeExpr(OS, PLEE->getRHS().get());
-    OS << ")";
   } else if (auto IMPLIESE = dyn_cast<ImpliesExpr>(E)) {
     OS << "(";
     writeExpr(OS, IMPLIESE->getLHS().get());
@@ -420,17 +408,27 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::PtrToBV:
         IntS << "PTR_TO_BV" << ToWidth;
         break;
-      case Expr::FAbs:  IntS << "FABS" << ToWidth;  break;
-      case Expr::FCos:  IntS << "FCOS" << ToWidth;  break;
-      case Expr::FExp:  IntS << "FEXP" << ToWidth;  break;
+      case Expr::FAbs:
+        IntS << "FABS" << ToWidth;
+        break;
+      case Expr::FCos:
+        IntS << "FCOS" << ToWidth;
+        break;
+      case Expr::FExp:
+        IntS << "FEXP" << ToWidth;
+        break;
       case Expr::FFloor:
         IntS << "FFLOOR" << ToWidth;
         break;
-      case Expr::FLog:  IntS << "FLOG" << ToWidth;  break;
+      case Expr::FLog:
+        IntS << "FLOG" << ToWidth;
+        break;
       case Expr::FPConv:
         IntS << "FP" << FromWidth << "_CONV" << ToWidth;
         break;
-      case Expr::FPow:  IntS << "FPOW" << ToWidth;  break;
+      case Expr::FPow:
+        IntS << "FPOW" << ToWidth;
+        break;
       case Expr::FPToSI:
         IntS << "FP" << FromWidth << "_TO_SI" << ToWidth;
         break;
@@ -443,12 +441,24 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::FrexpFrac:
         IntS << "FREXP" << FromWidth << "_FRAC" << ToWidth;
         break;
-      case Expr::FSin:  IntS << "FSIN" << ToWidth;  break;
-      case Expr::FSqrt: IntS << "FSQRT" << ToWidth; break;
-      case Expr::FRsqrt: IntS << "FRSQRT" << ToWidth; break;
-      case Expr::OtherInt: IntS << "__other_bv" << ToWidth; break;
-      case Expr::OtherBool: IntS << "__other_bool"; break;
-      case Expr::OtherPtrBase: IntS << "__other_arrayId"; break;
+      case Expr::FSin:
+        IntS << "FSIN" << ToWidth;
+        break;
+      case Expr::FSqrt:
+        IntS << "FSQRT" << ToWidth;
+        break;
+      case Expr::FRsqrt:
+        IntS << "FRSQRT" << ToWidth;
+        break;
+      case Expr::OtherInt:
+        IntS << "__other_bv" << ToWidth;
+        break;
+      case Expr::OtherBool:
+        IntS << "__other_bool";
+        break;
+      case Expr::OtherPtrBase:
+        IntS << "__other_arrayId";
+        break;
       case Expr::SIToFP:
         IntS << "SI" << FromWidth << "_TO_FP" << ToWidth;
         break;
@@ -517,7 +527,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       }
       OS << "BV" << BinE->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << MW->IntRep->getArithmeticBinary(IntName, BinE->getKind(), BinE->getType().width);
+        OS << MW->IntRep->getArithmeticBinary(IntName, BinE->getKind(),
+                                              BinE->getType().width);
       }, false);
       break;
     }
@@ -543,7 +554,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       }
       OS << "BV" << BinE->getLHS()->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << MW->IntRep->getBooleanBinary(IntName, BinE->getKind(), BinE->getLHS()->getType().width);
+        OS << MW->IntRep->getBooleanBinary(IntName, BinE->getKind(),
+                                           BinE->getLHS()->getType().width);
       }, false);
       break;
     }
@@ -585,6 +597,22 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       OS << IntName << BinE->getLHS()->getType().width;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << "function " << IntName << BinE->getLHS()->getType().width << "(";
+        MW->writeType(OS, BinE->getLHS()->getType());
+        OS << ", ";
+        MW->writeType(OS, BinE->getLHS()->getType());
+        OS << ") : bool";
+      });
+      break;
+    }
+    case Expr::PtrLt: {
+      const char *IntName;
+      switch (BinE->getKind()) {
+      case Expr::PtrLt:     IntName = "PTR_LT"; break;
+      default:  llvm_unreachable("huh?");
+      }
+      OS << IntName;
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function " << IntName << "(";
         MW->writeType(OS, BinE->getLHS()->getType());
         OS << ", ";
         MW->writeType(OS, BinE->getLHS()->getType());
