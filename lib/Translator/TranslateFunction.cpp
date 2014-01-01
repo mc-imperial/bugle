@@ -482,6 +482,10 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V,
     // ignore metadata values
     return 0;
   }
+
+  if (isa<InlineAsm>(V))
+    ErrorReporter::reportImplementationLimitation("Inline assembly unsupported");
+
   ErrorReporter::reportImplementationLimitation("Unsupported value");
 }
 
