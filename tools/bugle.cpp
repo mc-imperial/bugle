@@ -123,11 +123,11 @@ int main(int argc, char **argv) {
 
   bugle::RaceInstrumenter RaceInst;
   if (RaceInstrumentation.empty() || RaceInstrumentation == "standard")
-    RaceInst = bugle::RaceInstrumenter::STANDARD;
+    RaceInst = bugle::RaceInstrumenter::Standard;
   else if (RaceInstrumentation == "watchdog-single")
-    RaceInst = bugle::RaceInstrumenter::WATCHDOG_SINGLE;
+    RaceInst = bugle::RaceInstrumenter::WatchdogSingle;
   else if (RaceInstrumentation == "watchdog-multiple")
-    RaceInst = bugle::RaceInstrumenter::WATCHDOG_MULTIPLE;
+    RaceInst = bugle::RaceInstrumenter::WatchdogMultiple;
   else {
     std::string msg = "Unsupported race instrumentation: "
       + RaceInstrumentation;

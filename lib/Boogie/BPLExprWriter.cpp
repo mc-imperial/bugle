@@ -53,7 +53,9 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     ScopedParenPrinter X(OS, Depth, 8);
     std::string s; llvm::raw_string_ostream ss(s);
     writeExpr(ss, EE->getSubExpr().get(), 9);
-    OS << MW->IntRep->getExtractExpr(ss.str(), EE->getOffset() + EE->getType().width, EE->getOffset());
+    OS << MW->IntRep->getExtractExpr(ss.str(),
+                                     EE->getOffset() + EE->getType().width,
+                                     EE->getOffset());
     if (MW->IntRep->abstractsExtract()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << MW->IntRep->getExtract();
@@ -203,7 +205,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     if (ANOVE->getIsSigned()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << "procedure {:inline 1} $__add_noovfl_signed_"
-           << width << "(x : " << MW->IntRep->getType(width) << ", y : " 
+           << width << "(x : " << MW->IntRep->getType(width) << ", y : "
            << MW->IntRep->getType(width)
            << ") returns (z : " << MW->IntRep->getType(width) << ") {\n"
            << "  assume ";
@@ -211,8 +213,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         {
           std::stringstream ss;
           ss << "BV" << (width + 1) << "_ADD("
-                      << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "x") << ", "
-                      << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "y") << ")";
+             << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "x") << ", "
+             << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "y") << ")";
 
           OS << MW->IntRep->getExtractExpr(ss.str(), width + 1, width);
         }
@@ -234,11 +236,11 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     } else {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         std::stringstream ss;
-        ss << "BV" << (width + 1) << "_ADD(" 
+        ss << "BV" << (width + 1) << "_ADD("
            << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "x")
            << ", " << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "y") << ")";
         OS << "procedure {:inline 1} $__add_noovfl_unsigned_"
-           << width << "(x : " << MW->IntRep->getType(width) 
+           << width << "(x : " << MW->IntRep->getType(width)
            << ", y : " << MW->IntRep->getType(width)
            << ") returns (z : " << MW->IntRep->getType(width) << ") {\n"
            << "  assume "
@@ -276,7 +278,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     }
 
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << MW->IntRep->getArithmeticBinary("ADD", bugle::Expr::Kind::BVAdd, width + b); 
+      OS << MW->IntRep->getArithmeticBinary("ADD", bugle::Expr::Kind::BVAdd, width + b);
     }, false);
 
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -330,34 +332,35 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       MW->writeType(OS, UFE->getType());
     });
   } else if (auto AHTVE = dyn_cast<AtomicHasTakenValueExpr>(E)) {
-      auto Array = AHTVE->getArray().get();
-      assert(!(isa<NullArrayRefExpr>(Array) || 
-        MW->M->global_begin() == MW->M->global_end()));
+    auto Array = AHTVE->getArray().get();
+    assert(!(isa<NullArrayRefExpr>(Array) ||
+             MW->M->global_begin() == MW->M->global_end()));
 
-      std::set<GlobalArray *> Globals;
-      if (!Array->computeArrayCandidates(Globals)) {
-        Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      }
+    std::set<GlobalArray *> Globals;
+    if (!Array->computeArrayCandidates(Globals)) {
+      Globals.insert(MW->M->global_begin(), MW->M->global_end());
+    }
 
-      if (Globals.size() == 1) {
-        OS << "_USED_$$" << (*Globals.begin())->getName()
-           << "[";
-        writeExpr(OS, AHTVE->getOffset().get());
+    if (Globals.size() == 1) {
+      OS << "_USED_$$" << (*Globals.begin())->getName()
+         << "[";
+      writeExpr(OS, AHTVE->getOffset().get());
+      OS << "][";
+      writeExpr(OS, AHTVE->getValue().get());
+      OS << "]";
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "var {:atomic_usedmap} _USED_$$"
+           << (*Globals.begin())->getName()
+           << " : [";
+        MW->writeType(OS, AHTVE->getOffset()->getType());
         OS << "][";
-        writeExpr(OS, AHTVE->getValue().get());
-        OS << "]";
-        MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-          OS << "var {:atomic_usedmap} _USED_$$" << (*Globals.begin())->getName()
-             << " : ["; 
-          MW->writeType(OS, AHTVE->getOffset()->getType());
-          OS << "][";
-          MW->writeType(OS, AHTVE->getValue()->getType());
-          OS << "]bool";
-        });
-      } else {
-        ErrorReporter::reportImplementationLimitation(
-                     "\"Atomic has taken value\" expressions for pointers not supported");
-      }
+        MW->writeType(OS, AHTVE->getValue()->getType());
+        OS << "]bool";
+      });
+    } else {
+      ErrorReporter::reportImplementationLimitation(
+           "\"Atomic has taken value\" expressions for pointers not supported");
+    }
   } else if (auto IMPLIESE = dyn_cast<ImpliesExpr>(E)) {
     OS << "(";
     writeExpr(OS, IMPLIESE->getLHS().get());
@@ -402,77 +405,38 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       unsigned FromWidth = UnE->getSubExpr()->getType().width,
                ToWidth = UnE->getType().width;
       switch (UnE->getKind()) {
-      case Expr::BVToPtr:
-        IntS << "BV" << FromWidth << "_TO_PTR";
-        break;
-      case Expr::PtrToBV:
-        IntS << "PTR_TO_BV" << ToWidth;
-        break;
-      case Expr::FAbs:
-        IntS << "FABS" << ToWidth;
-        break;
-      case Expr::FCos:
-        IntS << "FCOS" << ToWidth;
-        break;
-      case Expr::FExp:
-        IntS << "FEXP" << ToWidth;
-        break;
-      case Expr::FFloor:
-        IntS << "FFLOOR" << ToWidth;
-        break;
-      case Expr::FLog:
-        IntS << "FLOG" << ToWidth;
-        break;
-      case Expr::FPConv:
-        IntS << "FP" << FromWidth << "_CONV" << ToWidth;
-        break;
-      case Expr::FPow:
-        IntS << "FPOW" << ToWidth;
-        break;
-      case Expr::FPToSI:
-        IntS << "FP" << FromWidth << "_TO_SI" << ToWidth;
-        break;
-      case Expr::FPToUI:
-        IntS << "FP" << FromWidth << "_TO_UI" << ToWidth;
-        break;
-      case Expr::FrexpExp:
-        IntS << "FREXP" << FromWidth << "_EXP";
-        break;
-      case Expr::FrexpFrac:
-        IntS << "FREXP" << FromWidth << "_FRAC" << ToWidth;
-        break;
-      case Expr::FSin:
-        IntS << "FSIN" << ToWidth;
-        break;
-      case Expr::FSqrt:
-        IntS << "FSQRT" << ToWidth;
-        break;
-      case Expr::FRsqrt:
-        IntS << "FRSQRT" << ToWidth;
-        break;
-      case Expr::OtherInt:
-        IntS << "__other_bv" << ToWidth;
-        break;
-      case Expr::OtherBool:
-        IntS << "__other_bool";
-        break;
-      case Expr::OtherPtrBase:
-        IntS << "__other_arrayId";
-        break;
-      case Expr::SIToFP:
-        IntS << "SI" << FromWidth << "_TO_FP" << ToWidth;
-        break;
-      case Expr::UIToFP:
-        IntS << "UI" << FromWidth << "_TO_FP" << ToWidth;
-        break;
-      case Expr::GetImageWidth:
-        IntS << "GET_IMAGE_WIDTH";
-        break;
-      case Expr::GetImageHeight:
-        IntS << "GET_IMAGE_HEIGHT";
-        break;
-      default:
-        llvm_unreachable("Unsupported unary expr opcode");
+      case Expr::BVToPtr:      IntS << "BV" << FromWidth
+                                    << "_TO_PTR";               break;
+      case Expr::PtrToBV:      IntS << "PTR_TO_BV" << ToWidth;  break;
+      case Expr::FAbs:         IntS << "FABS" << ToWidth;       break;
+      case Expr::FCos:         IntS << "FCOS" << ToWidth;       break;
+      case Expr::FExp:         IntS << "FEXP" << ToWidth;       break;
+      case Expr::FFloor:       IntS << "FFLOOR" << ToWidth;     break;
+      case Expr::FLog:         IntS << "FLOG" << ToWidth;       break;
+      case Expr::FPConv:       IntS << "FP" << FromWidth
+                                    << "_CONV" << ToWidth;      break;
+      case Expr::FPow:         IntS << "FPOW" << ToWidth;       break;
+      case Expr::FPToSI:       IntS << "FP" << FromWidth
+                                    << "_TO_SI" << ToWidth;     break;
+      case Expr::FPToUI:       IntS << "FP" << FromWidth
+                                    << "_TO_UI" << ToWidth;     break;
+      case Expr::FrexpExp:     IntS << "FREXP" << FromWidth
+                                    << "_EXP";                  break;
+      case Expr::FrexpFrac:    IntS << "FREXP" << FromWidth
+                                    << "_FRAC" << ToWidth;      break;
+      case Expr::FSin:         IntS << "FSIN" << ToWidth;       break;
+      case Expr::FSqrt:        IntS << "FSQRT" << ToWidth;      break;
+      case Expr::FRsqrt:       IntS << "FRSQRT" << ToWidth;     break;
+      case Expr::OtherInt:     IntS << "__other_bv" << ToWidth; break;
+      case Expr::OtherBool:    IntS << "__other_bool";          break;
+      case Expr::OtherPtrBase: IntS << "__other_arrayId";       break;
+      case Expr::SIToFP:       IntS << "SI" << FromWidth
+                                    << "_TO_FP" << ToWidth;     break;
+      case Expr::UIToFP:       IntS << "UI" << FromWidth
+                                    << "_TO_FP" << ToWidth;     break;
+      case Expr::GetImageWidth:  IntS << "GET_IMAGE_WIDTH";     break;
+      case Expr::GetImageHeight: IntS << "GET_IMAGE_HEIGHT";    break;
+      default: llvm_unreachable("Unsupported unary expr opcode");
       }
       OS << IntS.str();
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -645,41 +609,26 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       ErrorReporter::reportImplementationLimitation(
                                 "Load expressions from pointers not supported");
     }
-  } else if (auto AE = dyn_cast<AtomicExpr>(E)) {
-    auto PtrArr = AE->getArray().get();
-    assert(!(isa<NullArrayRefExpr>(PtrArr) ||
+  } else if (dyn_cast<AtomicExpr>(E)) {
+    llvm_unreachable("Handled at statement level");
+  } else if (dyn_cast<ArraySnapshotExpr>(E)) {
+    llvm_unreachable("Handled at statement level");
+  } else if (auto UAE = dyn_cast<UnderlyingArrayExpr>(E)) {
+    auto Array = UAE->getArray().get();
+    assert(!(isa<NullArrayRefExpr>(Array) ||
              MW->M->global_begin() == MW->M->global_end()));
+
     std::set<GlobalArray *> Globals;
-    if (!PtrArr->computeArrayCandidates(Globals)) {
+    if (!Array->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
     }
 
     if (Globals.size() == 1) {
-      OS << "_ATOMIC_OP($$" << (*Globals.begin())->getName() << ", ";
-      writeExpr(OS, AE->getOffset().get());
-      OS << ")";
+      OS << "$$" << (*Globals.begin())->getName();
     } else {
       ErrorReporter::reportImplementationLimitation(
-                              "Atomic expressions from pointers not supported");
-    }
-  } else if (dyn_cast<ArraySnapshotExpr>(E)) {
-    llvm_unreachable("Handled at statement level");
-  } else if (auto UAE = dyn_cast<UnderlyingArrayExpr>(E)) {
-      auto Array = UAE->getArray().get();
-      assert(!(isa<NullArrayRefExpr>(Array) || 
-        MW->M->global_begin() == MW->M->global_end()));
-
-      std::set<GlobalArray *> Globals;
-      if (!Array->computeArrayCandidates(Globals)) {
-        Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      }
-
-      if (Globals.size() == 1) {
-        OS << "$$" << (*Globals.begin())->getName();
-      } else {
-        ErrorReporter::reportImplementationLimitation(
                      "Underlying array expressions for pointers not supported");
-      }
+    }
   } else if (auto MOE = dyn_cast<ArrayMemberOfExpr>(E)) {
     writeExpr(OS, MOE->getSubExpr().get(), Depth);
   } else {
@@ -725,16 +674,16 @@ void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
                                           bugle::Expr* PtrArr,
                                           std::string accessKind) {
 
-  if (MW->RaceInst == bugle::RaceInstrumenter::WATCHDOG_SINGLE) {
+  if (MW->RaceInst == bugle::RaceInstrumenter::WatchdogSingle) {
     OS << "_WATCHED_OFFSET";
     return;
   }
 
   std::string prefix;
-  if(MW->RaceInst == bugle::RaceInstrumenter::STANDARD) {
+  if(MW->RaceInst == bugle::RaceInstrumenter::Standard) {
     prefix = "_" + accessKind + "_OFFSET_$$";
   } else {
-    assert(MW->RaceInst == bugle::RaceInstrumenter::WATCHDOG_MULTIPLE);
+    assert(MW->RaceInst == bugle::RaceInstrumenter::WatchdogMultiple);
     prefix = "_WATCHED_OFFSET_$$";
   }
 

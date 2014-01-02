@@ -15,29 +15,33 @@ std::string BVIntegerRepresentation::getLiteralSuffix(unsigned bitWidth) {
   return ss.str();
 }
 
-std::string BVIntegerRepresentation::getLiteral(unsigned literal, unsigned bitWidth) {
+std::string BVIntegerRepresentation::getLiteral(unsigned literal,
+                                                unsigned bitWidth) {
   std::stringstream ss;
   ss << literal << getLiteralSuffix(bitWidth);
   return ss.str();
 }
 
-std::string BVIntegerRepresentation::getZeroExtend(unsigned FromWidth, unsigned ToWidth) {
+std::string BVIntegerRepresentation::getZeroExtend(unsigned FromWidth,
+                                                   unsigned ToWidth) {
   std::stringstream ss;
   ss << "function {:bvbuiltin \"zero_extend " << (ToWidth - FromWidth)
-         << "\"} BV" << FromWidth << "_ZEXT" << ToWidth << "(bv" << FromWidth
-         << ") : bv" << ToWidth << ";";
+     << "\"} BV" << FromWidth << "_ZEXT" << ToWidth << "(bv" << FromWidth
+     << ") : bv" << ToWidth << ";";
   return ss.str();
 }
 
-std::string BVIntegerRepresentation::getSignExtend(unsigned FromWidth, unsigned ToWidth) {
+std::string BVIntegerRepresentation::getSignExtend(unsigned FromWidth,
+                                                   unsigned ToWidth) {
   std::stringstream ss;
   ss << "function {:bvbuiltin \"sign_extend " << (ToWidth - FromWidth)
-         << "\"} BV" << FromWidth << "_SEXT" << ToWidth << "(bv" << FromWidth
-         << ") : bv" << ToWidth;
+     << "\"} BV" << FromWidth << "_SEXT" << ToWidth << "(bv" << FromWidth
+     << ") : bv" << ToWidth;
   return ss.str();
 }
 
-std::string BVIntegerRepresentation::getArithmeticBinary(std::string Name, bugle::Expr::Kind Kind, unsigned Width) {
+std::string BVIntegerRepresentation::getArithmeticBinary(std::string Name,
+    bugle::Expr::Kind Kind, unsigned Width) {
   const char *SMTName;
   switch (Kind) {
   case Expr::BVAdd:  SMTName = "bvadd";  break;
@@ -65,7 +69,8 @@ std::string BVIntegerRepresentation::getArithmeticBinary(std::string Name, bugle
   return ss.str();
 }
 
-std::string BVIntegerRepresentation::getBooleanBinary(std::string Name, bugle::Expr::Kind Kind, unsigned Width) {
+std::string BVIntegerRepresentation::getBooleanBinary(std::string Name,
+    bugle::Expr::Kind Kind, unsigned Width) {
   const char *SMTName;
   switch (Kind) {
   case Expr::BVUgt: SMTName = "bvugt"; break;
@@ -88,12 +93,14 @@ std::string BVIntegerRepresentation::getBooleanBinary(std::string Name, bugle::E
   return ss.str();
 }
 
-void BVIntegerRepresentation::printVal(llvm::raw_ostream &OS, const llvm::APInt &Val) {
+void BVIntegerRepresentation::printVal(llvm::raw_ostream &OS,
+                                       const llvm::APInt &Val) {
   Val.print(OS, /*isSigned=*/false);
   OS << getLiteralSuffix(Val.getBitWidth());
 }
 
-std::string BVIntegerRepresentation::getExtractExpr(const std::string &Expr, unsigned UpperBit, unsigned LowerBit) {
+std::string BVIntegerRepresentation::getExtractExpr(const std::string &Expr,
+    unsigned UpperBit, unsigned LowerBit) {
   std::stringstream ss;
   ss << Expr << "[" << UpperBit << ":" << LowerBit << "]";
   return ss.str();
@@ -115,7 +122,8 @@ std::string BVIntegerRepresentation::getConcat() {
   llvm_unreachable("BVIntegerRepresentation should generate Boogie concatenation syntax");
 }
 
-std::string BVIntegerRepresentation::getConcatExpr(const std::string &Lhs, const std::string &Rhs) {
+std::string BVIntegerRepresentation::getConcatExpr(const std::string &Lhs,
+                                                   const std::string &Rhs) {
   std::stringstream ss;
   ss << Lhs << " ++ " << Rhs;
   return ss.str();

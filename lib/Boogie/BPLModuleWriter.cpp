@@ -130,7 +130,7 @@ void BPLModuleWriter::write() {
          << (*i)->getName() << " : bool;\n";
 
       switch (RaceInst) {
-      case RaceInstrumenter::STANDARD:
+      case RaceInstrumenter::Standard:
         OS << "var" << attributes << "_READ_OFFSET_$$" << (*i)->getName() << " : "
            << IntRep->getType(M->getPointerWidth()) << ";\n";
         OS << "var" << attributes << "_WRITE_OFFSET_$$" << (*i)->getName() << " : "
@@ -138,11 +138,11 @@ void BPLModuleWriter::write() {
         OS << "var" << attributes << "_ATOMIC_OFFSET_$$" << (*i)->getName() << " : "
            << IntRep->getType(M->getPointerWidth()) << ";\n";
       break;
-      case RaceInstrumenter::WATCHDOG_MULTIPLE:
+      case RaceInstrumenter::WatchdogMultiple:
         OS << "const" << attributes << "_WATCHED_OFFSET_$$" << (*i)->getName() << " : "
            << IntRep->getType(M->getPointerWidth()) << ";\n";
       break;
-      case RaceInstrumenter::WATCHDOG_SINGLE:
+      case RaceInstrumenter::WatchdogSingle:
         // Nothing to output in this case: below we output the single watched offset
       break;
       }
@@ -159,7 +159,7 @@ void BPLModuleWriter::write() {
     OS << "\n";
   }
 
-  if (RaceInst == RaceInstrumenter::WATCHDOG_SINGLE)
+  if (RaceInst == RaceInstrumenter::WatchdogSingle)
     OS << "const _WATCHED_OFFSET : " << IntRep->getType(M->getPointerWidth()) << ";\n";
 
   if (UsesPointers)

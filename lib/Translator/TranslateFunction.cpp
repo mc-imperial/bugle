@@ -664,11 +664,10 @@ ref<Expr> TranslateFunction::handleGlobalEnsures(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleReadsFrom(bugle::BasicBlock *BBB,
                                            llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
-  BF->addModifies(AccessHasOccurredExpr::create(
-        ArrayIdExpr::create(Args[0], TM->defaultRange()), false),
-        extractSourceLocs(CI));
-  if (TM->RaceInst == bugle::RaceInstrumenter::STANDARD) {
-    ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  BF->addModifies(AccessHasOccurredExpr::create(arrayIdExpr, false),
+                  extractSourceLocs(CI));
+  if (TM->RaceInst == bugle::RaceInstrumenter::Standard) {
     ref<Expr> access = AccessOffsetExpr::create(arrayIdExpr,
                                                 TM->TD.getPointerSizeInBits(),
                                                 false);
@@ -680,19 +679,17 @@ ref<Expr> TranslateFunction::handleReadsFrom(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleWritesTo(bugle::BasicBlock *BBB,
                                            llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
-  BF->addModifies(AccessHasOccurredExpr::create(
-        ArrayIdExpr::create(Args[0], TM->defaultRange()), true),
-        extractSourceLocs(CI));
-  if (TM->RaceInst == bugle::RaceInstrumenter::STANDARD) {
-    ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  BF->addModifies(AccessHasOccurredExpr::create(arrayIdExpr, true),
+                  extractSourceLocs(CI));
+  if (TM->RaceInst == bugle::RaceInstrumenter::Standard) {
     ref<Expr> access = AccessOffsetExpr::create(arrayIdExpr,
                                                 TM->TD.getPointerSizeInBits(),
                                                 true);
     BF->addModifies(access, extractSourceLocs(CI));
   }
-  BF->addModifies(UnderlyingArrayExpr::create(
-        ArrayIdExpr::create(Args[0], TM->defaultRange())),
-        extractSourceLocs(CI));
+  BF->addModifies(UnderlyingArrayExpr::create(arrayIdExpr),
+                  extractSourceLocs(CI));
   return 0;
 }
 
@@ -743,17 +740,19 @@ ref<Expr> TranslateFunction::handleEnabled(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleReadHasOccurred(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  return BoolToBVExpr::create(AccessHasOccurredExpr::create(
-                              ArrayIdExpr::create(Args[0], TM->defaultRange()),
-                              false));
+  ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  ref<Expr> result = BoolToBVExpr::create(AccessHasOccurredExpr::create(
+                                                           arrayIdExpr, false));
+  return result;
 }
 
 ref<Expr> TranslateFunction::handleWriteHasOccurred(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  return BoolToBVExpr::create(AccessHasOccurredExpr::create(
-                              ArrayIdExpr::create(Args[0], TM->defaultRange()),
-                              true));
+  ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  ref<Expr> result = BoolToBVExpr::create(AccessHasOccurredExpr::create(
+                                                            arrayIdExpr, true));
+  return result;
 }
 
 ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
@@ -817,13 +816,15 @@ ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handlePtrOffset(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  return ArrayOffsetExpr::create(Args[0]);
+  ref<Expr> result = ArrayOffsetExpr::create(Args[0]);
+  return result;
 }
 
 ref<Expr> TranslateFunction::handlePtrBase(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  return ArrayIdExpr::create(Args[0], TM->defaultRange());
+  ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  return arrayIdExpr;
 }
 
 ref<Expr> TranslateFunction::handleNotAccessed(bugle::BasicBlock *BBB,
@@ -846,7 +847,8 @@ ref<Expr> TranslateFunction::handleArraySnapshot(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
-    llvm::CallInst *CI, const std::vector<ref<Expr>> &Args) {
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
   assert(Args.size() > 0);
   ref<Expr> Ptr = Args[0],
             PtrArr = ArrayIdExpr::create(Ptr, TM->translateType(CI->getType())),
@@ -918,7 +920,6 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
     }
 
     BF->addAttribute("barrier_invariant");
-
   }
 
   auto CS = new CallStmt(BF, Args);
@@ -971,9 +972,9 @@ ref<Expr> TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB
 ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  // Args[0] == cast<MemSetInst>->getDest()
-  // Args[1] == cast<MemSetInst>->getValue()
-  // Args[2] == cast<MemSetInst>->getLength()
+  // Args[0] == cast<MemSetInst>(CI)->getDest()
+  // Args[1] == cast<MemSetInst>(CI)->getValue()
+  // Args[2] == cast<MemSetInst>(CI)->getLength()
   auto Length = dyn_cast<BVConstExpr>(Args[2]);
   if (!Length) {
     // Could emit a loop
@@ -1006,10 +1007,8 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
   ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width/8);
   // Handle when Len can be rewritten as an integral number of element writes
   // Special case if Val is 0
-  if (!DstDiv.isNull() &&
-      (Len % (DstRangeTy.width/8) == 0) && 0 < NumElements &&
-      (Val == 0 || DstRangeTy.width == 8)
-     ) {
+  if (!DstDiv.isNull() && (Len % (DstRangeTy.width/8) == 0) &&
+      0 < NumElements && (Val == 0 || DstRangeTy.width == 8)) {
     for (unsigned i = 0; i != NumElements; ++i) {
       ref<Expr> ValExpr = BVConstExpr::create(DstRangeTy.width, Val);
       ref<Expr> StoreOfs =
@@ -1036,9 +1035,9 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  // Args[0] == cast<MemSetInst>->getDest()
-  // Args[1] == cast<MemSetInst>->getSource()
-  // Args[2] == cast<MemSetInst>->getLength()
+  // Args[0] == cast<MemSetInst>(CI)->getDest()
+  // Args[1] == cast<MemSetInst>(CI)->getSource()
+  // Args[2] == cast<MemSetInst>(CI)->getLength()
   auto Length = dyn_cast<BVConstExpr>(Args[2]);
   if (!Length) {
     // Could emit a loop
@@ -1075,8 +1074,7 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
   ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width/8);
   // Handle matching source and destination range types where Len can be
   // rewritten as an integral number of element read/writes
-  if (SrcRangeTy == DstRangeTy &&
-      !SrcDiv.isNull() && !DstDiv.isNull() &&
+  if (SrcRangeTy == DstRangeTy && !SrcDiv.isNull() && !DstDiv.isNull() &&
       (Len % (SrcRangeTy.width/8) == 0) && 0 < NumElements) {
     for (unsigned i = 0; i != NumElements; ++i) {
       ref<Expr> LoadOfs =
@@ -1354,8 +1352,7 @@ void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
-                          llvm::Type *Ty, llvm::Type *OpTy,
-                          ref<Expr> Op,
+                          llvm::Type *Ty, llvm::Type *OpTy, ref<Expr> Op,
                           std::function<ref<Expr>(llvm::Type *, ref<Expr>)> F) {
   if (!isa<VectorType>(Ty))
     return F(Ty, Op);

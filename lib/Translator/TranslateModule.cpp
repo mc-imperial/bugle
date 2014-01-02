@@ -471,7 +471,7 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
   if (GlobalSet.size() == 0)
     return;
 
-  // Success!  Record the global set.
+  // Success! Record the global set.
   auto &GlobalValSet = NextModelPtrAsGlobalOffset[Val];
   std::transform(GlobalSet.begin(), GlobalSet.end(),
                  std::inserter(GlobalValSet, GlobalValSet.begin()),

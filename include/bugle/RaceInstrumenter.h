@@ -4,7 +4,9 @@
 namespace bugle {
 
 enum RaceInstrumenter {
-  STANDARD, WATCHDOG_SINGLE, WATCHDOG_MULTIPLE
+  Standard,
+  WatchdogSingle,
+  WatchdogMultiple
 };
 
 }
