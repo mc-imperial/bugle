@@ -145,6 +145,7 @@ public:
                                      Var *base = 0);
 
   static Type getArrayCandidateType(const std::set<GlobalArray *> &Globals);
+  static Type getPointerRange(ref<Expr> pointer, Type defaultRange);
   bool computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const;
 
 private:

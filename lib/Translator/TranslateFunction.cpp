@@ -676,6 +676,8 @@ ref<Expr> TranslateFunction::handleReadsFrom(bugle::BasicBlock *BBB,
                                                 false);
     BF->addModifies(access, extractSourceLocs(CI));
   }
+  if (arrayIdExpr->getType().range().isKind(Type::Unknown))
+    TM->NextModelAllAsByteArray = true;
   return 0;
 }
 
@@ -693,6 +695,8 @@ ref<Expr> TranslateFunction::handleWritesTo(bugle::BasicBlock *BBB,
   }
   BF->addModifies(UnderlyingArrayExpr::create(arrayIdExpr),
                   extractSourceLocs(CI));
+  if (arrayIdExpr->getType().range().isKind(Type::Unknown))
+    TM->NextModelAllAsByteArray = true;
   return 0;
 }
 
@@ -723,6 +727,9 @@ ref<Expr> TranslateFunction::handleOtherBool(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleOtherPtrBase(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
+  Type range = Expr::getPointerRange(Args[0], TM->defaultRange());
+  if (range.isKind(Type::Unknown))
+    TM->NextModelAllAsByteArray = true;
   return OtherPtrBaseExpr::create(Args[0]);
 }
 
@@ -746,6 +753,8 @@ ref<Expr> TranslateFunction::handleReadHasOccurred(bugle::BasicBlock *BBB,
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   ref<Expr> result = BoolToBVExpr::create(AccessHasOccurredExpr::create(
                                                            arrayIdExpr, false));
+  if (arrayIdExpr->getType().range().isKind(Type::Unknown))
+    TM->NextModelAllAsByteArray = true;
   return result;
 }
 
@@ -755,6 +764,8 @@ ref<Expr> TranslateFunction::handleWriteHasOccurred(bugle::BasicBlock *BBB,
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   ref<Expr> result = BoolToBVExpr::create(AccessHasOccurredExpr::create(
                                                             arrayIdExpr, true));
+  if (arrayIdExpr->getType().range().isKind(Type::Unknown))
+    TM->NextModelAllAsByteArray = true;
   return result;
 }
 
@@ -819,7 +830,20 @@ ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handlePtrOffset(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
+  ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   ref<Expr> result = ArrayOffsetExpr::create(Args[0]);
+
+  if (!arrayIdExpr->getType().range().isKind(Type::BV)) {
+    TM->NeedAdditionalByteArrayModels = true;
+    std::set<GlobalArray *> Globals;
+    if (arrayIdExpr->computeArrayCandidates(Globals)) {
+      std::transform(Globals.begin(), Globals.end(),
+                     std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
+                     [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+    } else {
+      TM->NextModelAllAsByteArray = true;
+    }
+  }
   return result;
 }
 
@@ -827,6 +851,8 @@ ref<Expr> TranslateFunction::handlePtrBase(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  if (arrayIdExpr->getType().range().isKind(Type::Unknown))
+    TM->NextModelAllAsByteArray = true;
   return arrayIdExpr;
 }
 
@@ -837,6 +863,10 @@ ref<Expr> TranslateFunction::handleArraySnapshot(bugle::BasicBlock *BBB,
   ref<Expr> srcArrayIdExpr = ArrayIdExpr::create(Args[1], TM->defaultRange());
   ref<Expr> E = ArraySnapshotExpr::create(dstArrayIdExpr, srcArrayIdExpr);
   BBB->addStmt(new EvalStmt(E));
+  if (dstArrayIdExpr->getType().range().isKind(Type::Unknown) ||
+      srcArrayIdExpr->getType().range().isKind(Type::Unknown) ||
+      dstArrayIdExpr->getType().range() != srcArrayIdExpr->getType().range())
+    TM->NextModelAllAsByteArray = true;
   return 0;
 }
 
@@ -1339,6 +1369,18 @@ ref<Expr> TranslateFunction::handleAtomicHasTakenValue(bugle::BasicBlock *BBB,
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   ref<Expr> result = BoolToBVExpr::create(
                 AtomicHasTakenValueExpr::create(arrayIdExpr, Args[1], Args[2]));
+
+  if (!arrayIdExpr->getType().range().isKind(Type::BV)) {
+    TM->NeedAdditionalByteArrayModels = true;
+    std::set<GlobalArray *> Globals;
+    if (arrayIdExpr->computeArrayCandidates(Globals)) {
+      std::transform(Globals.begin(), Globals.end(),
+                     std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
+                     [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+    } else {
+      TM->NextModelAllAsByteArray = true;
+    }
+  }
   return result;
 }
 

@@ -33,7 +33,7 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
       Globals.insert((bugle::GlobalArray*)0);
     }
 
-    if (Globals.size() == 1) {
+    if (Globals.size() == 1 && *Globals.begin() != (bugle::GlobalArray*)0) {
       F(*Globals.begin(), 2);
       OS << "\n";
     } else {

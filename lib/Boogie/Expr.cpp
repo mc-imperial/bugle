@@ -164,15 +164,21 @@ Type Expr::getArrayCandidateType(const std::set<GlobalArray *> &Globals) {
   return t;
 }
 
+Type Expr::getPointerRange(ref<Expr> pointer, Type defaultRange) {
+  assert(pointer->getType().isKind(Type::Pointer));
+  Type range = defaultRange;
+  std::set<GlobalArray *> Globals;
+  if (pointer->computeArrayCandidates(Globals))
+    range = getArrayCandidateType(Globals);
+  return range;
+}
+
 ref<Expr> ArrayIdExpr::create(ref<Expr> pointer, Type defaultRange) {
   assert(pointer->getType().isKind(Type::Pointer));
   if (auto e = dyn_cast<PointerExpr>(pointer))
     return e->getArray();
 
-  Type range = defaultRange;
-  std::set<GlobalArray *> Globals;
-  if (pointer->computeArrayCandidates(Globals))
-    range = getArrayCandidateType(Globals);
+  Type range = getPointerRange(pointer, defaultRange);
 
   return new ArrayIdExpr(Type(Type::ArrayOf, range), pointer);
 }
