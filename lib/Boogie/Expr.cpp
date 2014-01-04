@@ -847,13 +847,6 @@ ref<Expr> AccessOffsetExpr::create(ref<Expr> array, unsigned pointerSize,
   return new AccessOffsetExpr(array, pointerSize, isWrite);
 }
 
-ref<Expr> NotAccessedExpr::create(ref<Expr> array, unsigned pointerSize) {
-  assert(array->getType().array);
-  auto GARE = dyn_cast<GlobalArrayRefExpr>(array);
-  GARE->getArray()->setNotAccessedExpr();
-  return new NotAccessedExpr(array, pointerSize);
-}
-
 ref<Expr> ArraySnapshotExpr::create(ref<Expr> dst, ref<Expr> src) {
   assert(dst->getType().array);
   assert(src->getType().array);

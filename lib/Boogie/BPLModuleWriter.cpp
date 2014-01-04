@@ -146,11 +146,6 @@ void BPLModuleWriter::write() {
         // Nothing to output in this case: below we output the single watched offset
       break;
       }
-
-      if ((*i)->getNotAccessedExpr()) {
-        OS << "var {:check_access} _NOT_ACCESSED_$$" << (*i)->getName() << " : "
-           << IntRep->getType(M->getPointerWidth()) << ";\n";
-      }
     }
 
     if (UsesPointers)

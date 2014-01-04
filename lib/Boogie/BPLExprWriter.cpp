@@ -370,11 +370,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeAccessHasOccurredVar(OS, AHOE->getArray().get(), AHOE->getAccessKind());
   } else if (auto AOE = dyn_cast<AccessOffsetExpr>(E)) {
     writeAccessOffsetVar(OS, AOE->getArray().get(), AOE->getAccessKind());
-  } else if (auto NAE = dyn_cast<NotAccessedExpr>(E)) {
-    auto GARE = dyn_cast<GlobalArrayRefExpr>(NAE->getArray().get());
-    if (!GARE)
-      llvm_unreachable("NotAccessedExpr must have array name argument");
-    OS << "_NOT_ACCESSED_$$" << GARE->getArray()->getName();
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
     case Expr::BVToPtr:

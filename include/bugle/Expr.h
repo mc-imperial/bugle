@@ -39,7 +39,6 @@ public:
     Havoc,
     AccessHasOccurred,
     AccessOffset,
-    NotAccessed,
     ArraySnapshot,
     UnderlyingArray,
     AddNoovfl,
@@ -529,18 +528,6 @@ public:
   EXPR_KIND(AccessOffset)
   ref<Expr> getArray() const { return array; }
   std::string getAccessKind() { return isWrite ? "WRITE" : "READ"; }
-};
-
-class NotAccessedExpr : public Expr {
-  NotAccessedExpr(ref<Expr> array, unsigned pointerSize) :
-    Expr(Type(Type::BV, pointerSize)), array(array) {}
-  ref<Expr> array;
-
-public:
-  static ref<Expr> create(ref<Expr> array, unsigned pointerSize);
-
-  EXPR_KIND(NotAccessed)
-  ref<Expr> getArray() const { return array; }
 };
 
 class ArraySnapshotExpr : public Expr {

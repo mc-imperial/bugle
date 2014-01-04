@@ -158,12 +158,6 @@ _FUNCTION_FROM_POINTER_TO_TYPE(ptr_offset, size_t)
 #define __read_implies(p, e) __implies(__read(p), e)
 #define __write_implies(p, e) __implies(__write(p), e)
 
-/* Not-accessed logging variable for barrier invariant subexpressions */
-_FUNCTION_FROM_POINTER_TO_TYPE(not_accessed, size_t)
-
-/* e is a member of the read-write set */
-#define __accessed(p, e) (__not_accessed(p) != e)
-
 /* Used in specifications to say how a pointer is accessed */
 _FUNCTION_FROM_POINTER_TO_VOID(reads_from)
 _FUNCTION_FROM_POINTER_TO_VOID(writes_to)

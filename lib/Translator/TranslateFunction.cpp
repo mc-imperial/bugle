@@ -209,9 +209,6 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__write_offset_local"] = &TranslateFunction::handleWriteOffset;
     fns["__write_offset_global"] = &TranslateFunction::handleWriteOffset;
     fns["__write_offset"] = &TranslateFunction::handleWriteOffset;
-    fns["__not_accessed_local"] = &TranslateFunction::handleNotAccessed;
-    fns["__not_accessed_global"] = &TranslateFunction::handleNotAccessed;
-    fns["__not_accessed"] = &TranslateFunction::handleNotAccessed;
     fns["__ptr_base_local"] = &TranslateFunction::handlePtrBase;
     fns["__ptr_base_global"] = &TranslateFunction::handlePtrBase;
     fns["__ptr_base"] = &TranslateFunction::handlePtrBase;
@@ -829,15 +826,6 @@ ref<Expr> TranslateFunction::handlePtrBase(bugle::BasicBlock *BBB,
                                           const std::vector<ref<Expr>> &Args) {
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   return arrayIdExpr;
-}
-
-ref<Expr> TranslateFunction::handleNotAccessed(bugle::BasicBlock *BBB,
-                                          llvm::CallInst *CI,
-                                          const std::vector<ref<Expr>> &Args) {
-  ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
-  ref<Expr> result = NotAccessedExpr::create(arrayIdExpr,
-                                             TM->TD.getPointerSizeInBits());
-  return result;
 }
 
 ref<Expr> TranslateFunction::handleArraySnapshot(bugle::BasicBlock *BBB,

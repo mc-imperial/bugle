@@ -67,13 +67,12 @@ class TranslateFunction {
                    handleOtherBool, handleOtherPtrBase, handleOld,
                    handleReturnVal, handleImplies, handleReadHasOccurred,
                    handleWriteHasOccurred, handleReadOffset, handleWriteOffset,
-                   handlePtrOffset, handlePtrBase, handleNotAccessed,
-                   handleArraySnapshot, handleBarrierInvariant,
-                   handleBarrierInvariantBinary, handleAddNoovflUnsigned,
-                   handleAddNoovflSigned, handleAddNoovflPredicate, handleAdd,
-                   handleIte, handleUninterpretedFunction,
-                   handleAtomicHasTakenValue, handleMemset, handleMemcpy,
-                   handleTrap;
+                   handlePtrOffset, handlePtrBase, handleArraySnapshot,
+                   handleBarrierInvariant, handleBarrierInvariantBinary,
+                   handleAddNoovflUnsigned, handleAddNoovflSigned,
+                   handleAddNoovflPredicate, handleAdd, handleIte,
+                   handleUninterpretedFunction, handleAtomicHasTakenValue,
+                   handleMemset, handleMemcpy, handleTrap;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
                    handleGetNumGroups, handleGetImageWidth,
