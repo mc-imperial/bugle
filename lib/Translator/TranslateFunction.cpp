@@ -1344,8 +1344,10 @@ ref<Expr> TranslateFunction::handleIte(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleAtomicHasTakenValue(bugle::BasicBlock *BBB,
                                        llvm::CallInst *CI,
                                        const std::vector<ref<Expr>> &Args) {
-  return BoolToBVExpr::create(
-    AtomicHasTakenValueExpr::create(Args[0], Args[1], Args[2]));
+  ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+  ref<Expr> result = BoolToBVExpr::create(
+                AtomicHasTakenValueExpr::create(arrayIdExpr, Args[1], Args[2]));
+  return result;
 }
 
 void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB,

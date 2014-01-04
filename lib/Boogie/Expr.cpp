@@ -889,5 +889,9 @@ ref<Expr> UninterpretedFunctionExpr::create(const std::string &name,
 
 ref<Expr> AtomicHasTakenValueExpr::create(ref<Expr> atomicArray, 
     ref<Expr> offset, ref<Expr> value) {
+  assert(atomicArray->getType().array);
+  assert(offset->getType().isKind(Type::BV));
+  assert(value->getType().isKind(Type::BV));
+
   return new AtomicHasTakenValueExpr(atomicArray, offset, value);
 }
