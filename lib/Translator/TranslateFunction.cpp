@@ -1007,6 +1007,7 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
   }
 
   assert(DstRangeTy.width % 8 == 0);
+  assert(DstRangeTy.width != 0);
   unsigned NumElements = Len / (DstRangeTy.width/8);
   ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width/8);
   // Handle when Len can be rewritten as an integral number of element writes
@@ -1073,6 +1074,7 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
 
   assert(SrcRangeTy.width % 8 == 0);
   assert(DstRangeTy.width % 8 == 0);
+  assert(SrcRangeTy.width != 0);
   unsigned NumElements = Len / (SrcRangeTy.width/8);
   ref<Expr> SrcDiv = Expr::createExactBVUDiv(SrcPtrOfs, SrcRangeTy.width/8);
   ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width/8);
@@ -1329,10 +1331,10 @@ ref<Expr> TranslateFunction::handleAdd(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleUninterpretedFunction(bugle::BasicBlock *BBB,
                                              llvm::CallInst *CI,
                                            const std::vector<ref<Expr>> &Args) {
-  return UninterpretedFunctionExpr::create(CI->getCalledFunction()->getName().
-                                      substr(strlen("__uninterpreted_function_")),
-                                   TM->translateType(CI->getCalledFunction()->getReturnType()),
-                                   Args);
+  std::string name = CI->getCalledFunction()->getName();
+  std::string strippedName = name.substr(strlen("__uninterpreted_function_"));
+  Type RT = TM->translateType(CI->getCalledFunction()->getReturnType());
+  return UninterpretedFunctionExpr::create(strippedName, RT, Args);
 }
 
 ref<Expr> TranslateFunction::handleIte(bugle::BasicBlock *BBB,

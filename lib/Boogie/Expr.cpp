@@ -857,11 +857,13 @@ ref<Expr> NotAccessedExpr::create(ref<Expr> array, unsigned pointerSize) {
 ref<Expr> ArraySnapshotExpr::create(ref<Expr> dst, ref<Expr> src) {
   assert(dst->getType().array);
   assert(src->getType().array);
+
   return new ArraySnapshotExpr(dst, src);
 }
 
 ref<Expr> UnderlyingArrayExpr::create(ref<Expr> array) {
   assert(array->getType().array);
+
   return new UnderlyingArrayExpr(array);
 }
 
@@ -870,15 +872,19 @@ ref<Expr> AddNoovflExpr::create(ref<Expr> first, ref<Expr> second,
   assert(first->getType().isKind(Type::BV));
   assert(second->getType().isKind(Type::BV));
   assert(first->getType().width == second->getType().width);
+
   return new AddNoovflExpr(first, second, isSigned);
 }
 
 ref<Expr> AddNoovflPredicateExpr::create(const std::vector<ref<Expr>> &exprs) {
   assert(!exprs.empty());
+#ifndef NDEBUG
   for (auto i = exprs.begin(), e = exprs.end(); i != e; ++i) {
     assert((*i)->getType().isKind(Type::BV));
     assert((*i)->getType().width == exprs[0]->getType().width);
   }
+#endif
+
   return new AddNoovflPredicateExpr(exprs);
 }
 

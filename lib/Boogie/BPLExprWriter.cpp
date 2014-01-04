@@ -309,7 +309,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
         OS << MW->IntRep->getExtract();
       }, false);
     }
-
   } else if (auto UFE = dyn_cast<UninterpretedFunctionExpr>(E)) {
     OS << UFE->getName() << "(";
     for (unsigned i = 0; i < UFE->getNumOperands(); ++i) {
