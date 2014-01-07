@@ -1,9 +1,9 @@
 #ifndef CUDA_ATOMICS_H
 #define CUDA_ATOMICS_H
 
-#ifdef __CUDA_ARCH__
-
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 #define ATOMIC_INT_DECL(OP) \
     __device__ int __atomic##OP##_int(volatile int * x, int y); \
@@ -110,8 +110,8 @@ __device__ static __attribute__((always_inline)) __attribute__((overloadable)) u
  * 
  */
 
+#ifdef __cplusplus
 }
-
 #endif
 
 #endif

@@ -1,9 +1,9 @@
 #ifndef CUDA_MATH_H
 #define CUDA_MATH_H
 
-#ifdef __CUDA_ARCH__
-
+#ifdef __cplusplus
 extern "C" {
+#endif
 
 /* INTEGER INTRINSICS */
 __device__ unsigned int __brev(unsigned int x);
@@ -37,8 +37,8 @@ __device__ static __inline__ unsigned int __umul24(unsigned int x, unsigned int 
      - result only well-defined for input values in range [0, 2^24-1]
      - truncation to the 32 least significant bits of the result is automatic
   */
-  __assert(x < 16777216);
-  __assert(y < 16777216);
+  __unsafe_assert(x < 16777216);
+  __unsafe_assert(y < 16777216);
   return x * y;
 }
 
@@ -291,8 +291,8 @@ __device__ unsigned int umin(unsigned int x, unsigned int y);
 __device__ long long int llmin(long long int x, long long int y);
 __device__ unsigned long long int ullmin(unsigned long long int x, unsigned long long int y);
 
+#ifdef __cplusplus
 }
-
 #endif
 
 #endif

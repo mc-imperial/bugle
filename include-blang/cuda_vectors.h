@@ -1,3 +1,6 @@
+#ifndef CUDA_VECTORS_H
+#define CUDA_VECTORS_H
+
 /* See Table B-1 in CUDA Specification */
 typedef struct {
   char x;
@@ -961,3 +964,5 @@ __device__ float smoothstep(float a, float b, float x);
 __device__ float2 smoothstep(float2 a, float2 b, float2 x);
 __device__ float3 smoothstep(float3 a, float3 b, float3 x);
 __device__ float4 smoothstep(float4 a, float4 b, float4 x);
+
+#endif
