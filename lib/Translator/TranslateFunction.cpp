@@ -374,8 +374,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["sqrt"] = &TranslateFunction::handleSqrt;
       fns["sqrtf"] = &TranslateFunction::handleSqrt;
       fns["rsqrt"] = &TranslateFunction::handleRsqrt;
-      fns["log"] = &TranslateFunction::handleLog;
-      fns["exp"] = &TranslateFunction::handleExp;
+      fns["log2"] = &TranslateFunction::handleLog;
+      fns["exp2"] = &TranslateFunction::handleExp;
     }
 
     auto &ints = SpecialFunctionMap.Intrinsics;
