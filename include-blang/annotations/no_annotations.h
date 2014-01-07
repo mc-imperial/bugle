@@ -11,7 +11,9 @@
 #undef    __global_invariant
 #undef    __candidate_invariant
 #undef    __candidate_global_invariant
+#ifndef ONLY_REQUIRES
 #undef    __requires
+#endif
 #undef    __global_requires
 #undef    __ensures
 #undef    __global_ensures
@@ -23,7 +25,9 @@
 #define  __global_invariant(X)            __NOP
 #define  __candidate_invariant(X)         __NOP
 #define  __candidate_global_invariant(X)  __NOP
+#ifndef ONLY_REQUIRES
 #define  __requires(X)                    __NOP
+#endif
 #define  __global_requires(X)             __NOP
 #define  __ensures(X)                     __NOP
 #define  __global_ensures(X)              __NOP
