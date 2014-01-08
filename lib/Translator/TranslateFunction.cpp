@@ -721,7 +721,8 @@ ref<Expr> TranslateFunction::handleOtherInt(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleOtherBool(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  return BoolToBVExpr::create(OtherBoolExpr::create(BVToBoolExpr::create(Args[0])));
+  ref<Expr> otherBool = OtherBoolExpr::create(BVToBoolExpr::create(Args[0]));
+  return BoolToBVExpr::create(otherBool);
 }
 
 ref<Expr> TranslateFunction::handleOtherPtrBase(bugle::BasicBlock *BBB,
@@ -736,15 +737,17 @@ ref<Expr> TranslateFunction::handleOtherPtrBase(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleImplies(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  return BoolToBVExpr::create(ImpliesExpr::create(BVToBoolExpr::create(Args[0]),
-                                                  BVToBoolExpr::create(Args[1])));
+  ref<Expr> implies = ImpliesExpr::create(BVToBoolExpr::create(Args[0]),
+                                          BVToBoolExpr::create(Args[1]));
+  return BoolToBVExpr::create(implies);
 }
 
 ref<Expr> TranslateFunction::handleEnabled(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  return BoolToBVExpr::create(SpecialVarRefExpr::create(bugle::Type(bugle::Type::Bool),
-                                                        "__enabled"));
+  ref<Expr> varRef = SpecialVarRefExpr::create(bugle::Type(bugle::Type::Bool),
+                                               "__enabled");
+  return BoolToBVExpr::create(varRef);
 }
 
 ref<Expr> TranslateFunction::handleReadHasOccurred(bugle::BasicBlock *BBB,
@@ -1950,7 +1953,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     ErrorReporter::reportImplementationLimitation(msg);
   }
   ValueExprMap[I] = E;
-  addEvalStmt(BBB, I, E);
+  if (LoadsAreTemporal)
+    addEvalStmt(BBB, I, E);
   return;
 }
 
