@@ -30,26 +30,28 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
   )
 
   execute_process(
-    COMMAND ${LLVM_CONFIG_EXECUTABLE} --ldflags
-    OUTPUT_VARIABLE LLVM_LDFLAGS
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-
-  execute_process(
     COMMAND ${LLVM_CONFIG_EXECUTABLE} --version
     OUTPUT_VARIABLE LLVM_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
 
   if (${LLVM_VERSION} GREATER "3.4svn")
+    FILE(WRITE ${CMAKE_BINARY_DIR}/process_libs.sh
+      ${LLVM_CONFIG_EXECUTABLE} " --system-libs | tr '\\n' '\ '\n"
+    )
     execute_process(
-      COMMAND ${LLVM_CONFIG_EXECUTABLE} --system-libs
+      COMMAND sh ${CMAKE_BINARY_DIR}/process_libs.sh
       OUTPUT_VARIABLE LLVM_SYSTEM_LIBS
       OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-
-    set(LLVM_LDFLAGS "${LLVM_LDFLAGS} ${LLVM_SYSTEM_LIBS}")
+    set(LLVM_LIBS "${LLVM_LIBS} ${LLVM_SYSTEM_LIBS}")
   endif()
+
+  execute_process(
+    COMMAND ${LLVM_CONFIG_EXECUTABLE} --ldflags
+    OUTPUT_VARIABLE LLVM_LDFLAGS
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
 
   execute_process(
     COMMAND ${LLVM_CONFIG_EXECUTABLE} --bindir
