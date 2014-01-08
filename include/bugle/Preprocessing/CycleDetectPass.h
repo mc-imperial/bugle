@@ -13,10 +13,8 @@ public:
   CycleDetectPass() : ModulePass(ID) {
 #if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
     initializeCallGraphWrapperPassPass(*llvm::PassRegistry::getPassRegistry());
-#elif LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR == 4
-    initializeCallGraphPass(*llvm::PassRegistry::getPassRegistry());
 #else
-    initializeCallGraphAnalysisGroup(*llvm::PassRegistry::getPassRegistry());
+    initializeCallGraphPass(*llvm::PassRegistry::getPassRegistry());
 #endif
   }
 
