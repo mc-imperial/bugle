@@ -186,12 +186,14 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
                             BVConstExpr::createZero(TD.getPointerSizeInBits()));
   }
   if (auto F = dyn_cast<llvm::Function>(C)) {
-    if (FunctionMap.find(F) == FunctionMap.end()) {
-      std::string name = ErrorReporter::demangleName(F->getName(), SL == SL_CUDA);
-      std::string msg = "Unsupported function pointer '" + name + "'";
+    auto FI = FunctionMap.find(F);
+    if (FI == FunctionMap.end()) {
+      std::string DN = ErrorReporter::demangleName(F->getName(), SL == SL_CUDA);
+      std::string msg = "Unsupported function pointer '" + DN + "'";
       ErrorReporter::reportImplementationLimitation(msg);
     }
-    return FunctionPointerExpr::create(F->getName(), TD.getPointerSizeInBits());
+    std::string name = FI->second->getName();
+    return FunctionPointerExpr::create(name, TD.getPointerSizeInBits());
   }
   if (auto UV = dyn_cast<UndefValue>(C)) {
     return translateArbitrary(translateType(UV->getType()));
