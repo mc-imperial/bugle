@@ -27,8 +27,8 @@ __device__ static __inline__ int __mul24(int x, int y) {
      - result only well-defined for input values in range [-2^23, 2^23-1]
      - truncation to the 32 least significant bits of the result is automatic
   */
-  __unsafe_assert(x >= -8388608 && x < 8388608);
-  __unsafe_assert(y >= -8388608 && y < 8388608);
+  //__unsafe_assert(x >= -8388608 && x < 8388608);
+  //__unsafe_assert(y >= -8388608 && y < 8388608);
   return x * y;
 }
 
@@ -37,8 +37,8 @@ __device__ static __inline__ unsigned int __umul24(unsigned int x, unsigned int 
      - result only well-defined for input values in range [0, 2^24-1]
      - truncation to the 32 least significant bits of the result is automatic
   */
-  __unsafe_assert(x < 16777216);
-  __unsafe_assert(y < 16777216);
+  //__unsafe_assert(x < 16777216);
+  //__unsafe_assert(y < 16777216);
   return x * y;
 }
 
