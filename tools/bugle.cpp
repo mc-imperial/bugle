@@ -85,8 +85,15 @@ int main(int argc, char **argv) {
   if (streamer) {
     M.reset(getStreamedBitcodeModule(DisplayFilename, streamer, Context,
                                      &ErrorMessage));
-    if (M.get() != 0 && M->MaterializeAllPermanently(&ErrorMessage)) {
-      M.reset();
+    if (M.get() != 0) {
+#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
+      if (auto EC = M->materializeAllPermanently()) {
+        ErrorMessage = EC.message();
+#else
+      if (M->MaterializeAllPermanently(&ErrorMessage)) {
+#endif
+        M.reset();
+      }
     }
   }
 
