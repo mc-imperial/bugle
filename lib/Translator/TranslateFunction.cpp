@@ -519,11 +519,12 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
 
 SourceLocsRef TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
   SourceLocs *sourcelocs = 0;
-  if (llvm::MDNode *mdnode = I->getMetadata("dbg")) {
+  if (MDNode *mdnode = I->getMetadata("dbg")) {
     sourcelocs = new SourceLocs();
-    llvm::DILocation Loc(mdnode);
+    DILocation Loc(mdnode);
     do {
-      sourcelocs->push_back(SourceLoc(Loc.getLineNumber(), Loc.getColumnNumber(),
+      sourcelocs->push_back(SourceLoc(Loc.getLineNumber(),
+                                      Loc.getColumnNumber(),
                                       Loc.getFilename().str(),
                                       Loc.getDirectory().str()));
       Loc = Loc.getOrigLocation();

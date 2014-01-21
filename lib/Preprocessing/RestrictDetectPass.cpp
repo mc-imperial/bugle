@@ -2,11 +2,30 @@
 #include "bugle/Translator/TranslateFunction.h"
 #include "bugle/Translator/TranslateModule.h"
 #include "bugle/util/ErrorReporter.h"
+#include "llvm/DebugInfo.h"
 #include "llvm/Pass.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Support/Path.h"
 
 using namespace llvm;
 using namespace bugle;
+
+std::string RestrictDetectPass::getFunctionLocation(llvm::Function *F) {
+  for (auto i = DIF.subprogram_begin(), e = DIF.subprogram_end(); i != e; ++i) {
+    DISubprogram subprogram(*i);
+    if (subprogram.describes(F)) {
+      SmallVector<char, 0> path;
+      sys::path::append(path, subprogram.getDirectory());
+      sys::path::append(path, subprogram.getFilename());
+      return "'" + subprogram.getName().str() + "' at line "
+        + std::to_string(subprogram.getLineNumber()) + " of "
+        + path.data();
+    }
+  }
+
+  return "'" + F->getName().str() + "'";
+}
 
 void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
   std::vector<Argument *> AL;
@@ -44,9 +63,8 @@ void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
       msg += ", ";
   } while (i != e);
 
-  std::string name
-    = ErrorReporter::demangleName(F.getName(), SL == TranslateModule::SL_CUDA);
-  msg += " of '" + name + "' to be non-aliased; ";
+  std::string name = getFunctionLocation(&F);
+  msg += " of " + name + " to be non-aliased; ";
   msg += "please consider adding a restrict qualifier to these arguments";
   ErrorReporter::emitWarning(msg);
 }

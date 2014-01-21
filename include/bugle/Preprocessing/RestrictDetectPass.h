@@ -2,6 +2,7 @@
 #define BUGLE_PREPROCESSING_RESTRICTDETECTPASS_H
 
 #include "bugle/Translator/TranslateModule.h"
+#include "llvm/DebugInfo.h"
 #include "llvm/Pass.h"
 
 namespace bugle {
@@ -9,16 +10,20 @@ namespace bugle {
 class RestrictDetectPass : public llvm::FunctionPass {
 private:
   llvm::Module *M;
+  llvm::DebugInfoFinder DIF;
   TranslateModule::SourceLanguage SL;
   std::set<std::string> GPUEntryPoints;
 
+  std::string getFunctionLocation(llvm::Function *F);
   void doRestrictCheck(llvm::Function &F);
 public:
   static char ID;
 
   RestrictDetectPass(llvm::Module *M, TranslateModule::SourceLanguage SL,
                      std::set<std::string> &EP) :
-    FunctionPass(ID), M(M), SL(SL), GPUEntryPoints(EP) {}
+    FunctionPass(ID), M(M), SL(SL), GPUEntryPoints(EP) {
+      DIF.processModule(*M);
+    }
 
   virtual const char *getPassName() const {
     return "Detect restrict usage on global pointers";
