@@ -7,6 +7,7 @@
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Path.h"
+#include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
 using namespace bugle;
@@ -18,9 +19,10 @@ std::string RestrictDetectPass::getFunctionLocation(llvm::Function *F) {
       SmallVector<char, 0> path;
       sys::path::append(path, subprogram.getDirectory());
       sys::path::append(path, subprogram.getFilename());
-      return "'" + subprogram.getName().str() + "' at line "
-        + std::to_string(subprogram.getLineNumber()) + " of "
-        + path.data();
+      std::string l; llvm::raw_string_ostream lS(l);
+      lS << "'" << subprogram.getName() << "' on line "
+         << subprogram.getLineNumber() << " of " << path.data();
+      return lS.str();
     }
   }
 
