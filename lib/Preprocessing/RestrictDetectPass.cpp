@@ -16,12 +16,10 @@ std::string RestrictDetectPass::getFunctionLocation(llvm::Function *F) {
   for (auto i = DIF.subprogram_begin(), e = DIF.subprogram_end(); i != e; ++i) {
     DISubprogram subprogram(*i);
     if (subprogram.describes(F)) {
-      SmallVector<char, 0> path;
-      sys::path::append(path, subprogram.getDirectory());
-      sys::path::append(path, subprogram.getFilename());
       std::string l; llvm::raw_string_ostream lS(l);
       lS << "'" << subprogram.getName() << "' on line "
-         << subprogram.getLineNumber() << " of " << path.data();
+         << subprogram.getLineNumber() << " of "
+         << subprogram.getDirectory() << subprogram.getFilename();
       return lS.str();
     }
   }
