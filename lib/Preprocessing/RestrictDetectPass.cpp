@@ -4,6 +4,7 @@
 #include "bugle/util/ErrorReporter.h"
 #include "llvm/DebugInfo.h"
 #include "llvm/Pass.h"
+#include "llvm/ADT/SmallString.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Path.h"
@@ -16,10 +17,12 @@ std::string RestrictDetectPass::getFunctionLocation(llvm::Function *F) {
   for (auto i = DIF.subprogram_begin(), e = DIF.subprogram_end(); i != e; ++i) {
     DISubprogram subprogram(*i);
     if (subprogram.describes(F)) {
+      SmallString<256> path;
+      sys::path::append(path, subprogram.getDirectory());
+      sys::path::append(path, subprogram.getFilename());
       std::string l; llvm::raw_string_ostream lS(l);
       lS << "'" << subprogram.getName() << "' on line "
-         << subprogram.getLineNumber() << " of "
-         << subprogram.getDirectory() << subprogram.getFilename();
+         << subprogram.getLineNumber() << " of " << path;
       return lS.str();
     }
   }
