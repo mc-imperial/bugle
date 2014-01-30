@@ -19,9 +19,7 @@
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/CallSite.h"
-#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
-#include "klee/util/GetElementPtrTypeIterator.h"
 
 using namespace bugle;
 using namespace llvm;

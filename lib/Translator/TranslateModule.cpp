@@ -9,10 +9,16 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Module.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
 
 using namespace llvm;
 using namespace bugle;
+
+static cl::opt<bool>
+ModelBVAsByteArray("model-bv-as-byte-array", cl::Hidden, cl::init(false),
+  cl::desc("Model each array composed of bit vector elements as an array"
+            "of bit vectors of size 8"));
 
 ref<Expr> TranslateModule::translateConstant(Constant *C) {
   ref<Expr> &E = ConstantMap[C];
@@ -273,8 +279,13 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
   auto PT = cast<PointerType>(V->getType());
 
   if (!(ModelAllAsByteArray ||
-        ModelAsByteArray.find(V) != ModelAsByteArray.end()))
+        ModelAsByteArray.find(V) != ModelAsByteArray.end())) {
     T = translateArrayRangeType(PT->getElementType());
+    if (ModelBVAsByteArray && T.isKind(Type::BV)) {
+      ModelAsByteArray.insert(V);
+      T = Type(Type::BV, 8);
+    }
+  }
   GA = BM->addGlobal(V->getName(), T);
   addGlobalArrayAttribs(GA, PT);
   GlobalValueMap[GA] = V;
