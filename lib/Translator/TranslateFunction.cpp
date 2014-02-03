@@ -926,10 +926,11 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
 
   auto BF = BarrierInvariants[CI->getNumArgOperands()];
   if (!BF) {
-    std::string S = CI->getCalledFunction()->getName().str();
+    llvm::Function *F = CI->getCalledFunction();
+    std::string S = F->getName().str();
     llvm::raw_string_ostream SS(S);
     SS << (CI->getNumArgOperands() - 1);
-    BF = TM->BM->addFunction(SS.str());
+    BF = TM->BM->addFunction(SS.str(), TM->getOriginalFunctionName(F));
     BarrierInvariants[CI->getNumArgOperands()] = BF;
 
     int count = 0;
@@ -964,10 +965,11 @@ ref<Expr> TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB
 
   auto BF = BinaryBarrierInvariants[CI->getNumArgOperands()];
   if (!BF) {
-    std::string S = CI->getCalledFunction()->getName().str();
+    llvm::Function *F = CI->getCalledFunction();
+    std::string S = F->getName().str();
     llvm::raw_string_ostream SS(S);
     SS << ((CI->getNumArgOperands() - 1)/2);
-    BF = TM->BM->addFunction(SS.str());
+    BF = TM->BM->addFunction(SS.str(), TM->getOriginalFunctionName(F));
     BinaryBarrierInvariants[CI->getNumArgOperands()] = BF;
 
     int count = 0;

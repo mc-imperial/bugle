@@ -10,14 +10,17 @@ namespace bugle {
 
 class GlobalArray {
   std::string name;
+  std::string originalName;
   Type rangeType;
   std::set<std::string> attributes;
 
 public:
 
-  GlobalArray(const std::string &name, Type rangeType)
-    : name(name), rangeType(rangeType) {}
+  GlobalArray(const std::string &name, const std::string &originalName,
+              Type rangeType)
+    : name(name), originalName(originalName), rangeType(rangeType) {}
   const std::string &getName() const { return name; }
+  const std::string &getOriginalName() const { return originalName; }
   Type getRangeType() const { return rangeType; }
   void addAttribute(const std::string &attrib) {
     attributes.insert(attrib);

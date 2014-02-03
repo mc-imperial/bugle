@@ -5,6 +5,7 @@
 #include "bugle/Ref.h"
 #include "bugle/Type.h"
 #include "klee/util/GetElementPtrTypeIterator.h"
+#include "llvm/DebugInfo.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/IR/DataLayout.h"
 #include <functional>
@@ -53,6 +54,7 @@ public:
 private:
   bugle::Module *BM;
   llvm::Module *M;
+  llvm::DebugInfoFinder DIF;
   llvm::DataLayout TD;
   SourceLanguage SL;
   std::set<std::string> GPUEntryPoints;
@@ -121,11 +123,14 @@ public:
   TranslateModule(llvm::Module *M, SourceLanguage SL,
                   std::set<std::string> &EP, RaceInstrumenter RaceInst) :
     BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RaceInst),
-    NeedAdditionalByteArrayModels(false),
-    ModelAllAsByteArray(false),
-    NextModelAllAsByteArray(false) {}
+    NeedAdditionalByteArrayModels(false), ModelAllAsByteArray(false),
+    NextModelAllAsByteArray(false) {
+      DIF.processModule(*M);
+    }
   static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
                               SourceLanguage SL, std::set<std::string> &EP);
+  std::string getOriginalFunctionName(llvm::Function *F);
+  std::string getOriginalGlobalArrayName(llvm::Value *V);
   void translate();
   bugle::Module *takeModule() { return BM; }
 

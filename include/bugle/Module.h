@@ -29,15 +29,19 @@ class Module {
   unsigned pointerWidth;
 
 public:
-  Function *addFunction(const std::string &name) {
-    Function *F = new Function(functionNames.makeName(makeBoogieIdent(name)));
+  Function *addFunction(const std::string &name,
+                        const std::string &originalName) {
+    Function *F = new Function(functionNames.makeName(makeBoogieIdent(name)),
+                               originalName);
     functions.push_back(F);
     return F;
   }
 
-  GlobalArray *addGlobal(const std::string &name, Type rangeType) {
+  GlobalArray *addGlobal(const std::string &name,
+                         const std::string &originalName, Type rangeType) {
     GlobalArray *GA =
-      new GlobalArray(globalNames.makeName(makeBoogieIdent(name)), rangeType);
+      new GlobalArray(globalNames.makeName(makeBoogieIdent(name)), originalName,
+                      rangeType);
     globals.push_back(GA);
     return GA;
   }

@@ -106,6 +106,7 @@ void BPLModuleWriter::write() {
 
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
     OS << "var ";
+    OS << "{:original_name \"" << (*i)->getOriginalName() << "\"} ";
     for (auto ai = (*i)->attrib_begin(), ae = (*i)->attrib_end(); ai != ae;
          ++ai) {
       OS << "{:" << *ai << "} ";

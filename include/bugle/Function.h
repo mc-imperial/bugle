@@ -15,6 +15,7 @@ namespace bugle {
 
 class Function {
   std::string name;
+  std::string originalName;
   std::set<std::string> attributes;
   bool entryPoint, specification;
   OwningPtrVector<SpecificationInfo> requires, globalRequires, ensures,
@@ -24,7 +25,9 @@ class Function {
   UniqueNameSet bbNames, varNames;
 
 public:
-  Function(const std::string &name) : name(name), entryPoint(false), specification(false) {}
+  Function(const std::string &name, const std::string &originalName) :
+    name(name), originalName(originalName), entryPoint(false),
+    specification(false) {}
   BasicBlock *addBasicBlock(const std::string &name) {
     BasicBlock *BB = new BasicBlock(bbNames.makeName(makeBoogieIdent(name)));
     blocks.push_back(BB);
@@ -65,6 +68,7 @@ public:
   }
 
   const std::string &getName() { return name; }
+  const std::string &getOriginalName() { return originalName; }
   bool isEntryPoint() const { return entryPoint; }
   void setEntryPoint(bool ep) { entryPoint = ep; }
 

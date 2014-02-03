@@ -192,7 +192,7 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
   if (auto F = dyn_cast<llvm::Function>(C)) {
     auto FI = FunctionMap.find(F);
     if (FI == FunctionMap.end()) {
-      std::string DN = ErrorReporter::demangleName(F->getName(), SL == SL_CUDA);
+      std::string DN = getOriginalGlobalArrayName(F);
       std::string msg = "Unsupported function pointer '" + DN + "'";
       ErrorReporter::reportImplementationLimitation(msg);
     }
@@ -286,7 +286,7 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
       T = Type(Type::BV, 8);
     }
   }
-  GA = BM->addGlobal(V->getName(), T);
+  GA = BM->addGlobal(V->getName(), getOriginalGlobalArrayName(V), T);
   addGlobalArrayAttribs(GA, PT);
   GlobalValueMap[GA] = V;
   return GA;
@@ -383,6 +383,33 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
   }
 
   return EP.find(F->getName()) != EP.end();
+}
+
+std::string TranslateModule::getOriginalFunctionName(llvm::Function *F) {
+  for (auto i = DIF.subprogram_begin(), e = DIF.subprogram_end(); i != e; ++i) {
+    DISubprogram subprogram(*i);
+    if (subprogram.describes(F)) {
+      return subprogram.getName();
+    }
+  }
+
+  return F->getName().str();
+}
+
+std::string TranslateModule::getOriginalGlobalArrayName(llvm::Value *V) {
+  GlobalVariable *GV = dyn_cast<GlobalVariable>(V);
+  if (!GV)
+    return V->getName();
+
+  for (auto i = DIF.global_variable_begin(), e = DIF.global_variable_end();
+       i != e; ++i) {
+    DIGlobalVariable globalVariable(*i);
+    if (globalVariable.getGlobal() == GV) {
+      return globalVariable.getName();
+    }
+  }
+
+  return GV->getName().str();
 }
 
 // Convert the given unmodelled expression E to modelled form.
@@ -639,7 +666,8 @@ void TranslateModule::translate() {
           TranslateFunction::isSpecialFunction(SL, i->getName()))
         continue;
 
-      auto BF = FunctionMap[&*i] = BM->addFunction(i->getName());
+      auto BF = FunctionMap[&*i] = BM->addFunction(i->getName(),
+                                                   getOriginalFunctionName(i));
 
       auto RT = i->getFunctionType()->getReturnType();
       if (!RT->isVoidTy())
@@ -651,7 +679,7 @@ void TranslateModule::translate() {
         continue;
 
       if (TranslateFunction::isAxiomFunction(i->getName())) {
-        bugle::Function F("");
+        bugle::Function F("", "");
         Type RT = translateType(i->getFunctionType()->getReturnType());
         Var *RV = F.addReturn(RT, "ret");
         TranslateFunction TF(this, &F, &*i);
