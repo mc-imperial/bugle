@@ -203,11 +203,7 @@ add_executable(bugle
   tools/bugle.cpp
 )
 
-add_executable(bugle-demangle
-  tools/bugle-demangle.cpp
-)
-
-set_target_properties(bugle bugle-demangle bugleBoogie buglePreprocessing
+set_target_properties(bugle bugleBoogie buglePreprocessing
                       bugleTransform bugleTranslator bugleUtil
     PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS}")
 
@@ -216,7 +212,6 @@ target_link_libraries(bugleTransform bugleBoogie)
 target_link_libraries(buglePreprocessing bugleTranslator)
 target_link_libraries(bugleBoogie bugleUtil)
 target_link_libraries(bugle bugleBoogie buglePreprocessing bugleTranslator bugleTransform bugleUtil)
-target_link_libraries(bugle-demangle bugleUtil ${LLVM_LIBS} ${LLVM_LDFLAGS})
 
 if(NOT WIN32 OR MSYS OR CYGWIN)
 
