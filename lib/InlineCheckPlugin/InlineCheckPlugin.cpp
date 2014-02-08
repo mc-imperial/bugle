@@ -63,8 +63,8 @@ protected:
     } else if (args.size()) {
       DiagnosticsEngine &D = CI.getDiagnostics();
       unsigned DiagID = D.getCustomDiagID(
-          DiagnosticsEngine::Error, "invalid argument '" + args[0] + "'");
-      D.Report(DiagID);
+          DiagnosticsEngine::Error, "invalid argument '%0'");
+      D.Report(DiagID) << args[0];
       return false;
     }
 
