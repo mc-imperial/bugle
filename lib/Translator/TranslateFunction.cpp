@@ -449,13 +449,38 @@ void TranslateFunction::translate() {
 
   // For each phi we encountered in the function, see if we can model it.
   for (auto i = PhiAssignsMap.begin(), e = PhiAssignsMap.end(); i != e; ++i) {
-    TM->computeValueModel(i->first, PhiVarMap[i->first], i->second);
+    std::vector<ref<Expr>> assigns;
+    std::set<llvm::PHINode *> foundPhiNodes;
+    foundPhiNodes.insert(i->first);
+    computeClosure(i->second, foundPhiNodes, assigns);
+    TM->computeValueModel(i->first, PhiVarMap[i->first], assigns);
   }
 
   // See if we can model the return value. This requires the function to have
   // a body.
   if (BBList.begin() != BBList.end())
     TM->computeValueModel(F, 0, ReturnVals);
+}
+
+void TranslateFunction::computeClosure(std::vector<PhiPair> &currentAssigns,
+                                       std::set<llvm::PHINode *> &foundPhiNodes,
+                                       std::vector<ref<Expr>> &assigns) {
+  for (auto i = currentAssigns.begin(), e = currentAssigns.end(); i != e; ++i) {
+    // See if this phi node is referring to another phi node, either directly
+    // or through a number of getelementptr instructions. Compute the transitive
+    // closure in case such a phi node exists.
+    auto operand = i->first;
+    while (isa<GetElementPtrInst>(operand))
+      operand = cast<GetElementPtrInst>(operand)->getPointerOperand();
+    if (auto PN = dyn_cast<PHINode>(operand)) {
+      if (foundPhiNodes.find(PN) == foundPhiNodes.end()) {
+        foundPhiNodes.insert(PN);
+        computeClosure(PhiAssignsMap[PN], foundPhiNodes, assigns);
+      }
+    } else {
+      assigns.push_back(i->second);
+    }
+  }
 }
 
 ref<Expr> TranslateFunction::translateValue(llvm::Value *V,
@@ -508,7 +533,8 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
     Vars.push_back(getPhiVariable(PN));
     auto Val = TM->modelValue(PN, translateValue(PN->getIncomingValue(idx), BBB));
     Exprs.push_back(Val);
-    PhiAssignsMap[PN].push_back(Val);
+    PhiPair pair = std::make_pair(PN->getIncomingValue(idx), Val);
+    PhiAssignsMap[PN].push_back(pair);
   }
 
   if (!Vars.empty())

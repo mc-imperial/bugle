@@ -38,13 +38,15 @@ class TranslateFunction {
     std::map<unsigned, SpecialFnHandler TranslateFunction::*> Intrinsics;
   };
 
+  typedef std::pair<llvm::Value *, ref<Expr>> PhiPair;
+
   TranslateModule *TM;
   Function *BF;
   llvm::Function *F;
   std::map<llvm::BasicBlock *, BasicBlock *> BasicBlockMap;
   std::map<llvm::Value *, ref<Expr> > ValueExprMap;
   std::map<llvm::PHINode *, Var *> PhiVarMap;
-  std::map<llvm::PHINode *, std::vector<ref<Expr>>> PhiAssignsMap;
+  std::map<llvm::PHINode *, std::vector<PhiPair>> PhiAssignsMap;
   Var *ReturnVar;
   std::vector<ref<Expr>> ReturnVals;
   bool LoadsAreTemporal;
@@ -99,6 +101,9 @@ class TranslateFunction {
   void translateBasicBlock(BasicBlock *BBB, llvm::BasicBlock *BB);
   void translateInstruction(BasicBlock *BBB, llvm::Instruction *I);
   Var *getPhiVariable(llvm::PHINode *PN);
+  void computeClosure(std::vector<PhiPair> &currentAssigns,
+                      std::set<llvm::PHINode *> &foundPhiNodes,
+                      std::vector<ref<Expr>> &assigns);
   void addPhiAssigns(BasicBlock *BBB, llvm::BasicBlock *Pred,
                      llvm::BasicBlock *Succ);
   SourceLocsRef extractSourceLocs(llvm::Instruction *I);

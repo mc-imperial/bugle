@@ -497,26 +497,10 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
 
   std::set<GlobalArray *> GlobalSet;
   for (auto ai = Assigns.begin(), ae = Assigns.end(); ai != ae; ++ai) {
-    if ((*ai)->computeArrayCandidates(GlobalSet)) {
+    if ((*ai)->computeArrayCandidates(GlobalSet))
       continue;
-    } else {
-      // See if this assignment is simply referring back to the variable
-      // itself.
-      if (auto VRE = dyn_cast<VarRefExpr>(*ai)) {
-        if (VRE->getVar() == Var)
-          continue;
-      }
-      if (auto PE = dyn_cast<PointerExpr>(*ai)) {
-        if (auto AIE = dyn_cast<ArrayIdExpr>(PE->getArray())) {
-          if (auto VRE = dyn_cast<VarRefExpr>(AIE->getSubExpr())) {
-            if (VRE->getVar() == Var)
-              continue;
-          }
-        }
-      }
-    }
-
-    return;
+    else
+      return;
   }
 
   assert(!GlobalSet.empty() && "GlobalSet is empty?");
