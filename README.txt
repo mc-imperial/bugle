@@ -4,12 +4,12 @@ Compiling on OS X/Linux
 1. Compile LLVM and Clang, as usual.
    http://clang.llvm.org/get_started.html
 
-2. (Optional, only required when compiling OpenCL kernels) 
+2. (Optional, only required when compiling OpenCL kernels)
    Compile libclc: http://libclc.llvm.org/
-   When configuring libclc, supply the parameter 'nvptx--bugle'
+   When configuring libclc, supply the parameter 'nvptx--'
    to configure.py in order to build the Bugle version of the library.
    e.g.
-     $ ./configure.py nvptx--bugle
+     $ ./configure.py nvptx--
 
 3. Run CMake from a build directory:
      $ mkdir /path/to/bugle-build

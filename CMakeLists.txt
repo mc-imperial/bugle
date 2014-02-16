@@ -3,10 +3,10 @@ project(Bugle)
 
 set(LIBCLC_DIR "" CACHE PATH "Path to libclc")
 
-set(CLBLANG_CLANG_OPTS "-Xclang -cl-std=CL1.2 -O0 -target nvptx--bugle -I${LIBCLC_DIR}/generic/include -Xclang -mlink-bitcode-file -Xclang ${LIBCLC_DIR}/nvptx--bugle/lib/builtins.bc -Dcl_khr_fp64 -Dcl_clang_storage_class_specifiers -D__OPENCL_VERSION__")
+set(CLBLANG_CLANG_OPTS "-Xclang -cl-std=CL1.2 -O0 -target nvptx-- -I${LIBCLC_DIR}/generic/include -Xclang -mlink-bitcode-file -Xclang ${LIBCLC_DIR}/lib/clc/nvptx--.bc -Dcl_khr_fp64 -Dcl_clang_storage_class_specifiers -D__OPENCL_VERSION__")
 set(CLBLANG_BUGLE_OPTS "-l cl")
 
-set(CUBLANG_CLANG_OPTS "-target nvptx--bugle -emit-llvm -Xclang -fcuda-is-device -D__CUDA_ARCH__")
+set(CUBLANG_CLANG_OPTS "-target nvptx-- -emit-llvm -Xclang -fcuda-is-device -D__CUDA_ARCH__")
 set(CUBLANG_BUGLE_OPTS "-l cu")
 
 if (NOT WIN32 OR MSYS OR CYGWIN)
