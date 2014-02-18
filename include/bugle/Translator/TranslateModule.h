@@ -128,7 +128,7 @@ public:
       DIF.processModule(*M);
     }
   static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
-                              SourceLanguage SL, std::set<std::string> &EP);
+                              SourceLanguage SL, std::set<std::string> &EPS);
   std::string getOriginalFunctionName(llvm::Function *F);
   std::string getOriginalGlobalArrayName(llvm::Value *V);
   void translate();

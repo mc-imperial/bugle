@@ -43,6 +43,7 @@ class TranslateFunction {
   TranslateModule *TM;
   Function *BF;
   llvm::Function *F;
+  bool isGPUEntryPoint;
   std::map<llvm::BasicBlock *, BasicBlock *> BasicBlockMap;
   std::map<llvm::Value *, ref<Expr> > ValueExprMap;
   std::map<llvm::PHINode *, Var *> PhiVarMap;
@@ -113,11 +114,10 @@ class TranslateFunction {
 
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF,
-                    llvm::Function *F)
-    : TM(TM), BF(BF), F(F), ReturnVar(0), LoadsAreTemporal(true),
-      currentSourceLocs(new SourceLocs),
+                    llvm::Function *F, bool isGPUEntryPoint)
+    : TM(TM), BF(BF), F(F), isGPUEntryPoint(isGPUEntryPoint), ReturnVar(0),
+      LoadsAreTemporal(true), currentSourceLocs(new SourceLocs),
       SpecialFunctionMap(initSpecialFunctionMap(TM->SL)) {}
-  bool isGPUEntryPoint;
 
   static bool isSpecialFunction(TranslateModule::SourceLanguage SL,
                                 const std::string &fnName);

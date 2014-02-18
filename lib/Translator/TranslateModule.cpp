@@ -359,7 +359,7 @@ ref<Expr> TranslateModule::translateBitCast(llvm::Type *SrcTy,
 
 bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
                                       SourceLanguage SL,
-                                      std::set<std::string> &EP) {
+                                      std::set<std::string> &EPS) {
   if (SL == SL_OpenCL || SL == SL_CUDA) {
     if (NamedMDNode *NMD = M->getNamedMetadata("nvvm.annotations")) {
       for (unsigned i = 0, e = NMD->getNumOperands(); i != e; ++i) {
@@ -382,7 +382,7 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
     }
   }
 
-  return EP.find(F->getName()) != EP.end();
+  return EPS.find(F->getName()) != EPS.end();
 }
 
 std::string TranslateModule::getOriginalFunctionName(llvm::Function *F) {
@@ -666,7 +666,7 @@ void TranslateModule::translate() {
         bugle::Function F("", "");
         Type RT = translateType(i->getFunctionType()->getReturnType());
         Var *RV = F.addReturn(RT, "ret");
-        TranslateFunction TF(this, &F, &*i);
+        TranslateFunction TF(this, &F, &*i, false);
         TF.translate();
         assert(F.begin()+1 == F.end() && "Expected one basic block");
         bugle::BasicBlock *BB = *F.begin();
@@ -674,8 +674,8 @@ void TranslateModule::translate() {
         assert(S->getVars()[0] == RV); (void) RV;
         BM->addAxiom(Expr::createNeZero(S->getValues()[0]));
       } else if (!TranslateFunction::isSpecialFunction(SL, i->getName())) {
-        TranslateFunction TF(this, FunctionMap[&*i], &*i);
-        TF.isGPUEntryPoint = isGPUEntryPoint(i, M, SL, GPUEntryPoints);
+        bool EP = isGPUEntryPoint(i, M, SL, GPUEntryPoints);
+        TranslateFunction TF(this, FunctionMap[&*i], &*i, EP);
         TF.translate();
       }
     }
