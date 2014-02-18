@@ -167,10 +167,11 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     case Instruction::PtrToInt: {
       ref<Expr> Op = translateConstant(CE->getOperand(0));
       Type OpTy = Op->getType();
-      if (OpTy.isKind(Type::Pointer))
-        return PtrToBVExpr::create(Op);
-      else if (OpTy.isKind(Type::FunctionPointer))
+      assert(OpTy.isKind(Type::Pointer) || OpTy.isKind(Type::FunctionPointer));
+      if (OpTy.isKind(Type::FunctionPointer))
         return FuncPtrToBVExpr::create(Op);
+      else
+        return PtrToBVExpr::create(Op);
     }
     case Instruction::IntToPtr: {
       ref<Expr> Op = translateConstant(CE->getOperand(0));
