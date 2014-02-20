@@ -19,7 +19,6 @@ private:
   static void printErrorMsg(const std::string &msg);
 
 public:
-  static std::string demangleName(const std::string &name, bool isCPPName);
   static void setFileName(const std::string &FN);
   static void emitWarning(const std::string &msg);
   NO_RETURN static void reportParameterError(const std::string &msg);
