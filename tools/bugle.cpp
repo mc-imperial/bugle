@@ -167,13 +167,25 @@ int main(int argc, char **argv) {
   }
 
   std::string ErrorInfo;
-  tool_output_file F(OutFile.c_str(), ErrorInfo);
+  tool_output_file F(OutFile.c_str(), ErrorInfo,
+#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
+                     sys::fs::F_Text
+#else
+                     sys::fs::F_None
+#endif
+                    );
   if (!ErrorInfo.empty())
     bugle::ErrorReporter::reportFatalError(ErrorInfo);
 
   tool_output_file *L = 0;
   if (!SourceLocationFilename.empty()) {
-    L = new tool_output_file(SourceLocationFilename.c_str(), ErrorInfo);
+    L = new tool_output_file(SourceLocationFilename.c_str(), ErrorInfo,
+#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
+                             sys::fs::F_Text
+#else
+                             sys::fs::F_None
+#endif
+                            );
     if (!ErrorInfo.empty())
       bugle::ErrorReporter::reportFatalError(ErrorInfo);
   }
