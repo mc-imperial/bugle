@@ -233,28 +233,72 @@ __axiom(get_num_groups(2) == 1)
 __axiom(get_num_groups(2) == 1)
 #endif
 
-#ifdef __LOCAL_SIZE_0
+// Generate axioms for input values
+
+#if defined(__LOCAL_SIZE_0) && defined(__LOCAL_SIZE_0_FREE)
+#error Cannot define __LOCAL_SIZE_0 and __LOCAL_SIZE_0_FREE
+#elif defined(__LOCAL_SIZE_0)
 __axiom(get_local_size(0) == __LOCAL_SIZE_0)
+#elif defined(__LOCAL_SIZE_0_FREE)
+__axiom(get_local_size(0) > 0)
 #endif
 
-#ifdef __LOCAL_SIZE_1
+#if defined(__LOCAL_SIZE_1) && defined(__LOCAL_SIZE_1_FREE)
+#error Cannot define __LOCAL_SIZE_1 and __LOCAL_SIZE_1_FREE
+#elif defined(__LOCAL_SIZE_1)
 __axiom(get_local_size(1) == __LOCAL_SIZE_1)
+#elif defined(__LOCAL_SIZE_1_FREE)
+__axiom(get_local_size(1) > 0)
 #endif
 
-#ifdef __LOCAL_SIZE_2
+#if defined(__LOCAL_SIZE_2) && defined(__LOCAL_SIZE_2_FREE)
+#error Cannot define __LOCAL_SIZE_2 and __LOCAL_SIZE_2_FREE
+#elif defined(__LOCAL_SIZE_2)
 __axiom(get_local_size(2) == __LOCAL_SIZE_2)
+#elif defined(__LOCAL_SIZE_2_FREE)
+__axiom(get_local_size(2) > 0)
 #endif
 
-#ifdef __NUM_GROUPS_0
+#if defined(__NUM_GROUPS_0) && defined(__NUM_GROUPS_0_FREE)
+#error Cannot define __NUM_GROUPS_0 and __NUM_GROUPS_0_FREE
+#elif defined(__NUM_GROUPS_0)
 __axiom(get_num_groups(0) == __NUM_GROUPS_0)
+#elif defined(__NUM_GROUPS_0_FREE)
+#ifndef __GLOBAL_SIZE_0
+__axiom(get_num_groups(0) > 0)
+#else
+__axiom(get_local_size(0) < __GLOBAL_SIZE_0)
+__axiom(__GLOBAL_SIZE_0 % get_local_size(0) == 0)
+__axiom(get_num_groups(0) == __GLOBAL_SIZE_0 / get_local_size(0))
+#endif
 #endif
 
-#ifdef __NUM_GROUPS_1
+#if defined(__NUM_GROUPS_1) && defined(__NUM_GROUPS_1_FREE)
+#error Cannot define __NUM_GROUPS_1 and __NUM_GROUPS_1_FREE
+#elif defined(__NUM_GROUPS_1)
 __axiom(get_num_groups(1) == __NUM_GROUPS_1)
+#elif defined(__NUM_GROUPS_1_FREE)
+#ifndef __GLOBAL_SIZE_1
+__axiom(get_num_groups(1) > 0)
+#else
+__axiom(get_local_size(1) < __GLOBAL_SIZE_0)
+__axiom(__GLOBAL_SIZE_1 % get_local_size(1) == 0)
+__axiom(get_num_groups(1) == __GLOBAL_SIZE_1 / get_local_size(1))
+#endif
 #endif
 
-#ifdef __NUM_GROUPS_2
+#if defined(__NUM_GROUPS_2) && defined(__NUM_GROUPS_2_FREE)
+#error Cannot define __NUM_GROUPS_2 and __NUM_GROUPS_2_FREE
+#elif defined(__NUM_GROUPS_2)
 __axiom(get_num_groups(2) == __NUM_GROUPS_2)
+#elif defined(__NUM_GROUPS_2_FREE)
+#ifndef __GLOBAL_SIZE_2
+__axiom(get_num_groups(2) > 0)
+#else
+__axiom(get_local_size(2) < __GLOBAL_SIZE_2)
+__axiom(__GLOBAL_SIZE_2 % get_local_size(2) == 0)
+__axiom(get_num_groups(2) == __GLOBAL_SIZE_2 / get_local_size(2))
+#endif
 #endif
 
 #endif

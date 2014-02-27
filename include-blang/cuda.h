@@ -169,28 +169,54 @@ __axiom(gridDim.z == 1)
 __axiom(gridDim.z == 1)
 #endif
 
-#ifdef __BLOCK_DIM_0
+// Generate axioms for input values
+
+#if defined(__BLOCK_DIM_0) && defined(__BLOCK_DIM_0_FREE)
+#error Cannot define __BLOCK_DIM_0 and __BLOCK_DIM_0_FREE
+#elif defined(__BLOCK_DIM_0)
 __axiom(blockDim.x == __BLOCK_DIM_0)
+#elif defined(__BLOCK_DIM_0_FREE)
+__axiom(blockDim.x > 0)
 #endif
 
-#ifdef __BLOCK_DIM_1
+#if defined(__BLOCK_DIM_1) && defined(__BLOCK_DIM_1_FREE)
+#error Cannot define __BLOCK_DIM_1 and __BLOCK_DIM_1_FREE
+#elif defined(__BLOCK_DIM_1)
 __axiom(blockDim.y == __BLOCK_DIM_1)
+#elif defined(__BLOCK_DIM_1_FREE)
+__axiom(blockDim.y > 0)
 #endif
 
-#ifdef __BLOCK_DIM_2
+#if defined(__BLOCK_DIM_2) && defined(__BLOCK_DIM_2_FREE)
+#error Cannot define __BLOCK_DIM_2 and __BLOCK_DIM_2_FREE
+#elif defined(__BLOCK_DIM_2)
 __axiom(blockDim.z == __BLOCK_DIM_2)
+#elif defined(__BLOCK_DIM_2_FREE)
+__axiom(blockDim.z > 0)
 #endif
 
-#ifdef __GRID_DIM_0
+#if defined(__GRID_DIM_0) && defined(__GRID_DIM_0_FREE)
+#error Cannot define __GRID_DIM_0 and __GRID_DIM_0_FREE
+#elif defined(__GRID_DIM_0)
 __axiom(gridDim.x == __GRID_DIM_0)
+#elif defined(__GRID_DIM_0_FREE)
+__axiom(gridDim.x > 0)
 #endif
 
-#ifdef __GRID_DIM_1
+#if defined(__GRID_DIM_1) && defined(__GRID_DIM_1_FREE)
+#error Cannot define __GRID_DIM_1 and __GRID_DIM_1_FREE
+#elif defined(__GRID_DIM_1)
 __axiom(gridDim.y == __GRID_DIM_1)
+#elif defined(__GRID_DIM_1_FREE)
+__axiom(gridDim.y > 0)
 #endif
 
-#ifdef __GRID_DIM_2
+#if defined(__GRID_DIM_2) && defined(__GRID_DIM_2_FREE)
+#error Cannot define __GRID_DIM_2 and __GRID_DIM_2_FREE
+#elif defined(__GRID_DIM_2)
 __axiom(gridDim.z == __GRID_DIM_2)
+#elif defined(__GRID_DIM_2_FREE)
+__axiom(gridDim.z > 0)
 #endif
 
 #pragma GCC diagnostic pop
