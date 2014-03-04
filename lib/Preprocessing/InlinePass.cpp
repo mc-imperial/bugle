@@ -45,14 +45,8 @@ bool InlinePass::doInline(llvm::Instruction *I, llvm::Function *OF) {
     return false;
 
   CallSite CS(CI);
-#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
-  DataLayoutPass *DLP = getAnalysisIfAvailable<DataLayoutPass>();
-  const DataLayout *DL = DLP ? &DLP->getDataLayout() : 0;
-  CallGraph &CG = getAnalysis<CallGraphWrapperPass>().getCallGraph();
-#else
   const DataLayout *DL = getAnalysisIfAvailable<DataLayout>();
   CallGraph &CG = getAnalysis<CallGraph>();
-#endif
   InlineFunctionInfo IFI(&CG, DL);
   if (InlineFunction(CI, IFI))
     return true;

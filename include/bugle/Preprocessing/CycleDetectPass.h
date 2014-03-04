@@ -11,11 +11,7 @@ public:
   static char ID;
 
   CycleDetectPass() : ModulePass(ID) {
-#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
-    initializeCallGraphWrapperPassPass(*llvm::PassRegistry::getPassRegistry());
-#else
     initializeCallGraphPass(*llvm::PassRegistry::getPassRegistry());
-#endif
   }
 
   virtual const char *getPassName() const {
@@ -24,11 +20,7 @@ public:
 
   virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
     AU.setPreservesAll();
-#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
-    AU.addRequired<llvm::CallGraphWrapperPass>();
-#else
     AU.addRequired<llvm::CallGraph>();
-#endif
   }
 
   virtual bool runOnModule(llvm::Module &M);
