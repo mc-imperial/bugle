@@ -36,11 +36,8 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
   )
 
   if (${LLVM_VERSION} GREATER "3.4svn")
-    FILE(WRITE ${CMAKE_BINARY_DIR}/process_libs.sh
-      ${LLVM_CONFIG_EXECUTABLE} " --system-libs | tr '\\n' '\ '\n"
-    )
     execute_process(
-      COMMAND sh ${CMAKE_BINARY_DIR}/process_libs.sh
+      COMMAND ${LLVM_CONFIG_EXECUTABLE} --system-libs
       OUTPUT_VARIABLE LLVM_SYSTEM_LIBS
       OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -79,6 +76,7 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
   endif()
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11")
     set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++11")
     set(PLUGIN_LDFLAGS "-Wl,-undefined,dynamic_lookup")
   endif()
