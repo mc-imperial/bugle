@@ -86,12 +86,8 @@ int main(int argc, char **argv) {
     M.reset(getStreamedBitcodeModule(DisplayFilename, streamer, Context,
                                      &ErrorMessage));
     if (M.get() != 0) {
-#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
       if (auto EC = M->materializeAllPermanently()) {
         ErrorMessage = EC.message();
-#else
-      if (M->MaterializeAllPermanently(&ErrorMessage)) {
-#endif
         M.reset();
       }
     }
@@ -167,25 +163,14 @@ int main(int argc, char **argv) {
   }
 
   std::string ErrorInfo;
-  tool_output_file F(OutFile.c_str(), ErrorInfo,
-#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
-                     sys::fs::F_Text
-#else
-                     sys::fs::F_None
-#endif
-                    );
+  tool_output_file F(OutFile.c_str(), ErrorInfo, sys::fs::F_Text);
   if (!ErrorInfo.empty())
     bugle::ErrorReporter::reportFatalError(ErrorInfo);
 
   tool_output_file *L = 0;
   if (!SourceLocationFilename.empty()) {
     L = new tool_output_file(SourceLocationFilename.c_str(), ErrorInfo,
-#if LLVM_VERSION_MAJOR > 3 || (LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR > 4)
-                             sys::fs::F_Text
-#else
-                             sys::fs::F_None
-#endif
-                            );
+                             sys::fs::F_Text);
     if (!ErrorInfo.empty())
       bugle::ErrorReporter::reportFatalError(ErrorInfo);
   }
