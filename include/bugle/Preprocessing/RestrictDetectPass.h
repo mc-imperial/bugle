@@ -19,11 +19,9 @@ private:
 public:
   static char ID;
 
-  RestrictDetectPass(llvm::Module *M, TranslateModule::SourceLanguage SL,
+  RestrictDetectPass(TranslateModule::SourceLanguage SL,
                      std::set<std::string> &EP) :
-    FunctionPass(ID), M(M), SL(SL), GPUEntryPoints(EP) {
-      DIF.processModule(*M);
-    }
+    FunctionPass(ID), M(0), SL(SL), GPUEntryPoints(EP) {}
 
   virtual const char *getPassName() const {
     return "Detect restrict usage on global pointers";
@@ -33,7 +31,8 @@ public:
     AU.setPreservesAll();
   }
 
-  virtual bool runOnFunction(llvm::Function &M);
+  virtual bool doInitialization(llvm::Module &M);
+  virtual bool runOnFunction(llvm::Function &F);
 };
 
 }

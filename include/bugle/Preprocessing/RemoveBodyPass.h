@@ -16,9 +16,9 @@ private:
 public:
   static char ID;
 
-  RemoveBodyPass(llvm::Module *M, TranslateModule::SourceLanguage SL,
+  RemoveBodyPass(TranslateModule::SourceLanguage SL,
                  std::set<std::string> &EP) :
-    FunctionPass(ID), M(M), SL(SL), GPUEntryPoints(EP) {}
+    FunctionPass(ID), M(0), SL(SL), GPUEntryPoints(EP) {}
 
   virtual const char *getPassName() const {
     return "Remove function bodies after inlining";
@@ -28,7 +28,8 @@ public:
     AU.addRequired<InlinePass>();
   }
 
-  virtual bool runOnFunction(llvm::Function &M);
+  virtual bool doInitialization(llvm::Module &M);
+  virtual bool runOnFunction(llvm::Function &F);
 };
 
 }
