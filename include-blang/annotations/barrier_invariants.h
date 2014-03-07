@@ -5,6 +5,7 @@
 #define __read_permission(T, X) \
     { \
         volatile T __read_permission_temp = X; \
+        (void)__read_permission_temp; \
     }
 
 #endif
