@@ -144,9 +144,9 @@ int main(int argc, char **argv) {
   if (Inlining) {
     PM.add(new bugle::CycleDetectPass());
     PM.add(new bugle::InlinePass(SL, EP));
-    PM.add(new bugle::RemoveBodyPass(M.get(), SL, EP));
+    PM.add(new bugle::RemoveBodyPass(SL, EP));
   }
-  PM.add(new bugle::RestrictDetectPass(M.get(), SL, EP));
+  PM.add(new bugle::RestrictDetectPass(SL, EP));
   PM.run(*M.get());
 
   bugle::TranslateModule TM(M.get(), SL, EP, RaceInst);

@@ -13,6 +13,12 @@
 using namespace llvm;
 using namespace bugle;
 
+bool RestrictDetectPass::doInitialization(llvm::Module &M) {
+  this->M = &M;
+  DIF.processModule(M);
+  return false;
+}
+
 std::string RestrictDetectPass::getFunctionLocation(llvm::Function *F) {
   for (auto i = DIF.subprogram_begin(), e = DIF.subprogram_end(); i != e; ++i) {
     DISubprogram subprogram(*i);

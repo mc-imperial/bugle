@@ -8,6 +8,11 @@
 using namespace llvm;
 using namespace bugle;
 
+bool RemoveBodyPass::doInitialization(llvm::Module &M) {
+  this->M = &M;
+  return false;
+}
+
 bool RemoveBodyPass::runOnFunction(llvm::Function &F) {
   if (!TranslateFunction::isNormalFunction(SL, &F))
     return false;
