@@ -2,8 +2,8 @@
 #define BUGLE_PREPROCESSING_RESTRICTDETECTPASS_H
 
 #include "bugle/Translator/TranslateModule.h"
-#include "llvm/DebugInfo.h"
 #include "llvm/Pass.h"
+#include "llvm/IR/DebugInfo.h"
 
 namespace bugle {
 
