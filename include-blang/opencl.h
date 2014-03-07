@@ -17,6 +17,7 @@
 #include <opencl_builtins.h>
 #include <opencl_limits.h>
 #include <opencl_atomics.h>
+#include <opencl_async.h>
 
 
 /* Images */
