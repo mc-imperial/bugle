@@ -182,7 +182,9 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
         return BVToPtrExpr::create(Op);
     }
     default:
-      ErrorReporter::reportImplementationLimitation("Unhandled constant expression");
+      std::string name = CE->getOpcodeName();
+      std::string msg = "Unhandled constant expression '" + name + "'";
+      ErrorReporter::reportImplementationLimitation(msg);
     }
   }
   if (auto GV = dyn_cast<GlobalVariable>(C)) {
