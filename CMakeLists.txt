@@ -63,13 +63,10 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
   set(PLUGIN_CXXFLAGS "${LLVM_CXXFLAGS} -I\"${LLVM_SRC}/tools/clang/include\" -I\"${LLVM_BUILD}/tools/clang/include\"")
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++0x")
     set(PLUGIN_CXXFLAGS "${PLUGIN_CXXFLAGS} -Wno-strict-aliasing")
   endif()
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++11")
-    set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++11")
     set(PLUGIN_LDFLAGS "-Wl,-undefined,dynamic_lookup")
   endif()
 
