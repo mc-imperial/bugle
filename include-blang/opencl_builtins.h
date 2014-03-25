@@ -100,7 +100,6 @@ _FLOAT_UNARY_MACRO(half_tan)
 #define M_LOG10E_F              0.43429448190325182765f /* log_10 e */
 #define M_LN2_F                 0.69314718055994530942f /* log_e 2 */
 #define M_LN10_F                2.30258509299404568402f /* log_e 10 */
-#define M_PI_F                  3.14159265358979323846f /* pi */
 #define M_PI_2_F                1.57079632679489661923f /* pi/2 */
 #define M_PI_4_F                0.78539816339744830962f /* pi/4 */
 #define M_1_PI_F                0.31830988618379067154f /* 1/pi */
