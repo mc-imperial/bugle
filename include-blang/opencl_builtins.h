@@ -73,28 +73,6 @@ _POWN_MACRO(float16, int16)
 
 #undef _POWN_MACRO
 
-#define _SINCOS_MACRO_FULL(GENTYPE, MEMORYSPACE) \
-    _CLC_INLINE _CLC_OVERLOAD GENTYPE sincos(GENTYPE x, MEMORYSPACE GENTYPE *cosval) { \
-        *cosval = cos(x); \
-        return sin(x); \
-    }
-
-#define _SINCOS_MACRO(GENTYPE)\
-    _SINCOS_MACRO_FULL(GENTYPE, __global) \
-    _SINCOS_MACRO_FULL(GENTYPE, __local) \
-    _SINCOS_MACRO_FULL(GENTYPE, __private)
-
-_SINCOS_MACRO(float)
-_SINCOS_MACRO(float2)
-_SINCOS_MACRO(float3)
-_SINCOS_MACRO(float4)
-_SINCOS_MACRO(float8)
-_SINCOS_MACRO(float16)
-
-#undef _SINCOS_MACRO_FULL
-#undef _SINCOS_MACRO
-
-
 // Table 6.9
 
 _FLOAT_UNARY_MACRO(half_cos)
@@ -122,7 +100,6 @@ _FLOAT_UNARY_MACRO(half_tan)
 #define M_LOG10E_F              0.43429448190325182765f /* log_10 e */
 #define M_LN2_F                 0.69314718055994530942f /* log_e 2 */
 #define M_LN10_F                2.30258509299404568402f /* log_e 10 */
-#define M_PI_F                  3.14159265358979323846f /* pi */
 #define M_PI_2_F                1.57079632679489661923f /* pi/2 */
 #define M_PI_4_F                0.78539816339744830962f /* pi/4 */
 #define M_1_PI_F                0.31830988618379067154f /* 1/pi */
