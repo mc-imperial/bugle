@@ -20,7 +20,8 @@ bool RestrictDetectPass::doInitialization(llvm::Module &M) {
 }
 
 std::string RestrictDetectPass::getFunctionLocation(llvm::Function *F) {
-  for (auto i = DIF.subprogram_begin(), e = DIF.subprogram_end(); i != e; ++i) {
+  auto SS = DIF.subprograms();
+  for (auto i = SS.begin(), e = SS.end(); i != e; ++i) {
     DISubprogram subprogram(*i);
     if (subprogram.describes(F)) {
       SmallString<256> path;
