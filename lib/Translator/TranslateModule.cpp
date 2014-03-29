@@ -337,7 +337,7 @@ ref<Expr> TranslateModule::translateEV(ref<Expr> Vec,
       uint64_t addend = sl->getElementOffset((unsigned) ci->getZExtValue());
       llvm::Type *Ty = st->getElementType((unsigned) ci->getZExtValue());
       uint64_t size = TD.getTypeSizeInBits(Ty);
-      ValElem = BVExtractExpr::create(ValElem, addend, size);
+      ValElem = BVExtractExpr::create(ValElem, addend*8, size);
     } else {
       ErrorReporter::reportImplementationLimitation("Unhandled EV type");
     }
