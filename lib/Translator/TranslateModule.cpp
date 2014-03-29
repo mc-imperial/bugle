@@ -267,7 +267,7 @@ bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
       if (ET != *i)
         return Type(Type::BV, 8);
     }
-    return translateType(ET);
+    return translateArrayRangeType(ET);
   }
 
   return translateType(T);
