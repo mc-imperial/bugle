@@ -1520,17 +1520,21 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
     Type ArrRangeTy = PtrArr->getType().range();
-    Type LoadTy = TM->translateType(LI->getType()), LoadElTy = LoadTy;
-    auto VT = dyn_cast<VectorType>(LI->getType());
-    if (VT)
-      LoadElTy = TM->translateType(VT->getElementType());
+    Type LoadTy = TM->translateType(LI->getType());
+    Type LoadElTy = TM->translateArrayRangeType(LI->getType());
+    bool VectorLoad = false;
+    unsigned VectorElemsCount = 1;
+    if (LoadTy != LoadElTy) {
+      VectorLoad = true;
+      VectorElemsCount = LoadTy.width/LoadElTy.width;
+    }
     assert(LoadTy.width % 8 == 0);
     ref<Expr> Div;
     if ((ArrRangeTy == LoadElTy || ArrRangeTy == Type(Type::Any)) &&
         !(Div = Expr::createExactBVUDiv(PtrOfs, LoadElTy.width/8)).isNull()) {
-      if (VT) {
+      if (VectorLoad) {
         std::vector<ref<Expr>> ElemsLoaded;
-        for (unsigned i = 0; i != VT->getNumElements(); ++i) {
+        for (unsigned i = 0; i != VectorElemsCount; ++i) {
           ref<Expr> ElemOfs =
             BVAddExpr::create(Div,
                               BVConstExpr::create(Div->getType().width, i));
@@ -1585,17 +1589,22 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
     Type ArrRangeTy = PtrArr->getType().range();
-    Type StoreTy = Val->getType(), StoreElTy = StoreTy;
-    auto VT = dyn_cast<VectorType>(SI->getValueOperand()->getType());
-    if (VT)
-      StoreElTy = TM->translateType(VT->getElementType());
+    Type StoreTy = Val->getType();
+    Type StoreElTy
+                = TM->translateArrayRangeType(SI->getValueOperand()->getType());
+    bool VectorStore = false;
+    unsigned VectorElemsCount = 1;
+    if (StoreTy != StoreElTy) {
+      VectorStore = true;
+      VectorElemsCount = StoreTy.width/StoreElTy.width;
+    }
     assert(StoreTy.width % 8 == 0);
     ref<Expr> Div;
     // If ArrRangeTy is Any, then we are using a null pointer for storing
     if ((ArrRangeTy == StoreElTy || ArrRangeTy == Type(Type::Any)) &&
         !(Div = Expr::createExactBVUDiv(PtrOfs, StoreElTy.width/8)).isNull()) {
-      if (VT) {
-        for (unsigned i = 0; i != VT->getNumElements(); ++i) {
+      if (VectorStore) {
+        for (unsigned i = 0; i != VectorElemsCount; ++i) {
           ref<Expr> ElemOfs =
             BVAddExpr::create(Div,
                               BVConstExpr::create(Div->getType().width, i));

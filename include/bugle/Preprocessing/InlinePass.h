@@ -1,7 +1,6 @@
 #ifndef BUGLE_PREPROCESSING_INLINEPASS_H
 #define BUGLE_PREPROCESSING_INLINEPASS_H
 
-#include "bugle/Preprocessing/CycleDetectPass.h"
 #include "bugle/Translator/TranslateModule.h"
 #include "llvm/Pass.h"
 #include "llvm/Analysis/CallGraph.h"
@@ -32,7 +31,6 @@ public:
 
   virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
     AU.addRequired<llvm::CallGraphWrapperPass>();
-    AU.addRequired<CycleDetectPass>();
   }
 
   virtual bool runOnModule(llvm::Module &M);

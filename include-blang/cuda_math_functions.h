@@ -11,6 +11,7 @@ __device__ unsigned long long int __brevll(unsigned long long int x);
 __device__ unsigned int __byte_perm (unsigned int x,unsigned int y, unsigned int s);
 __device__ int __clz(int x);
 __device__ int __clzll(long long int x);
+
 __device__ static __inline__ int __ffs(int x) {
   __unsafe_assert(sizeof(int) == 4);
            if (x & 1) return 1;
@@ -47,6 +48,7 @@ __device__ static __inline__ int __ffs(int x) {
   x >>= 1; if (x & 1) return 32;
   return 0;
 }
+
 __device__ int __ffsll(long long int x);
 __device__ long long int __mul64hi(long long int x, long long int y);
 __device__ int __mulhi(int x, int y);
@@ -94,7 +96,12 @@ __device__ float log1pf(float x);
 __device__ float sinf(float x);
 __device__ float cosf(float x);
 __device__ float tanf(float x);
-__device__ void  sincosf(float x, float *sptr, float *cptr);
+
+__device__ static __inline__ void sincosf(float x, float *sptr, float *cptr) {
+  *sptr = sinf(x);
+  *cptr = cosf(x);
+}
+
 __device__ float sinpif(float x);
 __device__ float cospif(float x);
 __device__ float asinf(float x);
@@ -116,7 +123,15 @@ __device__ float erfcxf(float x);
 __device__ float lgammaf(float x);
 __device__ float tgammaf(float x);
 __device__ float fmaf(float x, float y, float z);
-__device__ float frexpf(float x, int *exp);
+
+__device__ int __bugle_frexpf_exp(float x);
+__device__ float __bugle_frexpf_frac(float x);
+
+__device__ static __inline__ float frexpf(float x, int *exp) {
+  *exp = __bugle_frexpf_exp(x);
+  return __bugle_frexpf_frac(x);
+}
+
 __device__ float ldexpf(float x, int exp);
 __device__ float scalbnf(float x, int n);
 __device__ float scalblnf(float x, int l);
@@ -130,8 +145,22 @@ __device__ float y1f(float x);
 __device__ float ynf(int x, float y);
 __device__ float fmodf(float x, float y);
 __device__ float remainderf(float x, float y);
-__device__ float remquof(float x, float y, int *iptr);
-__device__ float modff(float x, float *iptr);
+
+__device__ int __bugle_remquof_quo(float x, float y);
+
+__device__ static __inline__ float remquof(float x, float y, int *iptr) {
+  *iptr = __bugle_remquof_quo(x, y);
+  return remainderf(x, y);
+}
+
+__device__ float __bugle_modff_ipart(float x);
+__device__ float __bugle_modff_frac(float x);
+
+__device__ static __inline__ float modff(float x, float *iptr) {
+  *iptr = __bugle_modff_ipart(x);
+  return __bugle_modff_frac(x);
+}
+
 __device__ float fdimf(float x, float y);
 __device__ float truncf(float x);
 __device__ float roundf(float x);
@@ -164,7 +193,12 @@ __device__ double log1p(double x);
 __device__ double sin(double x);
 __device__ double cos(double x);
 __device__ double tan(double x);
-__device__ void   sincos(double x, double *sptr, double *cptr);
+
+__device__ static __inline__ void sincos(double x, double *sptr, double *cptr) {
+  *sptr = sin(x);
+  *cptr = cos(x);
+}
+
 __device__ double sinpi(double x);
 __device__ double cospi(double x);
 __device__ double asin(double x);
@@ -187,12 +221,12 @@ __device__ double lgamma(double x);
 __device__ double tgamma(double x);
 __device__ double fma(double x, double y, double z);
 
-__device__ int bugle_frexp_exp(double x);
-__device__ double bugle_frexp_frac(double x);
+__device__ int __bugle_frexp_exp(double x);
+__device__ double __bugle_frexp_frac(double x);
 
 __device__ static __inline__ double frexp(double x, int *exp) {
-  *exp = bugle_frexp_exp(x);
-  return bugle_frexp_frac(x);
+  *exp = __bugle_frexp_exp(x);
+  return __bugle_frexp_frac(x);
 }
 
 __device__ double ldexp(double x, int exp);
@@ -208,8 +242,22 @@ __device__ double y1(double x);
 __device__ double yn(int x, double y);
 __device__ double fmod(double x, double y);
 __device__ double remainder(double x, double y);
-__device__ double remquo(double x, double y, int *iptr);
-__device__ double modf(double x, double *iptr);
+
+__device__ int __bugle_remquo_quo(double x, double y);
+
+__device__ static __inline__ double remquo(double x, double y, int *iptr) {
+  *iptr = __bugle_remquo_quo(x, y);
+  return remainder(x, y);
+}
+
+__device__ double __bugle_modf_ipart(double x);
+__device__ double __bugle_modf_frac(double x);
+
+__device__ static __inline__ double modf(double x, double *iptr) {
+  *iptr = __bugle_modf_ipart(x);
+  return __bugle_modf_frac(x);
+}
+
 __device__ double fdim(double x, double y);
 __device__ double trunc(double x);
 __device__ double round(double x);
@@ -230,7 +278,12 @@ __device__ float __fdividef(float x, float y);
 __device__ float __sinf(float x);
 __device__ float __cosf(float x);
 __device__ float __tanf(float x);
-__device__ void  __sincosf(float x, float *sptr, float *cptr);
+
+__device__ static __inline__ void __sincosf(float x, float *sptr, float *cptr) {
+  *sptr = sinf(x);
+  *cptr = cosf(x);
+}
+
 __device__ float __logf(float x);
 __device__ float __log2f(float x);
 __device__ float __log10f(float x);

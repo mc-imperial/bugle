@@ -19,6 +19,7 @@
 #include "bugle/Preprocessing/CycleDetectPass.h"
 #include "bugle/Preprocessing/InlinePass.h"
 #include "bugle/Preprocessing/RemoveBodyPass.h"
+#include "bugle/Preprocessing/RemovePrototypePass.h"
 #include "bugle/Preprocessing/RestrictDetectPass.h"
 #include "bugle/RaceInstrumenter.h"
 #include "bugle/Transform/SimplifyStmt.h"
@@ -145,6 +146,7 @@ int main(int argc, char **argv) {
     PM.add(new bugle::CycleDetectPass());
     PM.add(new bugle::InlinePass(SL, EP));
     PM.add(new bugle::RemoveBodyPass(SL, EP));
+    PM.add(new bugle::RemovePrototypePass());
   }
   PM.add(new bugle::RestrictDetectPass(SL, EP));
   PM.run(*M.get());

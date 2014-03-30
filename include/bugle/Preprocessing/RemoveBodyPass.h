@@ -1,7 +1,6 @@
 #ifndef BUGLE_PREPROCESSING_REMOVEBODYPASS_H
 #define BUGLE_PREPROCESSING_REMOVEBODYPASS_H
 
-#include "bugle/Preprocessing/InlinePass.h"
 #include "bugle/Translator/TranslateModule.h"
 #include "llvm/Pass.h"
 
@@ -24,9 +23,7 @@ public:
     return "Remove function bodies after inlining";
   }
 
-  virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
-    AU.addRequired<InlinePass>();
-  }
+  virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {}
 
   virtual bool doInitialization(llvm::Module &M);
   virtual bool runOnFunction(llvm::Function &F);

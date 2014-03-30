@@ -159,10 +159,12 @@ add_library(buglePreprocessing STATIC
   lib/Preprocessing/CycleDetectPass.cpp
   lib/Preprocessing/InlinePass.cpp
   lib/Preprocessing/RemoveBodyPass.cpp
+  lib/Preprocessing/RemovePrototypePass.cpp
   lib/Preprocessing/RestrictDetectPass.cpp
   include/bugle/Preprocessing/CycleDetectPass.h
   include/bugle/Preprocessing/InlinePass.h
   include/bugle/Preprocessing/RemoveBodyPass.h
+  include/bugle/Preprocessing/RemovePrototypePass.h
   include/bugle/Preprocessing/RestrictDetectPass.h
 )
 
