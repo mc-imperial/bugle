@@ -1,3 +1,5 @@
+#include <cmath>
+
 #include "bugle/BPLModuleWriter.h"
 #include "bugle/BPLFunctionWriter.h"
 #include "bugle/IntegerRepresentation.h"
@@ -83,11 +85,32 @@ void BPLModuleWriter::write() {
   OS << "type _SIZE_T_TYPE = bv" << M->getPointerWidth() << ";\n\n";
 
   if (UsesPointers) {
-    OS << "type {:datatype} ptr;\n"
-       << "type arrayId;\n"
-       << "function {:constructor} MKPTR(base: arrayId, offset: "
-       << MW->IntRep->getType(M->getPointerWidth())
-       << ") : ptr;\n\n";
+    if(RepresentPointersAsDatatype) {
+      OS << "type {:datatype} ptr;\n"
+         << "type arrayId;\n"
+         << "function {:constructor} MKPTR(base: arrayId, offset: "
+         << MW->IntRep->getType(M->getPointerWidth())
+         << ") : ptr;\n\n";
+    } else {
+      unsigned BitsRequiredForArrayBases = (unsigned)std::ceil(
+        std::log((double)(M->global_size() + 2)) / std::log((double)2));
+      OS << "type ptr = bv"
+         << (M->getPointerWidth() + BitsRequiredForArrayBases) << ";\n"
+         << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n"
+         << "function {:inline true} MKPTR(base: arrayId, offset: "
+         << MW->IntRep->getType(M->getPointerWidth())
+         << ") : ptr {\n"
+         << "  base ++ offset\n"
+         << "}\n\n"
+         << "function {:inline true} base#MKPTR(p: ptr) : arrayId {\n"
+         << "  p[" << (M->getPointerWidth() + BitsRequiredForArrayBases)
+         << ":" << M->getPointerWidth() << "]\n"
+         << "}\n\n"
+         << "function {:inline true} offset#MKPTR(p : ptr) : bv"
+         << M->getPointerWidth() << "{\n"
+         << "  p[" << M->getPointerWidth() << ":0]\n"
+         << "}\n\n";
+    }
   }
 
   unsigned long int sizes = 0;

@@ -59,6 +59,9 @@ public:
   OwningPtrVector<GlobalArray>::const_iterator global_end() const {
     return globals.end();
   }
+  OwningPtrVector<GlobalArray>::size_type global_size() const {
+    return globals.size();
+  }
 
   std::vector<GlobalInit>::const_iterator global_init_begin() const {
     return globalInits.begin();
