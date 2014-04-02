@@ -61,7 +61,7 @@ void ProcessFunction(Function *F) {
 }
 
 void ProcessModule(Module *M) {
-  for (auto i = M->begin(), e = M->end(); i != e; ++i)
+  for (auto i = M->function_begin(), e = M->function_end(); i != e; ++i)
     ProcessFunction(*i);
 }
 

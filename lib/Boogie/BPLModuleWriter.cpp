@@ -72,7 +72,7 @@ const std::string &BPLModuleWriter::getGlobalInitRequires() {
 void BPLModuleWriter::write() {
   std::string S;
   llvm::raw_string_ostream SS(S);
-  for (auto i = M->begin(), e = M->end(); i != e; ++i) {
+  for (auto i = M->function_begin(), e = M->function_end(); i != e; ++i) {
     BPLFunctionWriter FW(this, SS, *i);
     FW.write();
   }
@@ -92,8 +92,12 @@ void BPLModuleWriter::write() {
          << MW->IntRep->getType(M->getPointerWidth())
          << ") : ptr;\n\n";
     } else {
+      // We reserve an array base value for "null", and a value for
+      // "undefined"
+      const unsigned NumberOfSpecialArrayBaseValues = 2;
       unsigned BitsRequiredForArrayBases = (unsigned)std::ceil(
-        std::log((double)(M->global_size() + 2)) / std::log((double)2));
+          std::log((double)(M->global_size() + NumberOfSpecialArrayBaseValues))
+        / std::log((double)2));
       OS << "type ptr = bv"
          << (M->getPointerWidth() + BitsRequiredForArrayBases) << ";\n"
          << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n"
@@ -189,9 +193,19 @@ void BPLModuleWriter::write() {
     OS << "const unique $arrayId$$null$ : arrayId;\n\n";
 
   if (UsesFunctionPointers) {
-    OS << "type functionPtr;\n";
+    OS << "type functionPtr";
+    if(!RepresentPointersAsDatatype) {
+      // We reserve a function pointer value for "null", and a value for
+      // "undefined"
+      const unsigned NumberOfSpecialFunctionPointerValues = 2;
+      unsigned BitsRequiredForFunctionPointers = (unsigned)std::ceil(
+          std::log((double)(M->function_size() + NumberOfSpecialFunctionPointerValues))
+        / std::log((double)2));
+      OS << " = bv" << BitsRequiredForFunctionPointers;
+    }
+    OS << ";\n";
 
-    for (auto i = M->begin(), e = M->end(); i != e; ++i) {
+    for (auto i = M->function_begin(), e = M->function_end(); i != e; ++i) {
       OS << "const unique $functionId$$" << (*i)->getName()
          << " : functionPtr;\n";
     }
