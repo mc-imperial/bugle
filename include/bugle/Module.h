@@ -52,7 +52,7 @@ public:
   OwningPtrVector<Function>::const_iterator function_end() const {
     return functions.end();
   }
-  OwningPtrVector<GlobalArray>::size_type function_size() const {
+  OwningPtrVector<Function>::size_type function_size() const {
     return functions.size();
   }
 

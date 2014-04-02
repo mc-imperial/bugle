@@ -1,5 +1,3 @@
-#include <cmath>
-
 #include "bugle/BPLModuleWriter.h"
 #include "bugle/BPLFunctionWriter.h"
 #include "bugle/IntegerRepresentation.h"
@@ -8,6 +6,7 @@
 #include "bugle/Type.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
+#include <cmath>
 
 using namespace bugle;
 
