@@ -6,6 +6,7 @@
 #include "bugle/Type.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
+#include <cmath>
 
 using namespace bugle;
 
@@ -70,7 +71,7 @@ const std::string &BPLModuleWriter::getGlobalInitRequires() {
 void BPLModuleWriter::write() {
   std::string S;
   llvm::raw_string_ostream SS(S);
-  for (auto i = M->begin(), e = M->end(); i != e; ++i) {
+  for (auto i = M->function_begin(), e = M->function_end(); i != e; ++i) {
     BPLFunctionWriter FW(this, SS, *i);
     FW.write();
   }
@@ -83,11 +84,36 @@ void BPLModuleWriter::write() {
   OS << "type _SIZE_T_TYPE = bv" << M->getPointerWidth() << ";\n\n";
 
   if (UsesPointers) {
-    OS << "type {:datatype} ptr;\n"
-       << "type arrayId;\n"
-       << "function {:constructor} MKPTR(base: arrayId, offset: "
-       << MW->IntRep->getType(M->getPointerWidth())
-       << ") : ptr;\n\n";
+    if(RepresentPointersAsDatatype) {
+      OS << "type {:datatype} ptr;\n"
+         << "type arrayId;\n"
+         << "function {:constructor} MKPTR(base: arrayId, offset: "
+         << MW->IntRep->getType(M->getPointerWidth())
+         << ") : ptr;\n\n";
+    } else {
+      // We reserve an array base value for "null", and a value for
+      // "undefined"
+      const unsigned NumberOfSpecialArrayBaseValues = 2;
+      unsigned BitsRequiredForArrayBases = (unsigned)std::ceil(
+          std::log((double)(M->global_size() + NumberOfSpecialArrayBaseValues))
+        / std::log((double)2));
+      OS << "type ptr = bv"
+         << (M->getPointerWidth() + BitsRequiredForArrayBases) << ";\n"
+         << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n"
+         << "function {:inline true} MKPTR(base: arrayId, offset: "
+         << MW->IntRep->getType(M->getPointerWidth())
+         << ") : ptr {\n"
+         << "  base ++ offset\n"
+         << "}\n\n"
+         << "function {:inline true} base#MKPTR(p: ptr) : arrayId {\n"
+         << "  p[" << (M->getPointerWidth() + BitsRequiredForArrayBases)
+         << ":" << M->getPointerWidth() << "]\n"
+         << "}\n\n"
+         << "function {:inline true} offset#MKPTR(p : ptr) : bv"
+         << M->getPointerWidth() << "{\n"
+         << "  p[" << M->getPointerWidth() << ":0]\n"
+         << "}\n\n";
+    }
   }
 
   unsigned long int sizes = 0;
@@ -166,9 +192,19 @@ void BPLModuleWriter::write() {
     OS << "const unique $arrayId$$null$ : arrayId;\n\n";
 
   if (UsesFunctionPointers) {
-    OS << "type functionPtr;\n";
+    OS << "type functionPtr";
+    if(!RepresentPointersAsDatatype) {
+      // We reserve a function pointer value for "null", and a value for
+      // "undefined"
+      const unsigned NumberOfSpecialFunctionPointerValues = 2;
+      unsigned BitsRequiredForFunctionPointers = (unsigned)std::ceil(
+          std::log((double)(M->function_size() + NumberOfSpecialFunctionPointerValues))
+        / std::log((double)2));
+      OS << " = bv" << BitsRequiredForFunctionPointers;
+    }
+    OS << ";\n";
 
-    for (auto i = M->begin(), e = M->end(); i != e; ++i) {
+    for (auto i = M->function_begin(), e = M->function_end(); i != e; ++i) {
       OS << "const unique $functionId$$" << (*i)->getName()
          << " : functionPtr;\n";
     }

@@ -58,6 +58,9 @@ Inlining("inline", cl::ValueDisallowed, cl::desc("Inline all function calls"));
 static cl::opt<std::string>
 RaceInstrumentation("race-instrumentation", cl::desc("Race instrumentation method to use (standard, watchdog-single, watchdog-multiple; default standard)"));
 
+static cl::opt<bool>
+DatatypePointerRepresentation("datatype", cl::ValueDisallowed, cl::desc("Use datatype representation for pointers"));
+
 int main(int argc, char **argv) {
   sys::PrintStackTraceOnErrorSignal();
   llvm::PrettyStackTraceProgram X(argc, argv);
@@ -178,7 +181,8 @@ int main(int argc, char **argv) {
   }
   std::unique_ptr<bugle::SourceLocWriter> SLW(new bugle::SourceLocWriter(L));
 
-  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get(), RaceInst, SLW.get());
+  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get(), RaceInst,
+    SLW.get(), DatatypePointerRepresentation);
   MW.write();
 
   F.os().flush();

@@ -46,11 +46,14 @@ public:
     return GA;
   }
 
-  OwningPtrVector<Function>::const_iterator begin() const {
+  OwningPtrVector<Function>::const_iterator function_begin() const {
     return functions.begin();
   }
-  OwningPtrVector<Function>::const_iterator end() const {
+  OwningPtrVector<Function>::const_iterator function_end() const {
     return functions.end();
+  }
+  OwningPtrVector<Function>::size_type function_size() const {
+    return functions.size();
   }
 
   OwningPtrVector<GlobalArray>::const_iterator global_begin() const {
@@ -58,6 +61,9 @@ public:
   }
   OwningPtrVector<GlobalArray>::const_iterator global_end() const {
     return globals.end();
+  }
+  OwningPtrVector<GlobalArray>::size_type global_size() const {
+    return globals.size();
   }
 
   std::vector<GlobalInit>::const_iterator global_init_begin() const {
