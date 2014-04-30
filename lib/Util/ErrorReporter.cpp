@@ -1,5 +1,6 @@
 #include "bugle/util/ErrorReporter.h"
 #include "llvm/Support/raw_ostream.h"
+#include <cstdlib>
 #include <string>
 
 using namespace bugle;
