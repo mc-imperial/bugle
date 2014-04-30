@@ -96,7 +96,6 @@ _FLOAT_UNARY_MACRO(half_tan)
 // 6.12.2.1 Floating point macros and pragmas
 
 #define M_E_F                   2.7182818284590452354f  /* e */
-#define M_LOG2E_F               1.4426950408889634074f  /* log_2 e */
 #define M_LOG10E_F              0.43429448190325182765f /* log_10 e */
 #define M_LN2_F                 0.69314718055994530942f /* log_e 2 */
 #define M_LN10_F                2.30258509299404568402f /* log_e 10 */
