@@ -691,6 +691,9 @@ public:
   static ref<Expr> create(ref<Expr> dst, ref<Expr> src, ref<Expr> size,
                           ref<Expr> handle, unsigned handleWidth);
 
+  ref<Expr> getDst() const { return dst; }
+  ref<Expr> getSrc() const { return src; }
+
   EXPR_KIND(AsyncWorkGroupCopy)
 };
 
