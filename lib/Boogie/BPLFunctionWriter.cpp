@@ -173,6 +173,13 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         writeExpr(OS, AE->getOffset().get());
         OS << ");";
       });
+    } else if(auto AWGCE = dyn_cast<AsyncWorkGroupCopyExpr>(ES->getExpr())) {
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "procedure _ASYNC_WORK_GROUP_COPY() returns (handle : bv" 
+           << MW->M->getPointerWidth() << ")";
+      });
+      OS << "  ";
+      OS << "call v" << id << " := _ASYNC_WORK_GROUP_COPY(/* TODO */);";    
     } else {
       OS << "  v" << id << " := ";
       writeExpr(OS, ES->getExpr().get());

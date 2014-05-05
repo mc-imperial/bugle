@@ -20,6 +20,7 @@
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/raw_ostream.h"
+#include <sstream>
 
 using namespace bugle;
 using namespace llvm;
@@ -364,6 +365,22 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["get_num_groups"] = &TranslateFunction::handleGetNumGroups;
       fns["get_image_width"] = &TranslateFunction::handleGetImageWidth;
       fns["get_image_height"] = &TranslateFunction::handleGetImageHeight;
+
+      const std::string types[] = { "char", "uchar", "short", "ushort",
+        "int", "uint", "long", "ulong", "float", "" };
+      for(unsigned i = 0; types[i] != ""; ++i) {
+        for(unsigned width = 1; width <= 16; width *= 2) {
+          std::stringstream ss;
+          if(width > 1) {
+            ss << width;
+          }
+          fns["__async_work_group_copy___global_to___local_" + types[i] +
+              ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
+          fns["__async_work_group_copy___local_to___global_" + types[i] +
+              ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
+        }
+      }
+
     }
 
     if (SL == TranslateModule::SL_CUDA) {
@@ -1235,6 +1252,15 @@ ref<Expr> TranslateFunction::handleGetImageHeight(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return GetImageHeightExpr::create(Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  ref<Expr> E = AsyncWorkGroupCopyExpr::create(Args[0], Args[1], Args[2],
+    Args[3], TM->BM->getPointerWidth());
+  BBB->addStmt(new EvalStmt(E));
+  return E;
 }
 
 ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,

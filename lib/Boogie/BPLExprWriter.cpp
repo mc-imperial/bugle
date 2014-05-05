@@ -370,6 +370,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       ErrorReporter::reportImplementationLimitation(
            "\"Atomic has taken value\" expressions for pointers not supported");
     }
+  } else if (auto AWGCE = dyn_cast<AsyncWorkGroupCopyExpr>(E)) {
+    llvm_unreachable("Handled at statement level");
   } else if (auto IMPLIESE = dyn_cast<ImpliesExpr>(E)) {
     OS << "(";
     writeExpr(OS, IMPLIESE->getLHS().get());

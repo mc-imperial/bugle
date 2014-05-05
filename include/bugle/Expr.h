@@ -49,6 +49,7 @@ public:
     UninterpretedFunction,
     ArrayMemberOf,
     AtomicHasTakenValue,
+    AsyncWorkGroupCopy,
 
     // Unary
     Not,
@@ -675,6 +676,23 @@ public:
   ref<Expr> getValue() const { return value; }
 };
 
+class AsyncWorkGroupCopyExpr : public Expr {
+  AsyncWorkGroupCopyExpr(ref<Expr> dst, ref<Expr> src, ref<Expr> size,
+    ref<Expr> handle, unsigned handleWidth) : 
+    Expr(Type(Type::BV, handleWidth)), dst(dst), src(src),
+    size(size), handle(handle)
+  { }
+  ref<Expr> dst;
+  ref<Expr> src;
+  ref<Expr> size;
+  ref<Expr> handle;
+
+public:
+  static ref<Expr> create(ref<Expr> dst, ref<Expr> src, ref<Expr> size,
+                          ref<Expr> handle, unsigned handleWidth);
+
+  EXPR_KIND(AsyncWorkGroupCopy)
+};
 
 }
 
