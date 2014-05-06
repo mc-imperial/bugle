@@ -190,7 +190,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
 
       if (GlobalsDst.size() == 1 && GlobalsSrc.size() == 1) {
         auto dst = *GlobalsDst.begin();
-        auto src = *GlobalsDst.begin();
+        auto src = *GlobalsSrc.begin();
         
         MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
           OS << "procedure {:async_work_group_copy} _ASYNC_WORK_GROUP_COPY_"
@@ -200,20 +200,33 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
              << MW->M->getPointerWidth() << "]bv" << dst->getRangeType().width
              << ", src : [bv" 
              << MW->M->getPointerWidth() << "]bv" << src->getRangeType().width
-             << ") returns (handle : bv" << MW->M->getPointerWidth() << ")";
+             << ", size : bv" << MW->M->getPointerWidth()
+             << ", handle : bv" << MW->M->getPointerWidth()
+             << ") returns (handle' : bv" << MW->M->getPointerWidth() << ")";
         });
         OS << "  ";
         OS << "call v" << id << " := _ASYNC_WORK_GROUP_COPY_"
            << dst->getRangeType().width << "_"
            << src->getRangeType().width
-           << "($$" << dst->getName()
-           << ", "
-           << "$$" << src->getName()
-           << ");";
+           << "($$" << dst->getName() << ", "
+           << "$$" << src->getName() << ", ";
+        writeExpr(OS, AWGCE->getSize().get());
+        OS << ", ";
+        writeExpr(OS, AWGCE->getHandle().get());
+        OS << ");\n";
       } else {
         ErrorReporter::reportImplementationLimitation(
                             "Async work group copies on pointers not yet supported");
       }
+    } else if(auto WGEE = dyn_cast<WaitGroupEventExpr>(ES->getExpr())) {
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "procedure {:wait_group_events} _WAIT_GROUP_EVENTS(handle : bv"
+           << MW->M->getPointerWidth() << ")";
+      });
+      OS << "  ";
+      OS << "call _WAIT_GROUP_EVENTS(";
+      writeExpr(OS, WGEE->getHandle().get());
+      OS << ");\n";
     } else {
       OS << "  v" << id << " := ";
       writeExpr(OS, ES->getExpr().get());

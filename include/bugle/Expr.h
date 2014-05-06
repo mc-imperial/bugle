@@ -50,6 +50,7 @@ public:
     ArrayMemberOf,
     AtomicHasTakenValue,
     AsyncWorkGroupCopy,
+    WaitGroupEvent,
 
     // Unary
     Not,
@@ -693,9 +694,28 @@ public:
 
   ref<Expr> getDst() const { return dst; }
   ref<Expr> getSrc() const { return src; }
+  ref<Expr> getSize() const { return size; }
+  ref<Expr> getHandle() const { return handle; }
 
   EXPR_KIND(AsyncWorkGroupCopy)
 };
+
+class WaitGroupEventExpr : public Expr {
+  WaitGroupEventExpr(ref<Expr> handle) : 
+    Expr(handle->getType()),
+    handle(handle)
+  { }
+  ref<Expr> handle;
+
+public:
+  static ref<Expr> create(ref<Expr> handle);
+
+  ref<Expr> getHandle() const { return handle; }
+
+  EXPR_KIND(WaitGroupEvent)
+  
+};
+
 
 }
 

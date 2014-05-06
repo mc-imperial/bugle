@@ -9,7 +9,8 @@ namespace {
 
 bool hasSideEffects(Expr *e) {
   return isa<CallExpr>(e) || isa<CallMemberOfExpr>(e) ||
-    isa<ArraySnapshotExpr>(e) || isa<AddNoovflExpr>(e) || isa<AtomicExpr>(e);
+    isa<ArraySnapshotExpr>(e) || isa<AddNoovflExpr>(e) || isa<AtomicExpr>(e) ||
+    isa<WaitGroupEventExpr>(e);
 }
 
 bool isTemporal(Expr *e) {

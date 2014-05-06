@@ -995,3 +995,6 @@ ref<Expr> AsyncWorkGroupCopyExpr::create(ref<Expr> dst, ref<Expr> src,
   return new AsyncWorkGroupCopyExpr(dst, src, size, handle, handleWidth);
 }
 
+ref<Expr> WaitGroupEventExpr::create(ref<Expr> handle) {
+  return new WaitGroupEventExpr(handle);
+}

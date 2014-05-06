@@ -365,21 +365,23 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["get_num_groups"] = &TranslateFunction::handleGetNumGroups;
       fns["get_image_width"] = &TranslateFunction::handleGetImageWidth;
       fns["get_image_height"] = &TranslateFunction::handleGetImageHeight;
-
-      const std::string types[] = { "char", "uchar", "short", "ushort",
-        "int", "uint", "long", "ulong", "float", "" };
-      for(unsigned i = 0; types[i] != ""; ++i) {
-        for(unsigned width = 1; width <= 16; width *= 2) {
-          std::stringstream ss;
-          if(width > 1) {
-            ss << width;
+      {
+        const std::string types[] = { "char", "uchar", "short", "ushort",
+          "int", "uint", "long", "ulong", "float", "" };
+        for(unsigned i = 0; types[i] != ""; ++i) {
+          for(unsigned width = 1; width <= 16; width *= 2) {
+            std::stringstream ss;
+            if(width > 1) {
+              ss << width;
+            }
+            fns["__async_work_group_copy___global_to___local_" + types[i] +
+                ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
+            fns["__async_work_group_copy___local_to___global_" + types[i] +
+                ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
           }
-          fns["__async_work_group_copy___global_to___local_" + types[i] +
-              ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
-          fns["__async_work_group_copy___local_to___global_" + types[i] +
-              ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
         }
       }
+      fns["wait_group_events"] = &TranslateFunction::handleWaitGroupEvents;
 
     }
 
@@ -1257,10 +1259,41 @@ ref<Expr> TranslateFunction::handleGetImageHeight(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
+  /* TODO: at this point we need to check two things:
+     (1) if byte-level modelling has been applied to the dst or src arguments,
+         Args[0] or Args[1], then the size of the copy should be adapted
+         appropriately
+     (2) if the async work group copy itself uses a different pointer granularity
+         than the declared types of the pointers, we should invoke byte-level
+         modelling
+  */
   ref<Expr> E = AsyncWorkGroupCopyExpr::create(Args[0], Args[1], Args[2],
     Args[3], TM->BM->getPointerWidth());
-  BBB->addStmt(new EvalStmt(E));
+  BBB->addEvalStmt(E);
   return E;
+}
+
+ref<Expr> TranslateFunction::handleWaitGroupEvents(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  if (auto BVCE = dyn_cast<BVConstExpr>(Args[0])) {
+    auto Ptr = dyn_cast<PointerExpr>(Args[1]);
+    assert(Ptr && "Expected pointer expression for handle array");
+    for(unsigned i = 0; i < BVCE->getValue().getZExtValue(); ++i) {
+      auto Off = BVAddExpr::create(Ptr->getOffset(), BVConstExpr::create(TM->BM->getPointerWidth(), i));
+      auto PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange());
+      Type ArrRangeTy = PtrArr->getType().range();
+      auto LE = LoadExpr::create(Ptr->getArray(), Off, ArrRangeTy,
+        true);
+      addEvalStmt(BBB, CI, LE);
+      BBB->addEvalStmt(WaitGroupEventExpr::create(LE));
+    }
+    return 0;
+  } else {
+    ErrorReporter::reportImplementationLimitation(
+      "\"wait_group_events\" with a variable-sized set of events not yet supported");
+    return 0;
+  }
 }
 
 ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,
