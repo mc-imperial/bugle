@@ -176,7 +176,9 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     } else if(auto AWGCE = dyn_cast<AsyncWorkGroupCopyExpr>(ES->getExpr())) {
 
       auto DstArray = AWGCE->getDst().get();
+      auto DstOffset = AWGCE->getDstOffset().get();
       auto SrcArray = AWGCE->getSrc().get();
+      auto SrcOffset = AWGCE->getSrcOffset().get();
 
       std::set<GlobalArray *> GlobalsDst;
       if (!DstArray->computeArrayCandidates(GlobalsDst)) {
@@ -191,25 +193,31 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       if (GlobalsDst.size() == 1 && GlobalsSrc.size() == 1) {
         auto dst = *GlobalsDst.begin();
         auto src = *GlobalsSrc.begin();
+
+        assert(dst->getRangeType() == src->getRangeType());
         
         MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
           OS << "procedure {:async_work_group_copy} _ASYNC_WORK_GROUP_COPY_"
-             << dst->getRangeType().width << "_"
-             << src->getRangeType().width
+             << dst->getRangeType().width
              << "(dst : [bv"
              << MW->M->getPointerWidth() << "]bv" << dst->getRangeType().width
+             << ", dstOffset : bv" << DstOffset->getType().width
              << ", src : [bv" 
              << MW->M->getPointerWidth() << "]bv" << src->getRangeType().width
+             << ", srcOffset : bv" << SrcOffset->getType().width
              << ", size : bv" << MW->M->getPointerWidth()
              << ", handle : bv" << MW->M->getPointerWidth()
              << ") returns (handle' : bv" << MW->M->getPointerWidth() << ")";
         });
         OS << "  ";
         OS << "call v" << id << " := _ASYNC_WORK_GROUP_COPY_"
-           << dst->getRangeType().width << "_"
-           << src->getRangeType().width
-           << "($$" << dst->getName() << ", "
+           << dst->getRangeType().width
+           << "($$" << dst->getName() << ", ";
+        writeExpr(OS, DstOffset);
+        OS << ", "
            << "$$" << src->getName() << ", ";
+        writeExpr(OS, SrcOffset);
+        OS << ", ";
         writeExpr(OS, AWGCE->getSize().get());
         OS << ", ";
         writeExpr(OS, AWGCE->getHandle().get());

@@ -678,22 +678,30 @@ public:
 };
 
 class AsyncWorkGroupCopyExpr : public Expr {
-  AsyncWorkGroupCopyExpr(ref<Expr> dst, ref<Expr> src, ref<Expr> size,
-    ref<Expr> handle, unsigned handleWidth) : 
-    Expr(Type(Type::BV, handleWidth)), dst(dst), src(src),
-    size(size), handle(handle)
+  AsyncWorkGroupCopyExpr(ref<Expr> dst, ref<Expr> dstOffset,
+                         ref<Expr> src, ref<Expr> srcOffset,
+                         ref<Expr> size, ref<Expr> handle) : 
+                        Expr(handle->getType()),
+                        dst(dst), dstOffset(dstOffset),
+                        src(src), srcOffset(srcOffset),
+                        size(size), handle(handle)
   { }
   ref<Expr> dst;
+  ref<Expr> dstOffset;
   ref<Expr> src;
+  ref<Expr> srcOffset;
   ref<Expr> size;
   ref<Expr> handle;
 
 public:
-  static ref<Expr> create(ref<Expr> dst, ref<Expr> src, ref<Expr> size,
-                          ref<Expr> handle, unsigned handleWidth);
+  static ref<Expr> create(ref<Expr> dst, ref<Expr> dstOffset,
+                          ref<Expr> src, ref<Expr> srcOffset,
+                          ref<Expr> size, ref<Expr> handle);
 
   ref<Expr> getDst() const { return dst; }
+  ref<Expr> getDstOffset() const { return dstOffset; }
   ref<Expr> getSrc() const { return src; }
+  ref<Expr> getSrcOffset() const { return srcOffset; }
   ref<Expr> getSize() const { return size; }
   ref<Expr> getHandle() const { return handle; }
 

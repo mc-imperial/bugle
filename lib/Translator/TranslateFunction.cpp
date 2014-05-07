@@ -1259,18 +1259,67 @@ ref<Expr> TranslateFunction::handleGetImageHeight(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
-  /* TODO: at this point we need to check two things:
-     (1) if byte-level modelling has been applied to the dst or src arguments,
-         Args[0] or Args[1], then the size of the copy should be adapted
-         appropriately
-     (2) if the async work group copy itself uses a different pointer granularity
-         than the declared types of the pointers, we should invoke byte-level
-         modelling
-  */
-  ref<Expr> E = AsyncWorkGroupCopyExpr::create(Args[0], Args[1], Args[2],
-    Args[3], TM->BM->getPointerWidth());
-  BBB->addEvalStmt(E);
-  return E;
+  ref<Expr> Src = Args[1],
+            Dst = Args[0],
+            SrcArr = ArrayIdExpr::create(Src, TM->defaultRange()),
+            DstArr = ArrayIdExpr::create(Dst, TM->defaultRange()),
+            SrcOfs = ArrayOffsetExpr::create(Src),
+            DstOfs = ArrayOffsetExpr::create(Dst);
+  Type SrcRangeTy = SrcArr->getType().range(),
+       DstRangeTy = DstArr->getType().range();
+
+  if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
+    ErrorReporter::reportImplementationLimitation(
+                        "async_work_group_copy with null pointer destination or"
+                        " destinations of mixed types not supported");
+  }
+
+  if (SrcRangeTy == Type(Type::Any) || SrcRangeTy == Type(Type::Unknown)) {
+    ErrorReporter::reportImplementationLimitation(
+                             "async_work_group_copy with null pointer source or"
+                             " sources of mixed types not supported");
+  }
+
+  assert(SrcRangeTy.width % 8 == 0);
+  assert(DstRangeTy.width % 8 == 0);
+  assert(SrcRangeTy == DstRangeTy);
+
+  Type DstArgRangeTy = TM->translateType(CI->getOperand(0)->getType()->getPointerElementType());
+  Type SrcArgRangeTy = TM->translateType(CI->getOperand(1)->getType()->getPointerElementType());
+  assert(DstArgRangeTy == SrcArgRangeTy);
+
+  ref<Expr> SrcDiv = Expr::createExactBVUDiv(SrcOfs, SrcRangeTy.width/8);
+  ref<Expr> DstDiv = Expr::createExactBVUDiv(DstOfs, DstRangeTy.width/8);
+  // Compensate for the modelled width being smaller than the width expected by
+  // the function. In case the modelled width is larger, we will model both the
+  // source and destinations as byte-arrays (this is handled by the if-statement
+  // at the bottom of this function).
+  ref<Expr> NumElements = Args[2];
+  if (SrcRangeTy.width < SrcArgRangeTy.width) {
+    ref<Expr> NumElementsFactor = BVConstExpr::create(NumElements->getType().width,
+                                                      SrcArgRangeTy.width/SrcRangeTy.width);
+    NumElements = BVMulExpr::create(NumElements, NumElementsFactor);
+  }
+  // Create a result expression; this will be incorrect if the condition of the
+  // if-statement below is true. However, in that case we need to do additional
+  // modelling, which means we eventually re-execute this function but with both
+  // the source and destination arrays modelled as byte-arrays.
+  ref<Expr> result = AsyncWorkGroupCopyExpr::create(DstArr, DstOfs, SrcArr, SrcOfs, NumElements, Args[3]);
+  if (DstRangeTy.width > DstArgRangeTy.width || DstDiv.isNull() ||
+      SrcRangeTy.width > SrcArgRangeTy.width || SrcDiv.isNull()) {
+    TM->NeedAdditionalByteArrayModels = true;
+    std::set<GlobalArray *> Globals;
+    if (SrcArr->computeArrayCandidates(Globals) &&
+        DstArr->computeArrayCandidates(Globals)) {
+      std::transform(Globals.begin(), Globals.end(),
+          std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
+          [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+    } else {
+      TM->NextModelAllAsByteArray = true;
+    }
+  }
+
+  return result;
 }
 
 ref<Expr> TranslateFunction::handleWaitGroupEvents(bugle::BasicBlock *BBB,
