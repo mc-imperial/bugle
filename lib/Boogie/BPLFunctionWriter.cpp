@@ -209,8 +209,9 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
              << ", handle : bv" << MW->M->getPointerWidth()
              << ") returns (handle' : bv" << MW->M->getPointerWidth() << ")";
         });
+        writeSourceLocsMarker(OS, ES->getSourceLocs(), 2);
         OS << "  ";
-        OS << "call v" << id << " := _ASYNC_WORK_GROUP_COPY_"
+        OS << "call {:async_work_group_copy} v" << id << " := _ASYNC_WORK_GROUP_COPY_"
            << dst->getRangeType().width
            << "($$" << dst->getName() << ", ";
         writeExpr(OS, DstOffset);
