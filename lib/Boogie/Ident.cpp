@@ -13,7 +13,6 @@ bool isBoogieIdentCharOrAt(char c) {
                              "'~#$^_.?`0123456789@";
   return strchr(IdentChars, c);
 }
-
 }
 
 std::string bugle::makeBoogieIdent(llvm::StringRef S) {

@@ -16,7 +16,6 @@ public:
   Type getType() { return type; }
   const std::string &getName() { return name; }
 };
-
 }
 
 #endif

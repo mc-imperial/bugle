@@ -12,7 +12,6 @@ class UniqueNameSet {
 public:
   std::string makeName(llvm::StringRef OrigName);
 };
-
 }
 
 #endif

@@ -16,8 +16,8 @@ struct GlobalInit {
   GlobalArray *array;
   uint64_t offset;
   ref<Expr> init;
-  GlobalInit(GlobalArray *array, uint64_t offset, ref<Expr> init) :
-    array(array), offset(offset), init(init) {}
+  GlobalInit(GlobalArray *array, uint64_t offset, ref<Expr> init)
+      : array(array), offset(offset), init(init) {}
 };
 
 class Module {
@@ -39,9 +39,8 @@ public:
 
   GlobalArray *addGlobal(const std::string &name,
                          const std::string &originalName, Type rangeType) {
-    GlobalArray *GA =
-      new GlobalArray(globalNames.makeName(makeBoogieIdent(name)), originalName,
-                      rangeType);
+    GlobalArray *GA = new GlobalArray(
+        globalNames.makeName(makeBoogieIdent(name)), originalName, rangeType);
     globals.push_back(GA);
     return GA;
   }
@@ -88,8 +87,6 @@ public:
     globalInits.push_back(GlobalInit(array, offset, init));
   }
 };
-
 }
 
 #endif
-

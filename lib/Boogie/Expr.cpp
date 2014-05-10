@@ -15,7 +15,7 @@ bool Expr::computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const {
     GlobalSet.insert(MOE->getElems().begin(), MOE->getElems().end());
     return true;
   } else if (isa<NullArrayRefExpr>(this)) {
-    GlobalSet.insert((bugle::GlobalArray*)0);
+    GlobalSet.insert((bugle::GlobalArray *)0);
     return true;
   } else if (auto ITE = dyn_cast<IfThenElseExpr>(this)) {
     return ITE->getTrueExpr()->computeArrayCandidates(GlobalSet) &&
@@ -41,24 +41,20 @@ ref<Expr> BVConstExpr::create(unsigned width, uint64_t val, bool isSigned) {
   return create(llvm::APInt(width, val, isSigned));
 }
 
-ref<Expr> BoolConstExpr::create(bool val) {
-  return new BoolConstExpr(val);
-}
+ref<Expr> BoolConstExpr::create(bool val) { return new BoolConstExpr(val); }
 
 ref<Expr> GlobalArrayRefExpr::create(GlobalArray *global) {
   return new GlobalArrayRefExpr(Type(Type::ArrayOf, global->getRangeType()),
                                 global);
 }
 
-ref<Expr> NullArrayRefExpr::create() {
-  return new NullArrayRefExpr();
-}
+ref<Expr> NullArrayRefExpr::create() { return new NullArrayRefExpr(); }
 
 ref<Expr> ConstantArrayRefExpr::create(llvm::ArrayRef<ref<Expr>> array) {
 #ifndef NDEBUG
   assert(array.size() > 0);
   Type t = array[0]->getType();
-  for (auto i = array.begin()+1, e = array.end(); i != e; ++i) {
+  for (auto i = array.begin() + 1, e = array.end(); i != e; ++i) {
     assert((*i)->getType() == t);
   }
 #endif
@@ -84,7 +80,8 @@ ref<Expr> FunctionPointerExpr::create(std::string funcName, unsigned ptrWidth) {
   return new FunctionPointerExpr(funcName, ptrWidth);
 }
 
-ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset, Type type, bool isTemporal) {
+ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset, Type type,
+                           bool isTemporal) {
   assert(array->getType().array);
   assert(offset->getType().isKind(Type::BV));
 
@@ -110,9 +107,7 @@ ref<Expr> AtomicExpr::create(ref<Expr> array, ref<Expr> offset,
   return new AtomicExpr(at.range(), array, offset, args, function, parts, part);
 }
 
-ref<Expr> VarRefExpr::create(Var *var) {
-  return new VarRefExpr(var);
-}
+ref<Expr> VarRefExpr::create(Var *var) { return new VarRefExpr(var); }
 
 ref<Expr> SpecialVarRefExpr::create(Type t, const std::string &attr) {
   return new SpecialVarRefExpr(t, attr);
@@ -131,9 +126,10 @@ ref<Expr> BVExtractExpr::create(ref<Expr> expr, unsigned offset,
     if (offset + width <= RHSWidth)
       return BVExtractExpr::create(e->getRHS(), offset, width);
     if (offset >= RHSWidth)
-      return BVExtractExpr::create(e->getLHS(), offset-RHSWidth, width);
+      return BVExtractExpr::create(e->getLHS(), offset - RHSWidth, width);
     if (offset == 0 && RHSWidth < width) {
-      ref<Expr> EE = BVExtractExpr::create(e->getLHS(), offset, width-RHSWidth);
+      ref<Expr> EE =
+          BVExtractExpr::create(e->getLHS(), offset, width - RHSWidth);
       return BVConcatExpr::create(EE, e->getRHS());
     }
   }
@@ -321,9 +317,7 @@ ref<Expr> IfThenElseExpr::create(ref<Expr> cond, ref<Expr> trueExpr,
   return new IfThenElseExpr(cond, trueExpr, falseExpr);
 }
 
-ref<Expr> HavocExpr::create(Type type) {
-  return new HavocExpr(type);
-}
+ref<Expr> HavocExpr::create(Type type) { return new HavocExpr(type); }
 
 ref<Expr> ArrayMemberOfExpr::create(ref<Expr> expr,
                                     const std::set<GlobalArray *> &elems) {
@@ -333,7 +327,7 @@ ref<Expr> ArrayMemberOfExpr::create(ref<Expr> expr,
   Type t = Expr::getArrayCandidateType(elems);
 #ifndef NDEBUG
   for (auto i = elems.begin(), e = elems.end(); i != e; ++i) {
-    assert(*i == (bugle::GlobalArray*)0 || (*i)->getRangeType() == t);
+    assert(*i == (bugle::GlobalArray *)0 || (*i)->getRangeType() == t);
   }
 #endif
 
@@ -430,8 +424,10 @@ ref<Expr> BoolToBVExpr::create(ref<Expr> bv) {
 }
 
 ref<Expr> EqExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
-  assert((lhs->getType() == Type(Type::ArrayOf, Type::Any) && rhs->getType().array) ||
-         (rhs->getType() == Type(Type::ArrayOf, Type::Any) && lhs->getType().array) ||
+  assert((lhs->getType() == Type(Type::ArrayOf, Type::Any) &&
+          rhs->getType().array) ||
+         (rhs->getType() == Type(Type::ArrayOf, Type::Any) &&
+          lhs->getType().array) ||
          (lhs->getType() == rhs->getType()));
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
@@ -601,9 +597,9 @@ static ref<Expr> createExactBVUDivMul(Expr *nonConstOp, BVConstExpr *constOp,
                                       uint64_t div) {
   uint64_t mul = constOp->getValue().getZExtValue();
   if (mul % div == 0) {
-    return BVMulExpr::create(nonConstOp,
-                             BVConstExpr::create(nonConstOp->getType().width,
-                                                 mul / div));
+    return BVMulExpr::create(
+        nonConstOp,
+        BVConstExpr::create(nonConstOp->getType().width, mul / div));
   }
   return ref<Expr>();
 }
@@ -611,7 +607,7 @@ static ref<Expr> createExactBVUDivMul(Expr *nonConstOp, BVConstExpr *constOp,
 ref<Expr> Expr::createExactBVUDiv(ref<Expr> lhs, uint64_t rhs, Var *base) {
   if (rhs == 1)
     return lhs;
-  if ((rhs & (rhs-1)) != 0)
+  if ((rhs & (rhs - 1)) != 0)
     return ref<Expr>();
 
   if (auto CE = dyn_cast<BVConstExpr>(lhs)) {
@@ -756,21 +752,21 @@ ref<Expr> BVConcatExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 ref<Expr> Expr::createBVConcatN(const std::vector<ref<Expr>> &exprs) {
   assert(!exprs.empty());
-  return fold(exprs.back(), exprs.rbegin()+1, exprs.rend(),
+  return fold(exprs.back(), exprs.rbegin() + 1, exprs.rend(),
               BVConcatExpr::create);
 }
 
-#define ICMP_EXPR_CREATE(cls, method) \
-ref<Expr> cls::create(ref<Expr> lhs, ref<Expr> rhs) { \
-  assert(lhs->getType().isKind(Type::BV)); \
-  assert(lhs->getType() == rhs->getType()); \
- \
-  if (auto e1 = dyn_cast<BVConstExpr>(lhs)) \
-    if (auto e2 = dyn_cast<BVConstExpr>(rhs)) \
-      return BoolConstExpr::create(e1->getValue().method(e2->getValue())); \
- \
-  return new cls(Type(Type::Bool), lhs, rhs); \
-}
+#define ICMP_EXPR_CREATE(cls, method)                                          \
+  ref<Expr> cls::create(ref<Expr> lhs, ref<Expr> rhs) {                        \
+    assert(lhs->getType().isKind(Type::BV));                                   \
+    assert(lhs->getType() == rhs->getType());                                  \
+                                                                               \
+    if (auto e1 = dyn_cast<BVConstExpr>(lhs))                                  \
+      if (auto e2 = dyn_cast<BVConstExpr>(rhs))                                \
+        return BoolConstExpr::create(e1->getValue().method(e2->getValue()));   \
+                                                                               \
+    return new cls(Type(Type::Bool), lhs, rhs);                                \
+  }
 
 ICMP_EXPR_CREATE(BVUgtExpr, ugt)
 ICMP_EXPR_CREATE(BVUgeExpr, uge)
@@ -838,21 +834,21 @@ ref<Expr> FUnoExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> Expr::createPtrLt(ref<Expr> lhs, ref<Expr> rhs) {
-  return IfThenElseExpr::create(EqExpr::create(
-                                 ArrayIdExpr::create(lhs, Type(Type::Unknown)),
-                                 ArrayIdExpr::create(rhs, Type(Type::Unknown))),
-                                BVSltExpr::create(ArrayOffsetExpr::create(lhs),
-                                                  ArrayOffsetExpr::create(rhs)),
-                                PtrLtExpr::create(lhs, rhs));
+  return IfThenElseExpr::create(
+      EqExpr::create(ArrayIdExpr::create(lhs, Type(Type::Unknown)),
+                     ArrayIdExpr::create(rhs, Type(Type::Unknown))),
+      BVSltExpr::create(ArrayOffsetExpr::create(lhs),
+                        ArrayOffsetExpr::create(rhs)),
+      PtrLtExpr::create(lhs, rhs));
 }
 
 ref<Expr> Expr::createPtrLe(ref<Expr> lhs, ref<Expr> rhs) {
-  return IfThenElseExpr::create(EqExpr::create(
-                                 ArrayIdExpr::create(lhs, Type(Type::Unknown)),
-                                 ArrayIdExpr::create(rhs, Type(Type::Unknown))),
-                                BVSleExpr::create(ArrayOffsetExpr::create(lhs),
-                                                  ArrayOffsetExpr::create(rhs)),
-                                PtrLtExpr::create(lhs, rhs));
+  return IfThenElseExpr::create(
+      EqExpr::create(ArrayIdExpr::create(lhs, Type(Type::Unknown)),
+                     ArrayIdExpr::create(rhs, Type(Type::Unknown))),
+      BVSleExpr::create(ArrayOffsetExpr::create(lhs),
+                        ArrayOffsetExpr::create(rhs)),
+      PtrLtExpr::create(lhs, rhs));
 }
 
 ref<Expr> PtrLtExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
@@ -887,7 +883,7 @@ ref<Expr> ImpliesExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 }
 
 ref<Expr> CallExpr::create(Function *f, const std::vector<ref<Expr>> &args) {
-  assert(f->return_begin()+1 == f->return_end());
+  assert(f->return_begin() + 1 == f->return_end());
   return new CallExpr((*f->return_begin())->getType(), f, args);
 }
 
@@ -956,7 +952,7 @@ ref<Expr> UnderlyingArrayExpr::create(ref<Expr> array) {
 }
 
 ref<Expr> AddNoovflExpr::create(ref<Expr> first, ref<Expr> second,
-    bool isSigned) {
+                                bool isSigned) {
   assert(first->getType().isKind(Type::BV));
   assert(second->getType().isKind(Type::BV));
   assert(first->getType().width == second->getType().width);
@@ -976,13 +972,14 @@ ref<Expr> AddNoovflPredicateExpr::create(const std::vector<ref<Expr>> &exprs) {
   return new AddNoovflPredicateExpr(exprs);
 }
 
-ref<Expr> UninterpretedFunctionExpr::create(const std::string &name,
-    Type returnType, const std::vector<ref<Expr>> &args) {
+ref<Expr>
+UninterpretedFunctionExpr::create(const std::string &name, Type returnType,
+                                  const std::vector<ref<Expr>> &args) {
   return new UninterpretedFunctionExpr(name, returnType, args);
 }
 
-ref<Expr> AtomicHasTakenValueExpr::create(ref<Expr> atomicArray, 
-    ref<Expr> offset, ref<Expr> value) {
+ref<Expr> AtomicHasTakenValueExpr::create(ref<Expr> atomicArray,
+                                          ref<Expr> offset, ref<Expr> value) {
   assert(atomicArray->getType().array);
   assert(offset->getType().isKind(Type::BV));
   assert(value->getType().isKind(Type::BV));
@@ -991,9 +988,10 @@ ref<Expr> AtomicHasTakenValueExpr::create(ref<Expr> atomicArray,
 }
 
 ref<Expr> AsyncWorkGroupCopyExpr::create(ref<Expr> dst, ref<Expr> dstOffset,
-    ref<Expr> src, ref<Expr> srcOffset, ref<Expr> size, ref<Expr> handle) {
-  return new AsyncWorkGroupCopyExpr(dst, dstOffset, src, srcOffset,
-                                    size, handle);
+                                         ref<Expr> src, ref<Expr> srcOffset,
+                                         ref<Expr> size, ref<Expr> handle) {
+  return new AsyncWorkGroupCopyExpr(dst, dstOffset, src, srcOffset, size,
+                                    handle);
 }
 
 ref<Expr> WaitGroupEventExpr::create(ref<Expr> handle) {

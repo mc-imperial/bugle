@@ -25,7 +25,6 @@ public:
   NO_RETURN static void reportFatalError(const std::string &msg);
   NO_RETURN static void reportImplementationLimitation(const std::string &msg);
 };
-
 }
 
 #endif

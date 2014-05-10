@@ -11,7 +11,6 @@
 namespace llvm {
 
 class Value;
-
 }
 
 namespace bugle {
@@ -135,7 +134,7 @@ public:
   };
 
   unsigned refCount;
-  bool preventEvalStmt:1, hasEvalStmt:1;
+  bool preventEvalStmt : 1, hasEvalStmt : 1;
 
   static ref<Expr> createPtrLt(ref<Expr> lhs, ref<Expr> rhs);
   static ref<Expr> createPtrLe(ref<Expr> lhs, ref<Expr> rhs);
@@ -154,8 +153,8 @@ private:
   Type type;
 
 protected:
-  Expr(Type type) : refCount(0), preventEvalStmt(false),
-                    hasEvalStmt(false), type(type) {}
+  Expr(Type type)
+      : refCount(0), preventEvalStmt(false), hasEvalStmt(false), type(type) {}
 
 public:
   virtual ~Expr() {}
@@ -165,14 +164,14 @@ public:
   static bool classof(const Expr *) { return true; }
 };
 
-#define EXPR_KIND(kind) \
-  Kind getKind() const { return kind; } \
-  static bool classof(const Expr *E) { return E->getKind() == kind; } \
+#define EXPR_KIND(kind)                                                        \
+  Kind getKind() const { return kind; }                                        \
+  static bool classof(const Expr *E) { return E->getKind() == kind; }          \
   static bool classof(const kind##Expr *) { return true; }
 
 class BVConstExpr : public Expr {
-  BVConstExpr(const llvm::APInt &bv) :
-    Expr(Type(Type::BV, bv.getBitWidth())), bv(bv) {}
+  BVConstExpr(const llvm::APInt &bv)
+      : Expr(Type(Type::BV, bv.getBitWidth())), bv(bv) {}
   llvm::APInt bv;
 
 public:
@@ -196,8 +195,7 @@ public:
 };
 
 class GlobalArrayRefExpr : public Expr {
-  GlobalArrayRefExpr(Type t, GlobalArray *array) :
-    Expr(t), array(array) {}
+  GlobalArrayRefExpr(Type t, GlobalArray *array) : Expr(t), array(array) {}
   GlobalArray *array;
 
 public:
@@ -217,9 +215,9 @@ public:
 };
 
 class ConstantArrayRefExpr : public Expr {
-  ConstantArrayRefExpr(llvm::ArrayRef<ref<Expr>> array) :
-    Expr(Type(Type::ArrayOf, array[0]->getType())),
-    array(array.begin(), array.end()) {}
+  ConstantArrayRefExpr(llvm::ArrayRef<ref<Expr>> array)
+      : Expr(Type(Type::ArrayOf, array[0]->getType())),
+        array(array.begin(), array.end()) {}
   std::vector<ref<Expr>> array;
 
 public:
@@ -230,9 +228,9 @@ public:
 };
 
 class PointerExpr : public Expr {
-  PointerExpr(ref<Expr> array, ref<Expr> offset) :
-    Expr(Type(Type::Pointer, offset->getType().width)),
-    array(array), offset(offset) {}
+  PointerExpr(ref<Expr> array, ref<Expr> offset)
+      : Expr(Type(Type::Pointer, offset->getType().width)), array(array),
+        offset(offset) {}
   ref<Expr> array, offset;
 
 public:
@@ -244,8 +242,8 @@ public:
 };
 
 class NullFunctionPointerExpr : public Expr {
-  NullFunctionPointerExpr(unsigned ptrWidth) :
-    Expr(Type(Type::FunctionPointer, ptrWidth)) {}
+  NullFunctionPointerExpr(unsigned ptrWidth)
+      : Expr(Type(Type::FunctionPointer, ptrWidth)) {}
 
 public:
   static ref<Expr> create(unsigned ptrWidth);
@@ -254,8 +252,8 @@ public:
 };
 
 class FunctionPointerExpr : public Expr {
-  FunctionPointerExpr(std::string funcName, unsigned ptrWidth) :
-    Expr(Type(Type::FunctionPointer, ptrWidth)), funcName(funcName) {}
+  FunctionPointerExpr(std::string funcName, unsigned ptrWidth)
+      : Expr(Type(Type::FunctionPointer, ptrWidth)), funcName(funcName) {}
   std::string funcName;
 
 public:
@@ -266,13 +264,14 @@ public:
 };
 
 class LoadExpr : public Expr {
-  LoadExpr(Type t, ref<Expr> array, ref<Expr> offset, bool isTemporal) :
-    Expr(t), array(array), offset(offset), isTemporal(isTemporal) {}
+  LoadExpr(Type t, ref<Expr> array, ref<Expr> offset, bool isTemporal)
+      : Expr(t), array(array), offset(offset), isTemporal(isTemporal) {}
   ref<Expr> array, offset;
   bool isTemporal;
 
 public:
-  static ref<Expr> create(ref<Expr> array, ref<Expr> offset, Type type, bool isTemporal);
+  static ref<Expr> create(ref<Expr> array, ref<Expr> offset, Type type,
+                          bool isTemporal);
 
   EXPR_KIND(Load)
   ref<Expr> getArray() const { return array; }
@@ -281,15 +280,20 @@ public:
 };
 
 class AtomicExpr : public Expr {
-  AtomicExpr(Type t, ref<Expr> array, ref<Expr> offset, std::vector<ref<Expr>> args, std::string function, unsigned int parts, unsigned int part) :
-    Expr(t), array(array), offset(offset), args(args), function(function), parts(parts), part(part) {}
+  AtomicExpr(Type t, ref<Expr> array, ref<Expr> offset,
+             std::vector<ref<Expr>> args, std::string function,
+             unsigned int parts, unsigned int part)
+      : Expr(t), array(array), offset(offset), args(args), function(function),
+        parts(parts), part(part) {}
   ref<Expr> array, offset;
   std::vector<ref<Expr>> args;
   std::string function;
   unsigned int parts, part;
 
 public:
-  static ref<Expr> create(ref<Expr> array, ref<Expr> offset, std::vector<ref<Expr>> args, std::string function, unsigned int parts, unsigned int part);
+  static ref<Expr> create(ref<Expr> array, ref<Expr> offset,
+                          std::vector<ref<Expr>> args, std::string function,
+                          unsigned int parts, unsigned int part);
 
   EXPR_KIND(Atomic)
   ref<Expr> getArray() const { return array; }
@@ -326,8 +330,8 @@ public:
 };
 
 class BVExtractExpr : public Expr {
-  BVExtractExpr(ref<Expr> expr, unsigned offset, unsigned width) :
-    Expr(Type(Type::BV, width)), expr(expr), offset(offset) {}
+  BVExtractExpr(ref<Expr> expr, unsigned offset, unsigned width)
+      : Expr(Type(Type::BV, width)), expr(expr), offset(offset) {}
   ref<Expr> expr;
   unsigned offset;
 
@@ -340,9 +344,9 @@ public:
 };
 
 class IfThenElseExpr : public Expr {
-  IfThenElseExpr(ref<Expr> cond, ref<Expr> trueExpr, ref<Expr> falseExpr) :
-    Expr(trueExpr->getType()), cond(cond), trueExpr(trueExpr),
-    falseExpr(falseExpr) {}
+  IfThenElseExpr(ref<Expr> cond, ref<Expr> trueExpr, ref<Expr> falseExpr)
+      : Expr(trueExpr->getType()), cond(cond), trueExpr(trueExpr),
+        falseExpr(falseExpr) {}
   ref<Expr> cond, trueExpr, falseExpr;
 
 public:
@@ -355,8 +359,7 @@ public:
 };
 
 class HavocExpr : public Expr {
-  HavocExpr(Type type) :
-    Expr(type) {}
+  HavocExpr(Type type) : Expr(type) {}
 
 public:
   static ref<Expr> create(Type type);
@@ -367,8 +370,9 @@ public:
 /// of the elems set.  This is an unusual expression in that it only shows
 /// up in the output indirectly via case splits.
 class ArrayMemberOfExpr : public Expr {
-  ArrayMemberOfExpr(Type t, ref<Expr> expr, const std::set<GlobalArray *> &elems) :
-    Expr(t), expr(expr), elems(elems) {}
+  ArrayMemberOfExpr(Type t, ref<Expr> expr,
+                    const std::set<GlobalArray *> &elems)
+      : Expr(t), expr(expr), elems(elems) {}
   ref<Expr> expr;
   std::set<GlobalArray *> elems;
 
@@ -384,8 +388,7 @@ class UnaryExpr : public Expr {
   ref<Expr> expr;
 
 protected:
-  UnaryExpr(Type type, ref<Expr> expr) :
-    Expr(type), expr(expr) {}
+  UnaryExpr(Type type, ref<Expr> expr) : Expr(type), expr(expr) {}
 
 public:
   ref<Expr> getSubExpr() const { return expr; }
@@ -396,13 +399,13 @@ public:
   static bool classof(const UnaryExpr *) { return true; }
 };
 
-#define UNARY_EXPR(kind) \
-  class kind##Expr : public UnaryExpr { \
-    kind##Expr(Type type, ref<Expr> expr) : UnaryExpr(type, expr) {} \
-\
-  public: \
-    static ref<Expr> create(ref<Expr> var); \
-    EXPR_KIND(kind) \
+#define UNARY_EXPR(kind)                                                       \
+  class kind##Expr : public UnaryExpr {                                        \
+    kind##Expr(Type type, ref<Expr> expr) : UnaryExpr(type, expr) {}           \
+                                                                               \
+  public:                                                                      \
+    static ref<Expr> create(ref<Expr> var);                                    \
+    EXPR_KIND(kind)                                                            \
   };
 
 UNARY_EXPR(Not)
@@ -440,13 +443,13 @@ UNARY_EXPR(Old)
 UNARY_EXPR(GetImageWidth)
 UNARY_EXPR(GetImageHeight)
 
-#define UNARY_CONV_EXPR(kind) \
-  class kind##Expr : public UnaryExpr { \
-    kind##Expr(Type type, ref<Expr> expr) : UnaryExpr(type, expr) {} \
-\
-  public: \
-    static ref<Expr> create(unsigned width, ref<Expr> var); \
-    EXPR_KIND(kind) \
+#define UNARY_CONV_EXPR(kind)                                                  \
+  class kind##Expr : public UnaryExpr {                                        \
+    kind##Expr(Type type, ref<Expr> expr) : UnaryExpr(type, expr) {}           \
+                                                                               \
+  public:                                                                      \
+    static ref<Expr> create(unsigned width, ref<Expr> var);                    \
+    EXPR_KIND(kind)                                                            \
   };
 
 UNARY_CONV_EXPR(BVSExt)
@@ -465,8 +468,8 @@ class BinaryExpr : public Expr {
   ref<Expr> lhs, rhs;
 
 protected:
-  BinaryExpr(Type type, ref<Expr> lhs, ref<Expr> rhs) :
-    Expr(type), lhs(lhs), rhs(rhs) {}
+  BinaryExpr(Type type, ref<Expr> lhs, ref<Expr> rhs)
+      : Expr(type), lhs(lhs), rhs(rhs) {}
 
 public:
   ref<Expr> getLHS() const { return lhs; }
@@ -478,14 +481,14 @@ public:
   static bool classof(const BinaryExpr *) { return true; }
 };
 
-#define BINARY_EXPR(kind) \
-  class kind##Expr : public BinaryExpr { \
-    kind##Expr(Type type, ref<Expr> lhs, ref<Expr> rhs) : \
-      BinaryExpr(type, lhs, rhs) {} \
-\
-  public: \
-    static ref<Expr> create(ref<Expr> lhs, ref<Expr> rhs); \
-    EXPR_KIND(kind) \
+#define BINARY_EXPR(kind)                                                      \
+  class kind##Expr : public BinaryExpr {                                       \
+    kind##Expr(Type type, ref<Expr> lhs, ref<Expr> rhs)                        \
+        : BinaryExpr(type, lhs, rhs) {}                                        \
+                                                                               \
+  public:                                                                      \
+    static ref<Expr> create(ref<Expr> lhs, ref<Expr> rhs);                     \
+    EXPR_KIND(kind)                                                            \
   };
 
 BINARY_EXPR(Eq)
@@ -531,8 +534,8 @@ BINARY_EXPR(Implies)
 class CallExpr : public Expr {
   Function *callee;
   std::vector<ref<Expr>> args;
-  CallExpr(Type t, Function *callee, const std::vector<ref<Expr>> &args) :
-    Expr(t), callee(callee), args(args) {}
+  CallExpr(Type t, Function *callee, const std::vector<ref<Expr>> &args)
+      : Expr(t), callee(callee), args(args) {}
 
 public:
   static ref<Expr> create(Function *callee, const std::vector<ref<Expr>> &args);
@@ -545,8 +548,8 @@ public:
 class CallMemberOfExpr : public Expr {
   ref<Expr> func;
   std::vector<ref<Expr>> callExprs;
-  CallMemberOfExpr(Type t, ref<Expr> func, std::vector<ref<Expr>> callExprs) :
-    Expr(t), func(func), callExprs(callExprs) {}
+  CallMemberOfExpr(Type t, ref<Expr> func, std::vector<ref<Expr>> callExprs)
+      : Expr(t), func(func), callExprs(callExprs) {}
 
 public:
   static ref<Expr> create(ref<Expr> func, std::vector<ref<Expr>> &callExprs);
@@ -556,10 +559,9 @@ public:
   std::vector<ref<Expr>> getCallExprs() const { return callExprs; }
 };
 
-
 class AccessHasOccurredExpr : public Expr {
-  AccessHasOccurredExpr(ref<Expr> array, bool isWrite) :
-    Expr(Type::Bool), array(array), isWrite(isWrite) {}
+  AccessHasOccurredExpr(ref<Expr> array, bool isWrite)
+      : Expr(Type::Bool), array(array), isWrite(isWrite) {}
   ref<Expr> array;
   bool isWrite;
 
@@ -572,8 +574,8 @@ public:
 };
 
 class AccessOffsetExpr : public Expr {
-  AccessOffsetExpr(ref<Expr> array, unsigned pointerSize, bool isWrite) :
-    Expr(Type(Type::BV, pointerSize)), array(array), isWrite(isWrite) {}
+  AccessOffsetExpr(ref<Expr> array, unsigned pointerSize, bool isWrite)
+      : Expr(Type(Type::BV, pointerSize)), array(array), isWrite(isWrite) {}
   ref<Expr> array;
   bool isWrite;
 
@@ -586,8 +588,8 @@ public:
 };
 
 class ArraySnapshotExpr : public Expr {
-  ArraySnapshotExpr(ref<Expr> dst, ref<Expr> src) :
-    Expr(Type::BV), dst(dst), src(src) { }
+  ArraySnapshotExpr(ref<Expr> dst, ref<Expr> src)
+      : Expr(Type::BV), dst(dst), src(src) {}
   ref<Expr> dst;
   ref<Expr> src;
 
@@ -600,8 +602,7 @@ public:
 };
 
 class UnderlyingArrayExpr : public Expr {
-  UnderlyingArrayExpr(ref<Expr> array) :
-    Expr(array->getType()), array(array) { }
+  UnderlyingArrayExpr(ref<Expr> array) : Expr(array->getType()), array(array) {}
   ref<Expr> array;
 
 public:
@@ -612,9 +613,9 @@ public:
 };
 
 class AddNoovflExpr : public Expr {
-  AddNoovflExpr(ref<Expr> first, ref<Expr> second, bool isSigned) :
-    Expr(Type(Type::BV, first->getType().width)), 
-    first(first), second(second), isSigned(isSigned) { }
+  AddNoovflExpr(ref<Expr> first, ref<Expr> second, bool isSigned)
+      : Expr(Type(Type::BV, first->getType().width)), first(first),
+        second(second), isSigned(isSigned) {}
   ref<Expr> first;
   ref<Expr> second;
   bool isSigned;
@@ -630,8 +631,8 @@ public:
 
 class AddNoovflPredicateExpr : public Expr {
   std::vector<ref<Expr>> exprs;
-  AddNoovflPredicateExpr(const std::vector<ref<Expr>> &exprs) :
-    Expr(Type(Type::BV, 1)), exprs(exprs) { }
+  AddNoovflPredicateExpr(const std::vector<ref<Expr>> &exprs)
+      : Expr(Type(Type::BV, 1)), exprs(exprs) {}
 
 public:
   static ref<Expr> create(const std::vector<ref<Expr>> &exprs);
@@ -642,9 +643,8 @@ public:
 
 class UninterpretedFunctionExpr : public Expr {
   UninterpretedFunctionExpr(const std::string &name, Type returnType,
-                            const std::vector<ref<Expr>> &args) :
-    Expr(returnType),
-    name(name), args(args) { }
+                            const std::vector<ref<Expr>> &args)
+      : Expr(returnType), name(name), args(args) {}
   const std::string name;
   const std::vector<ref<Expr>> args;
 
@@ -653,23 +653,23 @@ public:
                           const std::vector<ref<Expr>> &args);
 
   EXPR_KIND(UninterpretedFunction)
-  const std::string& getName() { return name; }
+  const std::string &getName() { return name; }
   unsigned getNumOperands() const { return args.size(); }
   ref<Expr> getOperand(unsigned index) const { return args[index]; }
 };
 
 class AtomicHasTakenValueExpr : public Expr {
-  AtomicHasTakenValueExpr(ref<Expr> atomicArray, ref<Expr> offset, 
-    ref<Expr> value) : Expr(Type::Bool), atomicArray(atomicArray), 
-    offset(offset), value(value)
-  { }
+  AtomicHasTakenValueExpr(ref<Expr> atomicArray, ref<Expr> offset,
+                          ref<Expr> value)
+      : Expr(Type::Bool), atomicArray(atomicArray), offset(offset),
+        value(value) {}
   ref<Expr> atomicArray;
   ref<Expr> offset;
   ref<Expr> value;
 
 public:
-  static ref<Expr> create(ref<Expr> atomicArray, ref<Expr> offset, 
-         ref<Expr> value);
+  static ref<Expr> create(ref<Expr> atomicArray, ref<Expr> offset,
+                          ref<Expr> value);
 
   EXPR_KIND(AtomicHasTakenValue)
   ref<Expr> getArray() const { return atomicArray; }
@@ -678,14 +678,10 @@ public:
 };
 
 class AsyncWorkGroupCopyExpr : public Expr {
-  AsyncWorkGroupCopyExpr(ref<Expr> dst, ref<Expr> dstOffset,
-                         ref<Expr> src, ref<Expr> srcOffset,
-                         ref<Expr> size, ref<Expr> handle) : 
-                        Expr(handle->getType()),
-                        dst(dst), dstOffset(dstOffset),
-                        src(src), srcOffset(srcOffset),
-                        size(size), handle(handle)
-  { }
+  AsyncWorkGroupCopyExpr(ref<Expr> dst, ref<Expr> dstOffset, ref<Expr> src,
+                         ref<Expr> srcOffset, ref<Expr> size, ref<Expr> handle)
+      : Expr(handle->getType()), dst(dst), dstOffset(dstOffset), src(src),
+        srcOffset(srcOffset), size(size), handle(handle) {}
   ref<Expr> dst;
   ref<Expr> dstOffset;
   ref<Expr> src;
@@ -694,9 +690,9 @@ class AsyncWorkGroupCopyExpr : public Expr {
   ref<Expr> handle;
 
 public:
-  static ref<Expr> create(ref<Expr> dst, ref<Expr> dstOffset,
-                          ref<Expr> src, ref<Expr> srcOffset,
-                          ref<Expr> size, ref<Expr> handle);
+  static ref<Expr> create(ref<Expr> dst, ref<Expr> dstOffset, ref<Expr> src,
+                          ref<Expr> srcOffset, ref<Expr> size,
+                          ref<Expr> handle);
 
   ref<Expr> getDst() const { return dst; }
   ref<Expr> getDstOffset() const { return dstOffset; }
@@ -709,10 +705,8 @@ public:
 };
 
 class WaitGroupEventExpr : public Expr {
-  WaitGroupEventExpr(ref<Expr> handle) : 
-    Expr(handle->getType()),
-    handle(handle)
-  { }
+  WaitGroupEventExpr(ref<Expr> handle)
+      : Expr(handle->getType()), handle(handle) {}
   ref<Expr> handle;
 
 public:
@@ -721,10 +715,7 @@ public:
   ref<Expr> getHandle() const { return handle; }
 
   EXPR_KIND(WaitGroupEvent)
-  
 };
-
-
 }
 
 #undef EXPR_KIND

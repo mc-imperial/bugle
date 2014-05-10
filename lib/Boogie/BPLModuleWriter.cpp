@@ -37,7 +37,7 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
   }
 }
 
-void BPLModuleWriter::writeIntrinsic(std::function<void(llvm::raw_ostream&)> F,
+void BPLModuleWriter::writeIntrinsic(std::function<void(llvm::raw_ostream &)> F,
                                      bool addSeparator) {
   if (this == 0)
     return;
@@ -55,8 +55,8 @@ const std::string &BPLModuleWriter::getGlobalInitRequires() {
   if (GlobalInitRequires.empty() &&
       M->global_init_begin() != M->global_init_end()) {
     llvm::raw_string_ostream SS(GlobalInitRequires);
-    for (auto i = M->global_init_begin(), e = M->global_init_end();
-         i != e; ++i) {
+    for (auto i = M->global_init_begin(), e = M->global_init_end(); i != e;
+         ++i) {
       SS << "requires "
          << "$$" << i->array->getName() << "["
          << MW->IntRep->getLiteral(i->offset, M->getPointerWidth())
@@ -84,7 +84,7 @@ void BPLModuleWriter::write() {
   OS << "type _SIZE_T_TYPE = bv" << M->getPointerWidth() << ";\n\n";
 
   if (UsesPointers) {
-    if(RepresentPointersAsDatatype) {
+    if (RepresentPointersAsDatatype) {
       OS << "type {:datatype} ptr;\n"
          << "type arrayId;\n"
          << "function {:constructor} MKPTR(base: arrayId, offset: "
@@ -95,8 +95,9 @@ void BPLModuleWriter::write() {
       // "undefined"
       const unsigned NumberOfSpecialArrayBaseValues = 2;
       unsigned BitsRequiredForArrayBases = (unsigned)std::ceil(
-          std::log((double)(M->global_size() + NumberOfSpecialArrayBaseValues))
-        / std::log((double)2));
+          std::log(
+              (double)(M->global_size() + NumberOfSpecialArrayBaseValues)) /
+          std::log((double)2));
       OS << "type ptr = bv"
          << (M->getPointerWidth() + BitsRequiredForArrayBases) << ";\n"
          << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n"
@@ -118,7 +119,7 @@ void BPLModuleWriter::write() {
 
   unsigned long int sizes = 0;
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
-    unsigned long int size = (1 << (((*i)->getRangeType().width/8) ));
+    unsigned long int size = (1 << (((*i)->getRangeType().width / 8)));
     if (!(size & sizes)) {
       auto pw = IntRep->getType(M->getPointerWidth());
       auto bw = IntRep->getType((*i)->getRangeType().width);
@@ -151,31 +152,31 @@ void BPLModuleWriter::write() {
         attributes += "{:group_shared} ";
 
       OS << "var" << attributes << "{:elem_width " << (*i)->getRangeType().width
-         << "} " << "_READ_HAS_OCCURRED_$$"
-         << (*i)->getName() << " : bool;\n";
+         << "} "
+         << "_READ_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
       OS << "var" << attributes << "{:elem_width " << (*i)->getRangeType().width
-         << "} " << "_WRITE_HAS_OCCURRED_$$"
-         << (*i)->getName() << " : bool;\n";
+         << "} "
+         << "_WRITE_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
       OS << "var" << attributes << "{:elem_width " << (*i)->getRangeType().width
-         << "} " << "_ATOMIC_HAS_OCCURRED_$$"
-         << (*i)->getName() << " : bool;\n";
+         << "} "
+         << "_ATOMIC_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
 
       switch (RaceInst) {
       case RaceInstrumenter::Standard:
-        OS << "var" << attributes << "_READ_OFFSET_$$" << (*i)->getName() << " : "
-           << IntRep->getType(M->getPointerWidth()) << ";\n";
-        OS << "var" << attributes << "_WRITE_OFFSET_$$" << (*i)->getName() << " : "
-           << IntRep->getType(M->getPointerWidth()) << ";\n";
-        OS << "var" << attributes << "_ATOMIC_OFFSET_$$" << (*i)->getName() << " : "
-           << IntRep->getType(M->getPointerWidth()) << ";\n";
-      break;
+        OS << "var" << attributes << "_READ_OFFSET_$$" << (*i)->getName()
+           << " : " << IntRep->getType(M->getPointerWidth()) << ";\n";
+        OS << "var" << attributes << "_WRITE_OFFSET_$$" << (*i)->getName()
+           << " : " << IntRep->getType(M->getPointerWidth()) << ";\n";
+        OS << "var" << attributes << "_ATOMIC_OFFSET_$$" << (*i)->getName()
+           << " : " << IntRep->getType(M->getPointerWidth()) << ";\n";
+        break;
       case RaceInstrumenter::WatchdogMultiple:
-        OS << "const" << attributes << "_WATCHED_OFFSET_$$" << (*i)->getName() << " : "
-           << IntRep->getType(M->getPointerWidth()) << ";\n";
-      break;
+        OS << "const" << attributes << "_WATCHED_OFFSET_$$" << (*i)->getName()
+           << " : " << IntRep->getType(M->getPointerWidth()) << ";\n";
+        break;
       case RaceInstrumenter::WatchdogSingle:
-        // Nothing to output in this case: below we output the single watched offset
-      break;
+        // No output in this case: below we output the single watched offset
+        break;
       }
     }
 
@@ -186,20 +187,22 @@ void BPLModuleWriter::write() {
   }
 
   if (RaceInst == RaceInstrumenter::WatchdogSingle)
-    OS << "const _WATCHED_OFFSET : " << IntRep->getType(M->getPointerWidth()) << ";\n";
+    OS << "const _WATCHED_OFFSET : " << IntRep->getType(M->getPointerWidth())
+       << ";\n";
 
   if (UsesPointers)
     OS << "const unique $arrayId$$null$ : arrayId;\n\n";
 
   if (UsesFunctionPointers) {
     OS << "type functionPtr";
-    if(!RepresentPointersAsDatatype) {
+    if (!RepresentPointersAsDatatype) {
       // We reserve a function pointer value for "null", and a value for
       // "undefined"
       const unsigned NumberOfSpecialFunctionPointerValues = 2;
       unsigned BitsRequiredForFunctionPointers = (unsigned)std::ceil(
-          std::log((double)(M->function_size() + NumberOfSpecialFunctionPointerValues))
-        / std::log((double)2));
+          std::log((double)(M->function_size() +
+                            NumberOfSpecialFunctionPointerValues)) /
+          std::log((double)2));
       OS << " = bv" << BitsRequiredForFunctionPointers;
     }
     OS << ";\n";

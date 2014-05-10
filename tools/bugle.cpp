@@ -28,38 +28,41 @@
 
 using namespace llvm;
 
-static cl::opt<std::string>
-InputFilename(cl::Positional, cl::desc("<input bitcode file>"),
-    cl::init("-"), cl::value_desc("filename"));
+static cl::opt<std::string> InputFilename(
+    cl::Positional, cl::desc("<input bitcode file>"), cl::init("-"),
+    cl::value_desc("filename"));
 
-static cl::opt<std::string>
-OutputFilename("o", cl::desc("Override output filename"),
-    cl::init(""), cl::value_desc("filename"));
+static cl::opt<std::string> OutputFilename(
+    "o", cl::desc("Override output filename"), cl::init(""),
+    cl::value_desc("filename"));
 
-static cl::opt<std::string>
-SourceLocationFilename("s", cl::desc("File for saving source locations"),
-    cl::init(""),cl::value_desc("filename"));
+static cl::opt<std::string> SourceLocationFilename(
+    "s", cl::desc("File for saving source locations"), cl::init(""),
+    cl::value_desc("filename"));
 
-static cl::opt<std::string>
-GPUEntryPoints("k", cl::ZeroOrMore, cl::desc("GPU entry point function name"),
+static cl::opt<std::string> GPUEntryPoints(
+    "k", cl::ZeroOrMore, cl::desc("GPU entry point function name"),
     cl::value_desc("function"));
 
-static cl::opt<std::string>
-SourceLanguage("l", cl::desc("Module source language (c, cu, cl; default c)"),
+static cl::opt<std::string> SourceLanguage(
+    "l", cl::desc("Module source language (c, cu, cl; default c)"),
     cl::value_desc("language"));
 
-static cl::opt<std::string>
-IntegerRepresentation("i", cl::desc("Integer representation (bv, math; default bv)"),
+static cl::opt<std::string> IntegerRepresentation(
+    "i", cl::desc("Integer representation (bv, math; default bv)"),
     cl::value_desc("intrep"));
 
-static cl::opt<bool>
-Inlining("inline", cl::ValueDisallowed, cl::desc("Inline all function calls"));
+static cl::opt<bool> Inlining(
+    "inline", cl::ValueDisallowed, cl::desc("Inline all function calls"));
 
-static cl::opt<std::string>
-RaceInstrumentation("race-instrumentation", cl::desc("Race instrumentation method to use (standard, watchdog-single, watchdog-multiple; default standard)"));
+static cl::opt<std::string> RaceInstrumentation(
+    "race-instrumentation",
+    cl::desc("Race instrumentation method to use (standard, watchdog-single, "
+             "watchdog-multiple; default standard)"));
 
-static cl::opt<bool>
-DatatypePointerRepresentation("datatype", cl::ValueDisallowed, cl::desc("Use datatype representation for pointers"));
+static cl::opt<bool> DatatypePointerRepresentation(
+    "datatype", cl::ValueDisallowed,
+    cl::desc("Use datatype representation for pointers"));
 
 int main(int argc, char **argv) {
   sys::PrintStackTraceOnErrorSignal();
@@ -68,11 +71,10 @@ int main(int argc, char **argv) {
   // Enable debug stream buffering.
   EnableDebugBuffering = true;
 
-  llvm_shutdown_obj Y;  // Call llvm_shutdown() on exit.
+  llvm_shutdown_obj Y; // Call llvm_shutdown() on exit.
   LLVMContext &Context = getGlobalContext();
 
-  cl::ParseCommandLineOptions(argc, argv,
-    "LLVM to Boogie translator\n");
+  cl::ParseCommandLineOptions(argc, argv, "LLVM to Boogie translator\n");
 
   std::string DisplayFilename;
   if (InputFilename == "-")
@@ -121,8 +123,8 @@ int main(int argc, char **argv) {
   else if (IntegerRepresentation == "math")
     IntRep.reset(new bugle::MathIntegerRepresentation);
   else {
-    std::string msg = "Unsupported integer representation: "
-      + IntegerRepresentation;
+    std::string msg =
+        "Unsupported integer representation: " + IntegerRepresentation;
     bugle::ErrorReporter::reportParameterError(msg);
   }
 
@@ -134,8 +136,8 @@ int main(int argc, char **argv) {
   else if (RaceInstrumentation == "watchdog-multiple")
     RaceInst = bugle::RaceInstrumenter::WatchdogMultiple;
   else {
-    std::string msg = "Unsupported race instrumentation: "
-      + RaceInstrumentation;
+    std::string msg =
+        "Unsupported race instrumentation: " + RaceInstrumentation;
     bugle::ErrorReporter::reportParameterError(msg);
   }
 
@@ -179,8 +181,8 @@ int main(int argc, char **argv) {
   }
   std::unique_ptr<bugle::SourceLocWriter> SLW(new bugle::SourceLocWriter(L));
 
-  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get(), RaceInst,
-    SLW.get(), DatatypePointerRepresentation);
+  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get(), RaceInst, SLW.get(),
+                            DatatypePointerRepresentation);
   MW.write();
 
   F.os().flush();

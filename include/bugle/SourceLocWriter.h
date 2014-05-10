@@ -6,7 +6,6 @@
 namespace llvm {
 
 class tool_output_file;
-
 }
 
 namespace bugle {
@@ -19,7 +18,6 @@ public:
   SourceLocWriter(llvm::tool_output_file *L) : L(L), SourceLocCounter(0) {}
   unsigned writeSourceLocs(const SourceLocsRef &sourcelocs);
 };
-
 }
 
 #endif

@@ -19,7 +19,6 @@ class Constant;
 class GlobalVariable;
 class Module;
 class PointerType;
-
 }
 
 namespace bugle {
@@ -45,10 +44,10 @@ public:
     // These constants match NVPTXAddrSpaceMap in Targets.cpp
     // There does not appear to be a header file in which they
     // are symbolically defined
-    standard = 0, // the standard value assigned
-    global = 1, // opencl_global, cuda_device
+    standard = 0,     // the standard value assigned
+    global = 1,       // opencl_global, cuda_device
     group_shared = 3, // opencl_local, cuda_shared
-    constant = 4 // opencl_constant, cuda_constant
+    constant = 4      // opencl_constant, cuda_constant
   };
 
 private:
@@ -71,12 +70,11 @@ private:
   bool ModelAllAsByteArray, NextModelAllAsByteArray;
 
   std::map<llvm::Function *, std::vector<const std::vector<ref<Expr>> *>>
-    CallSites;
+  CallSites;
   bool NeedAdditionalGlobalOffsetModels;
-  std::map<llvm::Value *, std::set<llvm::Value *>>
-    ModelPtrAsGlobalOffset, NextModelPtrAsGlobalOffset;
-  std::set<llvm::Value *>
-    PtrMayBeNull, NextPtrMayBeNull;
+  std::map<llvm::Value *, std::set<llvm::Value *>> ModelPtrAsGlobalOffset,
+      NextModelPtrAsGlobalOffset;
+  std::set<llvm::Value *> PtrMayBeNull, NextPtrMayBeNull;
 
   ref<Expr> translateCUDABuiltinGlobal(std::string Prefix,
                                        llvm::GlobalVariable *GV);
@@ -98,8 +96,8 @@ private:
                          klee::gep_type_iterator end,
                          std::function<ref<Expr>(llvm::Value *)> xlate);
   ref<Expr> translateEV(ref<Expr> Vec, klee::ev_type_iterator begin,
-                         klee::ev_type_iterator end,
-                         std::function<ref<Expr>(llvm::Value *)> xlate);
+                        klee::ev_type_iterator end,
+                        std::function<ref<Expr>(llvm::Value *)> xlate);
   ref<Expr> translateBitCast(llvm::Type *SrcTy, llvm::Type *DestTy,
                              ref<Expr> Op);
   ref<Expr> translateArbitrary(Type t);
@@ -110,7 +108,7 @@ private:
   void computeValueModel(llvm::Value *Val, Var *Var,
                          llvm::ArrayRef<ref<Expr>> Assigns);
 
-  Stmt* modelCallStmt(llvm::Type *T, llvm::Function *F, ref<Expr> Val,
+  Stmt *modelCallStmt(llvm::Type *T, llvm::Function *F, ref<Expr> Val,
                       std::vector<ref<Expr>> &args);
   ref<Expr> modelCallExpr(llvm::Type *T, llvm::Function *F, ref<Expr> Val,
                           std::vector<ref<Expr>> &args);
@@ -120,13 +118,13 @@ private:
   }
 
 public:
-  TranslateModule(llvm::Module *M, SourceLanguage SL,
-                  std::set<std::string> &EP, RaceInstrumenter RaceInst) :
-    BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RaceInst),
-    NeedAdditionalByteArrayModels(false), ModelAllAsByteArray(false),
-    NextModelAllAsByteArray(false) {
-      DIF.processModule(*M);
-    }
+  TranslateModule(llvm::Module *M, SourceLanguage SL, std::set<std::string> &EP,
+                  RaceInstrumenter RaceInst)
+      : BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RaceInst),
+        NeedAdditionalByteArrayModels(false), ModelAllAsByteArray(false),
+        NextModelAllAsByteArray(false) {
+    DIF.processModule(*M);
+  }
   static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
                               SourceLanguage SL, std::set<std::string> &EPS);
   std::string getOriginalFunctionName(llvm::Function *F);
@@ -136,7 +134,6 @@ public:
 
   friend class TranslateFunction;
 };
-
 }
 
 #endif

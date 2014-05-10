@@ -11,7 +11,6 @@
 namespace llvm {
 
 class raw_ostream;
-
 }
 
 namespace bugle {
@@ -47,10 +46,9 @@ class BPLFunctionWriter : BPLExprWriter {
 public:
   BPLFunctionWriter(BPLModuleWriter *MW, llvm::raw_ostream &OS,
                     bugle::Function *F)
-    : BPLExprWriter(MW), OS(OS), F(F) {}
+      : BPLExprWriter(MW), OS(OS), F(F) {}
   void write();
 };
-
 }
 
 #endif
