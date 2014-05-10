@@ -989,3 +989,13 @@ ref<Expr> AtomicHasTakenValueExpr::create(ref<Expr> atomicArray,
 
   return new AtomicHasTakenValueExpr(atomicArray, offset, value);
 }
+
+ref<Expr> AsyncWorkGroupCopyExpr::create(ref<Expr> dst, ref<Expr> dstOffset,
+    ref<Expr> src, ref<Expr> srcOffset, ref<Expr> size, ref<Expr> handle) {
+  return new AsyncWorkGroupCopyExpr(dst, dstOffset, src, srcOffset,
+                                    size, handle);
+}
+
+ref<Expr> WaitGroupEventExpr::create(ref<Expr> handle) {
+  return new WaitGroupEventExpr(handle);
+}

@@ -20,6 +20,7 @@
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/raw_ostream.h"
+#include <sstream>
 
 using namespace bugle;
 using namespace llvm;
@@ -364,6 +365,24 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["get_num_groups"] = &TranslateFunction::handleGetNumGroups;
       fns["get_image_width"] = &TranslateFunction::handleGetImageWidth;
       fns["get_image_height"] = &TranslateFunction::handleGetImageHeight;
+      {
+        const std::string types[] = { "char", "uchar", "short", "ushort",
+          "int", "uint", "long", "ulong", "float", "" };
+        for(unsigned i = 0; types[i] != ""; ++i) {
+          for(unsigned width = 1; width <= 16; width *= 2) {
+            std::stringstream ss;
+            if(width > 1) {
+              ss << width;
+            }
+            fns["__async_work_group_copy___global_to___local_" + types[i] +
+                ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
+            fns["__async_work_group_copy___local_to___global_" + types[i] +
+                ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
+          }
+        }
+      }
+      fns["wait_group_events"] = &TranslateFunction::handleWaitGroupEvents;
+
     }
 
     if (SL == TranslateModule::SL_CUDA) {
@@ -1235,6 +1254,95 @@ ref<Expr> TranslateFunction::handleGetImageHeight(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const std::vector<ref<Expr>> &Args) {
   return GetImageHeightExpr::create(Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  ref<Expr> Src = Args[1],
+            Dst = Args[0],
+            SrcArr = ArrayIdExpr::create(Src, TM->defaultRange()),
+            DstArr = ArrayIdExpr::create(Dst, TM->defaultRange()),
+            SrcOfs = ArrayOffsetExpr::create(Src),
+            DstOfs = ArrayOffsetExpr::create(Dst);
+  Type SrcRangeTy = SrcArr->getType().range(),
+       DstRangeTy = DstArr->getType().range();
+
+  if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
+    ErrorReporter::reportImplementationLimitation(
+                        "async_work_group_copy with null pointer destination or"
+                        " destinations of mixed types not supported");
+  }
+
+  if (SrcRangeTy == Type(Type::Any) || SrcRangeTy == Type(Type::Unknown)) {
+    ErrorReporter::reportImplementationLimitation(
+                             "async_work_group_copy with null pointer source or"
+                             " sources of mixed types not supported");
+  }
+
+  assert(SrcRangeTy.width % 8 == 0);
+  assert(DstRangeTy.width % 8 == 0);
+  assert(SrcRangeTy == DstRangeTy);
+
+  Type DstArgRangeTy = TM->translateType(CI->getOperand(0)->getType()->getPointerElementType());
+  Type SrcArgRangeTy = TM->translateType(CI->getOperand(1)->getType()->getPointerElementType());
+  assert(DstArgRangeTy == SrcArgRangeTy);
+
+  ref<Expr> SrcDiv = Expr::createExactBVUDiv(SrcOfs, SrcRangeTy.width/8);
+  ref<Expr> DstDiv = Expr::createExactBVUDiv(DstOfs, DstRangeTy.width/8);
+  // Compensate for the modelled width being smaller than the width expected by
+  // the function. In case the modelled width is larger, we will model both the
+  // source and destinations as byte-arrays (this is handled by the if-statement
+  // at the bottom of this function).
+  ref<Expr> NumElements = Args[2];
+  if (SrcRangeTy.width < SrcArgRangeTy.width) {
+    ref<Expr> NumElementsFactor = BVConstExpr::create(NumElements->getType().width,
+                                                      SrcArgRangeTy.width/SrcRangeTy.width);
+    NumElements = BVMulExpr::create(NumElements, NumElementsFactor);
+  }
+  // Create a result expression; this will be incorrect if the condition of the
+  // if-statement below is true. However, in that case we need to do additional
+  // modelling, which means we eventually re-execute this function but with both
+  // the source and destination arrays modelled as byte-arrays.
+  ref<Expr> result = AsyncWorkGroupCopyExpr::create(DstArr, DstOfs, SrcArr, SrcOfs, NumElements, Args[3]);
+  if (DstRangeTy.width > DstArgRangeTy.width || DstDiv.isNull() ||
+      SrcRangeTy.width > SrcArgRangeTy.width || SrcDiv.isNull()) {
+    TM->NeedAdditionalByteArrayModels = true;
+    std::set<GlobalArray *> Globals;
+    if (SrcArr->computeArrayCandidates(Globals) &&
+        DstArr->computeArrayCandidates(Globals)) {
+      std::transform(Globals.begin(), Globals.end(),
+          std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
+          [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+    } else {
+      TM->NextModelAllAsByteArray = true;
+    }
+  }
+
+  return result;
+}
+
+ref<Expr> TranslateFunction::handleWaitGroupEvents(bugle::BasicBlock *BBB,
+                                          llvm::CallInst *CI,
+                                          const std::vector<ref<Expr>> &Args) {
+  if (auto BVCE = dyn_cast<BVConstExpr>(Args[0])) {
+    auto Ptr = dyn_cast<PointerExpr>(Args[1]);
+    assert(Ptr && "Expected pointer expression for handle array");
+    for(unsigned i = 0; i < BVCE->getValue().getZExtValue(); ++i) {
+      auto Off = BVAddExpr::create(Ptr->getOffset(), BVConstExpr::create(TM->BM->getPointerWidth(), i));
+      auto PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange());
+      Type ArrRangeTy = PtrArr->getType().range();
+      auto LE = LoadExpr::create(Ptr->getArray(), Off, ArrRangeTy,
+        true);
+      addEvalStmt(BBB, CI, LE);
+      BBB->addEvalStmt(WaitGroupEventExpr::create(LE));
+    }
+    return 0;
+  } else {
+    ErrorReporter::reportImplementationLimitation(
+      "\"wait_group_events\" with a variable-sized set of events not yet supported");
+    return 0;
+  }
 }
 
 ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,

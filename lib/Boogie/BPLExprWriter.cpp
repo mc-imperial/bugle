@@ -370,11 +370,15 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       ErrorReporter::reportImplementationLimitation(
            "\"Atomic has taken value\" expressions for pointers not supported");
     }
-  } else if (auto IMPLIESE = dyn_cast<ImpliesExpr>(E)) {
+  } else if (dyn_cast<AsyncWorkGroupCopyExpr>(E)) {
+    llvm_unreachable("Handled at statement level");
+  } else if (dyn_cast<WaitGroupEventExpr>(E)) {
+    llvm_unreachable("Handled at statement level");
+  } else if (auto IE = dyn_cast<ImpliesExpr>(E)) {
     OS << "(";
-    writeExpr(OS, IMPLIESE->getLHS().get());
+    writeExpr(OS, IE->getLHS().get());
     OS << " ==> ";
-    writeExpr(OS, IMPLIESE->getRHS().get());
+    writeExpr(OS, IE->getRHS().get());
     OS << ")";
   } else if (auto AHOE = dyn_cast<AccessHasOccurredExpr>(E)) {
     writeAccessHasOccurredVar(OS, AHOE->getArray().get(), AHOE->getAccessKind());

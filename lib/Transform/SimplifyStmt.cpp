@@ -9,14 +9,16 @@ namespace {
 
 bool hasSideEffects(Expr *e) {
   return isa<CallExpr>(e) || isa<CallMemberOfExpr>(e) ||
-    isa<ArraySnapshotExpr>(e) || isa<AddNoovflExpr>(e) || isa<AtomicExpr>(e);
+    isa<ArraySnapshotExpr>(e) || isa<AddNoovflExpr>(e) || isa<AtomicExpr>(e) ||
+    isa<WaitGroupEventExpr>(e);
 }
 
 bool isTemporal(Expr *e) {
   if (auto LE = dyn_cast<LoadExpr>(e)) {
     return LE->getIsTemporal();
   }
-  return isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e) || isa<AtomicExpr>(e);
+  return isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e) ||
+         isa<AtomicExpr>(e) || isa<AsyncWorkGroupCopyExpr>(e);
 }
 
 void ProcessBasicBlock(BasicBlock *BB) {
@@ -33,7 +35,8 @@ void ProcessBasicBlock(BasicBlock *BB) {
         continue;
       }
 
-      if ((E->refCount == 1 && !dyn_cast<LoadExpr>(E)) ||
+      if ((E->refCount == 1 && !dyn_cast<LoadExpr>(E) &&
+           !dyn_cast<AsyncWorkGroupCopyExpr>(E)) ||
           (!isTemporal(E) && E->refCount <= 2)) {
         auto ii = i;
         bool begin = false;

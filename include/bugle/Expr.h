@@ -49,6 +49,8 @@ public:
     UninterpretedFunction,
     ArrayMemberOf,
     AtomicHasTakenValue,
+    AsyncWorkGroupCopy,
+    WaitGroupEvent,
 
     // Unary
     Not,
@@ -673,6 +675,53 @@ public:
   ref<Expr> getArray() const { return atomicArray; }
   ref<Expr> getOffset() const { return offset; }
   ref<Expr> getValue() const { return value; }
+};
+
+class AsyncWorkGroupCopyExpr : public Expr {
+  AsyncWorkGroupCopyExpr(ref<Expr> dst, ref<Expr> dstOffset,
+                         ref<Expr> src, ref<Expr> srcOffset,
+                         ref<Expr> size, ref<Expr> handle) : 
+                        Expr(handle->getType()),
+                        dst(dst), dstOffset(dstOffset),
+                        src(src), srcOffset(srcOffset),
+                        size(size), handle(handle)
+  { }
+  ref<Expr> dst;
+  ref<Expr> dstOffset;
+  ref<Expr> src;
+  ref<Expr> srcOffset;
+  ref<Expr> size;
+  ref<Expr> handle;
+
+public:
+  static ref<Expr> create(ref<Expr> dst, ref<Expr> dstOffset,
+                          ref<Expr> src, ref<Expr> srcOffset,
+                          ref<Expr> size, ref<Expr> handle);
+
+  ref<Expr> getDst() const { return dst; }
+  ref<Expr> getDstOffset() const { return dstOffset; }
+  ref<Expr> getSrc() const { return src; }
+  ref<Expr> getSrcOffset() const { return srcOffset; }
+  ref<Expr> getSize() const { return size; }
+  ref<Expr> getHandle() const { return handle; }
+
+  EXPR_KIND(AsyncWorkGroupCopy)
+};
+
+class WaitGroupEventExpr : public Expr {
+  WaitGroupEventExpr(ref<Expr> handle) : 
+    Expr(handle->getType()),
+    handle(handle)
+  { }
+  ref<Expr> handle;
+
+public:
+  static ref<Expr> create(ref<Expr> handle);
+
+  ref<Expr> getHandle() const { return handle; }
+
+  EXPR_KIND(WaitGroupEvent)
+  
 };
 
 
