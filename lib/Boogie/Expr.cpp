@@ -990,10 +990,17 @@ ref<Expr> AtomicHasTakenValueExpr::create(ref<Expr> atomicArray,
 ref<Expr> AsyncWorkGroupCopyExpr::create(ref<Expr> dst, ref<Expr> dstOffset,
                                          ref<Expr> src, ref<Expr> srcOffset,
                                          ref<Expr> size, ref<Expr> handle) {
+  assert(dst->getType().array);
+  assert(dstOffset->getType().isKind(Type::BV));
+  assert(src->getType().array);
+  assert(srcOffset->getType().isKind(Type::BV));
+  assert(size->getType().isKind(Type::BV));
+  assert(handle->getType().isKind(Type::BV));
   return new AsyncWorkGroupCopyExpr(dst, dstOffset, src, srcOffset, size,
                                     handle);
 }
 
 ref<Expr> WaitGroupEventExpr::create(ref<Expr> handle) {
+  assert(handle->getType().isKind(Type::BV));
   return new WaitGroupEventExpr(handle);
 }
