@@ -11,17 +11,16 @@ namespace {
 
 class CheckInlineVisitor : public RecursiveASTVisitor<CheckInlineVisitor> {
 public:
-  CheckInlineVisitor(CompilerInstance &CI)
-    : Instance(CI) {}
+  CheckInlineVisitor(CompilerInstance &CI) : Instance(CI) {}
 
   bool VisitFunctionDecl(FunctionDecl *F) {
-    if (F->isInlineSpecified()
-        && F->hasBody()
-        && !F->hasAttr<AlwaysInlineAttr>()) {
+    if (F->isInlineSpecified() && F->hasBody() &&
+        !F->hasAttr<AlwaysInlineAttr>()) {
       FullSourceLoc FL = Instance.getASTContext().getFullLoc(F->getLocStart());
       DiagnosticsEngine &D = Instance.getDiagnostics();
-      unsigned DiagID = D.getCustomDiagID(DiagnosticsEngine::Error,
-          "inline occurs without always_inline attribute");
+      unsigned DiagID =
+          D.getCustomDiagID(DiagnosticsEngine::Error,
+                            "inline occurs without always_inline attribute");
 
       if (FL.isValid())
         D.Report(FL, DiagID);
@@ -38,8 +37,7 @@ private:
 
 class CheckInlineConsumer : public ASTConsumer {
 public:
-  explicit CheckInlineConsumer(CompilerInstance &CI)
-    : Visitor(CI) {}
+  explicit CheckInlineConsumer(CompilerInstance &CI) : Visitor(CI) {}
 
   virtual void HandleTranslationUnit(ASTContext &AT) {
     Visitor.TraverseDecl(AT.getTranslationUnitDecl());
@@ -62,8 +60,8 @@ protected:
       return false;
     } else if (args.size()) {
       DiagnosticsEngine &D = CI.getDiagnostics();
-      unsigned DiagID = D.getCustomDiagID(
-          DiagnosticsEngine::Error, "invalid argument '%0'");
+      unsigned DiagID =
+          D.getCustomDiagID(DiagnosticsEngine::Error, "invalid argument '%0'");
       D.Report(DiagID) << args[0];
       return false;
     }
@@ -74,9 +72,7 @@ protected:
   void PrintHelp(llvm::raw_ostream &ros) {
     ros << "Check that inline is combined with always_inline attribute\n";
   }
-
 };
-
 }
 
 static FrontendPluginRegistry::Add<CheckInlineAction>

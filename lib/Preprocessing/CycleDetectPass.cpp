@@ -9,11 +9,11 @@ using namespace bugle;
 
 bool CycleDetectPass::runOnModule(llvm::Module &M) {
   CallGraph &CG = getAnalysis<CallGraphWrapperPass>().getCallGraph();
-  scc_iterator<CallGraph*> i = scc_begin(&CG), e = scc_end(&CG);
+  scc_iterator<CallGraph *> i = scc_begin(&CG), e = scc_end(&CG);
   while (i != e) {
     if (i.hasLoop()) {
       ErrorReporter::reportFatalError(
-                                  "Cannot inline, detected cycle in callgraph");
+          "Cannot inline, detected cycle in callgraph");
     }
     ++i;
   }

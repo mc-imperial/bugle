@@ -6,18 +6,16 @@
 
 namespace bugle {
 
-template <typename T>
-class OwningPtrVector : public std::vector<T *> {
+template <typename T> class OwningPtrVector : public std::vector<T *> {
   OwningPtrVector(const OwningPtrVector &);            // DO NOT IMPLEMENT
   OwningPtrVector &operator=(const OwningPtrVector &); // DO NOT IMPLEMENT
 
 public:
   OwningPtrVector() {}
   ~OwningPtrVector() {
-    std::for_each(this->begin(), this->end(), [](T *p){ delete p; });
+    std::for_each(this->begin(), this->end(), [](T *p) { delete p; });
   }
 };
-
 }
 
 #endif

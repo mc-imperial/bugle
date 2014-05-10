@@ -16,9 +16,9 @@
 
 using namespace bugle;
 
-void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
-                           Expr *PtrArr, const SourceLocsRef &SLocs,
-                           std::function<void(GlobalArray *, unsigned int)> F) {
+void BPLFunctionWriter::maybeWriteCaseSplit(
+    llvm::raw_ostream &OS, Expr *PtrArr, const SourceLocsRef &SLocs,
+    std::function<void(GlobalArray *, unsigned int)> F) {
   if (isa<NullArrayRefExpr>(PtrArr) ||
       MW->M->global_begin() == MW->M->global_end()) {
     OS << "  assert {:bad_pointer_access} ";
@@ -30,17 +30,17 @@ void BPLFunctionWriter::maybeWriteCaseSplit(llvm::raw_ostream &OS,
       // If we could not compute any candidates, then we take all arrays
       // and the null pointer as candidates.
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray*)0);
+      Globals.insert((bugle::GlobalArray *)0);
     }
 
-    if (Globals.size() == 1 && *Globals.begin() != (bugle::GlobalArray*)0) {
+    if (Globals.size() == 1 && *Globals.begin() != (bugle::GlobalArray *)0) {
       F(*Globals.begin(), 2);
       OS << "\n";
     } else {
       MW->UsesPointers = true;
       OS << "  ";
       for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
-        if (*i == (bugle::GlobalArray*)0)
+        if (*i == (bugle::GlobalArray *)0)
           continue; // Null pointer; dealt with as last case
         OS << "if (";
         writeExpr(OS, PtrArr);
@@ -68,14 +68,13 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
 
 void BPLFunctionWriter::writeCallStmt(llvm::raw_ostream &OS, CallStmt *CS) {
   OS << "$" << CS->getCallee()->getName() << "(";
-  for (auto b = CS->getArgs().begin(), i = b, e = CS->getArgs().end();
-       i != e; ++i) {
+  for (auto b = CS->getArgs().begin(), i = b, e = CS->getArgs().end(); i != e;
+       ++i) {
     if (i != b)
       OS << ", ";
     writeExpr(OS, i->get());
   }
   OS << ")";
-
 }
 
 void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
@@ -88,8 +87,8 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       auto SrcArray = ASE->getSrc().get();
 
       assert(!(isa<NullArrayRefExpr>(DstArray) ||
-        isa<NullArrayRefExpr>(SrcArray) ||
-        MW->M->global_begin() == MW->M->global_end()));
+               isa<NullArrayRefExpr>(SrcArray) ||
+               MW->M->global_begin() == MW->M->global_end()));
 
       std::set<GlobalArray *> GlobalsDst;
       if (!DstArray->computeArrayCandidates(GlobalsDst)) {
@@ -102,11 +101,11 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       }
 
       if (GlobalsDst.size() == 1 && GlobalsSrc.size() == 1) {
-        OS << "  $$" << (*GlobalsDst.begin())->getName() << " := " <<
-          "$$" << (*GlobalsSrc.begin())->getName() << ";\n";
+        OS << "  $$" << (*GlobalsDst.begin())->getName() << " := "
+           << "$$" << (*GlobalsSrc.begin())->getName() << ";\n";
       } else {
         ErrorReporter::reportImplementationLimitation(
-                                   "Array snapshots on pointers not supported");
+            "Array snapshots on pointers not supported");
       }
       return;
     }
@@ -140,7 +139,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       OS << "false;\n  }\n";
     } else if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, LE->getArray().get(), ES->getSourceLocs(),
-          [&](GlobalArray *GA, unsigned int indent) {
+                          [&](GlobalArray *GA, unsigned int indent) {
         if (GA->isGlobalOrGroupShared()) {
           writeSourceLocsMarker(OS, ES->getSourceLocs(), indent);
         }
@@ -152,7 +151,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       });
     } else if (auto AE = dyn_cast<AtomicExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, AE->getArray().get(), ES->getSourceLocs(),
-          [&](GlobalArray *GA, unsigned int indent) {
+                          [&](GlobalArray *GA, unsigned int indent) {
         if (GA->isGlobalOrGroupShared()) {
           writeSourceLocsMarker(OS, ES->getSourceLocs(), indent);
         }
@@ -161,8 +160,8 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         OS << "call {:atomic} ";
         OS << "{:atomic_function \"" << AE->getFunction() << "\"}";
         for (unsigned int i = 0; i < AE->getArgs().size(); i++) {
-          OS << "{:arg" << (i+1) << " ";
-          writeExpr(OS,AE->getArgs()[i].get());
+          OS << "{:arg" << (i + 1) << " ";
+          writeExpr(OS, AE->getArgs()[i].get());
           OS << "}";
         }
         OS << "{:parts " << AE->getParts() << "}";
@@ -173,7 +172,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         writeExpr(OS, AE->getOffset().get());
         OS << ");";
       });
-    } else if(auto AWGCE = dyn_cast<AsyncWorkGroupCopyExpr>(ES->getExpr())) {
+    } else if (auto AWGCE = dyn_cast<AsyncWorkGroupCopyExpr>(ES->getExpr())) {
 
       auto DstArray = AWGCE->getDst().get();
       auto DstOffset = AWGCE->getDstOffset().get();
@@ -195,7 +194,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         auto src = *GlobalsSrc.begin();
 
         assert(dst->getRangeType() == src->getRangeType());
-        
+
         MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
           OS << "procedure {:async_work_group_copy} _ASYNC_WORK_GROUP_COPY_"
              << dst->getRangeType().width
@@ -211,8 +210,8 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         });
         writeSourceLocsMarker(OS, ES->getSourceLocs(), 2);
         OS << "  ";
-        OS << "call {:async_work_group_copy} v" << id << " := _ASYNC_WORK_GROUP_COPY_"
-           << dst->getRangeType().width
+        OS << "call {:async_work_group_copy} v" << id
+           << " := _ASYNC_WORK_GROUP_COPY_" << dst->getRangeType().width
            << "($$" << dst->getName() << ", ";
         writeExpr(OS, DstOffset);
         OS << ", "
@@ -225,9 +224,9 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         OS << ");\n";
       } else {
         ErrorReporter::reportImplementationLimitation(
-                            "Async work group copies on pointers not yet supported");
+            "Async work group copies on pointers not yet supported");
       }
-    } else if(auto WGEE = dyn_cast<WaitGroupEventExpr>(ES->getExpr())) {
+    } else if (auto WGEE = dyn_cast<WaitGroupEventExpr>(ES->getExpr())) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << "procedure {:wait_group_events} _WAIT_GROUP_EVENTS(handle : bv"
            << MW->M->getPointerWidth() << ")";
@@ -267,7 +266,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << "false;\n  }\n";
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     maybeWriteCaseSplit(OS, SS->getArray().get(), SS->getSourceLocs(),
-        [&](GlobalArray *GA, unsigned int indent) {
+                        [&](GlobalArray *GA, unsigned int indent) {
       if (GA->isGlobalOrGroupSharedOrConstant()) {
         writeSourceLocsMarker(OS, SS->getSourceLocs(), indent);
       }
@@ -326,8 +325,10 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       unsigned candidateNumber = MW->nextCandidateNumber();
       OS << "_c" << candidateNumber << " ==> ";
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "const {:existential true} _c" << candidateNumber << " : bool";
-      }, true);
+                           OS << "const {:existential true} _c"
+                              << candidateNumber << " : bool";
+                         },
+                         true);
     }
     writeExpr(OS, AtS->getPredicate().get());
     OS << ";\n";
@@ -414,7 +415,8 @@ void BPLFunctionWriter::write() {
       OS << ";\n";
     }
 
-    for (auto i = F->globalRequires_begin(), e = F->globalRequires_end(); i != e; ++i) {
+    for (auto i = F->globalRequires_begin(), e = F->globalRequires_end();
+         i != e; ++i) {
       OS << "requires {:do_not_predicate} ";
       writeSourceLocs(OS, (*i)->getSourceLocs());
       writeExpr(OS, (*i)->getExpr().get());
@@ -428,7 +430,8 @@ void BPLFunctionWriter::write() {
       OS << ";\n";
     }
 
-    for (auto i = F->globalEnsures_begin(), e = F->globalEnsures_end(); i != e; ++i) {
+    for (auto i = F->globalEnsures_begin(), e = F->globalEnsures_end(); i != e;
+         ++i) {
       OS << "ensures {:do_not_predicate} ";
       writeSourceLocs(OS, (*i)->getSourceLocs());
       writeExpr(OS, (*i)->getExpr().get());
@@ -449,7 +452,7 @@ void BPLFunctionWriter::write() {
     std::string Body;
     llvm::raw_string_ostream BodyOS(Body);
     std::for_each(F->begin(), F->end(),
-                  [&](BasicBlock *BB){ writeBasicBlock(BodyOS, BB); });
+                  [&](BasicBlock *BB) { writeBasicBlock(BodyOS, BB); });
 
     OS << "{\n";
 

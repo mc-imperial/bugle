@@ -17,7 +17,6 @@ class Instruction;
 class PHINode;
 class Type;
 class Value;
-
 }
 
 namespace bugle {
@@ -30,8 +29,7 @@ struct Type;
 class Var;
 
 class TranslateFunction {
-  typedef ref<Expr> SpecialFnHandler(BasicBlock *,
-                                     llvm::CallInst *,
+  typedef ref<Expr> SpecialFnHandler(BasicBlock *, llvm::CallInst *,
                                      const std::vector<klee::ref<Expr>> &);
   struct SpecialFnMapTy {
     llvm::StringMap<SpecialFnHandler TranslateFunction::*> Functions;
@@ -45,7 +43,7 @@ class TranslateFunction {
   llvm::Function *F;
   bool isGPUEntryPoint;
   std::map<llvm::BasicBlock *, BasicBlock *> BasicBlockMap;
-  std::map<llvm::Value *, ref<Expr> > ValueExprMap;
+  std::map<llvm::Value *, ref<Expr>> ValueExprMap;
   std::map<llvm::PHINode *, Var *> PhiVarMap;
   std::map<llvm::PHINode *, std::vector<PhiPair>> PhiAssignsMap;
   Var *ReturnVar;
@@ -59,46 +57,41 @@ class TranslateFunction {
   static SpecialFnMapTy SpecialFunctionMaps[TranslateModule::SL_Count];
 
   SpecialFnHandler handleNoop, handleAssertFail, handleAssume, handleAssert,
-                   handleGlobalAssert, handleCandidateAssert,
-                   handleCandidateGlobalAssert,
-                   handleInvariant, handleGlobalInvariant,
-                   handleCandidateInvariant, handleCandidateGlobalInvariant,
-                   handleNonTemporalLoadsBegin, handleNonTemporalLoadsEnd,
-                   handleRequires, handleEnsures, handleGlobalRequires,
-                   handleGlobalEnsures, handleReadsFrom, handleWritesTo,
-                   handleAll, handleExclusive, handleEnabled, handleOtherInt,
-                   handleOtherBool, handleOtherPtrBase, handleOld,
-                   handleReturnVal, handleImplies, handleReadHasOccurred,
-                   handleWriteHasOccurred, handleReadOffset, handleWriteOffset,
-                   handlePtrOffset, handlePtrBase, handleArraySnapshot,
-                   handleBarrierInvariant, handleBarrierInvariantBinary,
-                   handleAddNoovflUnsigned, handleAddNoovflSigned,
-                   handleAddNoovflPredicate, handleAdd, handleIte,
-                   handleUninterpretedFunction, handleAtomicHasTakenValue,
-                   handleMemset, handleMemcpy, handleTrap;
+      handleGlobalAssert, handleCandidateAssert, handleCandidateGlobalAssert,
+      handleInvariant, handleGlobalInvariant, handleCandidateInvariant,
+      handleCandidateGlobalInvariant, handleNonTemporalLoadsBegin,
+      handleNonTemporalLoadsEnd, handleRequires, handleEnsures,
+      handleGlobalRequires, handleGlobalEnsures, handleReadsFrom,
+      handleWritesTo, handleAll, handleExclusive, handleEnabled, handleOtherInt,
+      handleOtherBool, handleOtherPtrBase, handleOld, handleReturnVal,
+      handleImplies, handleReadHasOccurred, handleWriteHasOccurred,
+      handleReadOffset, handleWriteOffset, handlePtrOffset, handlePtrBase,
+      handleArraySnapshot, handleBarrierInvariant, handleBarrierInvariantBinary,
+      handleAddNoovflUnsigned, handleAddNoovflSigned, handleAddNoovflPredicate,
+      handleAdd, handleIte, handleUninterpretedFunction,
+      handleAtomicHasTakenValue, handleMemset, handleMemcpy, handleTrap;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
-                   handleGetNumGroups, handleGetImageWidth,
-                   handleGetImageHeight, handleAsyncWorkGroupCopy,
-                   handleWaitGroupEvents;
+      handleGetNumGroups, handleGetImageWidth, handleGetImageHeight,
+      handleAsyncWorkGroupCopy, handleWaitGroupEvents;
 
   SpecialFnHandler handleCos, handleExp, handleFabs, handleFloor,
-                   handleFrexpExp, handleFrexpFrac, handleFma, handleSqrt,
-                   handleLog, handlePow, handleSin, handleRsqrt;
+      handleFrexpExp, handleFrexpFrac, handleFma, handleSqrt, handleLog,
+      handlePow, handleSin, handleRsqrt;
 
   SpecialFnHandler handleAtomic;
 
-  static SpecialFnMapTy &initSpecialFunctionMap(
-                                            TranslateModule::SourceLanguage SL);
+  static SpecialFnMapTy &
+  initSpecialFunctionMap(TranslateModule::SourceLanguage SL);
 
-  ref<Expr> maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
-                           llvm::Type *Ty, llvm::Type *OpTy,
-                           ref<Expr> Op,
-                           std::function<ref<Expr>(llvm::Type *, ref<Expr>)> F);
-  ref<Expr> maybeTranslateSIMDInst(bugle::BasicBlock *BBB,
-                              llvm::Type *Ty, llvm::Type *OpTy,
-                              ref<Expr> LHS, ref<Expr> RHS,
-                              std::function<ref<Expr>(ref<Expr>, ref<Expr>)> F);
+  ref<Expr>
+  maybeTranslateSIMDInst(bugle::BasicBlock *BBB, llvm::Type *Ty,
+                         llvm::Type *OpTy, ref<Expr> Op,
+                         std::function<ref<Expr>(llvm::Type *, ref<Expr>)> F);
+  ref<Expr>
+  maybeTranslateSIMDInst(bugle::BasicBlock *BBB, llvm::Type *Ty,
+                         llvm::Type *OpTy, ref<Expr> LHS, ref<Expr> RHS,
+                         std::function<ref<Expr>(ref<Expr>, ref<Expr>)> F);
   ref<Expr> translateValue(llvm::Value *V, bugle::BasicBlock *BBB);
   void translateBasicBlock(BasicBlock *BBB, llvm::BasicBlock *BB);
   void translateInstruction(BasicBlock *BBB, llvm::Instruction *I);
@@ -110,15 +103,15 @@ class TranslateFunction {
                      llvm::BasicBlock *Succ);
   SourceLocsRef extractSourceLocs(llvm::Instruction *I);
   void addEvalStmt(BasicBlock *BBB, llvm::Instruction *I, ref<Expr> E);
-  void addAssertStmt(BasicBlock *BBB, const ref<Expr> &Arg,
-                     bool isGlobal, bool isCandidate, bool isInvariant);
+  void addAssertStmt(BasicBlock *BBB, const ref<Expr> &Arg, bool isGlobal,
+                     bool isCandidate, bool isInvariant);
 
 public:
-  TranslateFunction(TranslateModule *TM, bugle::Function *BF,
-                    llvm::Function *F, bool isGPUEntryPoint)
-    : TM(TM), BF(BF), F(F), isGPUEntryPoint(isGPUEntryPoint), ReturnVar(0),
-      LoadsAreTemporal(true), currentSourceLocs(new SourceLocs),
-      SpecialFunctionMap(initSpecialFunctionMap(TM->SL)) {}
+  TranslateFunction(TranslateModule *TM, bugle::Function *BF, llvm::Function *F,
+                    bool isGPUEntryPoint)
+      : TM(TM), BF(BF), F(F), isGPUEntryPoint(isGPUEntryPoint), ReturnVar(0),
+        LoadsAreTemporal(true), currentSourceLocs(new SourceLocs),
+        SpecialFunctionMap(initSpecialFunctionMap(TM->SL)) {}
 
   static bool isSpecialFunction(TranslateModule::SourceLanguage SL,
                                 const std::string &fnName);
@@ -137,7 +130,6 @@ public:
 
   void translate();
 };
-
 }
 
 #endif

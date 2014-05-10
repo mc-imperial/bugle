@@ -16,12 +16,13 @@ private:
 
   std::string getFunctionLocation(llvm::Function *F);
   void doRestrictCheck(llvm::Function &F);
+
 public:
   static char ID;
 
   RestrictDetectPass(TranslateModule::SourceLanguage SL,
-                     std::set<std::string> &EP) :
-    FunctionPass(ID), M(0), SL(SL), GPUEntryPoints(EP) {}
+                     std::set<std::string> &EP)
+      : FunctionPass(ID), M(0), SL(SL), GPUEntryPoints(EP) {}
 
   virtual const char *getPassName() const {
     return "Detect restrict usage on global pointers";
@@ -34,7 +35,6 @@ public:
   virtual bool doInitialization(llvm::Module &M);
   virtual bool runOnFunction(llvm::Function &F);
 };
-
 }
 
 #endif

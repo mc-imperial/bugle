@@ -10,9 +10,11 @@ std::string ErrorReporter::FileName;
 
 void ErrorReporter::printErrorMsg(const std::string &msg) {
   errs() << FileName << ": ";
-  if (errs().has_colors()) errs().changeColor(raw_ostream::Colors::RED);
+  if (errs().has_colors())
+    errs().changeColor(raw_ostream::Colors::RED);
   errs() << "error:";
-  if (errs().has_colors()) errs().resetColor();
+  if (errs().has_colors())
+    errs().resetColor();
   errs() << " " << msg << "\n";
 }
 
@@ -27,16 +29,20 @@ void ErrorReporter::setFileName(const std::string &FN) {
 
 void ErrorReporter::emitWarning(const std::string &msg) {
   errs() << FileName << ": ";
-  if (errs().has_colors()) errs().changeColor(raw_ostream::Colors::MAGENTA);
+  if (errs().has_colors())
+    errs().changeColor(raw_ostream::Colors::MAGENTA);
   errs() << "warning:";
-  if (errs().has_colors()) errs().resetColor();
+  if (errs().has_colors())
+    errs().resetColor();
   errs() << " " << msg << "\n";
 }
 
 void ErrorReporter::reportParameterError(const std::string &msg) {
-  if (errs().has_colors()) errs().changeColor(raw_ostream::Colors::RED);
+  if (errs().has_colors())
+    errs().changeColor(raw_ostream::Colors::RED);
   errs() << "error:";
-  if (errs().has_colors()) errs().resetColor();
+  if (errs().has_colors())
+    errs().resetColor();
   errs() << " " << msg << "\n";
   std::exit(1);
 }

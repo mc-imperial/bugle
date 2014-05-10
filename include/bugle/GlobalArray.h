@@ -15,16 +15,13 @@ class GlobalArray {
   std::set<std::string> attributes;
 
 public:
-
   GlobalArray(const std::string &name, const std::string &originalName,
               Type rangeType)
-    : name(name), originalName(originalName), rangeType(rangeType) {}
+      : name(name), originalName(originalName), rangeType(rangeType) {}
   const std::string &getName() const { return name; }
   const std::string &getOriginalName() const { return originalName; }
   Type getRangeType() const { return rangeType; }
-  void addAttribute(const std::string &attrib) {
-    attributes.insert(attrib);
-  }
+  void addAttribute(const std::string &attrib) { attributes.insert(attrib); }
 
   std::set<std::string>::const_iterator attrib_begin() const {
     return attributes.begin();
@@ -34,18 +31,16 @@ public:
   }
 
   bool isGlobal() const {
-    return std::find(attrib_begin(), attrib_end(), "global")
-      != attrib_end();
+    return std::find(attrib_begin(), attrib_end(), "global") != attrib_end();
   }
 
   bool isGroupShared() const {
-    return std::find(attrib_begin(), attrib_end(), "group_shared")
-      != attrib_end();
+    return std::find(attrib_begin(), attrib_end(), "group_shared") !=
+           attrib_end();
   }
 
   bool isConstant() const {
-    return std::find(attrib_begin(), attrib_end(), "constant")
-      != attrib_end();
+    return std::find(attrib_begin(), attrib_end(), "constant") != attrib_end();
   }
 
   bool isGlobalOrGroupShared() const {
@@ -55,9 +50,7 @@ public:
   bool isGlobalOrGroupSharedOrConstant() const {
     return isGlobal() || isGroupShared() || isConstant();
   }
-
 };
-
 }
 
 #endif

@@ -6,7 +6,6 @@
 namespace llvm {
 
 class raw_ostream;
-
 }
 
 namespace bugle {
@@ -16,10 +15,10 @@ class Expr;
 
 class BPLExprWriter {
   virtual void writeAccessHasOccurredVar(llvm::raw_ostream &OS,
-                                         bugle::Expr* array,
+                                         bugle::Expr *array,
                                          std::string accessKind);
 
-  virtual void writeAccessOffsetVar(llvm::raw_ostream &OS, bugle::Expr* array,
+  virtual void writeAccessOffsetVar(llvm::raw_ostream &OS, bugle::Expr *array,
                                     std::string accessKind);
 
 protected:
@@ -30,7 +29,6 @@ public:
   virtual ~BPLExprWriter();
   virtual void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0);
 };
-
 }
 
 #endif

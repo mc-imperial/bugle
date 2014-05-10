@@ -30,16 +30,15 @@ public:
   void setSourceLocs(const SourceLocsRef &sourcelocs) {
     Stmt::sourcelocs = sourcelocs;
   }
-  SourceLocsRef &getSourceLocs() {
-    return sourcelocs;
-  }
+  SourceLocsRef &getSourceLocs() { return sourcelocs; }
+
 private:
   SourceLocsRef sourcelocs;
 };
 
-#define STMT_KIND(kind) \
-  Kind getKind() const { return kind; } \
-  static bool classof(const Stmt *S) { return S->getKind() == kind; } \
+#define STMT_KIND(kind)                                                        \
+  Kind getKind() const { return kind; }                                        \
+  static bool classof(const Stmt *S) { return S->getKind() == kind; }          \
   static bool classof(const kind##Stmt *) { return true; }
 
 class EvalStmt : public Stmt {
@@ -50,9 +49,7 @@ public:
     assert(!expr->hasEvalStmt);
     expr->hasEvalStmt = true;
   }
-  ~EvalStmt() {
-    expr->hasEvalStmt = false;
-  }
+  ~EvalStmt() { expr->hasEvalStmt = false; }
 
   STMT_KIND(Eval)
   ref<Expr> getExpr() const { return expr; }
@@ -84,7 +81,7 @@ public:
   }
   VarAssignStmt(const std::vector<Var *> &vars,
                 const std::vector<ref<Expr>> &values)
-    : vars(vars), values(values) {
+      : vars(vars), values(values) {
     check();
   }
 
@@ -114,8 +111,8 @@ class AssumeStmt : public Stmt {
   bool partition;
 
 public:
-  AssumeStmt(ref<Expr> pred, bool partition = false) :
-    pred(pred), partition(partition) {}
+  AssumeStmt(ref<Expr> pred, bool partition = false)
+      : pred(pred), partition(partition) {}
 
   STMT_KIND(Assume)
   ref<Expr> getPredicate() const { return pred; }
@@ -129,8 +126,9 @@ class AssertStmt : public Stmt {
   bool invariant;
 
 public:
-  AssertStmt(ref<Expr> pred, bool global, bool candidate, bool invariant) :
-      pred(pred), global(global), candidate(candidate), invariant(invariant) {}
+  AssertStmt(ref<Expr> pred, bool global, bool candidate, bool invariant)
+      : pred(pred), global(global), candidate(candidate), invariant(invariant) {
+  }
 
   STMT_KIND(Assert)
   ref<Expr> getPredicate() const { return pred; }
@@ -144,8 +142,8 @@ class CallStmt : public Stmt {
   std::vector<ref<Expr>> args;
 
 public:
-  CallStmt(Function *callee, const std::vector<ref<Expr>> &args) :
-    callee(callee), args(args) {}
+  CallStmt(Function *callee, const std::vector<ref<Expr>> &args)
+      : callee(callee), args(args) {}
 
   STMT_KIND(Call)
   Function *getCallee() const { return callee; }
@@ -162,8 +160,7 @@ public:
   STMT_KIND(CallMemberOf)
   ref<Expr> getFunc() const { return func; }
   std::vector<Stmt *> getCallStmts() const { return callStmts; }
-  };
-
+};
 }
 
 #endif

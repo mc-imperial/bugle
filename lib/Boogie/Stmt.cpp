@@ -14,17 +14,19 @@ void VarAssignStmt::check() {
 #endif
 }
 
-StoreStmt::StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value) :
-    array(array), offset(offset), value(value) {
+StoreStmt::StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value)
+    : array(array), offset(offset), value(value) {
   assert(array->getType().array);
   assert(offset->getType().isKind(Type::BV));
-  assert(array->getType().kind == Type::Any || value->getType().isKind(array->getType().kind));
-  assert(array->getType().kind == Type::Any || value->getType().width == array->getType().width);
+  assert(array->getType().kind == Type::Any ||
+         value->getType().isKind(array->getType().kind));
+  assert(array->getType().kind == Type::Any ||
+         value->getType().width == array->getType().width);
 }
 
 CallMemberOfStmt::CallMemberOfStmt(ref<Expr> func,
-                                   std::vector<Stmt *> &callStmts) :
-    func(func), callStmts(callStmts) {
+                                   std::vector<Stmt *> &callStmts)
+    : func(func), callStmts(callStmts) {
 #ifndef NDEBUG
   for (auto i = callStmts.begin(), e = callStmts.end(); i != e; ++i)
     assert(isa<CallStmt>(*i));

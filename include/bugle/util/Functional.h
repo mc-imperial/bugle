@@ -10,7 +10,6 @@ T fold(T init, I begin, I end, F func) {
     value = func(value, *i);
   return value;
 }
-
 }
 
 #endif

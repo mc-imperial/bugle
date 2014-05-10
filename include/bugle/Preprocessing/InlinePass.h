@@ -22,12 +22,10 @@ private:
 public:
   static char ID;
 
-  InlinePass(TranslateModule::SourceLanguage SL, std::set<std::string> &EP) :
-    ModulePass(ID), M(0), SL(SL), GPUEntryPoints(EP) {}
+  InlinePass(TranslateModule::SourceLanguage SL, std::set<std::string> &EP)
+      : ModulePass(ID), M(0), SL(SL), GPUEntryPoints(EP) {}
 
-  virtual const char *getPassName() const {
-    return "Function inlining";
-  }
+  virtual const char *getPassName() const { return "Function inlining"; }
 
   virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
     AU.addRequired<llvm::CallGraphWrapperPass>();
@@ -35,7 +33,6 @@ public:
 
   virtual bool runOnModule(llvm::Module &M);
 };
-
 }
 
 #endif

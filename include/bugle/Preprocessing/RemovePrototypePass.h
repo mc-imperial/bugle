@@ -19,7 +19,6 @@ public:
 
   virtual bool runOnModule(llvm::Module &M);
 };
-
 }
 
 #endif

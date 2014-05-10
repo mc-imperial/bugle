@@ -10,7 +10,6 @@
 namespace llvm {
 
 class raw_ostream;
-
 }
 
 namespace bugle {
@@ -43,17 +42,16 @@ public:
                   bugle::IntegerRepresentation *IntRep,
                   bugle::RaceInstrumenter RaceInst, bugle::SourceLocWriter *SLW,
                   bool RepresentPointersAsDatatype)
-    : BPLExprWriter(this), OS(OS), M(M), IntRep(IntRep), RaceInst(RaceInst),
-      SLW(SLW), UsesPointers(false), UsesFunctionPointers(false),
-      RepresentPointersAsDatatype(RepresentPointersAsDatatype),
-      candidateNumber(0) {}
+      : BPLExprWriter(this), OS(OS), M(M), IntRep(IntRep), RaceInst(RaceInst),
+        SLW(SLW), UsesPointers(false), UsesFunctionPointers(false),
+        RepresentPointersAsDatatype(RepresentPointersAsDatatype),
+        candidateNumber(0) {}
 
   void write();
 
   friend class BPLExprWriter;
   friend class BPLFunctionWriter;
 };
-
 }
 
 #endif

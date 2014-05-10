@@ -15,8 +15,7 @@
 using namespace bugle;
 
 static llvm::cl::opt<bool>
-DumpRefCounts("dump-ref-counts", llvm::cl::Hidden,
-              llvm::cl::init(false),
+DumpRefCounts("dump-ref-counts", llvm::cl::Hidden, llvm::cl::init(false),
               llvm::cl::desc("Dump expression reference counts"));
 
 namespace {
@@ -25,7 +24,7 @@ struct ScopedParenPrinter {
   llvm::raw_ostream &OS;
   bool ParenRequired;
   ScopedParenPrinter(llvm::raw_ostream &OS, unsigned Depth, unsigned RuleDepth)
-    : OS(OS), ParenRequired(RuleDepth < Depth) {
+      : OS(OS), ParenRequired(RuleDepth < Depth) {
     if (ParenRequired)
       OS << "(";
   }
@@ -34,13 +33,11 @@ struct ScopedParenPrinter {
       OS << ")";
   }
 };
-
 }
 
 BPLExprWriter::~BPLExprWriter() {}
 
-void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
-                              unsigned Depth) {
+void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
   if (DumpRefCounts)
     OS << "/*rc=" << E->refCount << "*/";
 
@@ -53,13 +50,13 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     ScopedParenPrinter X(OS, Depth, 8);
     std::string s; llvm::raw_string_ostream ss(s);
     writeExpr(ss, EE->getSubExpr().get(), 9);
-    OS << MW->IntRep->getExtractExpr(ss.str(),
-                                     EE->getOffset() + EE->getType().width,
-                                     EE->getOffset());
+    OS << MW->IntRep->getExtractExpr(
+        ss.str(), EE->getOffset() + EE->getType().width, EE->getOffset());
     if (MW->IntRep->abstractsExtract()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << MW->IntRep->getExtract();
-      }, false);
+                           OS << MW->IntRep->getExtract();
+                         },
+                         false);
     }
   } else if (auto ZEE = dyn_cast<BVZExtExpr>(E)) {
     OS << "BV" << ZEE->getSubExpr()->getType().width
@@ -67,10 +64,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, ZEE->getSubExpr().get());
     OS << ")";
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      unsigned FromWidth = ZEE->getSubExpr()->getType().width,
-               ToWidth = ZEE->getType().width;
-      OS << MW->IntRep->getZeroExtend(FromWidth, ToWidth);
-    }, false);
+                         unsigned FromWidth =
+                                      ZEE->getSubExpr()->getType().width,
+                                  ToWidth = ZEE->getType().width;
+                         OS << MW->IntRep->getZeroExtend(FromWidth, ToWidth);
+                       },
+                       false);
   } else if (auto SEE = dyn_cast<BVSExtExpr>(E)) {
     OS << "BV" << SEE->getSubExpr()->getType().width
        << "_SEXT" << SEE->getType().width << "(";
@@ -116,8 +115,9 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     OS << MW->IntRep->getConcatExpr(lhsSS.str(), rhsSS.str());
     if (MW->IntRep->abstractsConcat()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << MW->IntRep->getConcat();
-      }, false);
+                           OS << MW->IntRep->getConcat();
+                         },
+                         false);
     }
   } else if (auto EE = dyn_cast<EqExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
@@ -152,8 +152,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   } else if (auto B2BVE = dyn_cast<BoolToBVExpr>(E)) {
     OS << "(if ";
     writeExpr(OS, B2BVE->getSubExpr().get());
-    OS  << " then " << MW->IntRep->getLiteral(1, 1) << " else " <<
-      MW->IntRep->getLiteral(0, 1) << ")";
+    OS << " then " << MW->IntRep->getLiteral(1, 1) << " else "
+       << MW->IntRep->getLiteral(0, 1) << ")";
   } else if (auto BV2BE = dyn_cast<BVToBoolExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
     writeExpr(OS, BV2BE->getSubExpr().get(), 4);
@@ -172,8 +172,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, NotE->getSubExpr().get(), 8);
   } else if (auto CE = dyn_cast<CallExpr>(E)) {
     OS << "$" << CE->getCallee()->getName() << "(";
-    for (auto b = CE->getArgs().begin(), i = b, e = CE->getArgs().end();
-         i != e; ++i) {
+    for (auto b = CE->getArgs().begin(), i = b, e = CE->getArgs().end(); i != e;
+         ++i) {
       if (i != b)
         OS << ", ";
       writeExpr(OS, i->get());
@@ -184,80 +184,97 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
   } else if (auto ANOVE = dyn_cast<AddNoovflExpr>(E)) {
     unsigned width = ANOVE->getFirst()->getType().width;
     OS << "$__add_noovfl_" << (ANOVE->getIsSigned() ? "signed" : "unsigned")
-      << "_" << width << "(";
+       << "_" << width << "(";
     writeExpr(OS, ANOVE->getFirst().get());
     OS << ", ";
     writeExpr(OS, ANOVE->getSecond().get());
     OS << ")";
 
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << MW->IntRep->getArithmeticBinary("ADD", bugle::Expr::Kind::BVAdd, width);
-    }, false);
+                         OS << MW->IntRep->getArithmeticBinary(
+                             "ADD", bugle::Expr::Kind::BVAdd, width);
+                       },
+                       false);
 
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << MW->IntRep->getArithmeticBinary("ADD", bugle::Expr::Kind::BVAdd, width + 1);
-    }, false);
+                         OS << MW->IntRep->getArithmeticBinary(
+                             "ADD", bugle::Expr::Kind::BVAdd, width + 1);
+                       },
+                       false);
 
     if (MW->IntRep->abstractsConcat()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << MW->IntRep->getConcat();
-      }, false);
+                           OS << MW->IntRep->getConcat();
+                         },
+                         false);
     }
 
     if (MW->IntRep->abstractsExtract()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << MW->IntRep->getExtract();
-      }, false);
+                           OS << MW->IntRep->getExtract();
+                         },
+                         false);
     }
 
     if (ANOVE->getIsSigned()) {
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "procedure {:inline 1} $__add_noovfl_signed_"
-           << width << "(x : " << MW->IntRep->getType(width) << ", y : "
-           << MW->IntRep->getType(width)
-           << ") returns (z : " << MW->IntRep->getType(width) << ") {\n"
-           << "  assume ";
+      MW->writeIntrinsic(
+          [&](llvm::raw_ostream &OS) {
+            OS << "procedure {:inline 1} $__add_noovfl_signed_" << width
+               << "(x : " << MW->IntRep->getType(width)
+               << ", y : " << MW->IntRep->getType(width)
+               << ") returns (z : " << MW->IntRep->getType(width) << ") {\n"
+               << "  assume ";
 
-        {
-          std::stringstream ss;
-          ss << "BV" << (width + 1) << "_ADD("
-             << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "x") << ", "
-             << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "y") << ")";
+            {
+              std::stringstream ss;
+              ss << "BV" << (width + 1) << "_ADD("
+                 << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "x")
+                 << ", "
+                 << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "y")
+                 << ")";
 
-          OS << MW->IntRep->getExtractExpr(ss.str(), width + 1, width);
-        }
+              OS << MW->IntRep->getExtractExpr(ss.str(), width + 1, width);
+            }
 
-        OS << " == " << MW->IntRep->getLiteral(0, 1) << ";\n"
-           << "  assume " << MW->IntRep->getExtractExpr("x", width, width - 1) << " == "
-           << MW->IntRep->getExtractExpr("y", width, width - 1) << " ==> ";
+            OS << " == " << MW->IntRep->getLiteral(0, 1) << ";\n"
+               << "  assume "
+               << MW->IntRep->getExtractExpr("x", width, width - 1)
+               << " == " << MW->IntRep->getExtractExpr("y", width, width - 1)
+               << " ==> ";
 
-        {
-          std::stringstream ss;
-          ss << "BV" << width << "_ADD(x, y)";
-          OS << MW->IntRep->getExtractExpr(ss.str(), width, width - 1);
-        }
+            {
+              std::stringstream ss;
+              ss << "BV" << width << "_ADD(x, y)";
+              OS << MW->IntRep->getExtractExpr(ss.str(), width, width - 1);
+            }
 
-        OS << " == " << MW->IntRep->getExtractExpr("x", width, width - 1) << ";\n"
-           << "  z := BV" << width << "_ADD(x, y);\n"
-           << "}";
-      }, false);
+            OS << " == " << MW->IntRep->getExtractExpr("x", width, width - 1)
+               << ";\n"
+               << "  z := BV" << width << "_ADD(x, y);\n"
+               << "}";
+          },
+          false);
     } else {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        std::stringstream ss;
-        ss << "BV" << (width + 1) << "_ADD("
-           << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "x")
-           << ", " << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "y") << ")";
-        OS << "procedure {:inline 1} $__add_noovfl_unsigned_"
-           << width << "(x : " << MW->IntRep->getType(width)
-           << ", y : " << MW->IntRep->getType(width)
-           << ") returns (z : " << MW->IntRep->getType(width) << ") {\n"
-           << "  assume "
-           << MW->IntRep->getExtractExpr(
-            ss.str(),
-            width + 1, width) + " == " << MW->IntRep->getLiteral(0, 1) << ";\n"
-           << "  z := BV" << width << "_ADD(x, y);\n"
-           << "}";
-      }, false);
+                           std::stringstream ss;
+                           ss << "BV" << (width + 1) << "_ADD("
+                              << MW->IntRep->getConcatExpr(
+                                     MW->IntRep->getLiteral(0, 1), "x") << ", "
+                              << MW->IntRep->getConcatExpr(
+                                     MW->IntRep->getLiteral(0, 1), "y") << ")";
+                           OS << "procedure {:inline 1} $__add_noovfl_unsigned_"
+                              << width << "(x : " << MW->IntRep->getType(width)
+                              << ", y : " << MW->IntRep->getType(width)
+                              << ") returns (z : " << MW->IntRep->getType(width)
+                              << ") {\n"
+                              << "  assume "
+                              << MW->IntRep->getExtractExpr(ss.str(), width + 1,
+                                                            width)
+                              << " == " << MW->IntRep->getLiteral(0, 1) << ";\n"
+                              << "  z := BV" << width << "_ADD(x, y);\n"
+                              << "}";
+                         },
+                         false);
     }
   } else if (auto ANOVPE = dyn_cast<AddNoovflPredicateExpr>(E)) {
     auto exprs = ANOVPE->getExprs();
@@ -274,48 +291,56 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     std::stringstream ss;
     ss << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, b), "v0");
     std::string lhs = ss.str();
-    for (unsigned i=1; i<n; ++i) {
+    for (unsigned i = 1; i < n; ++i) {
       std::stringstream ss;
       std::stringstream vi;
       vi << "v" << i;
-      ss << "BV" << (width+b) << "_ADD("
-         << lhs
-         << ", " << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, b),
-            vi.str()) << ")";
+      ss << "BV" << (width + b) << "_ADD(" << lhs << ", "
+         << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, b), vi.str())
+         << ")";
       lhs = ss.str();
     }
 
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << MW->IntRep->getArithmeticBinary("ADD", bugle::Expr::Kind::BVAdd, width + b);
-    }, false);
+                         OS << MW->IntRep->getArithmeticBinary(
+                             "ADD", bugle::Expr::Kind::BVAdd, width + b);
+                       },
+                       false);
 
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << "function {:inline true} __add_noovfl_" << n << "(";
-      for (unsigned i=0; i<n; ++i) {
-        OS << (i > 0 ? ", " : "") << "v" << i << ":" << MW->IntRep->getType(width);
-      }
-      OS << ") : " << MW->IntRep->getType(1) << " {";
-      if (n == 1) {
-        OS << MW->IntRep->getLiteral(1, 1);
-      } else {
-        OS << "if " << MW->IntRep->getExtractExpr(lhs, width+b, width)
-           << " == " << MW->IntRep->getLiteral(0, b)
-           << " then " << MW->IntRep->getLiteral(1, 1)
-           << " else " << MW->IntRep->getLiteral(0, 1);
-      }
-      OS << "}";
-    }, false);
+                         OS << "function {:inline true} __add_noovfl_" << n
+                            << "(";
+                         for (unsigned i = 0; i < n; ++i) {
+                           OS << (i > 0 ? ", " : "") << "v" << i << ":"
+                              << MW->IntRep->getType(width);
+                         }
+                         OS << ") : " << MW->IntRep->getType(1) << " {";
+                         if (n == 1) {
+                           OS << MW->IntRep->getLiteral(1, 1);
+                         } else {
+                           OS << "if "
+                              << MW->IntRep->getExtractExpr(lhs, width + b,
+                                                            width)
+                              << " == " << MW->IntRep->getLiteral(0, b)
+                              << " then " << MW->IntRep->getLiteral(1, 1)
+                              << " else " << MW->IntRep->getLiteral(0, 1);
+                         }
+                         OS << "}";
+                       },
+                       false);
 
     if (MW->IntRep->abstractsConcat()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << MW->IntRep->getConcat();
-      }, false);
+                           OS << MW->IntRep->getConcat();
+                         },
+                         false);
     }
 
     if (MW->IntRep->abstractsExtract()) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << MW->IntRep->getExtract();
-      }, false);
+                           OS << MW->IntRep->getExtract();
+                         },
+                         false);
     }
   } else if (auto UFE = dyn_cast<UninterpretedFunctionExpr>(E)) {
     OS << UFE->getName() << "(";
@@ -346,20 +371,17 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     std::set<GlobalArray *> Globals;
     if (!Array->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray*)0);
+      Globals.insert((bugle::GlobalArray *)0);
     }
 
-    if (Globals.size() == 1 &&
-        *Globals.begin() != (bugle::GlobalArray*)0) {
-      OS << "_USED_$$" << (*Globals.begin())->getName()
-         << "[";
+    if (Globals.size() == 1 && *Globals.begin() != (bugle::GlobalArray *)0) {
+      OS << "_USED_$$" << (*Globals.begin())->getName() << "[";
       writeExpr(OS, AHTVE->getOffset().get());
       OS << "][";
       writeExpr(OS, AHTVE->getValue().get());
       OS << "]";
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "var {:atomic_usedmap} _USED_$$"
-           << (*Globals.begin())->getName()
+        OS << "var {:atomic_usedmap} _USED_$$" << (*Globals.begin())->getName()
            << " : [";
         MW->writeType(OS, AHTVE->getOffset()->getType());
         OS << "][";
@@ -368,7 +390,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       });
     } else {
       ErrorReporter::reportImplementationLimitation(
-           "\"Atomic has taken value\" expressions for pointers not supported");
+          "\"Atomic has taken value\" expressions for pointers not supported");
     }
   } else if (dyn_cast<AsyncWorkGroupCopyExpr>(E)) {
     llvm_unreachable("Handled at statement level");
@@ -381,7 +403,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     writeExpr(OS, IE->getRHS().get());
     OS << ")";
   } else if (auto AHOE = dyn_cast<AccessHasOccurredExpr>(E)) {
-    writeAccessHasOccurredVar(OS, AHOE->getArray().get(), AHOE->getAccessKind());
+    writeAccessHasOccurredVar(OS, AHOE->getArray().get(),
+                              AHOE->getAccessKind());
   } else if (auto AOE = dyn_cast<AccessOffsetExpr>(E)) {
     writeAccessOffsetVar(OS, AOE->getArray().get(), AOE->getAccessKind());
   } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
@@ -454,7 +477,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
                                     << "_TO_FP" << ToWidth;     break;
       case Expr::GetImageWidth:  IntS << "GET_IMAGE_WIDTH";     break;
       case Expr::GetImageHeight: IntS << "GET_IMAGE_HEIGHT";    break;
-      default: llvm_unreachable("Unsupported unary expr opcode");
+      default:
+        llvm_unreachable("Unsupported unary expr opcode");
       }
       OS << IntS.str();
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -505,13 +529,15 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::BVAnd:  IntName = "AND";  break;
       case Expr::BVOr:   IntName = "OR";   break;
       case Expr::BVXor:  IntName = "XOR";  break;
-      default: llvm_unreachable("huh?");
+      default:
+        llvm_unreachable("huh?");
       }
       OS << "BV" << BinE->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << MW->IntRep->getArithmeticBinary(IntName, BinE->getKind(),
-                                              BinE->getType().width);
-      }, false);
+                           OS << MW->IntRep->getArithmeticBinary(
+                               IntName, BinE->getKind(), BinE->getType().width);
+                         },
+                         false);
       break;
     }
     case Expr::BVUgt:
@@ -532,13 +558,16 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::BVSge: IntName = "SGE"; break;
       case Expr::BVSlt: IntName = "SLT"; break;
       case Expr::BVSle: IntName = "SLE"; break;
-      default: llvm_unreachable("huh?");
+      default:
+        llvm_unreachable("huh?");
       }
       OS << "BV" << BinE->getLHS()->getType().width << "_" << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << MW->IntRep->getBooleanBinary(IntName, BinE->getKind(),
-                                           BinE->getLHS()->getType().width);
-      }, false);
+                           OS << MW->IntRep->getBooleanBinary(
+                               IntName, BinE->getKind(),
+                               BinE->getLHS()->getType().width);
+                         },
+                         false);
       break;
     }
     case Expr::FAdd:
@@ -553,7 +582,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::FMul: IntName = "FMUL"; break;
       case Expr::FDiv: IntName = "FDIV"; break;
       case Expr::FPow: IntName = "FPOW"; break;
-      default: llvm_unreachable("huh?");
+      default:
+        llvm_unreachable("huh?");
       }
       OS << IntName << BinE->getType().width;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -574,7 +604,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       case Expr::FEq:  IntName = "FEQ";  break;
       case Expr::FLt:  IntName = "FLT";  break;
       case Expr::FUno: IntName = "FUNO"; break;
-      default: llvm_unreachable("huh?");
+      default:
+        llvm_unreachable("huh?");
       }
       OS << IntName << BinE->getLHS()->getType().width;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -592,7 +623,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
       switch (BinE->getKind()) {
       case Expr::PtrLt:     IntName = "PTR_LT"; break;
       case Expr::FuncPtrLt: IntName = "FUNCPTR_LT"; break;
-      default:  llvm_unreachable("huh?");
+      default:
+        llvm_unreachable("huh?");
       }
       OS << IntName;
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -619,17 +651,16 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     std::set<GlobalArray *> Globals;
     if (!PtrArr->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray*)0);
+      Globals.insert((bugle::GlobalArray *)0);
     }
 
-    if (Globals.size() == 1 &&
-        *Globals.begin() != (bugle::GlobalArray*)0) {
+    if (Globals.size() == 1 && *Globals.begin() != (bugle::GlobalArray *)0) {
       OS << "$$" << (*Globals.begin())->getName() << "[";
       writeExpr(OS, LE->getOffset().get());
       OS << "]";
     } else {
       ErrorReporter::reportImplementationLimitation(
-                                "Load expressions from pointers not supported");
+          "Load expressions from pointers not supported");
     }
   } else if (dyn_cast<AtomicExpr>(E)) {
     llvm_unreachable("Handled at statement level");
@@ -643,15 +674,14 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
     std::set<GlobalArray *> Globals;
     if (!Array->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray*)0);
+      Globals.insert((bugle::GlobalArray *)0);
     }
 
-    if (Globals.size() == 1 &&
-        *Globals.begin() != (bugle::GlobalArray*)0) {
+    if (Globals.size() == 1 && *Globals.begin() != (bugle::GlobalArray *)0) {
       OS << "$$" << (*Globals.begin())->getName();
     } else {
       ErrorReporter::reportImplementationLimitation(
-                     "Underlying array expressions for pointers not supported");
+          "Underlying array expressions for pointers not supported");
     }
   } else if (auto MOE = dyn_cast<ArrayMemberOfExpr>(E)) {
     writeExpr(OS, MOE->getSubExpr().get(), Depth);
@@ -661,8 +691,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
 }
 
 void BPLExprWriter::writeAccessHasOccurredVar(llvm::raw_ostream &OS,
-                                          bugle::Expr* PtrArr,
-                                          std::string accessKind) {
+                                              bugle::Expr *PtrArr,
+                                              std::string accessKind) {
 
   std::string prefix = "_" + accessKind + "_HAS_OCCURRED_$$";
 
@@ -672,19 +702,17 @@ void BPLExprWriter::writeAccessHasOccurredVar(llvm::raw_ostream &OS,
     std::set<GlobalArray *> Globals;
     if (!PtrArr->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray*)0);
+      Globals.insert((bugle::GlobalArray *)0);
     }
 
-    if (Globals.size() == 1 &&
-        (*Globals.begin() != (bugle::GlobalArray*)0) &&
+    if (Globals.size() == 1 && (*Globals.begin() != (bugle::GlobalArray *)0) &&
         (*Globals.begin())->isGlobalOrGroupShared()) {
       OS << prefix << (*Globals.begin())->getName();
     } else {
       MW->UsesPointers = true;
       OS << "(";
-      for (auto i = Globals.begin(), e = Globals.end();
-           i != e; ++i) {
-        if (*i == (bugle::GlobalArray*)0)
+      for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
+        if (*i == (bugle::GlobalArray *)0)
           continue; // Null pointer; dealt with as last case
         if (!(*i)->isGlobalOrGroupShared())
           continue; // Accesses of local arrays are not tracked
@@ -699,8 +727,8 @@ void BPLExprWriter::writeAccessHasOccurredVar(llvm::raw_ostream &OS,
 }
 
 void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
-                                          bugle::Expr* PtrArr,
-                                          std::string accessKind) {
+                                         bugle::Expr *PtrArr,
+                                         std::string accessKind) {
 
   if (MW->RaceInst == bugle::RaceInstrumenter::WatchdogSingle) {
     OS << "_WATCHED_OFFSET";
@@ -708,7 +736,7 @@ void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
   }
 
   std::string prefix;
-  if(MW->RaceInst == bugle::RaceInstrumenter::Standard) {
+  if (MW->RaceInst == bugle::RaceInstrumenter::Standard) {
     prefix = "_" + accessKind + "_OFFSET_$$";
   } else {
     assert(MW->RaceInst == bugle::RaceInstrumenter::WatchdogMultiple);
@@ -721,19 +749,17 @@ void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
     std::set<GlobalArray *> Globals;
     if (!PtrArr->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray*)0);
+      Globals.insert((bugle::GlobalArray *)0);
     }
 
-    if (Globals.size() == 1 &&
-        (*Globals.begin() != (bugle::GlobalArray*)0) &&
+    if (Globals.size() == 1 && (*Globals.begin() != (bugle::GlobalArray *)0) &&
         (*Globals.begin())->isGlobalOrGroupShared()) {
       OS << prefix << (*Globals.begin())->getName();
     } else {
       MW->UsesPointers = true;
       OS << "(";
-      for (auto i = Globals.begin(), e = Globals.end();
-           i != e; ++i) {
-        if (*i == (bugle::GlobalArray*)0)
+      for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
+        if (*i == (bugle::GlobalArray *)0)
           continue; // Null pointer; dealt with as last case
         if (!(*i)->isGlobalOrGroupShared())
           continue; // Offsets of local arrays are not tracked

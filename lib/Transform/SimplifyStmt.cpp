@@ -9,23 +9,24 @@ namespace {
 
 bool hasSideEffects(Expr *e) {
   return isa<CallExpr>(e) || isa<CallMemberOfExpr>(e) ||
-    isa<ArraySnapshotExpr>(e) || isa<AddNoovflExpr>(e) || isa<AtomicExpr>(e) ||
-    isa<WaitGroupEventExpr>(e);
+         isa<ArraySnapshotExpr>(e) || isa<AddNoovflExpr>(e) ||
+         isa<AtomicExpr>(e) || isa<WaitGroupEventExpr>(e);
 }
 
 bool isTemporal(Expr *e) {
   if (auto LE = dyn_cast<LoadExpr>(e)) {
     return LE->getIsTemporal();
   }
-  return isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e) ||
-         isa<AtomicExpr>(e) || isa<AsyncWorkGroupCopyExpr>(e);
+  return isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e) || isa<AtomicExpr>(e) ||
+         isa<AsyncWorkGroupCopyExpr>(e);
 }
 
 void ProcessBasicBlock(BasicBlock *BB) {
   OwningPtrVector<Stmt> &V = BB->getStmtVector();
   if (V.empty())
     return;
-  for (auto i = V.end()-1;;) {
+  auto i = V.end() - 1;
+  while (true) {
     if (auto ES = dyn_cast<EvalStmt>(*i)) {
       Expr *E = ES->getExpr().get();
       if (hasSideEffects(E)) {
@@ -67,9 +68,6 @@ void ProcessModule(Module *M) {
   for (auto i = M->function_begin(), e = M->function_end(); i != e; ++i)
     ProcessFunction(*i);
 }
-
 }
 
-void bugle::simplifyStmt(Module *M) {
-  ProcessModule(M);
-}
+void bugle::simplifyStmt(Module *M) { ProcessModule(M); }

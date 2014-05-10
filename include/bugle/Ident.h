@@ -6,13 +6,11 @@
 namespace llvm {
 
 class StringRef;
-
 }
 
 namespace bugle {
 
 std::string makeBoogieIdent(llvm::StringRef S);
-
 }
 
 #endif

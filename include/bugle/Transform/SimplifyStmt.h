@@ -6,7 +6,6 @@ namespace bugle {
 class Module;
 
 void simplifyStmt(Module *M);
-
 }
 
 #endif

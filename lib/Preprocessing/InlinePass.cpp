@@ -22,13 +22,13 @@ bool InlinePass::doInline(llvm::Instruction *I, llvm::Function *OF) {
 
   if (!F)
     ErrorReporter::reportImplementationLimitation(
-                              "Function pointers not compatible with inlining");
+        "Function pointers not compatible with inlining");
 
   if (!(TranslateModule::isGPUEntryPoint(OF, M, SL, GPUEntryPoints) ||
         TranslateFunction::isStandardEntryPoint(SL, OF->getName()))) {
     if (TranslateFunction::isPreOrPostCondition(F->getName())) {
       ErrorReporter::reportFatalError(
-                "Cannot inline, detected function with pre- or post-condition");
+          "Cannot inline, detected function with pre- or post-condition");
     } else { // Do not perform inlining on non-entry point functions.
       return false;
     }

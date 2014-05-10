@@ -36,8 +36,8 @@ std::string MathIntegerRepresentation::getSignExtend(unsigned FromWidth,
   return ss.str();
 }
 
-std::string MathIntegerRepresentation::getArithmeticBinary(std::string Name, 
-    bugle::Expr::Kind Kind, unsigned Width) {
+std::string MathIntegerRepresentation::getArithmeticBinary(
+    std::string Name, bugle::Expr::Kind Kind, unsigned Width) {
   std::stringstream ss;
   ss << "function ";
 
@@ -51,14 +51,15 @@ std::string MathIntegerRepresentation::getArithmeticBinary(std::string Name,
   case Expr::BVSRem:
     const char *infixOp;
     switch (Kind) {
-    case Expr::BVAdd:  infixOp = "+"; break;
-    case Expr::BVSub:  infixOp = "-"; break;
-    case Expr::BVMul:  infixOp = "*"; break;
+    case Expr::BVAdd:  infixOp = "+";   break;
+    case Expr::BVSub:  infixOp = "-";   break;
+    case Expr::BVMul:  infixOp = "*";   break;
     case Expr::BVUDiv:
     case Expr::BVSDiv: infixOp = "div"; break;
     case Expr::BVURem:
     case Expr::BVSRem: infixOp = "mod"; break;
-    default: llvm_unreachable("huh?");
+    default:
+      llvm_unreachable("huh?");
     }
     ss << "{:inline true} BV" << Width << "_" << Name
        << "(x : int, y : int) : int {\n"
@@ -100,7 +101,8 @@ std::string MathIntegerRepresentation::getArithmeticBinary(std::string Name,
       ss << "  if (x == 1 || x == -1) && (y == 1 || y == -1) then 0 else (\n"
          << "    if (x == 1 || x == -1) && y == 0 then 1 else (\n"
          << "      if x == 0 && (y == 1 || y == -1) then 1 else (\n"
-         << "        if x == y then 0 else BV" << Width << "_" << Name << "_UF(x, y))))\n";
+         << "        if x == y then 0 else BV" << Width << "_"
+                                               << Name << "_UF(x, y))))\n";
     } else {
       ss << "  if x == y then 0 "
          << "else (if x == 0 then y else (if y == 0 then x "
@@ -115,7 +117,8 @@ std::string MathIntegerRepresentation::getArithmeticBinary(std::string Name,
   if (Kind == Expr::BVShl) {
     ss << "{:inline true} BV" << Width << "_" << Name
        << "(x : int, y : int) : int {\n"
-       << "  if x >= 0 && y == 1 then x*2 else BV" << Width << "_" << Name << "_UF(x,y)\n"
+       << "  if x >= 0 && y == 1 then x*2 else BV" << Width << "_"
+                                                   << Name << "_UF(x,y)\n"
        << "}\n"
        << "function BV" << Width << "_" << Name << "_UF(int, int) : int;";
     return ss.str();
@@ -125,25 +128,28 @@ std::string MathIntegerRepresentation::getArithmeticBinary(std::string Name,
   case Expr::BVAShr:
   case Expr::BVLShr:
     ss << " BV" << Width << "_" << Name
-      << "(int, int) : int;";
+       << "(int, int) : int;";
     return ss.str();
-  default: llvm_unreachable("huh?");
+  default:
+    llvm_unreachable("huh?");
   }
 }
 
-std::string MathIntegerRepresentation::getBooleanBinary(std::string Name, 
-    bugle::Expr::Kind Kind, unsigned Width) {
+std::string MathIntegerRepresentation::getBooleanBinary(std::string Name,
+                                                        bugle::Expr::Kind Kind,
+                                                        unsigned Width) {
   const char *infixOp;
   switch (Kind) {
-  case Expr::BVUgt: infixOp = ">"; break;
+  case Expr::BVUgt: infixOp = ">";  break;
   case Expr::BVUge: infixOp = ">="; break;
-  case Expr::BVUlt: infixOp = "<"; break;
+  case Expr::BVUlt: infixOp = "<";  break;
   case Expr::BVUle: infixOp = "<="; break;
-  case Expr::BVSgt: infixOp = ">"; break;
+  case Expr::BVSgt: infixOp = ">";  break;
   case Expr::BVSge: infixOp = ">="; break;
-  case Expr::BVSlt: infixOp = "<"; break;
+  case Expr::BVSlt: infixOp = "<";  break;
   case Expr::BVSle: infixOp = "<="; break;
-  default: llvm_unreachable("huh?");
+  default:
+    llvm_unreachable("huh?");
   }
 
   std::stringstream ss;
@@ -160,24 +166,20 @@ void MathIntegerRepresentation::printVal(llvm::raw_ostream &OS,
 }
 
 std::string MathIntegerRepresentation::getExtractExpr(const std::string &Expr,
-    unsigned UpperBit, unsigned LowerBit) {
+                                                      unsigned UpperBit,
+                                                      unsigned LowerBit) {
   std::stringstream ss;
   ss << "BV_EXTRACT(" << Expr << ", " << UpperBit << ", " << LowerBit << ")";
   return ss.str();
 }
 
-bool MathIntegerRepresentation::abstractsExtract() {
-  return true;
-}
+bool MathIntegerRepresentation::abstractsExtract() { return true; }
 
 std::string MathIntegerRepresentation::getExtract() {
   return "function BV_EXTRACT(int, int, int) : int;";
 }
 
-
-bool MathIntegerRepresentation::abstractsConcat() {
-  return true;
-}
+bool MathIntegerRepresentation::abstractsConcat() { return true; }
 
 std::string MathIntegerRepresentation::getConcat() {
   return "function BV_CONCAT(int, int) : int;";
@@ -187,5 +189,4 @@ std::string MathIntegerRepresentation::getConcatExpr(const std::string &Lhs,
                                                      const std::string &Rhs) {
   return "BV_CONCAT(" + Lhs + ", " + Rhs + ")";
 }
-
 }

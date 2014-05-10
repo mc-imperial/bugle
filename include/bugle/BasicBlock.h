@@ -16,9 +16,7 @@ class BasicBlock {
 
 public:
   BasicBlock(const std::string &name) : name(name) {}
-  void addStmt(Stmt *stmt) {
-    stmts.push_back(stmt);
-  }
+  void addStmt(Stmt *stmt) { stmts.push_back(stmt); }
   EvalStmt *addEvalStmt(ref<Expr> e) {
     if (e->hasEvalStmt || e->preventEvalStmt)
       return 0;
@@ -31,11 +29,10 @@ public:
   const std::string &getName() { return name; }
 
   OwningPtrVector<Stmt>::const_iterator begin() const { return stmts.begin(); }
-  OwningPtrVector<Stmt>::const_iterator end() const   { return stmts.end(); }
+  OwningPtrVector<Stmt>::const_iterator end() const { return stmts.end(); }
 
   OwningPtrVector<Stmt> &getStmtVector() { return stmts; }
 };
-
 }
 
 #endif

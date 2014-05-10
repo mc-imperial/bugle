@@ -4,9 +4,8 @@
 #define BUGLE_REF_H
 
 namespace bugle {
- 
-using klee::ref;
 
+using klee::ref;
 }
 
 #endif

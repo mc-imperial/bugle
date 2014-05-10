@@ -7,8 +7,7 @@
 
 namespace bugle {
 
-class SourceLoc
-{
+class SourceLoc {
 private:
   unsigned lineno;
   unsigned colno;
@@ -17,8 +16,8 @@ private:
 
 public:
   SourceLoc(unsigned lineno, unsigned colno, const std::string &fname,
-            const std::string &path) : lineno(lineno), colno(colno),
-    fname(fname), path(path) {}
+            const std::string &path)
+      : lineno(lineno), colno(colno), fname(fname), path(path) {}
 
   unsigned getLineNo() const { return lineno; }
   unsigned getColNo() const { return colno; }
@@ -28,7 +27,6 @@ public:
 
 typedef std::vector<SourceLoc> SourceLocs;
 typedef std::shared_ptr<SourceLocs> SourceLocsRef;
-
 }
 
 #endif

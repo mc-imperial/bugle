@@ -23,21 +23,21 @@ struct Type {
     Any
   };
 
-  bool array:1;
-  Kind kind:31;
+  bool array : 1;
+  Kind kind : 31;
   unsigned width;
 
   Type(Kind kind, unsigned width = 0) : array(false), kind(kind), width(width) {
     assert((kind != Bool && kind != Unknown) || width == 0);
   }
 
-  Type(ArrayKind ak, Kind kind, unsigned width = 0) :
-    array(true), kind(kind), width(width) {
+  Type(ArrayKind ak, Kind kind, unsigned width = 0)
+      : array(true), kind(kind), width(width) {
     assert((kind != Bool && kind != Unknown) || width == 0);
   }
 
-  Type(ArrayKind ak, Type subType) :
-    array(true), kind(subType.kind), width(subType.width) {
+  Type(ArrayKind ak, Type subType)
+      : array(true), kind(subType.kind), width(subType.width) {
     assert(!subType.array);
   }
 
@@ -49,16 +49,13 @@ struct Type {
     return array != other.array || kind != other.kind || width != other.width;
   }
 
-  bool isKind(Kind k) const {
-    return !array && kind == k;
-  }
+  bool isKind(Kind k) const { return !array && kind == k; }
 
   Type range() const {
     assert(array);
     return Type(kind, width);
   }
 };
-
 }
 
 #endif

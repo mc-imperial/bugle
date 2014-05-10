@@ -19,15 +19,15 @@ class Function {
   std::set<std::string> attributes;
   bool entryPoint, specification;
   OwningPtrVector<SpecificationInfo> requires, globalRequires, ensures,
-                                     globalEnsures, modifies;
+      globalEnsures, modifies;
   OwningPtrVector<BasicBlock> blocks;
   OwningPtrVector<Var> args, returns, locals;
   UniqueNameSet bbNames, varNames;
 
 public:
-  Function(const std::string &name, const std::string &originalName) :
-    name(name), originalName(originalName), entryPoint(false),
-    specification(false) {}
+  Function(const std::string &name, const std::string &originalName)
+      : name(name), originalName(originalName), entryPoint(false),
+        specification(false) {}
   BasicBlock *addBasicBlock(const std::string &name) {
     BasicBlock *BB = new BasicBlock(bbNames.makeName(makeBoogieIdent(name)));
     blocks.push_back(BB);
@@ -48,9 +48,7 @@ public:
     locals.push_back(V);
     return V;
   }
-  void addAttribute(const std::string &attrib) {
-    attributes.insert(attrib);
-  }
+  void addAttribute(const std::string &attrib) { attributes.insert(attrib); }
   void addRequires(ref<Expr> r, const SourceLocsRef &ss) {
     requires.push_back(new SpecificationInfo(r.get(), ss));
   }
@@ -85,9 +83,7 @@ public:
   OwningPtrVector<Var>::const_iterator arg_begin() const {
     return args.begin();
   }
-  OwningPtrVector<Var>::const_iterator arg_end() const {
-    return args.end();
-  }
+  OwningPtrVector<Var>::const_iterator arg_end() const { return args.end(); }
 
   OwningPtrVector<Var>::const_iterator return_begin() const {
     return returns.begin();
@@ -117,10 +113,12 @@ public:
     return requires.end();
   }
 
-  OwningPtrVector<SpecificationInfo>::const_iterator globalRequires_begin() const {
+  OwningPtrVector<SpecificationInfo>::const_iterator
+  globalRequires_begin() const {
     return globalRequires.begin();
   }
-  OwningPtrVector<SpecificationInfo>::const_iterator globalRequires_end() const {
+  OwningPtrVector<SpecificationInfo>::const_iterator
+  globalRequires_end() const {
     return globalRequires.end();
   }
 
@@ -131,7 +129,8 @@ public:
     return ensures.end();
   }
 
-  OwningPtrVector<SpecificationInfo>::const_iterator globalEnsures_begin() const {
+  OwningPtrVector<SpecificationInfo>::const_iterator
+  globalEnsures_begin() const {
     return globalEnsures.begin();
   }
   OwningPtrVector<SpecificationInfo>::const_iterator globalEnsures_end() const {
@@ -144,9 +143,7 @@ public:
   OwningPtrVector<SpecificationInfo>::const_iterator modifies_end() const {
     return modifies.end();
   }
-
 };
-
 }
 
 #endif
