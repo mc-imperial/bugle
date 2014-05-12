@@ -198,21 +198,21 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
           OS << "procedure {:async_work_group_copy} _ASYNC_WORK_GROUP_COPY_"
              << dst->getRangeType().width
-             << "(dst : [bv"
-             << MW->M->getPointerWidth() << "]bv" << dst->getRangeType().width
-             << ", dstOffset : bv" << DstOffset->getType().width
+             << "(dstOffset : bv" << DstOffset->getType().width
              << ", src : [bv" 
              << MW->M->getPointerWidth() << "]bv" << src->getRangeType().width
              << ", srcOffset : bv" << SrcOffset->getType().width
              << ", size : bv" << MW->M->getPointerWidth()
              << ", handle : bv" << MW->M->getPointerWidth()
-             << ") returns (handle' : bv" << MW->M->getPointerWidth() << ")";
+             << ") returns (handle' : bv" << MW->M->getPointerWidth()
+             << ", dst : [bv" << MW->M->getPointerWidth() << "]bv"
+             << dst->getRangeType().width << ")";
         });
         writeSourceLocsMarker(OS, ES->getSourceLocs(), 2);
         OS << "  ";
         OS << "call {:async_work_group_copy} v" << id
-           << " := _ASYNC_WORK_GROUP_COPY_" << dst->getRangeType().width
-           << "($$" << dst->getName() << ", ";
+           << ", $$" << dst->getName() << " := _ASYNC_WORK_GROUP_COPY_"
+           << dst->getRangeType().width << "(";
         writeExpr(OS, DstOffset);
         OS << ", "
            << "$$" << src->getName() << ", ";
