@@ -232,7 +232,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
            << MW->M->getPointerWidth() << ")";
       });
       OS << "  ";
-      OS << "call _WAIT_GROUP_EVENTS(";
+      OS << "call {:wait_group_events} _WAIT_GROUP_EVENTS(";
       writeExpr(OS, WGEE->getHandle().get());
       OS << ");\n";
     } else {
