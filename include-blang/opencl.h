@@ -19,6 +19,9 @@
 #include <opencl_atomics.h>
 #include <opencl_async.h>
 
+void mem_fence(cl_mem_fence_flags flags);
+void read_mem_fence(cl_mem_fence_flags flags);
+void write_mem_fence(cl_mem_fence_flags flags);
 
 /* Images */
 #define image2d_t __bugle_image2d_t

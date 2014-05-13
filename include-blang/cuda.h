@@ -38,6 +38,10 @@ struct _3DimensionalVector {
 #define __syncthreads() \
   bugle_barrier(true, true)
 
+__device__ void __threadfence_block();
+__device__ void __threadfence();
+__device__ void __threadfence_system();
+
 #ifdef __cplusplus
 }
 #endif
