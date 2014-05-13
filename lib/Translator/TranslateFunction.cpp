@@ -406,6 +406,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     }
 
     auto &ints = SpecialFunctionMap.Intrinsics;
+    ints[Intrinsic::ceil] = &TranslateFunction::handleCeil;
     ints[Intrinsic::cos] = &TranslateFunction::handleCos;
     ints[Intrinsic::exp2] = &TranslateFunction::handleExp;
     ints[Intrinsic::fabs] = &TranslateFunction::handleFabs;
@@ -1362,6 +1363,15 @@ ref<Expr> TranslateFunction::handleWaitGroupEvents(bugle::BasicBlock *BBB,
         "wait_group_events with a variable-sized set of events not supported");
     return 0;
   }
+}
+
+ref<Expr> TranslateFunction::handleCeil(bugle::BasicBlock *BBB,
+                                        llvm::CallInst *CI,
+                                        const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  return maybeTranslateSIMDInst(
+      BBB, Ty, Ty, Args[0],
+      [&](llvm::Type *T, ref<Expr> E) { return FCeilExpr::create(E); });
 }
 
 ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,
