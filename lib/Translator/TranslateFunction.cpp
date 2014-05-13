@@ -1083,10 +1083,9 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
   unsigned Val = Value->getValue().getZExtValue();
   Type DstRangeTy = DstPtrArr->getType().range();
 
-  if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
+  if (DstRangeTy == Type(Type::Any)) {
     ErrorReporter::reportImplementationLimitation(
-        "memset with null pointer destination or destinations of mixed types "
-        "not supported");
+        "memset with null pointer destination not supported");
   }
 
   assert(DstRangeTy.width % 8 == 0);
@@ -1095,8 +1094,9 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
   ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width / 8);
   // Handle when Len can be rewritten as an integral number of element writes
   // Special case if Val is 0
-  if (!DstDiv.isNull() && (Len % (DstRangeTy.width / 8) == 0) &&
-      0 < NumElements && (Val == 0 || DstRangeTy.width == 8)) {
+  if (DstRangeTy != Type(Type::Unknown) && !DstDiv.isNull() &&
+      (Len % (DstRangeTy.width / 8) == 0) &&
+      (Val == 0 || DstRangeTy.width == 8)) {
     for (unsigned i = 0; i != NumElements; ++i) {
       ref<Expr> ValExpr = BVConstExpr::create(DstRangeTy.width, Val);
       ref<Expr> StoreOfs = BVAddExpr::create(
@@ -1143,16 +1143,14 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
   Type SrcRangeTy = SrcPtrArr->getType().range(),
        DstRangeTy = DstPtrArr->getType().range();
 
-  if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
+  if (DstRangeTy == Type(Type::Any)) {
     ErrorReporter::reportImplementationLimitation(
-        "memcpy with null pointer destination or destinations of mixed types "
-        "not supported");
+        "memcpy with null pointer destination not supported");
   }
 
-  if (SrcRangeTy == Type(Type::Any) || SrcRangeTy == Type(Type::Unknown)) {
+  if (SrcRangeTy == Type(Type::Any)) {
     ErrorReporter::reportImplementationLimitation(
-        "memcpy with null pointer source or sources of mixed types not "
-        "supported");
+        "memcpy with null pointer source not supported");
   }
 
   assert(SrcRangeTy.width % 8 == 0);
@@ -1163,8 +1161,9 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
   ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width / 8);
   // Handle matching source and destination range types where Len can be
   // rewritten as an integral number of element read/writes
-  if (SrcRangeTy == DstRangeTy && !SrcDiv.isNull() && !DstDiv.isNull() &&
-      (Len % (SrcRangeTy.width / 8) == 0) && 0 < NumElements) {
+  if (SrcRangeTy == DstRangeTy && SrcRangeTy != Type(Type::Unknown) &&
+      !SrcDiv.isNull() && !DstDiv.isNull() &&
+      (Len % (SrcRangeTy.width / 8) == 0)) {
     for (unsigned i = 0; i != NumElements; ++i) {
       ref<Expr> LoadOfs = BVAddExpr::create(
           SrcDiv, BVConstExpr::create(Src->getType().width, i));
@@ -1284,16 +1283,24 @@ ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
   Type SrcRangeTy = SrcArr->getType().range(),
        DstRangeTy = DstArr->getType().range();
 
-  if (DstRangeTy == Type(Type::Any) || DstRangeTy == Type(Type::Unknown)) {
+  if (DstRangeTy == Type(Type::Any)) {
     ErrorReporter::reportImplementationLimitation(
-        "async_work_group_copy with null pointer destination or destinations "
-        "of mixed types not supported");
+        "async_work_group_copy with null pointer destination not supported");
   }
 
-  if (SrcRangeTy == Type(Type::Any) || SrcRangeTy == Type(Type::Unknown)) {
+  if (DstRangeTy == Type(Type::Unknown)) {
     ErrorReporter::reportImplementationLimitation(
-        "async_work_group_copy with null pointer source or sources of mixed "
-        "types not supported");
+        "async_work_group_copy with destination of mixed type not supported");
+  }
+
+  if (SrcRangeTy == Type(Type::Any)) {
+    ErrorReporter::reportImplementationLimitation(
+        "async_work_group_copy with null pointer not supported");
+  }
+
+  if (SrcRangeTy == Type(Type::Unknown)) {
+    ErrorReporter::reportImplementationLimitation(
+        "async_work_group_copy with source of mixed type not supported");
   }
 
   assert(SrcRangeTy.width % 8 == 0);
