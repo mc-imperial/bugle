@@ -71,6 +71,7 @@ public:
     SIToFP,
     UIToFP,
     FAbs,
+    FCeil,
     FCos,
     FExp,
     FFloor,
@@ -428,6 +429,7 @@ UNARY_EXPR(FuncPtrToPtr)
 UNARY_EXPR(BVToBool)
 UNARY_EXPR(BoolToBV)
 UNARY_EXPR(FAbs)
+UNARY_EXPR(FCeil)
 UNARY_EXPR(FCos)
 UNARY_EXPR(FExp)
 UNARY_EXPR(FFloor)

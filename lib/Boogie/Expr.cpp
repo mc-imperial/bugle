@@ -261,6 +261,11 @@ ref<Expr> FAbsExpr::create(ref<Expr> expr) {
   return new FAbsExpr(expr->getType(), expr);
 }
 
+ref<Expr> FCeilExpr::create(ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::BV));
+  return new FCeilExpr(expr->getType(), expr);
+}
+
 ref<Expr> FCosExpr::create(ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
   return new FCosExpr(expr->getType(), expr);
