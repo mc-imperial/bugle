@@ -181,6 +181,16 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
       else
         return BVToPtrExpr::create(Op);
     }
+    case Instruction::ICmp: {
+      ref<Expr> LHS = translateConstant(CE->getOperand(0)),
+                RHS = translateConstant(CE->getOperand(1));
+      if (CE->getPredicate() == ICmpInst::ICMP_EQ)
+        return BoolToBVExpr::create(EqExpr::create(LHS, RHS));
+      else {
+        std::string msg = "Unhandled icmp expression";
+        ErrorReporter::reportImplementationLimitation(msg);
+      }
+    }
     default:
       std::string name = CE->getOpcodeName();
       std::string msg = "Unhandled constant expression '" + name + "'";
