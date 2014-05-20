@@ -1099,6 +1099,8 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
       (Val == 0 || DstRangeTy.width == 8)) {
     for (unsigned i = 0; i != NumElements; ++i) {
       ref<Expr> ValExpr = BVConstExpr::create(DstRangeTy.width, Val);
+      if (DstRangeTy.isKind(Type::Pointer))
+        ValExpr = BVToPtrExpr::create(ValExpr);
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
       addEvalStmt(BBB, CI, ValExpr);
