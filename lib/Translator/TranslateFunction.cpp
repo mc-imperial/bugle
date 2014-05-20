@@ -1089,16 +1089,18 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
   }
 
   assert(DstRangeTy.width % 8 == 0);
-  assert(DstRangeTy.width != 0);
-  unsigned NumElements = Len / (DstRangeTy.width / 8);
+  assert(DstRangeTy == Type(Type::Unknown) || DstRangeTy.width != 0);
   ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width / 8);
   // Handle when Len can be rewritten as an integral number of element writes
   // Special case if Val is 0
   if (DstRangeTy != Type(Type::Unknown) && !DstDiv.isNull() &&
       (Len % (DstRangeTy.width / 8) == 0) &&
       (Val == 0 || DstRangeTy.width == 8)) {
+    unsigned NumElements = Len / (DstRangeTy.width / 8);
     for (unsigned i = 0; i != NumElements; ++i) {
       ref<Expr> ValExpr = BVConstExpr::create(DstRangeTy.width, Val);
+      if (DstRangeTy.isKind(Type::Pointer))
+        ValExpr = BVToPtrExpr::create(ValExpr);
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
       addEvalStmt(BBB, CI, ValExpr);
@@ -1155,8 +1157,7 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
 
   assert(SrcRangeTy.width % 8 == 0);
   assert(DstRangeTy.width % 8 == 0);
-  assert(SrcRangeTy.width != 0);
-  unsigned NumElements = Len / (SrcRangeTy.width / 8);
+  assert(SrcRangeTy == Type(Type::Unknown) || SrcRangeTy.width != 0);
   ref<Expr> SrcDiv = Expr::createExactBVUDiv(SrcPtrOfs, SrcRangeTy.width / 8);
   ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width / 8);
   // Handle matching source and destination range types where Len can be
@@ -1164,6 +1165,7 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
   if (SrcRangeTy == DstRangeTy && SrcRangeTy != Type(Type::Unknown) &&
       !SrcDiv.isNull() && !DstDiv.isNull() &&
       (Len % (SrcRangeTy.width / 8) == 0)) {
+    unsigned NumElements = Len / (SrcRangeTy.width / 8);
     for (unsigned i = 0; i != NumElements; ++i) {
       ref<Expr> LoadOfs = BVAddExpr::create(
           SrcDiv, BVConstExpr::create(Src->getType().width, i));
