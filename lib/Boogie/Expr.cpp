@@ -586,7 +586,8 @@ ref<Expr> BVSDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
-      return BVConstExpr::create(e1->getValue().sdiv(e2->getValue()));
+      if (e2->getValue() != 0)
+        return BVConstExpr::create(e1->getValue().sdiv(e2->getValue()));
 
   return new BVSDivExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
 }
@@ -598,7 +599,8 @@ ref<Expr> BVUDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
-      return BVConstExpr::create(e1->getValue().udiv(e2->getValue()));
+      if (e2->getValue() != 0)
+        return BVConstExpr::create(e1->getValue().udiv(e2->getValue()));
 
   return new BVUDivExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
 }
@@ -655,7 +657,8 @@ ref<Expr> BVSRemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
-      return BVConstExpr::create(e1->getValue().srem(e2->getValue()));
+      if (e2->getValue() != 0)
+        return BVConstExpr::create(e1->getValue().srem(e2->getValue()));
 
   return new BVSRemExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
 }
@@ -667,7 +670,8 @@ ref<Expr> BVURemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
   if (auto e1 = dyn_cast<BVConstExpr>(lhs))
     if (auto e2 = dyn_cast<BVConstExpr>(rhs))
-      return BVConstExpr::create(e1->getValue().urem(e2->getValue()));
+      if (e2->getValue() != 0)
+        return BVConstExpr::create(e1->getValue().urem(e2->getValue()));
 
   return new BVURemExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
 }
