@@ -64,6 +64,24 @@ static cl::opt<bool> DatatypePointerRepresentation(
     "datatype", cl::ValueDisallowed,
     cl::desc("Use datatype representation for pointers"));
 
+// The default values for the address spaces match NVPTXAddrSpaceMap in
+// Targets.cpp. There does not appear to be a header file in which they are
+// symbolically defined
+static cl::opt<unsigned> GlobalAddrSpace(
+    "global-space",
+    cl::desc("Set address space used as \"global\" (default 1)"),
+    cl::value_desc("integer"), cl::init(1));
+
+static cl::opt<unsigned> GroupSharedAddrSpace(
+    "group-shared-space",
+    cl::desc("Set address space used as \"group shared\" (default 3)"),
+    cl::value_desc("integer"), cl::init(3));
+
+static cl::opt<unsigned> ConstantAddrSpace(
+    "constant-space",
+    cl::desc("Set address space used as \"constant\" (default 4)"),
+    cl::value_desc("integer"), cl::init(4));
+
 int main(int argc, char **argv) {
   sys::PrintStackTraceOnErrorSignal();
   llvm::PrettyStackTraceProgram X(argc, argv);
@@ -141,6 +159,29 @@ int main(int argc, char **argv) {
     bugle::ErrorReporter::reportParameterError(msg);
   }
 
+  if (GlobalAddrSpace == 0 || GlobalAddrSpace == GroupSharedAddrSpace ||
+      GlobalAddrSpace == ConstantAddrSpace) {
+    std::string msg =
+        "Global address space cannot be 0 or equal to group shared or constant "
+        "address space";
+    bugle::ErrorReporter::reportParameterError(msg);
+  } else if (GroupSharedAddrSpace == 0 ||
+             GroupSharedAddrSpace == GlobalAddrSpace ||
+             GroupSharedAddrSpace == ConstantAddrSpace) {
+    std::string msg =
+        "Group shared address space cannot be 0 or equal to global or constant "
+        "address space";
+    bugle::ErrorReporter::reportParameterError(msg);
+  } else if (ConstantAddrSpace == 0 || ConstantAddrSpace == GlobalAddrSpace ||
+             ConstantAddrSpace == GroupSharedAddrSpace) {
+    std::string msg =
+        "Constant address space cannot be 0 or equal to global or group shared "
+        "address space";
+    bugle::ErrorReporter::reportParameterError(msg);
+  }
+  bugle::TranslateModule::AddressSpaceMap AddressSpaces(
+      GlobalAddrSpace, GroupSharedAddrSpace, ConstantAddrSpace);
+
   std::set<std::string> EP;
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
     EP.insert(&*i);
@@ -152,10 +193,10 @@ int main(int argc, char **argv) {
     PM.add(new bugle::RemoveBodyPass(SL, EP));
     PM.add(new bugle::RemovePrototypePass());
   }
-  PM.add(new bugle::RestrictDetectPass(SL, EP));
+  PM.add(new bugle::RestrictDetectPass(SL, EP, AddressSpaces));
   PM.run(*M.get());
 
-  bugle::TranslateModule TM(M.get(), SL, EP, RaceInst);
+  bugle::TranslateModule TM(M.get(), SL, EP, RaceInst, AddressSpaces);
   TM.translate();
   std::unique_ptr<bugle::Module> BM(TM.takeModule());
 
