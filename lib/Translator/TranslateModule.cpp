@@ -72,16 +72,15 @@ void TranslateModule::addGlobalArrayAttribs(GlobalArray *GA, PointerType *PT) {
   // is constant, unless used as a pointer, the memory pointed to will be
   // cudaMalloc'ed and hence be in device memory.
   if (SL == SL_CUDA && PT->getElementType()->isPointerTy() &&
-      PT->getAddressSpace() == AddressSpaces::constant)
+      PT->getAddressSpace() == AddressSpaces.constant)
     GA->addAttribute("global");
   else if (SL == SL_OpenCL || SL == SL_CUDA) {
-    switch (PT->getAddressSpace()) {
-    case AddressSpaces::global:       GA->addAttribute("global");       break;
-    case AddressSpaces::group_shared: GA->addAttribute("group_shared"); break;
-    case AddressSpaces::constant:     GA->addAttribute("constant");     break;
-    default:
-      break;
-    }
+    if (PT->getAddressSpace() == AddressSpaces.global)
+      GA->addAttribute("global");
+    else if (PT->getAddressSpace() == AddressSpaces.group_shared)
+      GA->addAttribute("group_shared");
+    else if (PT->getAddressSpace() == AddressSpaces.constant)
+      GA->addAttribute("constant");
   }
 }
 
@@ -100,14 +99,14 @@ bool TranslateModule::hasInitializer(GlobalVariable *GV) {
 
   // OpenCL __local and CUDA __shared__ variables have bogus initializers
   if ((SL == SL_OpenCL || SL == SL_CUDA) &&
-      GV->getType()->getAddressSpace() == AddressSpaces::group_shared)
+      GV->getType()->getAddressSpace() == AddressSpaces.group_shared)
     return false;
 
   // CUDA __constant__ and __device__ variables have initializers that may
   // have been overwritten by the host program
   if (SL == SL_CUDA &&
-      (GV->getType()->getAddressSpace() == AddressSpaces::constant ||
-       GV->getType()->getAddressSpace() == AddressSpaces::global))
+      (GV->getType()->getAddressSpace() == AddressSpaces.constant ||
+       GV->getType()->getAddressSpace() == AddressSpaces.global))
     return false;
 
   return true;
@@ -722,4 +721,14 @@ void TranslateModule::translate() {
     ModelPtrAsGlobalOffset = NextModelPtrAsGlobalOffset;
     PtrMayBeNull = NextPtrMayBeNull;
   } while (NeedAdditionalByteArrayModels || NeedAdditionalGlobalOffsetModels);
+}
+
+TranslateModule::AddressSpaceMap::AddressSpaceMap(unsigned Global,
+                                                  unsigned GroupShared,
+                                                  unsigned Constant)
+    : standard(0), global(Global), group_shared(GroupShared),
+      constant(Constant) {
+  assert(Global != 0 && Global != GroupShared && Global != Constant);
+  assert(GroupShared != 0 && GroupShared != Global && GroupShared != Constant);
+  assert(Constant != 0 && Constant != Global && Constant != GroupShared);
 }

@@ -40,14 +40,12 @@ public:
     SL_Count
   };
 
-  enum AddressSpaces {
-    // These constants match NVPTXAddrSpaceMap in Targets.cpp
-    // There does not appear to be a header file in which they
-    // are symbolically defined
-    standard = 0,     // the standard value assigned
-    global = 1,       // opencl_global, cuda_device
-    group_shared = 3, // opencl_local, cuda_shared
-    constant = 4      // opencl_constant, cuda_constant
+  struct AddressSpaceMap {
+    const unsigned standard;
+    const unsigned global;
+    const unsigned group_shared;
+    const unsigned constant;
+    AddressSpaceMap(unsigned Global, unsigned GroupShared, unsigned Constant);
   };
 
 private:
@@ -58,6 +56,7 @@ private:
   SourceLanguage SL;
   std::set<std::string> GPUEntryPoints;
   RaceInstrumenter RaceInst;
+  AddressSpaceMap AddressSpaces;
 
   std::map<llvm::Function *, bugle::Function *> FunctionMap;
   std::map<llvm::Constant *, ref<Expr>> ConstantMap;
@@ -119,10 +118,10 @@ private:
 
 public:
   TranslateModule(llvm::Module *M, SourceLanguage SL, std::set<std::string> &EP,
-                  RaceInstrumenter RaceInst)
+                  RaceInstrumenter &RaceInst, AddressSpaceMap &AS)
       : BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RaceInst),
-        NeedAdditionalByteArrayModels(false), ModelAllAsByteArray(false),
-        NextModelAllAsByteArray(false) {
+        AddressSpaces(AS), NeedAdditionalByteArrayModels(false),
+        ModelAllAsByteArray(false), NextModelAllAsByteArray(false) {
     DIF.processModule(*M);
   }
   static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,

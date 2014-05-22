@@ -44,17 +44,13 @@ void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
     if (i->getType()->getPointerElementType()->isFunctionTy())
       continue;
 
-    switch (i->getType()->getPointerAddressSpace()) {
-    case TranslateModule::AddressSpaces::standard:
-      if (SL == TranslateModule::SL_CUDA)
-        AL.push_back(i);
-      break;
-    case TranslateModule::AddressSpaces::global:
+    unsigned addressSpace = i->getType()->getPointerAddressSpace();
+    if (addressSpace == AddressSpaces.standard &&
+        SL == TranslateModule::SL_CUDA)
       AL.push_back(i);
-      break;
-    default:
-      break;
-    }
+
+    if (addressSpace == AddressSpaces.global)
+      AL.push_back(i);
   }
 
   if (AL.size() <= 1)
