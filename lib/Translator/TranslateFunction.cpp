@@ -1355,21 +1355,25 @@ ref<Expr> TranslateFunction::handleWaitGroupEvents(bugle::BasicBlock *BBB,
                                                    llvm::CallInst *CI,
                                                    const ExprVec &Args) {
   if (auto BVCE = dyn_cast<BVConstExpr>(Args[0])) {
-    auto Ptr = dyn_cast<PointerExpr>(Args[1]);
-    assert(Ptr && "Expected pointer expression for handle array");
-    for (unsigned i = 0; i < BVCE->getValue().getZExtValue(); ++i) {
-      auto Off = BVAddExpr::create(
-          Ptr->getOffset(), BVConstExpr::create(TM->BM->getPointerWidth(), i));
-      auto PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange());
-      Type ArrRangeTy = PtrArr->getType().range();
-      auto LE = LoadExpr::create(Ptr->getArray(), Off, ArrRangeTy, true);
-      addEvalStmt(BBB, CI, LE);
-      BBB->addEvalStmt(WaitGroupEventExpr::create(LE));
+    if(auto Ptr = dyn_cast<PointerExpr>(Args[1])) {
+      for (unsigned i = 0; i < BVCE->getValue().getZExtValue(); ++i) {
+        auto Off = BVAddExpr::create(
+            Ptr->getOffset(), BVConstExpr::create(TM->BM->getPointerWidth(), i));
+        auto PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange());
+        Type ArrRangeTy = PtrArr->getType().range();
+        auto LE = LoadExpr::create(Ptr->getArray(), Off, ArrRangeTy, true);
+        addEvalStmt(BBB, CI, LE);
+        BBB->addEvalStmt(WaitGroupEventExpr::create(LE));
+      }
+      return 0;
+    } else {
+      ErrorReporter::reportImplementationLimitation(
+          "could not process the event array parameter passed to 'wait_group_events'");
+      return 0;
     }
-    return 0;
   } else {
     ErrorReporter::reportImplementationLimitation(
-        "wait_group_events with a variable-sized set of events not supported");
+        "'wait_group_events' with a variable-sized set of events not supported");
     return 0;
   }
 }
