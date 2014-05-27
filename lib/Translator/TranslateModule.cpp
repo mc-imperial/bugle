@@ -183,12 +183,20 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     case Instruction::ICmp: {
       ref<Expr> LHS = translateConstant(CE->getOperand(0)),
                 RHS = translateConstant(CE->getOperand(1));
-      if (CE->getPredicate() == ICmpInst::ICMP_EQ)
+      switch (CE->getPredicate()) {
+      case ICmpInst::ICMP_EQ:
         return BoolToBVExpr::create(EqExpr::create(LHS, RHS));
-      else {
+      case ICmpInst::ICMP_NE:
+        return BoolToBVExpr::create(NeExpr::create(LHS, RHS));
+      default:
         std::string msg = "Unhandled icmp expression";
         ErrorReporter::reportImplementationLimitation(msg);
       }
+    }
+    case Instruction::ZExt: {
+      llvm::IntegerType *IntTy = cast<IntegerType>(CE->getType());
+      ref<Expr> Op = translateConstant(CE->getOperand(0));
+      return BVZExtExpr::create(IntTy->getBitWidth(), Op);
     }
     default:
       std::string name = CE->getOpcodeName();
