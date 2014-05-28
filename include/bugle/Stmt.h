@@ -124,17 +124,20 @@ class AssertStmt : public Stmt {
   bool global;
   bool candidate;
   bool invariant;
+  bool badAccess;
 
 public:
-  AssertStmt(ref<Expr> pred, bool global, bool candidate, bool invariant)
-      : pred(pred), global(global), candidate(candidate), invariant(invariant) {
-  }
+  AssertStmt(ref<Expr> pred, bool global, bool candidate, bool invariant,
+             bool badAccess)
+      : pred(pred), global(global), candidate(candidate), invariant(invariant),
+        badAccess(badAccess) {}
 
   STMT_KIND(Assert)
   ref<Expr> getPredicate() const { return pred; }
   bool isGlobal() const { return global; }
   bool isCandidate() const { return candidate; }
   bool isInvariant() const { return invariant; }
+  bool isBadAccess() const { return badAccess; }
 };
 
 class CallStmt : public Stmt {
