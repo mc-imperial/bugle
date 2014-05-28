@@ -1344,7 +1344,8 @@ ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
   // the source and destination arrays modelled as byte-arrays.
   ref<Expr> result = AsyncWorkGroupCopyExpr::create(
       DstArr, DstDiv, SrcArr, SrcDiv, NumElements, Args[3]);
-  if (DstRangeTy.width > DstArgRangeTy.width || DstDiv.isNull() ||
+  if (DstRangeTy.width != SrcRangeTy.width ||
+      DstRangeTy.width > DstArgRangeTy.width || DstDiv.isNull() ||
       SrcRangeTy.width > SrcArgRangeTy.width || SrcDiv.isNull()) {
     TM->NeedAdditionalByteArrayModels = true;
     std::set<GlobalArray *> Globals;
