@@ -1332,7 +1332,7 @@ ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
   // modelling, which means we eventually re-execute this function but with both
   // the source and destination arrays modelled as byte-arrays.
   ref<Expr> result = AsyncWorkGroupCopyExpr::create(
-      DstArr, DstOfs, SrcArr, SrcOfs, NumElements, Args[3]);
+      DstArr, DstDiv, SrcArr, SrcDiv, NumElements, Args[3]);
   if (DstRangeTy.width > DstArgRangeTy.width || DstDiv.isNull() ||
       SrcRangeTy.width > SrcArgRangeTy.width || SrcDiv.isNull()) {
     TM->NeedAdditionalByteArrayModels = true;
