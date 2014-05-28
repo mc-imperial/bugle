@@ -320,6 +320,9 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     if (AtS->isInvariant()) {
       OS << "{:originated_from_invariant} ";
     }
+    if (AtS->isBadAccess()) {
+      OS << "{:bad_pointer_access} ";
+    }
     writeSourceLocs(OS, AtS->getSourceLocs());
     if (AtS->isCandidate()) {
       unsigned candidateNumber = MW->nextCandidateNumber();

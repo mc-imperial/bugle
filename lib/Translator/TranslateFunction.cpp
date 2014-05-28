@@ -598,7 +598,7 @@ void TranslateFunction::addAssertStmt(bugle::BasicBlock *BBB,
                                       const ref<Expr> &Arg, bool isGlobal,
                                       bool isCandidate, bool isInvariant) {
   Stmt *assertstmt = new AssertStmt(Expr::createNeZero(Arg), isGlobal,
-                                    isCandidate, isInvariant);
+                                    isCandidate, isInvariant, false);
   assertstmt->setSourceLocs(currentSourceLocs);
   BBB->addStmt(assertstmt);
 }
@@ -683,7 +683,7 @@ ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
                                               llvm::CallInst *CI,
                                               const ExprVec &Args) {
   Stmt *assertStmt =
-      new AssertStmt(BoolConstExpr::create(false), false, false, false);
+      new AssertStmt(BoolConstExpr::create(false), false, false, false, false);
   assertStmt->setSourceLocs(currentSourceLocs);
   BBB->addStmt(assertStmt);
   return 0;
@@ -969,9 +969,11 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
     }
     result = Expr::createBVConcatN(Elems);
   } else if (ArrRangeTy == Type(Type::Any)) {
-    // If we have a null pointer, add a fake load expression.
-    ref<Expr> Div = BVConstExpr::createZero(AtomicTy.width);
-    result = LoadExpr::create(PtrArr, Div, AtomicTy, LoadsAreTemporal);
+    Stmt *assertStmt =
+        new AssertStmt(BoolConstExpr::create(false), false, false, false, true);
+    assertStmt->setSourceLocs(currentSourceLocs);
+    BBB->addStmt(assertStmt);
+    return BVConstExpr::createZero(AtomicTy.width);
   } else {
     ErrorReporter::reportFatalError("Unhandled atomic array type");
   }
@@ -1084,8 +1086,11 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
   Type DstRangeTy = DstPtrArr->getType().range();
 
   if (DstRangeTy == Type(Type::Any)) {
-    ErrorReporter::reportImplementationLimitation(
-        "memset with null pointer destination not supported");
+    Stmt *assertStmt =
+        new AssertStmt(BoolConstExpr::create(false), false, false, false, true);
+    assertStmt->setSourceLocs(currentSourceLocs);
+    BBB->addStmt(assertStmt);
+    return 0;
   }
 
   assert(DstRangeTy.width % 8 == 0);
@@ -1126,9 +1131,9 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const ExprVec &Args) {
-  // Args[0] == cast<MemSetInst>(CI)->getDest()
-  // Args[1] == cast<MemSetInst>(CI)->getSource()
-  // Args[2] == cast<MemSetInst>(CI)->getLength()
+  // Args[0] == cast<MemCpyInst>(CI)->getDest()
+  // Args[1] == cast<MemCpyInst>(CI)->getSource()
+  // Args[2] == cast<MemCpyInst>(CI)->getLength()
   auto Length = dyn_cast<BVConstExpr>(Args[2]);
   if (!Length) {
     // Could emit a loop
@@ -1146,13 +1151,19 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
        DstRangeTy = DstPtrArr->getType().range();
 
   if (DstRangeTy == Type(Type::Any)) {
-    ErrorReporter::reportImplementationLimitation(
-        "memcpy with null pointer destination not supported");
+    Stmt *assertStmt =
+        new AssertStmt(BoolConstExpr::create(false), false, false, false, true);
+    assertStmt->setSourceLocs(currentSourceLocs);
+    BBB->addStmt(assertStmt);
+    return 0;
   }
 
   if (SrcRangeTy == Type(Type::Any)) {
-    ErrorReporter::reportImplementationLimitation(
-        "memcpy with null pointer source not supported");
+    Stmt *assertStmt =
+        new AssertStmt(BoolConstExpr::create(false), false, false, false, true);
+    assertStmt->setSourceLocs(currentSourceLocs);
+    BBB->addStmt(assertStmt);
+    return 0;
   }
 
   assert(SrcRangeTy.width % 8 == 0);
@@ -1198,7 +1209,7 @@ ref<Expr> TranslateFunction::handleTrap(bugle::BasicBlock *BBB,
                                         llvm::CallInst *CI,
                                         const ExprVec &Args) {
   Stmt *assertStmt =
-      new AssertStmt(BoolConstExpr::create(false), false, false, false);
+      new AssertStmt(BoolConstExpr::create(false), false, false, false, false);
   assertStmt->setSourceLocs(currentSourceLocs);
   BBB->addStmt(assertStmt);
   return 0;
@@ -2128,8 +2139,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         TM->unmodelValue(PN, VarRefExpr::create(getPhiVariable(PN)));
     return;
   } else if (dyn_cast<UnreachableInst>(I)) {
-    Stmt *assertStmt =
-        new AssertStmt(BoolConstExpr::create(false), false, false, false);
+    Stmt *assertStmt = new AssertStmt(BoolConstExpr::create(false), false,
+                                      false, false, false);
     assertStmt->setSourceLocs(currentSourceLocs);
     BBB->addStmt(assertStmt);
     return;
