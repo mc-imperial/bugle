@@ -1320,11 +1320,13 @@ ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
   assert(SrcRangeTy.width % 8 == 0);
   assert(DstRangeTy.width % 8 == 0);
 
-  Type DstArgRangeTy =
-      TM->translateType(CI->getOperand(0)->getType()->getPointerElementType());
   Type SrcArgRangeTy =
       TM->translateType(CI->getOperand(1)->getType()->getPointerElementType());
+#ifndef NDEBUG
+  Type DstArgRangeTy =
+      TM->translateType(CI->getOperand(0)->getType()->getPointerElementType());
   assert(DstArgRangeTy == SrcArgRangeTy);
+#endif
 
   ref<Expr> result;
   ref<Expr> SrcDiv = Expr::createExactBVUDiv(SrcOfs, SrcRangeTy.width / 8);
