@@ -1375,7 +1375,8 @@ ref<Expr> TranslateFunction::handleWaitGroupEvents(bugle::BasicBlock *BBB,
         Type ArrRangeTy = PtrArr->getType().range();
         auto LE = LoadExpr::create(Ptr->getArray(), Off, ArrRangeTy, true);
         addEvalStmt(BBB, CI, LE);
-        BBB->addEvalStmt(WaitGroupEventExpr::create(LE));
+        auto ES = BBB->addEvalStmt(WaitGroupEventExpr::create(LE));
+        ES->setSourceLocs(currentSourceLocs);
       }
       return 0;
     } else {
