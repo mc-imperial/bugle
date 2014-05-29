@@ -597,10 +597,10 @@ ref<Expr> TranslateFunction::handleNoop(bugle::BasicBlock *BBB,
 void TranslateFunction::addAssertStmt(bugle::BasicBlock *BBB,
                                       const ref<Expr> &Arg, bool isGlobal,
                                       bool isCandidate, bool isInvariant) {
-  Stmt *assertstmt = new AssertStmt(Expr::createNeZero(Arg), isGlobal,
+  Stmt *assertStmt = new AssertStmt(Expr::createNeZero(Arg), isGlobal,
                                     isCandidate, isInvariant, false);
-  assertstmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertstmt);
+  assertStmt->setSourceLocs(currentSourceLocs);
+  BBB->addStmt(assertStmt);
 }
 
 ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
@@ -973,6 +973,7 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
         new AssertStmt(BoolConstExpr::create(false), false, false, false, true);
     assertStmt->setSourceLocs(currentSourceLocs);
     BBB->addStmt(assertStmt);
+    // The result is irrelevant, but the caller requires one
     return BVConstExpr::createZero(AtomicTy.width);
   } else {
     ErrorReporter::reportFatalError("Unhandled atomic array type");
@@ -1318,34 +1319,32 @@ ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
 
   assert(SrcRangeTy.width % 8 == 0);
   assert(DstRangeTy.width % 8 == 0);
-  assert(SrcRangeTy == DstRangeTy);
 
-  Type DstArgRangeTy =
-      TM->translateType(CI->getOperand(0)->getType()->getPointerElementType());
   Type SrcArgRangeTy =
       TM->translateType(CI->getOperand(1)->getType()->getPointerElementType());
+#ifndef NDEBUG
+  Type DstArgRangeTy =
+      TM->translateType(CI->getOperand(0)->getType()->getPointerElementType());
   assert(DstArgRangeTy == SrcArgRangeTy);
+#endif
 
+  ref<Expr> result;
   ref<Expr> SrcDiv = Expr::createExactBVUDiv(SrcOfs, SrcRangeTy.width / 8);
   ref<Expr> DstDiv = Expr::createExactBVUDiv(DstOfs, DstRangeTy.width / 8);
-  // Compensate for the modelled width being smaller than the width expected by
-  // the function. In case the modelled width is larger, we will model both the
-  // source and destinations as byte-arrays (this is handled by the if-statement
-  // at the bottom of this function).
-  ref<Expr> NumElements = Args[2];
-  if (SrcRangeTy.width < SrcArgRangeTy.width) {
-    ref<Expr> NumElementsFactor = BVConstExpr::create(
-        NumElements->getType().width, SrcArgRangeTy.width / SrcRangeTy.width);
-    NumElements = BVMulExpr::create(NumElements, NumElementsFactor);
-  }
-  // Create a result expression; this will be incorrect if the condition of the
-  // if-statement below is true. However, in that case we need to do additional
-  // modelling, which means we eventually re-execute this function but with both
-  // the source and destination arrays modelled as byte-arrays.
-  ref<Expr> result = AsyncWorkGroupCopyExpr::create(
-      DstArr, DstOfs, SrcArr, SrcOfs, NumElements, Args[3]);
-  if (DstRangeTy.width > DstArgRangeTy.width || DstDiv.isNull() ||
-      SrcRangeTy.width > SrcArgRangeTy.width || SrcDiv.isNull()) {
+  if (SrcRangeTy == DstRangeTy && SrcRangeTy.width <= SrcArgRangeTy.width &&
+      !SrcDiv.isNull() && !DstDiv.isNull()) {
+    // Compensate for the modelled width being smaller than the width expected
+    // by the function. In case the modelled width is larger, we model both
+    // the source and destinations as byte-arrays.
+    ref<Expr> NumElements = Args[2];
+    if (SrcRangeTy.width < SrcArgRangeTy.width) {
+      ref<Expr> NumElementsFactor = BVConstExpr::create(
+          NumElements->getType().width, SrcArgRangeTy.width / SrcRangeTy.width);
+      NumElements = BVMulExpr::create(NumElements, NumElementsFactor);
+    }
+    result = AsyncWorkGroupCopyExpr::create(DstArr, DstDiv, SrcArr, SrcDiv,
+                                            NumElements, Args[3]);
+  } else {
     TM->NeedAdditionalByteArrayModels = true;
     std::set<GlobalArray *> Globals;
     if (SrcArr->computeArrayCandidates(Globals) &&
@@ -1357,6 +1356,9 @@ ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
     } else {
       TM->NextModelAllAsByteArray = true;
     }
+    // The result is irrelevant, but the caller requires one
+    Type HandleTy = TM->translateType(CI->getType());
+    result = BVConstExpr::createZero(HandleTy.width);
   }
 
   return result;
@@ -1365,28 +1367,37 @@ ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleWaitGroupEvents(bugle::BasicBlock *BBB,
                                                    llvm::CallInst *CI,
                                                    const ExprVec &Args) {
-  if (auto BVCE = dyn_cast<BVConstExpr>(Args[0])) {
-    if(auto Ptr = dyn_cast<PointerExpr>(Args[1])) {
-      for (unsigned i = 0; i < BVCE->getValue().getZExtValue(); ++i) {
-        auto Off = BVAddExpr::create(
-            Ptr->getOffset(), BVConstExpr::create(TM->BM->getPointerWidth(), i));
-        auto PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange());
-        Type ArrRangeTy = PtrArr->getType().range();
-        auto LE = LoadExpr::create(Ptr->getArray(), Off, ArrRangeTy, true);
-        addEvalStmt(BBB, CI, LE);
-        BBB->addEvalStmt(WaitGroupEventExpr::create(LE));
-      }
-      return 0;
-    } else {
-      ErrorReporter::reportImplementationLimitation(
-          "could not process the event array parameter passed to 'wait_group_events'");
-      return 0;
-    }
-  } else {
+  auto NumEvents = dyn_cast<BVConstExpr>(Args[0]);
+  if (!NumEvents) {
+    // Could emit loop
     ErrorReporter::reportImplementationLimitation(
-        "'wait_group_events' with a variable-sized set of events not supported");
-    return 0;
+        "wait_group_events with a variable-sized set of events not supported");
   }
+
+  Type EventsArgRangeTy =
+      TM->translateType(CI->getOperand(1)->getType()->getPointerElementType());
+
+  ref<Expr> Events = Args[1],
+            EventsPtrArr = ArrayIdExpr::create(Events, EventsArgRangeTy),
+            EventsPtrOfs = ArrayOffsetExpr::create(Events);
+  Type EventsRangeTy = EventsPtrArr->getType().range();
+
+  if (EventsRangeTy != EventsArgRangeTy) {
+    // Could recombine by concatenating
+    ErrorReporter::reportImplementationLimitation(
+        "wait_group_events with cast set of events not supported");
+  }
+
+  for (unsigned i = 0; i < NumEvents->getValue().getZExtValue(); ++i) {
+    auto Off = BVAddExpr::create(
+        EventsPtrOfs, BVConstExpr::create(TM->BM->getPointerWidth(), i));
+    auto LE =
+        LoadExpr::create(EventsPtrArr, Off, EventsRangeTy, LoadsAreTemporal);
+    addEvalStmt(BBB, CI, LE);
+    BBB->addEvalStmt(WaitGroupEventExpr::create(LE));
+  }
+
+  return 0;
 }
 
 ref<Expr> TranslateFunction::handleCeil(bugle::BasicBlock *BBB,

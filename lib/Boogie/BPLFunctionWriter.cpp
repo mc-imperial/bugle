@@ -173,7 +173,6 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         OS << ");";
       });
     } else if (auto AWGCE = dyn_cast<AsyncWorkGroupCopyExpr>(ES->getExpr())) {
-
       auto DstArray = AWGCE->getDst().get();
       auto DstOffset = AWGCE->getDstOffset().get();
       auto SrcArray = AWGCE->getSrc().get();
@@ -189,43 +188,41 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         GlobalsSrc.insert(MW->M->global_begin(), MW->M->global_end());
       }
 
-      if (GlobalsDst.size() == 1 && GlobalsSrc.size() == 1) {
-        auto dst = *GlobalsDst.begin();
-        auto src = *GlobalsSrc.begin();
-
-        assert(dst->getRangeType() == src->getRangeType());
-
-        MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-          OS << "procedure {:async_work_group_copy} _ASYNC_WORK_GROUP_COPY_"
-             << dst->getRangeType().width
-             << "(dstOffset : bv" << DstOffset->getType().width
-             << ", src : [bv" 
-             << MW->M->getPointerWidth() << "]bv" << src->getRangeType().width
-             << ", srcOffset : bv" << SrcOffset->getType().width
-             << ", size : bv" << MW->M->getPointerWidth()
-             << ", handle : bv" << MW->M->getPointerWidth()
-             << ") returns (handle' : bv" << MW->M->getPointerWidth()
-             << ", dst : [bv" << MW->M->getPointerWidth() << "]bv"
-             << dst->getRangeType().width << ")";
-        });
-        writeSourceLocsMarker(OS, ES->getSourceLocs(), 2);
-        OS << "  ";
-        OS << "call {:async_work_group_copy} v" << id
-           << ", $$" << dst->getName() << " := _ASYNC_WORK_GROUP_COPY_"
-           << dst->getRangeType().width << "(";
-        writeExpr(OS, DstOffset);
-        OS << ", "
-           << "$$" << src->getName() << ", ";
-        writeExpr(OS, SrcOffset);
-        OS << ", ";
-        writeExpr(OS, AWGCE->getSize().get());
-        OS << ", ";
-        writeExpr(OS, AWGCE->getHandle().get());
-        OS << ");\n";
-      } else {
+      if (GlobalsDst.size() != 1 || GlobalsSrc.size() != 1) {
         ErrorReporter::reportImplementationLimitation(
-            "Async work group copies on pointers not yet supported");
+            "Async work group copies on pointers not supported");
       }
+
+      auto dst = *GlobalsDst.begin();
+      auto src = *GlobalsSrc.begin();
+      assert(dst->getRangeType() == src->getRangeType());
+
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "procedure {:async_work_group_copy} _ASYNC_WORK_GROUP_COPY_"
+           << dst->getRangeType().width
+           << "(dstOffset : bv" << DstOffset->getType().width
+           << ", src : [bv"
+           << MW->M->getPointerWidth() << "]bv" << src->getRangeType().width
+           << ", srcOffset : bv" << SrcOffset->getType().width
+           << ", size : bv" << MW->M->getPointerWidth()
+           << ", handle : bv" << MW->M->getPointerWidth()
+           << ") returns (handle' : bv" << MW->M->getPointerWidth()
+           << ", dst : [bv" << MW->M->getPointerWidth() << "]bv"
+           << dst->getRangeType().width << ")";
+      });
+      writeSourceLocsMarker(OS, ES->getSourceLocs(), 2);
+      OS << "  ";
+      OS << "call {:async_work_group_copy} v" << id << ", $$" << dst->getName()
+         << " := _ASYNC_WORK_GROUP_COPY_" << dst->getRangeType().width << "(";
+      writeExpr(OS, DstOffset);
+      OS << ", "
+         << "$$" << src->getName() << ", ";
+      writeExpr(OS, SrcOffset);
+      OS << ", ";
+      writeExpr(OS, AWGCE->getSize().get());
+      OS << ", ";
+      writeExpr(OS, AWGCE->getHandle().get());
+      OS << ");\n";
     } else if (auto WGEE = dyn_cast<WaitGroupEventExpr>(ES->getExpr())) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << "procedure {:wait_group_events} _WAIT_GROUP_EVENTS(handle : bv"
