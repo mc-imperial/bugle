@@ -20,6 +20,17 @@ static cl::opt<bool> ModelBVAsByteArray(
     cl::desc("Model each array composed of bit vector elements as an array of "
              "bit vectors of size 8"));
 
+
+TranslateModule::AddressSpaceMap::AddressSpaceMap(unsigned Global,
+                                                  unsigned GroupShared,
+                                                  unsigned Constant)
+: standard(0), global(Global), group_shared(GroupShared),
+constant(Constant) {
+  assert(Global != 0 && Global != GroupShared && Global != Constant);
+  assert(GroupShared != 0 && GroupShared != Global && GroupShared != Constant);
+  assert(Constant != 0 && Constant != Global && Constant != GroupShared);
+}
+
 ref<Expr> TranslateModule::translateConstant(Constant *C) {
   ref<Expr> &E = ConstantMap[C];
   if (E.isNull())
@@ -728,14 +739,4 @@ void TranslateModule::translate() {
     ModelPtrAsGlobalOffset = NextModelPtrAsGlobalOffset;
     PtrMayBeNull = NextPtrMayBeNull;
   } while (NeedAdditionalByteArrayModels || NeedAdditionalGlobalOffsetModels);
-}
-
-TranslateModule::AddressSpaceMap::AddressSpaceMap(unsigned Global,
-                                                  unsigned GroupShared,
-                                                  unsigned Constant)
-    : standard(0), global(Global), group_shared(GroupShared),
-      constant(Constant) {
-  assert(Global != 0 && Global != GroupShared && Global != Constant);
-  assert(GroupShared != 0 && GroupShared != Global && GroupShared != Constant);
-  assert(Constant != 0 && Constant != Global && Constant != GroupShared);
 }
