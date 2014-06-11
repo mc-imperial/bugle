@@ -10,7 +10,6 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
 #include <cmath>
-#include <sstream>
 
 using namespace bugle;
 
@@ -226,14 +225,14 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
                << "  assume ";
 
             {
-              std::stringstream ss;
-              ss << "BV" << (width + 1) << "_ADD("
+              std::string S; llvm::raw_string_ostream SS(S);
+              SS << "BV" << (width + 1) << "_ADD("
                  << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "x")
                  << ", "
                  << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "y")
                  << ")";
 
-              OS << MW->IntRep->getExtractExpr(ss.str(), width + 1, width);
+              OS << MW->IntRep->getExtractExpr(SS.str(), width + 1, width);
             }
 
             OS << " == " << MW->IntRep->getLiteral(0, 1) << ";\n"
@@ -243,9 +242,9 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
                << " ==> ";
 
             {
-              std::stringstream ss;
-              ss << "BV" << width << "_ADD(x, y)";
-              OS << MW->IntRep->getExtractExpr(ss.str(), width, width - 1);
+              std::string S; llvm::raw_string_ostream SS(S);
+              SS << "BV" << width << "_ADD(x, y)";
+              OS << MW->IntRep->getExtractExpr(SS.str(), width, width - 1);
             }
 
             OS << " == " << MW->IntRep->getExtractExpr("x", width, width - 1)
@@ -256,8 +255,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
           false);
     } else {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-                           std::stringstream ss;
-                           ss << "BV" << (width + 1) << "_ADD("
+                           std::string S; llvm::raw_string_ostream SS(S);
+                           SS << "BV" << (width + 1) << "_ADD("
                               << MW->IntRep->getConcatExpr(
                                      MW->IntRep->getLiteral(0, 1), "x") << ", "
                               << MW->IntRep->getConcatExpr(
@@ -268,7 +267,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
                               << ") returns (z : " << MW->IntRep->getType(width)
                               << ") {\n"
                               << "  assume "
-                              << MW->IntRep->getExtractExpr(ss.str(), width + 1,
+                              << MW->IntRep->getExtractExpr(SS.str(), width + 1,
                                                             width)
                               << " == " << MW->IntRep->getLiteral(0, 1) << ";\n"
                               << "  z := BV" << width << "_ADD(x, y);\n"
@@ -288,17 +287,17 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     OS << ")";
 
     unsigned b = (unsigned)std::ceil(std::log((float)n) / std::log(2.0));
-    std::stringstream ss;
-    ss << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, b), "v0");
-    std::string lhs = ss.str();
+    std::string S; llvm::raw_string_ostream SS(S);
+    SS << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, b), "v0");
+    std::string lhs = SS.str();
     for (unsigned i = 1; i < n; ++i) {
-      std::stringstream ss;
-      std::stringstream vi;
-      vi << "v" << i;
-      ss << "BV" << (width + b) << "_ADD(" << lhs << ", "
-         << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, b), vi.str())
+      std::string S; llvm::raw_string_ostream SS(S);
+      std::string VI; llvm::raw_string_ostream VIS(VI);
+      VIS << "v" << i;
+      SS << "BV" << (width + b) << "_ADD(" << lhs << ", "
+         << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, b), VIS.str())
          << ")";
-      lhs = ss.str();
+      lhs = SS.str();
     }
 
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {

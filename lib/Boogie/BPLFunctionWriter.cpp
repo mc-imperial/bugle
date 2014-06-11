@@ -158,13 +158,13 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         assert(AE->getType() == GA->getRangeType());
         OS << std::string(indent, ' ');
         OS << "call {:atomic} ";
-        OS << "{:atomic_function \"" << AE->getFunction() << "\"}";
+        OS << "{:atomic_function \"" << AE->getFunction() << "\"} ";
         for (unsigned int i = 0; i < AE->getArgs().size(); i++) {
           OS << "{:arg" << (i + 1) << " ";
           writeExpr(OS, AE->getArgs()[i].get());
-          OS << "}";
+          OS << "} ";
         }
-        OS << "{:parts " << AE->getParts() << "}";
+        OS << "{:parts " << AE->getParts() << "} ";
         OS << "{:part " << AE->getPart() << "} ";
         OS << "v" << id << ", $$" << GA->getName();
         OS << " := _ATOMIC_OP" << GA->getRangeType().width;
@@ -375,7 +375,7 @@ void BPLFunctionWriter::writeVar(llvm::raw_ostream &OS, Var *V) {
 
 void BPLFunctionWriter::write() {
   OS << "procedure ";
-  OS << "{:original_name \"" << F->getOriginalName() << "\"} ";
+  OS << "{:source_name \"" << F->getSourceName() << "\"} ";
   for (auto i = F->attrib_begin(), e = F->attrib_end(); i != e; ++i) {
     OS << "{:" << *i << "} ";
   }

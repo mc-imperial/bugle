@@ -90,6 +90,8 @@ private:
 
   Type translateType(llvm::Type *T);
   Type translateArrayRangeType(llvm::Type *T);
+  Type translateSourceArrayRangeType(llvm::Type *T);
+  bool sourceArrayIsMultiDimensional(llvm::Type *T, bool IsGlobal);
 
   ref<Expr> translateGEP(ref<Expr> Ptr, klee::gep_type_iterator begin,
                          klee::gep_type_iterator end,
@@ -126,8 +128,8 @@ public:
   }
   static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
                               SourceLanguage SL, std::set<std::string> &EPS);
-  std::string getOriginalFunctionName(llvm::Function *F);
-  std::string getOriginalGlobalArrayName(llvm::Value *V);
+  std::string getSourceFunctionName(llvm::Function *F);
+  std::string getSourceGlobalArrayName(llvm::Value *V);
   void translate();
   bugle::Module *takeModule() { return BM; }
 

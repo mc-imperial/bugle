@@ -10,17 +10,24 @@ namespace bugle {
 
 class GlobalArray {
   std::string name;
-  std::string originalName;
   Type rangeType;
+  std::string sourceName;
+  Type sourceRangeType;
+  bool sourceIsMultiDimensional;
   std::set<std::string> attributes;
 
 public:
-  GlobalArray(const std::string &name, const std::string &originalName,
-              Type rangeType)
-      : name(name), originalName(originalName), rangeType(rangeType) {}
+  GlobalArray(const std::string &name, Type rangeType,
+              const std::string &sourceName, Type sourceRangeType,
+              bool sourceIsMultiDimensional)
+      : name(name), rangeType(rangeType), sourceName(sourceName),
+        sourceRangeType(sourceRangeType),
+        sourceIsMultiDimensional(sourceIsMultiDimensional) {}
   const std::string &getName() const { return name; }
-  const std::string &getOriginalName() const { return originalName; }
   Type getRangeType() const { return rangeType; }
+  const std::string &getSourceName() const { return sourceName; }
+  Type getSourceRangeType() const { return sourceRangeType; }
+  bool isSourceMultiDimensional() const { return sourceIsMultiDimensional; }
   void addAttribute(const std::string &attrib) { attributes.insert(attrib); }
 
   std::set<std::string>::const_iterator attrib_begin() const {

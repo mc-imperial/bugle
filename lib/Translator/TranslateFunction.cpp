@@ -20,7 +20,6 @@
 #include "llvm/Support/CFG.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/Support/raw_ostream.h"
-#include <sstream>
 
 using namespace bugle;
 using namespace llvm;
@@ -381,14 +380,15 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
                                      "uint", "long",  "ulong", "float",  ""};
         for (unsigned i = 0; types[i] != ""; ++i) {
           for (unsigned width = 1; width <= 16; width *= 2) {
-            std::stringstream ss;
+            std::string S;
+            llvm::raw_string_ostream SS(S);
             if (width > 1) {
-              ss << width;
+              SS << width;
             }
             fns["__async_work_group_copy___global_to___local_" + types[i] +
-                ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
+                SS.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
             fns["__async_work_group_copy___local_to___global_" + types[i] +
-                ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
+                SS.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
           }
         }
       }
@@ -993,7 +993,7 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
     std::string S = F->getName().str();
     llvm::raw_string_ostream SS(S);
     SS << (CI->getNumArgOperands() - 1);
-    BF = TM->BM->addFunction(SS.str(), TM->getOriginalFunctionName(F));
+    BF = TM->BM->addFunction(SS.str(), TM->getSourceFunctionName(F));
     BarrierInvariants[CI->getNumArgOperands()] = BF;
 
     int count = 0;
@@ -1032,7 +1032,7 @@ TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB,
     std::string S = F->getName().str();
     llvm::raw_string_ostream SS(S);
     SS << ((CI->getNumArgOperands() - 1) / 2);
-    BF = TM->BM->addFunction(SS.str(), TM->getOriginalFunctionName(F));
+    BF = TM->BM->addFunction(SS.str(), TM->getSourceFunctionName(F));
     BinaryBarrierInvariants[CI->getNumArgOperands()] = BF;
 
     int count = 0;
