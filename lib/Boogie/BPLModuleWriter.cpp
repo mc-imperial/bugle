@@ -132,8 +132,7 @@ void BPLModuleWriter::write() {
   }
 
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
-    OS << "var ";
-    OS << "{:original_name \"" << (*i)->getOriginalName() << "\"} ";
+    OS << "var {:source_name \"" << (*i)->getSourceName() << "\"} ";
     for (auto ai = (*i)->attrib_begin(), ae = (*i)->attrib_end(); ai != ae;
          ++ai) {
       OS << "{:" << *ai << "} ";
@@ -145,21 +144,27 @@ void BPLModuleWriter::write() {
     OS << ";\n";
 
     if ((*i)->isGlobalOrGroupShared()) {
-      std::string attributes = " {:race_checking} ";
+      std::string attributes;
+      attributes += " {:race_checking} ";
       if ((*i)->isGlobal())
         attributes += "{:global} ";
       else if ((*i)->isGroupShared())
         attributes += "{:group_shared} ";
 
-      OS << "var" << attributes << "{:elem_width " << (*i)->getRangeType().width
-         << "} "
-         << "_READ_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
-      OS << "var" << attributes << "{:elem_width " << (*i)->getRangeType().width
-         << "} "
-         << "_WRITE_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
-      OS << "var" << attributes << "{:elem_width " << (*i)->getRangeType().width
-         << "} "
-         << "_ATOMIC_HAS_OCCURRED_$$" << (*i)->getName() << " : bool;\n";
+      std::string A;
+      llvm::raw_string_ostream AS(A);
+      AS << attributes << "{:elem_width " << (*i)->getRangeType().width << "} "
+         << "{:source_elem_width " << (*i)->getSourceRangeType().width << "} ";
+
+      if ((*i)->isSourceMultiDimensional())
+        AS << "{:source_is_multi_dimensional} ";
+
+      OS << "var" << AS.str() << "_READ_HAS_OCCURRED_$$" << (*i)->getName()
+         << " : bool;\n";
+      OS << "var" << AS.str() << "_WRITE_HAS_OCCURRED_$$" << (*i)->getName()
+         << " : bool;\n";
+      OS << "var" << AS.str() << "_ATOMIC_HAS_OCCURRED_$$" << (*i)->getName()
+         << " : bool;\n";
 
       switch (RaceInst) {
       case RaceInstrumenter::Standard:

@@ -30,17 +30,19 @@ class Module {
 
 public:
   Function *addFunction(const std::string &name,
-                        const std::string &originalName) {
-    Function *F = new Function(functionNames.makeName(makeBoogieIdent(name)),
-                               originalName);
+                        const std::string &sourceName) {
+    Function *F =
+        new Function(functionNames.makeName(makeBoogieIdent(name)), sourceName);
     functions.push_back(F);
     return F;
   }
 
-  GlobalArray *addGlobal(const std::string &name,
-                         const std::string &originalName, Type rangeType) {
-    GlobalArray *GA = new GlobalArray(
-        globalNames.makeName(makeBoogieIdent(name)), originalName, rangeType);
+  GlobalArray *addGlobal(const std::string &name, Type rangeType,
+                         const std::string &sourceName, Type sourceRangeType,
+                         bool sourceIsMultiDimensional) {
+    GlobalArray *GA =
+        new GlobalArray(globalNames.makeName(makeBoogieIdent(name)), rangeType,
+                        sourceName, sourceRangeType, sourceIsMultiDimensional);
     globals.push_back(GA);
     return GA;
   }

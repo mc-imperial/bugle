@@ -20,6 +20,16 @@ static cl::opt<bool> ModelBVAsByteArray(
     cl::desc("Model each array composed of bit vector elements as an array of "
              "bit vectors of size 8"));
 
+TranslateModule::AddressSpaceMap::AddressSpaceMap(unsigned Global,
+                                                  unsigned GroupShared,
+                                                  unsigned Constant)
+    : standard(0), global(Global), group_shared(GroupShared),
+      constant(Constant) {
+  assert(Global != 0 && Global != GroupShared && Global != Constant);
+  assert(GroupShared != 0 && GroupShared != Global && GroupShared != Constant);
+  assert(Constant != 0 && Constant != Global && Constant != GroupShared);
+}
+
 ref<Expr> TranslateModule::translateConstant(Constant *C) {
   ref<Expr> &E = ConstantMap[C];
   if (E.isNull())
@@ -212,7 +222,7 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
   if (auto F = dyn_cast<llvm::Function>(C)) {
     auto FI = FunctionMap.find(F);
     if (FI == FunctionMap.end()) {
-      std::string DN = getOriginalGlobalArrayName(F);
+      std::string DN = getSourceGlobalArrayName(F);
       std::string msg = "Unsupported function pointer '" + DN + "'";
       ErrorReporter::reportImplementationLimitation(msg);
     }
@@ -263,8 +273,9 @@ bugle::Type TranslateModule::translateType(llvm::Type *T) {
       K = Type::FunctionPointer;
     else
       K = Type::Pointer;
-  } else
+  } else {
     K = Type::BV;
+  }
 
   return Type(K, TD.getTypeSizeInBits(T));
 }
@@ -290,6 +301,25 @@ bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
   return translateType(T);
 }
 
+bugle::Type TranslateModule::translateSourceArrayRangeType(llvm::Type *T) {
+  if (auto AT = dyn_cast<ArrayType>(T))
+    return translateArrayRangeType(AT->getElementType());
+
+  return translateType(T);
+}
+
+bool TranslateModule::sourceArrayIsMultiDimensional(llvm::Type *T,
+                                                    bool IsGlobal) {
+  if (auto AT = dyn_cast<ArrayType>(T)) {
+    if (IsGlobal)
+      return sourceArrayIsMultiDimensional(AT->getElementType(), false);
+    else
+      return true;
+  }
+
+  return false;
+}
+
 bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
   GlobalArray *&GA = ValueGlobalMap[V];
   if (GA)
@@ -306,7 +336,11 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
       T = Type(Type::BV, 8);
     }
   }
-  GA = BM->addGlobal(V->getName(), getOriginalGlobalArrayName(V), T);
+  auto ST = translateSourceArrayRangeType(PT->getElementType());
+  auto IMD = sourceArrayIsMultiDimensional(PT->getElementType(),
+                                           isa<GlobalVariable>(V));
+  GA = BM->addGlobal(V->getName(), T, getSourceGlobalArrayName(V), ST, IMD);
+
   addGlobalArrayAttribs(GA, PT);
   GlobalValueMap[GA] = V;
   return GA;
@@ -402,7 +436,7 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
   return EPS.find(F->getName()) != EPS.end();
 }
 
-std::string TranslateModule::getOriginalFunctionName(llvm::Function *F) {
+std::string TranslateModule::getSourceFunctionName(llvm::Function *F) {
   auto SS = DIF.subprograms();
   for (auto i = SS.begin(), e = SS.end(); i != e; ++i) {
     DISubprogram subprogram(*i);
@@ -414,7 +448,7 @@ std::string TranslateModule::getOriginalFunctionName(llvm::Function *F) {
   return F->getName().str();
 }
 
-std::string TranslateModule::getOriginalGlobalArrayName(llvm::Value *V) {
+std::string TranslateModule::getSourceGlobalArrayName(llvm::Value *V) {
   GlobalVariable *GV = dyn_cast<GlobalVariable>(V);
   if (!GV)
     return V->getName();
@@ -669,7 +703,7 @@ void TranslateModule::translate() {
         continue;
 
       auto BF = FunctionMap[&*i] =
-          BM->addFunction(i->getName(), getOriginalFunctionName(i));
+          BM->addFunction(i->getName(), getSourceFunctionName(i));
 
       auto RT = i->getFunctionType()->getReturnType();
       if (!RT->isVoidTy())
@@ -729,14 +763,4 @@ void TranslateModule::translate() {
     ModelPtrAsGlobalOffset = NextModelPtrAsGlobalOffset;
     PtrMayBeNull = NextPtrMayBeNull;
   } while (NeedAdditionalByteArrayModels || NeedAdditionalGlobalOffsetModels);
-}
-
-TranslateModule::AddressSpaceMap::AddressSpaceMap(unsigned Global,
-                                                  unsigned GroupShared,
-                                                  unsigned Constant)
-    : standard(0), global(Global), group_shared(GroupShared),
-      constant(Constant) {
-  assert(Global != 0 && Global != GroupShared && Global != Constant);
-  assert(GroupShared != 0 && GroupShared != Global && GroupShared != Constant);
-  assert(Constant != 0 && Constant != Global && Constant != GroupShared);
 }

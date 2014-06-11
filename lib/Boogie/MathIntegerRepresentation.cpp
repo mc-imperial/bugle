@@ -1,6 +1,6 @@
 #include "bugle/IntegerRepresentation.h"
 #include "llvm/Support/ErrorHandling.h"
-#include <sstream>
+#include "llvm/Support/raw_ostream.h"
 
 namespace bugle {
 
@@ -14,32 +14,32 @@ std::string MathIntegerRepresentation::getLiteralSuffix(unsigned bitWidth) {
 
 std::string MathIntegerRepresentation::getLiteral(unsigned literal,
                                                   unsigned bitWidth) {
-  std::stringstream ss;
-  ss << literal;
-  return ss.str();
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << literal;
+  return SS.str();
 }
 
 std::string MathIntegerRepresentation::getZeroExtend(unsigned FromWidth,
                                                      unsigned ToWidth) {
-  std::stringstream ss;
-  ss << "function {:inline true} BV" << FromWidth << "_ZEXT" << ToWidth
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "function {:inline true} BV" << FromWidth << "_ZEXT" << ToWidth
      << "(x : int) : int {\n"
      << "  x\n"
      << "}";
-  return ss.str();
+  return SS.str();
 }
 
 std::string MathIntegerRepresentation::getSignExtend(unsigned FromWidth,
                                                      unsigned ToWidth) {
-  std::stringstream ss;
-  ss << "function BV" << FromWidth << "_SEXT" << ToWidth << "(int) : int";
-  return ss.str();
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "function BV" << FromWidth << "_SEXT" << ToWidth << "(int) : int";
+  return SS.str();
 }
 
 std::string MathIntegerRepresentation::getArithmeticBinary(
     std::string Name, bugle::Expr::Kind Kind, unsigned Width) {
-  std::stringstream ss;
-  ss << "function ";
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "function ";
 
   switch (Kind) {
   case Expr::BVAdd:
@@ -61,75 +61,75 @@ std::string MathIntegerRepresentation::getArithmeticBinary(
     default:
       llvm_unreachable("huh?");
     }
-    ss << "{:inline true} BV" << Width << "_" << Name
+    SS << "{:inline true} BV" << Width << "_" << Name
        << "(x : int, y : int) : int {\n"
        << "  x " << infixOp << " y\n"
        << "}";
-    return ss.str();
+    return SS.str();
   default:
     /* do nothing */
     break;
   }
 
   if (Kind == Expr::BVAnd) {
-    ss << "{:inline true} BV" << Width << "_" << Name
+    SS << "{:inline true} BV" << Width << "_" << Name
        << "(x : int, y : int) : int {\n"
        << "  if x == y then x "
        << "else (if x == 0 || y == 0 then 0 "
        << "else BV" << Width << "_" << Name << "_UF(x, y))\n"
        << "}\n"
        << "function BV" << Width << "_" << Name << "_UF(int, int) : int;";
-    return ss.str();
+    return SS.str();
   }
 
   if (Kind == Expr::BVOr) {
-    ss << "{:inline true} BV" << Width << "_" << Name
+    SS << "{:inline true} BV" << Width << "_" << Name
        << "(x : int, y : int) : int {\n"
        << "  if x == y then x "
        << "else (if x == 0 then y else (if y == 0 then x "
        << "else BV" << Width << "_" << Name << "_UF(x, y)))\n"
        << "}\n"
        << "function BV" << Width << "_" << Name << "_UF(int, int) : int;";
-    return ss.str();
+    return SS.str();
   }
 
   if (Kind == Expr::BVXor) {
-    ss << "{:inline true} BV" << Width << "_" << Name
+    SS << "{:inline true} BV" << Width << "_" << Name
        << "(x : int, y : int) : int {\n";
 
     if (Width == 1) {
-      ss << "  if (x == 1 || x == -1) && (y == 1 || y == -1) then 0 else (\n"
+      SS << "  if (x == 1 || x == -1) && (y == 1 || y == -1) then 0 else (\n"
          << "    if (x == 1 || x == -1) && y == 0 then 1 else (\n"
          << "      if x == 0 && (y == 1 || y == -1) then 1 else (\n"
          << "        if x == y then 0 else BV" << Width << "_"
                                                << Name << "_UF(x, y))))\n";
     } else {
-      ss << "  if x == y then 0 "
+      SS << "  if x == y then 0 "
          << "else (if x == 0 then y else (if y == 0 then x "
          << "else BV" << Width << "_" << Name << "_UF(x, y)))\n";
     }
 
-    ss << "}\n"
+    SS << "}\n"
        << "function BV" << Width << "_" << Name << "_UF(int, int) : int;";
-    return ss.str();
+    return SS.str();
   }
 
   if (Kind == Expr::BVShl) {
-    ss << "{:inline true} BV" << Width << "_" << Name
+    SS << "{:inline true} BV" << Width << "_" << Name
        << "(x : int, y : int) : int {\n"
        << "  if x >= 0 && y == 1 then x*2 else BV" << Width << "_"
                                                    << Name << "_UF(x,y)\n"
        << "}\n"
        << "function BV" << Width << "_" << Name << "_UF(int, int) : int;";
-    return ss.str();
+    return SS.str();
   }
 
   switch (Kind) {
   case Expr::BVAShr:
   case Expr::BVLShr:
-    ss << " BV" << Width << "_" << Name
+    SS << " BV" << Width << "_" << Name
        << "(int, int) : int;";
-    return ss.str();
+    return SS.str();
   default:
     llvm_unreachable("huh?");
   }
@@ -152,12 +152,12 @@ std::string MathIntegerRepresentation::getBooleanBinary(std::string Name,
     llvm_unreachable("huh?");
   }
 
-  std::stringstream ss;
-  ss << "function {:inline true} BV" << Width << "_" << Name
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "function {:inline true} BV" << Width << "_" << Name
      << "(x : int, y : int) : bool {\n"
      << "  x " << infixOp << " y\n"
      << "}";
-  return ss.str();
+  return SS.str();
 }
 
 void MathIntegerRepresentation::printVal(llvm::raw_ostream &OS,
@@ -168,9 +168,9 @@ void MathIntegerRepresentation::printVal(llvm::raw_ostream &OS,
 std::string MathIntegerRepresentation::getExtractExpr(const std::string &Expr,
                                                       unsigned UpperBit,
                                                       unsigned LowerBit) {
-  std::stringstream ss;
-  ss << "BV_EXTRACT(" << Expr << ", " << UpperBit << ", " << LowerBit << ")";
-  return ss.str();
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "BV_EXTRACT(" << Expr << ", " << UpperBit << ", " << LowerBit << ")";
+  return SS.str();
 }
 
 bool MathIntegerRepresentation::abstractsExtract() { return true; }

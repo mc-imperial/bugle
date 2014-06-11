@@ -145,14 +145,14 @@ _FUNCTION_FROM_POINTER_TO_TYPE(read, bool)
 _FUNCTION_FROM_POINTER_TO_TYPE(write, bool)
 
 /* Read/write offset */
-_FUNCTION_FROM_POINTER_TO_TYPE(read_offset, size_t)
-_FUNCTION_FROM_POINTER_TO_TYPE(write_offset, size_t)
+_FUNCTION_FROM_POINTER_TO_TYPE(read_offset_bytes, size_t)
+_FUNCTION_FROM_POINTER_TO_TYPE(write_offset_bytes, size_t)
 
 /* Pointer base */
 _FUNCTION_FROM_POINTER_TO_TYPE(ptr_base, ptr_base_t)
 
 /* Pointer offset */
-_FUNCTION_FROM_POINTER_TO_TYPE(ptr_offset, size_t)
+_FUNCTION_FROM_POINTER_TO_TYPE(ptr_offset_bytes, size_t)
 
 /* Read/write set is empty */
 #define __no_read(p) !__read(p)

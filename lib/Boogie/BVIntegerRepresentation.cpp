@@ -1,7 +1,6 @@
 #include "bugle/IntegerRepresentation.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
-#include <sstream>
 
 namespace bugle {
 
@@ -10,34 +9,34 @@ std::string BVIntegerRepresentation::getType(unsigned bitWidth) {
 }
 
 std::string BVIntegerRepresentation::getLiteralSuffix(unsigned bitWidth) {
-  std::stringstream ss;
-  ss << "bv" << bitWidth;
-  return ss.str();
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "bv" << bitWidth;
+  return SS.str();
 }
 
 std::string BVIntegerRepresentation::getLiteral(unsigned literal,
                                                 unsigned bitWidth) {
-  std::stringstream ss;
-  ss << literal << getLiteralSuffix(bitWidth);
-  return ss.str();
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << literal << getLiteralSuffix(bitWidth);
+  return SS.str();
 }
 
 std::string BVIntegerRepresentation::getZeroExtend(unsigned FromWidth,
                                                    unsigned ToWidth) {
-  std::stringstream ss;
-  ss << "function {:bvbuiltin \"zero_extend " << (ToWidth - FromWidth)
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "function {:bvbuiltin \"zero_extend " << (ToWidth - FromWidth)
      << "\"} BV" << FromWidth << "_ZEXT" << ToWidth << "(bv" << FromWidth
      << ") : bv" << ToWidth << ";";
-  return ss.str();
+  return SS.str();
 }
 
 std::string BVIntegerRepresentation::getSignExtend(unsigned FromWidth,
                                                    unsigned ToWidth) {
-  std::stringstream ss;
-  ss << "function {:bvbuiltin \"sign_extend " << (ToWidth - FromWidth)
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "function {:bvbuiltin \"sign_extend " << (ToWidth - FromWidth)
      << "\"} BV" << FromWidth << "_SEXT" << ToWidth << "(bv" << FromWidth
      << ") : bv" << ToWidth;
-  return ss.str();
+  return SS.str();
 }
 
 std::string BVIntegerRepresentation::getArithmeticBinary(std::string Name,
@@ -62,10 +61,10 @@ std::string BVIntegerRepresentation::getArithmeticBinary(std::string Name,
     llvm_unreachable("huh?");
   }
 
-  std::stringstream ss;
-  ss << "function {:bvbuiltin \"" << SMTName << "\"} BV" << Width << "_" << Name
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "function {:bvbuiltin \"" << SMTName << "\"} BV" << Width << "_" << Name
      << "(bv" << Width << ", bv" << Width << ") : bv" << Width << ";";
-  return ss.str();
+  return SS.str();
 }
 
 std::string BVIntegerRepresentation::getBooleanBinary(std::string Name,
@@ -85,10 +84,10 @@ std::string BVIntegerRepresentation::getBooleanBinary(std::string Name,
     llvm_unreachable("huh?");
   }
 
-  std::stringstream ss;
-  ss << "function {:bvbuiltin \"" << SMTName << "\"} BV" << Width << "_" << Name
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "function {:bvbuiltin \"" << SMTName << "\"} BV" << Width << "_" << Name
      << "(bv" << Width << ", bv" << Width << ") : bool;";
-  return ss.str();
+  return SS.str();
 }
 
 void BVIntegerRepresentation::printVal(llvm::raw_ostream &OS,
@@ -100,9 +99,9 @@ void BVIntegerRepresentation::printVal(llvm::raw_ostream &OS,
 std::string BVIntegerRepresentation::getExtractExpr(const std::string &Expr,
                                                     unsigned UpperBit,
                                                     unsigned LowerBit) {
-  std::stringstream ss;
-  ss << Expr << "[" << UpperBit << ":" << LowerBit << "]";
-  return ss.str();
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << Expr << "[" << UpperBit << ":" << LowerBit << "]";
+  return SS.str();
 }
 
 bool BVIntegerRepresentation::abstractsExtract() { return false; }
@@ -121,8 +120,8 @@ std::string BVIntegerRepresentation::getConcat() {
 
 std::string BVIntegerRepresentation::getConcatExpr(const std::string &Lhs,
                                                    const std::string &Rhs) {
-  std::stringstream ss;
-  ss << Lhs << " ++ " << Rhs;
-  return ss.str();
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << Lhs << " ++ " << Rhs;
+  return SS.str();
 }
 }

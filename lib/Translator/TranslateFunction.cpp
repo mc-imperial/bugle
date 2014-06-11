@@ -20,7 +20,6 @@
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/raw_ostream.h"
-#include <sstream>
 
 using namespace bugle;
 using namespace llvm;
@@ -218,18 +217,18 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__write_local"] = &TranslateFunction::handleWriteHasOccurred;
     fns["__write_global"] = &TranslateFunction::handleWriteHasOccurred;
     fns["__write"] = &TranslateFunction::handleWriteHasOccurred;
-    fns["__read_offset_local"] = &TranslateFunction::handleReadOffset;
-    fns["__read_offset_global"] = &TranslateFunction::handleReadOffset;
-    fns["__read_offset"] = &TranslateFunction::handleReadOffset;
-    fns["__write_offset_local"] = &TranslateFunction::handleWriteOffset;
-    fns["__write_offset_global"] = &TranslateFunction::handleWriteOffset;
-    fns["__write_offset"] = &TranslateFunction::handleWriteOffset;
+    fns["__read_offset_bytes_local"] = &TranslateFunction::handleReadOffset;
+    fns["__read_offset_bytes_global"] = &TranslateFunction::handleReadOffset;
+    fns["__read_offset_bytes"] = &TranslateFunction::handleReadOffset;
+    fns["__write_offset_bytes_local"] = &TranslateFunction::handleWriteOffset;
+    fns["__write_offset_bytes_global"] = &TranslateFunction::handleWriteOffset;
+    fns["__write_offset_bytes"] = &TranslateFunction::handleWriteOffset;
     fns["__ptr_base_local"] = &TranslateFunction::handlePtrBase;
     fns["__ptr_base_global"] = &TranslateFunction::handlePtrBase;
     fns["__ptr_base"] = &TranslateFunction::handlePtrBase;
-    fns["__ptr_offset_local"] = &TranslateFunction::handlePtrOffset;
-    fns["__ptr_offset_global"] = &TranslateFunction::handlePtrOffset;
-    fns["__ptr_offset"] = &TranslateFunction::handlePtrOffset;
+    fns["__ptr_offset_bytes_local"] = &TranslateFunction::handlePtrOffset;
+    fns["__ptr_offset_bytes_global"] = &TranslateFunction::handlePtrOffset;
+    fns["__ptr_offset_bytes"] = &TranslateFunction::handlePtrOffset;
     fns["__array_snapshot_local"] = &TranslateFunction::handleArraySnapshot;
     fns["__array_snapshot_global"] = &TranslateFunction::handleArraySnapshot;
     fns["__array_snapshot"] = &TranslateFunction::handleArraySnapshot;
@@ -381,14 +380,15 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
                                      "uint", "long",  "ulong", "float",  ""};
         for (unsigned i = 0; types[i] != ""; ++i) {
           for (unsigned width = 1; width <= 16; width *= 2) {
-            std::stringstream ss;
+            std::string S;
+            llvm::raw_string_ostream SS(S);
             if (width > 1) {
-              ss << width;
+              SS << width;
             }
             fns["__async_work_group_copy___global_to___local_" + types[i] +
-                ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
+                SS.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
             fns["__async_work_group_copy___local_to___global_" + types[i] +
-                ss.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
+                SS.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
           }
         }
       }
@@ -993,7 +993,7 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
     std::string S = F->getName().str();
     llvm::raw_string_ostream SS(S);
     SS << (CI->getNumArgOperands() - 1);
-    BF = TM->BM->addFunction(SS.str(), TM->getOriginalFunctionName(F));
+    BF = TM->BM->addFunction(SS.str(), TM->getSourceFunctionName(F));
     BarrierInvariants[CI->getNumArgOperands()] = BF;
 
     int count = 0;
@@ -1032,7 +1032,7 @@ TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB,
     std::string S = F->getName().str();
     llvm::raw_string_ostream SS(S);
     SS << ((CI->getNumArgOperands() - 1) / 2);
-    BF = TM->BM->addFunction(SS.str(), TM->getOriginalFunctionName(F));
+    BF = TM->BM->addFunction(SS.str(), TM->getSourceFunctionName(F));
     BinaryBarrierInvariants[CI->getNumArgOperands()] = BF;
 
     int count = 0;
