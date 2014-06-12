@@ -523,7 +523,7 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V,
 
   if (isa<UndefValue>(V)) {
     ref<Expr> E = HavocExpr::create(TM->translateType(V->getType()));
-    BBB->addStmt(new EvalStmt(E));
+    BBB->addEvalStmt(E);
     return E;
   }
 
@@ -570,7 +570,7 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
   }
 
   if (!Vars.empty())
-    BBB->addStmt(new VarAssignStmt(Vars, Exprs));
+    BBB->addStmt(VarAssignStmt::create(Vars, Exprs));
 }
 
 SourceLocsRef TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
@@ -594,61 +594,73 @@ ref<Expr> TranslateFunction::handleNoop(bugle::BasicBlock *BBB,
   return 0;
 }
 
-void TranslateFunction::addAssertStmt(bugle::BasicBlock *BBB,
-                                      const ref<Expr> &Arg, bool isGlobal,
-                                      bool isCandidate, bool isInvariant) {
-  Stmt *assertStmt = new AssertStmt(Expr::createNeZero(Arg), isGlobal,
-                                    isCandidate, isInvariant, false);
-  assertStmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertStmt);
-}
-
 ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const ExprVec &Args) {
-  addAssertStmt(BBB, Args[0], false, false, false);
+  Stmt *assertStmt = AssertStmt::create(Expr::createNeZero(Args[0]),
+                                        /*global=*/false, /*candidate=*/false);
+  assertStmt->setSourceLocs(currentSourceLocs);
+  BBB->addStmt(assertStmt);
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleGlobalAssert(bugle::BasicBlock *BBB,
                                                 llvm::CallInst *CI,
                                                 const ExprVec &Args) {
-  addAssertStmt(BBB, Args[0], true, false, false);
+  Stmt *assertStmt = AssertStmt::create(Expr::createNeZero(Args[0]),
+                                        /*global=*/true, /*candidate=*/false);
+  assertStmt->setSourceLocs(currentSourceLocs);
+  BBB->addStmt(assertStmt);
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleCandidateAssert(bugle::BasicBlock *BBB,
                                                    llvm::CallInst *CI,
                                                    const ExprVec &Args) {
-  addAssertStmt(BBB, Args[0], false, true, false);
+  Stmt *assertStmt = AssertStmt::create(Expr::createNeZero(Args[0]),
+                                        /*global=*/false, /*candidate=*/true);
+  assertStmt->setSourceLocs(currentSourceLocs);
+  BBB->addStmt(assertStmt);
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleCandidateGlobalAssert(bugle::BasicBlock *BBB,
                                                          llvm::CallInst *CI,
                                                          const ExprVec &Args) {
-  addAssertStmt(BBB, Args[0], true, true, false);
+  Stmt *assertStmt = AssertStmt::create(Expr::createNeZero(Args[0]),
+                                        /*global=*/true, /*candidate=*/true);
+  assertStmt->setSourceLocs(currentSourceLocs);
+  BBB->addStmt(assertStmt);
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleInvariant(bugle::BasicBlock *BBB,
                                              llvm::CallInst *CI,
                                              const ExprVec &Args) {
-  addAssertStmt(BBB, Args[0], false, false, true);
+  Stmt *assertStmt = AssertStmt::createInvariant(
+      Expr::createNeZero(Args[0]), /*global=*/false, /*candidate=*/false);
+  assertStmt->setSourceLocs(currentSourceLocs);
+  BBB->addStmt(assertStmt);
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleGlobalInvariant(bugle::BasicBlock *BBB,
                                                    llvm::CallInst *CI,
                                                    const ExprVec &Args) {
-  addAssertStmt(BBB, Args[0], true, false, true);
+  Stmt *assertStmt = AssertStmt::createInvariant(
+      Expr::createNeZero(Args[0]), /*global=*/true, /*candidate=*/false);
+  assertStmt->setSourceLocs(currentSourceLocs);
+  BBB->addStmt(assertStmt);
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleCandidateInvariant(bugle::BasicBlock *BBB,
                                                       llvm::CallInst *CI,
                                                       const ExprVec &Args) {
-  addAssertStmt(BBB, Args[0], false, true, true);
+  Stmt *assertStmt = AssertStmt::createInvariant(
+      Expr::createNeZero(Args[0]), /*global=*/false, /*candidate=*/true);
+  assertStmt->setSourceLocs(currentSourceLocs);
+  BBB->addStmt(assertStmt);
   return 0;
 }
 
@@ -656,7 +668,10 @@ ref<Expr>
 TranslateFunction::handleCandidateGlobalInvariant(bugle::BasicBlock *BBB,
                                                   llvm::CallInst *CI,
                                                   const ExprVec &Args) {
-  addAssertStmt(BBB, Args[0], true, true, true);
+  Stmt *assertStmt = AssertStmt::createInvariant(
+      Expr::createNeZero(Args[0]), /*global=*/true, /*candidate=*/true);
+  assertStmt->setSourceLocs(currentSourceLocs);
+  BBB->addStmt(assertStmt);
   return 0;
 }
 
@@ -683,7 +698,8 @@ ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
                                               llvm::CallInst *CI,
                                               const ExprVec &Args) {
   Stmt *assertStmt =
-      new AssertStmt(BoolConstExpr::create(false), false, false, false, false);
+      AssertStmt::create(BoolConstExpr::create(false), /*global=*/false,
+                         /*candidate=*/false);
   assertStmt->setSourceLocs(currentSourceLocs);
   BBB->addStmt(assertStmt);
   return 0;
@@ -692,7 +708,7 @@ ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const ExprVec &Args) {
-  BBB->addStmt(new AssumeStmt(Expr::createNeZero(Args[0])));
+  BBB->addStmt(AssumeStmt::create(Expr::createNeZero(Args[0])));
   return 0;
 }
 
@@ -924,7 +940,7 @@ ref<Expr> TranslateFunction::handleArraySnapshot(bugle::BasicBlock *BBB,
   ref<Expr> dstArrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   ref<Expr> srcArrayIdExpr = ArrayIdExpr::create(Args[1], TM->defaultRange());
   ref<Expr> E = ArraySnapshotExpr::create(dstArrayIdExpr, srcArrayIdExpr);
-  BBB->addStmt(new EvalStmt(E));
+  BBB->addEvalStmt(E);
   if (dstArrayIdExpr->getType().range().isKind(Type::Unknown) ||
       srcArrayIdExpr->getType().range().isKind(Type::Unknown) ||
       dstArrayIdExpr->getType().range() != srcArrayIdExpr->getType().range())
@@ -960,17 +976,14 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
       ref<Expr> E = AtomicExpr::create(PtrArr, PtrOfs, AtomicArgs,
                                        CI->getCalledFunction()->getName(),
                                        NumElems, i + 1);
-      EvalStmt *ES = new EvalStmt(E);
-      ES->setSourceLocs(currentSourceLocs);
-      BBB->addStmt(ES);
+      addEvalStmt(BBB, E);
       Elems.push_back(E);
       PtrOfs = BVAddExpr::create(
           PtrOfs, BVConstExpr::create(TM->TD.getPointerSizeInBits(), 1));
     }
     result = Expr::createBVConcatN(Elems);
   } else if (ArrRangeTy == Type(Type::Any)) {
-    Stmt *assertStmt =
-        new AssertStmt(BoolConstExpr::create(false), false, false, false, true);
+    Stmt *assertStmt = AssertStmt::createBadAccess();
     assertStmt->setSourceLocs(currentSourceLocs);
     BBB->addStmt(assertStmt);
     // The result is irrelevant, but the caller requires one
@@ -1012,7 +1025,7 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
     BF->addAttribute("barrier_invariant");
   }
 
-  auto CS = new CallStmt(BF, Args);
+  auto CS = CallStmt::create(BF, Args);
   CS->setSourceLocs(currentSourceLocs);
   BBB->addStmt(CS);
   return 0;
@@ -1053,7 +1066,7 @@ TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB,
     BF->addAttribute("binary_barrier_invariant");
   }
 
-  auto CS = new CallStmt(BF, Args);
+  auto CS = CallStmt::create(BF, Args);
   CS->setSourceLocs(currentSourceLocs);
   BBB->addStmt(CS);
   return 0;
@@ -1087,8 +1100,7 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
   Type DstRangeTy = DstPtrArr->getType().range();
 
   if (DstRangeTy == Type(Type::Any)) {
-    Stmt *assertStmt =
-        new AssertStmt(BoolConstExpr::create(false), false, false, false, true);
+    Stmt *assertStmt = AssertStmt::createBadAccess();
     assertStmt->setSourceLocs(currentSourceLocs);
     BBB->addStmt(assertStmt);
     return 0;
@@ -1109,8 +1121,8 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
         ValExpr = BVToPtrExpr::create(ValExpr);
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
-      addEvalStmt(BBB, CI, ValExpr);
-      StoreStmt *SS = new StoreStmt(DstPtrArr, StoreOfs, ValExpr);
+      addEvalStmt(BBB, ValExpr);
+      Stmt *SS = StoreStmt::create(DstPtrArr, StoreOfs, ValExpr);
       SS->setSourceLocs(currentSourceLocs);
       BBB->addStmt(SS);
     }
@@ -1152,16 +1164,14 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
        DstRangeTy = DstPtrArr->getType().range();
 
   if (DstRangeTy == Type(Type::Any)) {
-    Stmt *assertStmt =
-        new AssertStmt(BoolConstExpr::create(false), false, false, false, true);
+    Stmt *assertStmt = AssertStmt::createBadAccess();
     assertStmt->setSourceLocs(currentSourceLocs);
     BBB->addStmt(assertStmt);
     return 0;
   }
 
   if (SrcRangeTy == Type(Type::Any)) {
-    Stmt *assertStmt =
-        new AssertStmt(BoolConstExpr::create(false), false, false, false, true);
+    Stmt *assertStmt = AssertStmt::createBadAccess();
     assertStmt->setSourceLocs(currentSourceLocs);
     BBB->addStmt(assertStmt);
     return 0;
@@ -1185,8 +1195,8 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
           LoadExpr::create(SrcPtrArr, LoadOfs, SrcRangeTy, LoadsAreTemporal);
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
-      addEvalStmt(BBB, CI, Val);
-      StoreStmt *SS = new StoreStmt(DstPtrArr, StoreOfs, Val);
+      addEvalStmt(BBB, Val);
+      Stmt *SS = StoreStmt::create(DstPtrArr, StoreOfs, Val);
       SS->setSourceLocs(currentSourceLocs);
       BBB->addStmt(SS);
     }
@@ -1210,7 +1220,8 @@ ref<Expr> TranslateFunction::handleTrap(bugle::BasicBlock *BBB,
                                         llvm::CallInst *CI,
                                         const ExprVec &Args) {
   Stmt *assertStmt =
-      new AssertStmt(BoolConstExpr::create(false), false, false, false, false);
+      AssertStmt::create(BoolConstExpr::create(false), /*global=*/false,
+                         /*candidate=*/false);
   assertStmt->setSourceLocs(currentSourceLocs);
   BBB->addStmt(assertStmt);
   return 0;
@@ -1393,7 +1404,7 @@ ref<Expr> TranslateFunction::handleWaitGroupEvents(bugle::BasicBlock *BBB,
         EventsPtrOfs, BVConstExpr::create(TM->BM->getPointerWidth(), i));
     auto LE =
         LoadExpr::create(EventsPtrArr, Off, EventsRangeTy, LoadsAreTemporal);
-    addEvalStmt(BBB, CI, LE);
+    addEvalStmt(BBB, LE);
     auto ES = BBB->addEvalStmt(WaitGroupEventExpr::create(LE));
     ES->setSourceLocs(currentSourceLocs);
   }
@@ -1517,7 +1528,7 @@ ref<Expr> TranslateFunction::handleAddNoovflUnsigned(bugle::BasicBlock *BBB,
                                                      llvm::CallInst *CI,
                                                      const ExprVec &Args) {
   ref<Expr> E = AddNoovflExpr::create(Args[0], Args[1], false);
-  BBB->addStmt(new EvalStmt(E));
+  BBB->addEvalStmt(E);
   return E;
 }
 
@@ -1525,7 +1536,7 @@ ref<Expr> TranslateFunction::handleAddNoovflSigned(bugle::BasicBlock *BBB,
                                                    llvm::CallInst *CI,
                                                    const ExprVec &Args) {
   ref<Expr> E = AddNoovflExpr::create(Args[0], Args[1], true);
-  BBB->addStmt(new EvalStmt(E));
+  BBB->addEvalStmt(E);
   return E;
 }
 
@@ -1579,8 +1590,7 @@ ref<Expr> TranslateFunction::handleAtomicHasTakenValue(bugle::BasicBlock *BBB,
   return result;
 }
 
-void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB,
-                                    llvm::Instruction *I, ref<Expr> E) {
+void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB, ref<Expr> E) {
   auto ES = BBB->addEvalStmt(E);
   if (ES)
     ES->setSourceLocs(currentSourceLocs);
@@ -1705,7 +1715,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               Div, BVConstExpr::create(Div->getType().width, i));
           ref<Expr> ValElem =
               LoadExpr::create(PtrArr, ElemOfs, LoadElTy, LoadsAreTemporal);
-          addEvalStmt(BBB, I, ValElem);
+          addEvalStmt(BBB, ValElem);
           if (LoadElTy.isKind(Type::Pointer))
             ValElem = PtrToBVExpr::create(ValElem);
           else if (LoadElTy.isKind(Type::FunctionPointer))
@@ -1724,7 +1734,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         ref<Expr> ValByte =
             LoadExpr::create(PtrArr, PtrByteOfs, ArrRangeTy, LoadsAreTemporal);
         BytesLoaded.push_back(ValByte);
-        addEvalStmt(BBB, I, ValByte);
+        addEvalStmt(BBB, ValByte);
       }
       E = Expr::createBVConcatN(BytesLoaded);
       if (LoadTy.isKind(Type::Pointer))
@@ -1781,29 +1791,29 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             ValElem = BVToPtrExpr::create(ValElem);
           else if (StoreElTy.isKind(Type::FunctionPointer))
             ValElem = BVToFuncPtrExpr::create(ValElem);
-          StoreStmt *SS = new StoreStmt(PtrArr, ElemOfs, ValElem);
+          Stmt *SS = StoreStmt::create(PtrArr, ElemOfs, ValElem);
           SS->setSourceLocs(currentSourceLocs);
           BBB->addStmt(SS);
         }
       } else {
-        StoreStmt *SS = new StoreStmt(PtrArr, Div, Val);
+        Stmt *SS = StoreStmt::create(PtrArr, Div, Val);
         SS->setSourceLocs(currentSourceLocs);
         BBB->addStmt(SS);
       }
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
       if (StoreTy.isKind(Type::Pointer)) {
         Val = PtrToBVExpr::create(Val);
-        addEvalStmt(BBB, I, Val);
+        addEvalStmt(BBB, Val);
       } else if (StoreTy.isKind(Type::FunctionPointer)) {
         Val = FuncPtrToBVExpr::create(Val);
-        addEvalStmt(BBB, I, Val);
+        addEvalStmt(BBB, Val);
       }
       for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
         ref<Expr> PtrByteOfs = BVAddExpr::create(
             PtrOfs, BVConstExpr::create(PtrOfs->getType().width, i));
         ref<Expr> ValByte =
             BVExtractExpr::create(Val, i * 8, 8); // Assumes little endian
-        StoreStmt *SS = new StoreStmt(PtrArr, PtrByteOfs, ValByte);
+        Stmt *SS = StoreStmt::create(PtrArr, PtrByteOfs, ValByte);
         SS->setSourceLocs(currentSourceLocs);
         BBB->addStmt(SS);
       }
@@ -1874,7 +1884,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           ErrorReporter::reportImplementationLimitation("Unsupported icmp");
         }
       }
-      addEvalStmt(BBB, I, E);
+      addEvalStmt(BBB, E);
       return BoolToBVExpr::create(E);
     });
   } else if (auto FI = dyn_cast<FCmpInst>(I)) {
@@ -1892,7 +1902,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         E = OrExpr::create(E, FLtExpr::create(LHS, RHS));
       if (FI->getPredicate() & FCmpInst::FCMP_UNO)
         E = OrExpr::create(E, FUnoExpr::create(LHS, RHS));
-      addEvalStmt(BBB, I, E);
+      addEvalStmt(BBB, E);
       return BoolToBVExpr::create(E);
     });
   } else if (auto ZEI = dyn_cast<ZExtInst>(I)) {
@@ -2080,7 +2090,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           auto V = CI->getCalledValue();
           E = TM->modelCallExpr(V->getType(), CI->getCalledFunction(),
                                 translateValue(V, BBB), Args);
-          addEvalStmt(BBB, I, E);
+          addEvalStmt(BBB, E);
           ValueExprMap[I] = TM->unmodelValue(F, E);
           return;
         }
@@ -2090,10 +2100,10 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     if (auto V = RI->getReturnValue()) {
       assert(ReturnVar && "Returning value without return variable?");
       ref<Expr> Val = TM->modelValue(F, translateValue(V, BBB));
-      BBB->addStmt(new VarAssignStmt(ReturnVar, Val));
+      BBB->addStmt(VarAssignStmt::create(ReturnVar, Val));
       ReturnVals.push_back(Val);
     }
-    BBB->addStmt(new ReturnStmt);
+    BBB->addStmt(ReturnStmt::create());
     return;
   } else if (auto BI = dyn_cast<BranchInst>(I)) {
     if (BI->isConditional()) {
@@ -2101,23 +2111,22 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           BVToBoolExpr::create(translateValue(BI->getCondition(), BBB));
 
       bugle::BasicBlock *TrueBB = BF->addBasicBlock("truebb");
-      TrueBB->addStmt(new AssumeStmt(Cond, /*partition=*/true));
+      TrueBB->addStmt(AssumeStmt::createPartition(Cond));
       addPhiAssigns(TrueBB, I->getParent(), BI->getSuccessor(0));
-      TrueBB->addStmt(new GotoStmt(BasicBlockMap[BI->getSuccessor(0)]));
+      TrueBB->addStmt(GotoStmt::create(BasicBlockMap[BI->getSuccessor(0)]));
 
       bugle::BasicBlock *FalseBB = BF->addBasicBlock("falsebb");
-      FalseBB->addStmt(new AssumeStmt(NotExpr::create(Cond),
-                                      /*partition=*/true));
+      FalseBB->addStmt(AssumeStmt::createPartition(NotExpr::create(Cond)));
       addPhiAssigns(FalseBB, I->getParent(), BI->getSuccessor(1));
-      FalseBB->addStmt(new GotoStmt(BasicBlockMap[BI->getSuccessor(1)]));
+      FalseBB->addStmt(GotoStmt::create(BasicBlockMap[BI->getSuccessor(1)]));
 
       std::vector<bugle::BasicBlock *> BBs;
       BBs.push_back(TrueBB);
       BBs.push_back(FalseBB);
-      BBB->addStmt(new GotoStmt(BBs));
+      BBB->addStmt(GotoStmt::create(BBs));
     } else {
       addPhiAssigns(BBB, I->getParent(), BI->getSuccessor(0));
-      BBB->addStmt(new GotoStmt(BasicBlockMap[BI->getSuccessor(0)]));
+      BBB->addStmt(GotoStmt::create(BasicBlockMap[BI->getSuccessor(0)]));
     }
     return;
   } else if (auto SI = dyn_cast<SwitchInst>(I)) {
@@ -2129,30 +2138,30 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       ref<Expr> Val = TM->translateConstant(i.getCaseValue());
       bugle::BasicBlock *BB = BF->addBasicBlock("casebb");
       Succs.push_back(BB);
-      BB->addStmt(
-          new AssumeStmt(EqExpr::create(Cond, Val), /*partition=*/true));
+      BB->addStmt(AssumeStmt::createPartition(EqExpr::create(Cond, Val)));
       addPhiAssigns(BB, SI->getParent(), i.getCaseSuccessor());
-      BB->addStmt(new GotoStmt(BasicBlockMap[i.getCaseSuccessor()]));
+      BB->addStmt(GotoStmt::create(BasicBlockMap[i.getCaseSuccessor()]));
       DefaultExpr = AndExpr::create(DefaultExpr, NeExpr::create(Cond, Val));
     }
 
     bugle::BasicBlock *DefaultBB = BF->addBasicBlock("defaultbb");
     Succs.push_back(DefaultBB);
-    DefaultBB->addStmt(new AssumeStmt(DefaultExpr, /*partition=*/true));
+    DefaultBB->addStmt(AssumeStmt::createPartition(DefaultExpr));
     addPhiAssigns(DefaultBB, SI->getParent(),
                   SI->case_default().getCaseSuccessor());
     DefaultBB->addStmt(
-        new GotoStmt(BasicBlockMap[SI->case_default().getCaseSuccessor()]));
+        GotoStmt::create(BasicBlockMap[SI->case_default().getCaseSuccessor()]));
 
-    BBB->addStmt(new GotoStmt(Succs));
+    BBB->addStmt(GotoStmt::create(Succs));
     return;
   } else if (auto PN = dyn_cast<PHINode>(I)) {
     ValueExprMap[I] =
         TM->unmodelValue(PN, VarRefExpr::create(getPhiVariable(PN)));
     return;
   } else if (dyn_cast<UnreachableInst>(I)) {
-    Stmt *assertStmt = new AssertStmt(BoolConstExpr::create(false), false,
-                                      false, false, false);
+    Stmt *assertStmt =
+        AssertStmt::create(BoolConstExpr::create(false), /*global=*/false,
+                           /*candidate=*/false);
     assertStmt->setSourceLocs(currentSourceLocs);
     BBB->addStmt(assertStmt);
     return;
@@ -2163,7 +2172,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   }
   ValueExprMap[I] = E;
   if (LoadsAreTemporal)
-    addEvalStmt(BBB, I, E);
+    addEvalStmt(BBB, E);
   return;
 }
 

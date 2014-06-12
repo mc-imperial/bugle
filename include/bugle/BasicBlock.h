@@ -21,7 +21,7 @@ public:
     if (e->hasEvalStmt || e->preventEvalStmt)
       return 0;
 
-    auto ES = new EvalStmt(e);
+    auto ES = EvalStmt::create(e);
     addStmt(ES);
     return ES;
   }

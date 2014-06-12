@@ -623,7 +623,7 @@ Stmt *TranslateModule::modelCallStmt(llvm::Type *T, llvm::Function *F,
                    std::back_inserter(fargs), [&](ref<Expr> E, Argument &Arg) {
       return modelValue(&Arg, E);
     });
-    auto CS = new CallStmt(i->second, fargs);
+    auto CS = CallStmt::create(i->second, fargs);
     CallSites[i->first].push_back(&CS->getArgs());
     CSS.push_back(CS);
   }
@@ -634,7 +634,7 @@ Stmt *TranslateModule::modelCallStmt(llvm::Type *T, llvm::Function *F,
   if (F)
     return *CSS.begin();
   else
-    return new CallMemberOfStmt(Val, CSS);
+    return CallMemberOfStmt::create(Val, CSS);
 }
 
 ref<Expr> TranslateModule::modelCallExpr(llvm::Type *T, llvm::Function *F,

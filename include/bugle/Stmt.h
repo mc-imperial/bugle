@@ -42,13 +42,11 @@ private:
   static bool classof(const kind##Stmt *) { return true; }
 
 class EvalStmt : public Stmt {
+  EvalStmt(ref<Expr> expr) : expr(expr) {};
   ref<Expr> expr;
 
 public:
-  EvalStmt(ref<Expr> expr) : expr(expr) {
-    assert(!expr->hasEvalStmt);
-    expr->hasEvalStmt = true;
-  }
+  static EvalStmt *create(ref<Expr> expr);
   ~EvalStmt() { expr->hasEvalStmt = false; }
 
   STMT_KIND(Eval)
@@ -56,12 +54,14 @@ public:
 };
 
 class StoreStmt : public Stmt {
+  StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value)
+      : array(array), offset(offset), value(value){};
   ref<Expr> array;
   ref<Expr> offset;
   ref<Expr> value;
 
 public:
-  StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value);
+  static StoreStmt *create(ref<Expr> array, ref<Expr> offset, ref<Expr> value);
 
   STMT_KIND(Store)
   ref<Expr> getArray() const { return array; }
@@ -70,20 +70,16 @@ public:
 };
 
 class VarAssignStmt : public Stmt {
+  VarAssignStmt(const std::vector<Var *> &vars,
+                const std::vector<ref<Expr>> &values)
+      : vars(vars), values(values) {};
   std::vector<Var *> vars;
   std::vector<ref<Expr>> values;
 
-  void check();
-
 public:
-  VarAssignStmt(Var *var, ref<Expr> value) : vars(1, var), values(1, value) {
-    check();
-  }
-  VarAssignStmt(const std::vector<Var *> &vars,
-                const std::vector<ref<Expr>> &values)
-      : vars(vars), values(values) {
-    check();
-  }
+  static VarAssignStmt *create(Var *var, ref<Expr> value);
+  static VarAssignStmt *create(const std::vector<Var *> &vars,
+                               const std::vector<ref<Expr>> &values);
 
   STMT_KIND(VarAssign)
   const std::vector<Var *> &getVars() const { return vars; }
@@ -91,28 +87,35 @@ public:
 };
 
 class GotoStmt : public Stmt {
+  GotoStmt(const std::vector<BasicBlock *> &blocks) : blocks(blocks) {}
   std::vector<BasicBlock *> blocks;
 
 public:
-  GotoStmt(const std::vector<BasicBlock *> &blocks) : blocks(blocks) {}
-  GotoStmt(BasicBlock *block) : blocks(1, block) {}
+  static GotoStmt *create(BasicBlock *block);
+  static GotoStmt *create(const std::vector<BasicBlock *> &blocks);
+
   STMT_KIND(Goto)
   const std::vector<BasicBlock *> &getBlocks() { return blocks; }
 };
 
 class ReturnStmt : public Stmt {
-public:
   ReturnStmt() {}
+
+public:
+  static ReturnStmt *create();
+
   STMT_KIND(Return)
 };
 
 class AssumeStmt : public Stmt {
+  AssumeStmt(ref<Expr> pred, bool partition)
+      : pred(pred), partition(partition) {};
   ref<Expr> pred;
   bool partition;
 
 public:
-  AssumeStmt(ref<Expr> pred, bool partition = false)
-      : pred(pred), partition(partition) {}
+  static AssumeStmt *create(ref<Expr> pred);
+  static AssumeStmt *createPartition(ref<Expr> pred);
 
   STMT_KIND(Assume)
   ref<Expr> getPredicate() const { return pred; }
@@ -120,6 +123,9 @@ public:
 };
 
 class AssertStmt : public Stmt {
+  AssertStmt(ref<Expr> pred)
+      : pred(pred), global(false), candidate(false), invariant(false),
+        badAccess(false) {};
   ref<Expr> pred;
   bool global;
   bool candidate;
@@ -127,10 +133,10 @@ class AssertStmt : public Stmt {
   bool badAccess;
 
 public:
-  AssertStmt(ref<Expr> pred, bool global, bool candidate, bool invariant,
-             bool badAccess)
-      : pred(pred), global(global), candidate(candidate), invariant(invariant),
-        badAccess(badAccess) {}
+  static AssertStmt *create(ref<Expr> pred, bool global, bool candidate);
+  static AssertStmt *createInvariant(ref<Expr> pred, bool global,
+                                     bool candidate);
+  static AssertStmt *createBadAccess();
 
   STMT_KIND(Assert)
   ref<Expr> getPredicate() const { return pred; }
@@ -141,12 +147,13 @@ public:
 };
 
 class CallStmt : public Stmt {
+  CallStmt(Function *callee, const std::vector<ref<Expr>> &args)
+      : callee(callee), args(args) {}
   Function *callee;
   std::vector<ref<Expr>> args;
 
 public:
-  CallStmt(Function *callee, const std::vector<ref<Expr>> &args)
-      : callee(callee), args(args) {}
+  static CallStmt *create(Function *callee, const std::vector<ref<Expr>> &args);
 
   STMT_KIND(Call)
   Function *getCallee() const { return callee; }
@@ -154,11 +161,14 @@ public:
 };
 
 class CallMemberOfStmt : public Stmt {
+  CallMemberOfStmt(ref<Expr> func, std::vector<Stmt *> &callStmts)
+      : func(func), callStmts(callStmts) {};
   ref<Expr> func;
   std::vector<Stmt *> callStmts;
 
 public:
-  CallMemberOfStmt(ref<Expr> func, std::vector<Stmt *> &callStmts);
+  static CallMemberOfStmt *create(ref<Expr> func,
+                                  std::vector<Stmt *> &callStmts);
 
   STMT_KIND(CallMemberOf)
   ref<Expr> getFunc() const { return func; }
