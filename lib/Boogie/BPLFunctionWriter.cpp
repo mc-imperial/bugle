@@ -349,7 +349,8 @@ void BPLFunctionWriter::writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB) {
 
 void BPLFunctionWriter::writeSourceLocs(llvm::raw_ostream &OS,
                                         const SourceLocsRef &sourcelocs) {
-  assert(sourcelocs.get());
+  if (sourcelocs.get() == 0)
+    return;
   if (sourcelocs->size() == 0)
     return;
   unsigned locnum = MW->SLW->writeSourceLocs(sourcelocs);
