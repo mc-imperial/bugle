@@ -41,7 +41,7 @@ class BPLFunctionWriter : BPLExprWriter {
   void writeSourceLocs(llvm::raw_ostream &OS, const SourceLocsRef &sourcelocs);
   void writeSourceLocsMarker(llvm::raw_ostream &OS,
                              const SourceLocsRef &sourcelocs,
-                             const unsigned int indent);
+                             const unsigned int indentLevel);
 
 public:
   BPLFunctionWriter(BPLModuleWriter *MW, llvm::raw_ostream &OS,

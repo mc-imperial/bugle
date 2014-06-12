@@ -299,18 +299,16 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (auto AtS = dyn_cast<AssertStmt>(S)) {
     OS << "  assert ";
-    if (AtS->isGlobal()) {
+    if (AtS->isGlobal())
       OS << "{:do_not_predicate} ";
-    }
-    if (AtS->isCandidate()) {
+    if (AtS->isCandidate())
       OS << "{:tag \"user\"} ";
-    }
-    if (AtS->isInvariant()) {
+    if (AtS->isInvariant())
       OS << "{:originated_from_invariant} ";
-    }
-    if (AtS->isBadAccess()) {
+    if (AtS->isBadAccess())
       OS << "{:bad_pointer_access} ";
-    }
+    if (AtS->isBlockSourceLoc())
+      OS << "{:block_sourceloc} ";
     writeSourceLocs(OS, AtS->getSourceLocs());
     if (AtS->isCandidate()) {
       unsigned candidateNumber = MW->nextCandidateNumber();
@@ -349,9 +347,7 @@ void BPLFunctionWriter::writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB) {
 
 void BPLFunctionWriter::writeSourceLocs(llvm::raw_ostream &OS,
                                         const SourceLocsRef &sourcelocs) {
-  if (sourcelocs.get() == 0)
-    return;
-  if (sourcelocs->size() == 0)
+  if (sourcelocs.get() == 0 || sourcelocs->size() == 0)
     return;
   unsigned locnum = MW->SLW->writeSourceLocs(sourcelocs);
   OS << "{:sourceloc_num " << locnum << "}";
@@ -360,12 +356,10 @@ void BPLFunctionWriter::writeSourceLocs(llvm::raw_ostream &OS,
 
 void BPLFunctionWriter::writeSourceLocsMarker(llvm::raw_ostream &OS,
                                               const SourceLocsRef &sourcelocs,
-                                              const unsigned int indent) {
-  if (sourcelocs.get() == 0)
+                                              const unsigned int indentLevel) {
+  if (sourcelocs.get() == 0 || sourcelocs->size() == 0)
     return;
-  if (sourcelocs->size() == 0)
-    return;
-  OS << std::string(indent, ' ') << "assert {:sourceloc} ";
+  OS << std::string(indentLevel, ' ') << "assert {:sourceloc} ";
   writeSourceLocs(OS, sourcelocs);
   OS << "true;\n";
 }

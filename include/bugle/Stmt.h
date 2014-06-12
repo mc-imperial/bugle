@@ -137,12 +137,13 @@ public:
 class AssertStmt : public Stmt {
   AssertStmt(ref<Expr> pred, const SourceLocsRef &sourcelocs)
       : Stmt(sourcelocs), pred(pred), global(false), candidate(false),
-        invariant(false), badAccess(false) {};
+        invariant(false), badAccess(false), blockSourceLoc(false) {};
   ref<Expr> pred;
   bool global;
   bool candidate;
   bool invariant;
   bool badAccess;
+  bool blockSourceLoc;
 
 public:
   static AssertStmt *create(ref<Expr> pred, bool global, bool candidate,
@@ -151,6 +152,7 @@ public:
                                      bool candidate,
                                      const SourceLocsRef &sourcelocs);
   static AssertStmt *createBadAccess(const SourceLocsRef &sourcelocs);
+  static AssertStmt *createBlockSourceLoc(const SourceLocsRef &sourcelocs);
 
   STMT_KIND(Assert)
   ref<Expr> getPredicate() const { return pred; }
@@ -158,6 +160,7 @@ public:
   bool isCandidate() const { return candidate; }
   bool isInvariant() const { return invariant; }
   bool isBadAccess() const { return badAccess; }
+  bool isBlockSourceLoc() const { return blockSourceLoc; }
 };
 
 class CallStmt : public Stmt {

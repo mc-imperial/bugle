@@ -469,8 +469,11 @@ void TranslateFunction::translate() {
     BasicBlockMap[&*i] = BF->addBasicBlock(i->getName());
   }
 
-  for (auto i = BBList.begin(), e = BBList.end(); i != e; ++i)
+  for (auto i = BBList.begin(), e = BBList.end(); i != e; ++i) {
+    Stmt *AS = AssertStmt::createBlockSourceLoc(extractSourceLocsForBlock(*i));
+    BasicBlockMap[*i]->addStmt(AS);
     translateBasicBlock(BasicBlockMap[*i], *i);
+  }
 
   // If we're modelling everything as a byte array, don't bother to compute
   // value models.
@@ -571,6 +574,16 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
 
   if (!Vars.empty())
     BBB->addStmt(VarAssignStmt::create(Vars, Exprs));
+}
+
+SourceLocsRef TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB) {
+  SourceLocsRef sourcelocs;
+  for (auto i = BB->begin(), e = BB->end(); i != e; ++i) {
+    sourcelocs = extractSourceLocs(i);
+    if (sourcelocs.get())
+      break;
+  }
+  return sourcelocs;
 }
 
 SourceLocsRef TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
@@ -2068,11 +2081,13 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
 
       bugle::BasicBlock *TrueBB = BF->addBasicBlock("truebb");
       TrueBB->addStmt(AssumeStmt::createPartition(Cond));
+      TrueBB->addStmt(AssertStmt::createBlockSourceLoc(currentSourceLocs));
       addPhiAssigns(TrueBB, I->getParent(), BI->getSuccessor(0));
       TrueBB->addStmt(GotoStmt::create(BasicBlockMap[BI->getSuccessor(0)]));
 
       bugle::BasicBlock *FalseBB = BF->addBasicBlock("falsebb");
       FalseBB->addStmt(AssumeStmt::createPartition(NotExpr::create(Cond)));
+      FalseBB->addStmt(AssertStmt::createBlockSourceLoc(currentSourceLocs));
       addPhiAssigns(FalseBB, I->getParent(), BI->getSuccessor(1));
       FalseBB->addStmt(GotoStmt::create(BasicBlockMap[BI->getSuccessor(1)]));
 
@@ -2095,6 +2110,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       bugle::BasicBlock *BB = BF->addBasicBlock("casebb");
       Succs.push_back(BB);
       BB->addStmt(AssumeStmt::createPartition(EqExpr::create(Cond, Val)));
+      BB->addStmt(AssertStmt::createBlockSourceLoc(currentSourceLocs));
       addPhiAssigns(BB, SI->getParent(), i.getCaseSuccessor());
       BB->addStmt(GotoStmt::create(BasicBlockMap[i.getCaseSuccessor()]));
       DefaultExpr = AndExpr::create(DefaultExpr, NeExpr::create(Cond, Val));
@@ -2102,6 +2118,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
 
     bugle::BasicBlock *DefaultBB = BF->addBasicBlock("defaultbb");
     Succs.push_back(DefaultBB);
+    DefaultBB->addStmt(AssertStmt::createBlockSourceLoc(currentSourceLocs));
     DefaultBB->addStmt(AssumeStmt::createPartition(DefaultExpr));
     addPhiAssigns(DefaultBB, SI->getParent(),
                   SI->case_default().getCaseSuccessor());

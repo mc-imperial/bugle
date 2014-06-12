@@ -86,6 +86,12 @@ AssertStmt *AssertStmt::createBadAccess(const SourceLocsRef &sourcelocs) {
   return AS;
 }
 
+AssertStmt *AssertStmt::createBlockSourceLoc(const SourceLocsRef &sourcelocs) {
+  AssertStmt *AS = new AssertStmt(BoolConstExpr::create(true), sourcelocs);
+  AS->blockSourceLoc = true;
+  return AS;
+}
+
 CallStmt *CallStmt::create(Function *callee, const std::vector<ref<Expr>> &args,
                            const SourceLocsRef &sourcelocs) {
   return new CallStmt(callee, args, sourcelocs);

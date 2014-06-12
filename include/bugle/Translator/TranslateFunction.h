@@ -101,6 +101,7 @@ class TranslateFunction {
                       std::vector<ref<Expr>> &assigns);
   void addPhiAssigns(BasicBlock *BBB, llvm::BasicBlock *Pred,
                      llvm::BasicBlock *Succ);
+  SourceLocsRef extractSourceLocsForBlock(llvm::BasicBlock *BB);
   SourceLocsRef extractSourceLocs(llvm::Instruction *I);
 
 public:
