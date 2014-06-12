@@ -597,70 +597,59 @@ ref<Expr> TranslateFunction::handleNoop(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const ExprVec &Args) {
-  Stmt *assertStmt = AssertStmt::create(Expr::createNeZero(Args[0]),
-                                        /*global=*/false, /*candidate=*/false);
-  assertStmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertStmt);
+  BBB->addStmt(AssertStmt::create(Expr::createNeZero(Args[0]), /*global=*/false,
+                                  /*candidate=*/false, currentSourceLocs));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleGlobalAssert(bugle::BasicBlock *BBB,
                                                 llvm::CallInst *CI,
                                                 const ExprVec &Args) {
-  Stmt *assertStmt = AssertStmt::create(Expr::createNeZero(Args[0]),
-                                        /*global=*/true, /*candidate=*/false);
-  assertStmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertStmt);
+  BBB->addStmt(AssertStmt::create(Expr::createNeZero(Args[0]), /*global=*/true,
+                                  /*candidate=*/false, currentSourceLocs));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleCandidateAssert(bugle::BasicBlock *BBB,
                                                    llvm::CallInst *CI,
                                                    const ExprVec &Args) {
-  Stmt *assertStmt = AssertStmt::create(Expr::createNeZero(Args[0]),
-                                        /*global=*/false, /*candidate=*/true);
-  assertStmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertStmt);
+  BBB->addStmt(AssertStmt::create(Expr::createNeZero(Args[0]), /*global=*/false,
+                                  /*candidate=*/true, currentSourceLocs));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleCandidateGlobalAssert(bugle::BasicBlock *BBB,
                                                          llvm::CallInst *CI,
                                                          const ExprVec &Args) {
-  Stmt *assertStmt = AssertStmt::create(Expr::createNeZero(Args[0]),
-                                        /*global=*/true, /*candidate=*/true);
-  assertStmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertStmt);
+  BBB->addStmt(AssertStmt::create(Expr::createNeZero(Args[0]), /*global=*/true,
+                                  /*candidate=*/true, currentSourceLocs));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleInvariant(bugle::BasicBlock *BBB,
                                              llvm::CallInst *CI,
                                              const ExprVec &Args) {
-  Stmt *assertStmt = AssertStmt::createInvariant(
-      Expr::createNeZero(Args[0]), /*global=*/false, /*candidate=*/false);
-  assertStmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertStmt);
+  BBB->addStmt(
+      AssertStmt::createInvariant(Expr::createNeZero(Args[0]), /*global=*/false,
+                                  /*candidate=*/false, currentSourceLocs));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleGlobalInvariant(bugle::BasicBlock *BBB,
                                                    llvm::CallInst *CI,
                                                    const ExprVec &Args) {
-  Stmt *assertStmt = AssertStmt::createInvariant(
-      Expr::createNeZero(Args[0]), /*global=*/true, /*candidate=*/false);
-  assertStmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertStmt);
+  BBB->addStmt(
+      AssertStmt::createInvariant(Expr::createNeZero(Args[0]), /*global=*/true,
+                                  /*candidate=*/false, currentSourceLocs));
   return 0;
 }
 
 ref<Expr> TranslateFunction::handleCandidateInvariant(bugle::BasicBlock *BBB,
                                                       llvm::CallInst *CI,
                                                       const ExprVec &Args) {
-  Stmt *assertStmt = AssertStmt::createInvariant(
-      Expr::createNeZero(Args[0]), /*global=*/false, /*candidate=*/true);
-  assertStmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertStmt);
+  BBB->addStmt(
+      AssertStmt::createInvariant(Expr::createNeZero(Args[0]), /*global=*/false,
+                                  /*candidate=*/true, currentSourceLocs));
   return 0;
 }
 
@@ -668,10 +657,9 @@ ref<Expr>
 TranslateFunction::handleCandidateGlobalInvariant(bugle::BasicBlock *BBB,
                                                   llvm::CallInst *CI,
                                                   const ExprVec &Args) {
-  Stmt *assertStmt = AssertStmt::createInvariant(
-      Expr::createNeZero(Args[0]), /*global=*/true, /*candidate=*/true);
-  assertStmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertStmt);
+  BBB->addStmt(
+      AssertStmt::createInvariant(Expr::createNeZero(Args[0]), /*global=*/true,
+                                  /*candidate=*/true, currentSourceLocs));
   return 0;
 }
 
@@ -697,11 +685,9 @@ ref<Expr> TranslateFunction::handleNonTemporalLoadsEnd(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
                                               llvm::CallInst *CI,
                                               const ExprVec &Args) {
-  Stmt *assertStmt =
+  BBB->addStmt(
       AssertStmt::create(BoolConstExpr::create(false), /*global=*/false,
-                         /*candidate=*/false);
-  assertStmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertStmt);
+                         /*candidate=*/false, currentSourceLocs));
   return 0;
 }
 
@@ -983,9 +969,7 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
     }
     result = Expr::createBVConcatN(Elems);
   } else if (ArrRangeTy == Type(Type::Any)) {
-    Stmt *assertStmt = AssertStmt::createBadAccess();
-    assertStmt->setSourceLocs(currentSourceLocs);
-    BBB->addStmt(assertStmt);
+    BBB->addStmt(AssertStmt::createBadAccess(currentSourceLocs));
     // The result is irrelevant, but the caller requires one
     return BVConstExpr::createZero(AtomicTy.width);
   } else {
@@ -1100,9 +1084,7 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
   Type DstRangeTy = DstPtrArr->getType().range();
 
   if (DstRangeTy == Type(Type::Any)) {
-    Stmt *assertStmt = AssertStmt::createBadAccess();
-    assertStmt->setSourceLocs(currentSourceLocs);
-    BBB->addStmt(assertStmt);
+    BBB->addStmt(AssertStmt::createBadAccess(currentSourceLocs));
     return 0;
   }
 
@@ -1164,16 +1146,12 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
        DstRangeTy = DstPtrArr->getType().range();
 
   if (DstRangeTy == Type(Type::Any)) {
-    Stmt *assertStmt = AssertStmt::createBadAccess();
-    assertStmt->setSourceLocs(currentSourceLocs);
-    BBB->addStmt(assertStmt);
+    BBB->addStmt(AssertStmt::createBadAccess(currentSourceLocs));
     return 0;
   }
 
   if (SrcRangeTy == Type(Type::Any)) {
-    Stmt *assertStmt = AssertStmt::createBadAccess();
-    assertStmt->setSourceLocs(currentSourceLocs);
-    BBB->addStmt(assertStmt);
+    BBB->addStmt(AssertStmt::createBadAccess(currentSourceLocs));
     return 0;
   }
 
@@ -1219,11 +1197,9 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleTrap(bugle::BasicBlock *BBB,
                                         llvm::CallInst *CI,
                                         const ExprVec &Args) {
-  Stmt *assertStmt =
+  BBB->addStmt(
       AssertStmt::create(BoolConstExpr::create(false), /*global=*/false,
-                         /*candidate=*/false);
-  assertStmt->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(assertStmt);
+                         /*candidate=*/false, currentSourceLocs));
   return 0;
 }
 
@@ -2159,11 +2135,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         TM->unmodelValue(PN, VarRefExpr::create(getPhiVariable(PN)));
     return;
   } else if (dyn_cast<UnreachableInst>(I)) {
-    Stmt *assertStmt =
+    BBB->addStmt(
         AssertStmt::create(BoolConstExpr::create(false), /*global=*/false,
-                           /*candidate=*/false);
-    assertStmt->setSourceLocs(currentSourceLocs);
-    BBB->addStmt(assertStmt);
+                           /*candidate=*/false, currentSourceLocs));
     return;
   } else {
     std::string name = I->getOpcodeName();

@@ -52,9 +52,7 @@ GotoStmt *GotoStmt::create(const std::vector<BasicBlock *> &blocks) {
   return new GotoStmt(blocks);
 }
 
-ReturnStmt *ReturnStmt::create() {
-  return new ReturnStmt();
-}
+ReturnStmt *ReturnStmt::create() { return new ReturnStmt(); }
 
 AssumeStmt *AssumeStmt::create(ref<Expr> pred) {
   return new AssumeStmt(pred, false);
@@ -64,24 +62,26 @@ AssumeStmt *AssumeStmt::createPartition(ref<Expr> pred) {
   return new AssumeStmt(pred, true);
 }
 
-AssertStmt *AssertStmt::create(ref<Expr> pred, bool global, bool candidate) {
-  AssertStmt *AS = new AssertStmt(pred);
+AssertStmt *AssertStmt::create(ref<Expr> pred, bool global, bool candidate,
+                               const SourceLocsRef &sourcelocs) {
+  AssertStmt *AS = new AssertStmt(pred, sourcelocs);
   AS->global = global;
   AS->candidate = candidate;
   return AS;
 }
 
 AssertStmt *AssertStmt::createInvariant(ref<Expr> pred, bool global,
-                                        bool candidate) {
-  AssertStmt *AS = new AssertStmt(pred);
+                                        bool candidate,
+                                        const SourceLocsRef &sourcelocs) {
+  AssertStmt *AS = new AssertStmt(pred, sourcelocs);
   AS->invariant = true;
   AS->global = global;
   AS->candidate = candidate;
   return AS;
 }
 
-AssertStmt *AssertStmt::createBadAccess() {
-  AssertStmt *AS = new AssertStmt(BoolConstExpr::create(false));
+AssertStmt *AssertStmt::createBadAccess(const SourceLocsRef &sourcelocs) {
+  AssertStmt *AS = new AssertStmt(BoolConstExpr::create(false), sourcelocs);
   AS->badAccess = true;
   return AS;
 }

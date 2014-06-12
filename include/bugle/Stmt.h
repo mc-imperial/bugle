@@ -33,6 +33,10 @@ public:
   }
   SourceLocsRef &getSourceLocs() { return sourcelocs; }
 
+protected:
+  Stmt() {};
+  Stmt(const SourceLocsRef &sourcelocs) : sourcelocs(sourcelocs) {};
+
 private:
   SourceLocsRef sourcelocs;
 };
@@ -124,9 +128,9 @@ public:
 };
 
 class AssertStmt : public Stmt {
-  AssertStmt(ref<Expr> pred)
-      : pred(pred), global(false), candidate(false), invariant(false),
-        badAccess(false) {};
+  AssertStmt(ref<Expr> pred, const SourceLocsRef &sourcelocs)
+      : Stmt(sourcelocs), pred(pred), global(false), candidate(false),
+        invariant(false), badAccess(false) {};
   ref<Expr> pred;
   bool global;
   bool candidate;
@@ -134,10 +138,12 @@ class AssertStmt : public Stmt {
   bool badAccess;
 
 public:
-  static AssertStmt *create(ref<Expr> pred, bool global, bool candidate);
+  static AssertStmt *create(ref<Expr> pred, bool global, bool candidate,
+                            const SourceLocsRef &sourcelocs);
   static AssertStmt *createInvariant(ref<Expr> pred, bool global,
-                                     bool candidate);
-  static AssertStmt *createBadAccess();
+                                     bool candidate,
+                                     const SourceLocsRef &sourcelocs);
+  static AssertStmt *createBadAccess(const SourceLocsRef &sourcelocs);
 
   STMT_KIND(Assert)
   ref<Expr> getPredicate() const { return pred; }
