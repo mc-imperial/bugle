@@ -1100,9 +1100,8 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
       addEvalStmt(BBB, ValExpr);
-      Stmt *SS = StoreStmt::create(DstPtrArr, StoreOfs, ValExpr);
-      SS->setSourceLocs(currentSourceLocs);
-      BBB->addStmt(SS);
+      BBB->addStmt(StoreStmt::create(DstPtrArr, StoreOfs, ValExpr,
+                                     currentSourceLocs));
     }
   } else {
     TM->NeedAdditionalByteArrayModels = true;
@@ -1170,9 +1169,8 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
       addEvalStmt(BBB, Val);
-      Stmt *SS = StoreStmt::create(DstPtrArr, StoreOfs, Val);
-      SS->setSourceLocs(currentSourceLocs);
-      BBB->addStmt(SS);
+      BBB->addStmt(StoreStmt::create(DstPtrArr, StoreOfs, Val,
+                                     currentSourceLocs));
     }
   } else {
     TM->NeedAdditionalByteArrayModels = true;
@@ -1763,14 +1761,11 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             ValElem = BVToPtrExpr::create(ValElem);
           else if (StoreElTy.isKind(Type::FunctionPointer))
             ValElem = BVToFuncPtrExpr::create(ValElem);
-          Stmt *SS = StoreStmt::create(PtrArr, ElemOfs, ValElem);
-          SS->setSourceLocs(currentSourceLocs);
-          BBB->addStmt(SS);
+          BBB->addStmt(StoreStmt::create(PtrArr, ElemOfs, ValElem,
+                                         currentSourceLocs));
         }
       } else {
-        Stmt *SS = StoreStmt::create(PtrArr, Div, Val);
-        SS->setSourceLocs(currentSourceLocs);
-        BBB->addStmt(SS);
+        BBB->addStmt(StoreStmt::create(PtrArr, Div, Val, currentSourceLocs));
       }
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
       if (StoreTy.isKind(Type::Pointer)) {
@@ -1785,9 +1780,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             PtrOfs, BVConstExpr::create(PtrOfs->getType().width, i));
         ref<Expr> ValByte =
             BVExtractExpr::create(Val, i * 8, 8); // Assumes little endian
-        Stmt *SS = StoreStmt::create(PtrArr, PtrByteOfs, ValByte);
-        SS->setSourceLocs(currentSourceLocs);
-        BBB->addStmt(SS);
+        BBB->addStmt(StoreStmt::create(PtrArr, PtrByteOfs, ValByte,
+                                       currentSourceLocs));
       }
     } else {
       TM->NeedAdditionalByteArrayModels = true;

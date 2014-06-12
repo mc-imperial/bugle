@@ -14,14 +14,14 @@ EvalStmt *EvalStmt::create(ref<Expr> expr) {
 EvalStmt::~EvalStmt() { expr->hasEvalStmt = false; }
 
 StoreStmt *StoreStmt::create(ref<Expr> array, ref<Expr> offset,
-                             ref<Expr> value) {
+                             ref<Expr> value, const SourceLocsRef &sourcelocs) {
   assert(array->getType().array);
   assert(offset->getType().isKind(Type::BV));
   assert(array->getType().kind == Type::Any ||
          value->getType().isKind(array->getType().kind));
   assert(array->getType().kind == Type::Any ||
          value->getType().width == array->getType().width);
-  return new StoreStmt(array, offset, value);
+  return new StoreStmt(array, offset, value, sourcelocs);
 }
 
 VarAssignStmt *VarAssignStmt::create(Var *var, ref<Expr> value) {

@@ -59,14 +59,16 @@ public:
 };
 
 class StoreStmt : public Stmt {
-  StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value)
-      : array(array), offset(offset), value(value){};
+  StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value,
+            const SourceLocsRef &sourcelocs)
+      : Stmt(sourcelocs), array(array), offset(offset), value(value){};
   ref<Expr> array;
   ref<Expr> offset;
   ref<Expr> value;
 
 public:
-  static StoreStmt *create(ref<Expr> array, ref<Expr> offset, ref<Expr> value);
+  static StoreStmt *create(ref<Expr> array, ref<Expr> offset, ref<Expr> value,
+                           const SourceLocsRef &sourcelocs);
 
   STMT_KIND(Store)
   ref<Expr> getArray() const { return array; }
