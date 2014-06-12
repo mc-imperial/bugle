@@ -100,3 +100,9 @@ CallMemberOfStmt *CallMemberOfStmt::create(ref<Expr> func,
 #endif
   return new CallMemberOfStmt(func, callStmts, sourcelocs);
 }
+
+Stmt *WaitGroupEventStmt::create(ref<Expr> handle,
+                                 const SourceLocsRef &sourcelocs) {
+  assert(handle->getType().isKind(Type::BV));
+  return new WaitGroupEventStmt(handle, sourcelocs);
+}

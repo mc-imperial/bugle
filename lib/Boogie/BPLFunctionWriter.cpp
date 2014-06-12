@@ -223,17 +223,6 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       OS << ", ";
       writeExpr(OS, AWGCE->getHandle().get());
       OS << ");\n";
-    } else if (auto WGEE = dyn_cast<WaitGroupEventExpr>(ES->getExpr())) {
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "procedure {:wait_group_events} _WAIT_GROUP_EVENTS(handle : bv"
-           << MW->M->getPointerWidth() << ")";
-      });
-      OS << "  ";
-      OS << "call {:wait_group_events} ";
-      writeSourceLocs(OS, ES->getSourceLocs());
-      OS << "_WAIT_GROUP_EVENTS(";
-      writeExpr(OS, WGEE->getHandle().get());
-      OS << ");\n";
     } else {
       OS << "  v" << id << " := ";
       writeExpr(OS, ES->getExpr().get());
@@ -336,6 +325,17 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (isa<ReturnStmt>(S)) {
     OS << "  return;\n";
+  } else if (auto WGES= dyn_cast<WaitGroupEventStmt>(S)) {
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "procedure {:wait_group_events} _WAIT_GROUP_EVENTS(handle : bv"
+         << MW->M->getPointerWidth() << ")";
+    });
+    OS << "  ";
+    OS << "call {:wait_group_events} ";
+    writeSourceLocs(OS, S->getSourceLocs());
+    OS << "_WAIT_GROUP_EVENTS(";
+    writeExpr(OS, WGES->getHandle().get());
+    OS << ");\n";
   } else {
     llvm_unreachable("Unsupported statement");
   }

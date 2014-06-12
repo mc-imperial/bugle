@@ -393,8 +393,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     }
   } else if (dyn_cast<AsyncWorkGroupCopyExpr>(E)) {
     llvm_unreachable("Handled at statement level");
-  } else if (dyn_cast<WaitGroupEventExpr>(E)) {
-    llvm_unreachable("Handled at statement level");
   } else if (auto IE = dyn_cast<ImpliesExpr>(E)) {
     OS << "(";
     writeExpr(OS, IE->getLHS().get());

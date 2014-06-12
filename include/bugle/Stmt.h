@@ -23,7 +23,8 @@ public:
     Assume,
     Assert,
     Call,
-    CallMemberOf
+    CallMemberOf,
+    WaitGroupEvent
   };
 
   virtual ~Stmt() {}
@@ -190,6 +191,18 @@ public:
   STMT_KIND(CallMemberOf)
   ref<Expr> getFunc() const { return func; }
   std::vector<Stmt *> getCallStmts() const { return callStmts; }
+};
+
+class WaitGroupEventStmt : public Stmt {
+  WaitGroupEventStmt(ref<Expr> handle, const SourceLocsRef &sourcelocs)
+    : Stmt(sourcelocs), handle(handle) {}
+  ref<Expr> handle;
+
+public:
+  static Stmt *create(ref<Expr> handle, const SourceLocsRef &sourcelocs);
+
+  STMT_KIND(WaitGroupEvent)
+  ref<Expr> getHandle() const { return handle; }
 };
 }
 

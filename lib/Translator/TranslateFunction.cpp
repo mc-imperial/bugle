@@ -1375,7 +1375,7 @@ ref<Expr> TranslateFunction::handleWaitGroupEvents(bugle::BasicBlock *BBB,
     auto LE =
         LoadExpr::create(EventsPtrArr, Off, EventsRangeTy, LoadsAreTemporal);
     BBB->addEvalStmt(LE, currentSourceLocs);
-    BBB->addEvalStmt(WaitGroupEventExpr::create(LE), currentSourceLocs);
+    BBB->addStmt(WaitGroupEventStmt::create(LE, currentSourceLocs));
   }
 
   return 0;
