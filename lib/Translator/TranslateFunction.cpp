@@ -523,7 +523,7 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V,
 
   if (isa<UndefValue>(V)) {
     ref<Expr> E = HavocExpr::create(TM->translateType(V->getType()));
-    BBB->addEvalStmt(E);
+    BBB->addEvalStmt(E, currentSourceLocs);
     return E;
   }
 
@@ -926,7 +926,7 @@ ref<Expr> TranslateFunction::handleArraySnapshot(bugle::BasicBlock *BBB,
   ref<Expr> dstArrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   ref<Expr> srcArrayIdExpr = ArrayIdExpr::create(Args[1], TM->defaultRange());
   ref<Expr> E = ArraySnapshotExpr::create(dstArrayIdExpr, srcArrayIdExpr);
-  BBB->addEvalStmt(E);
+  BBB->addEvalStmt(E, currentSourceLocs);
   if (dstArrayIdExpr->getType().range().isKind(Type::Unknown) ||
       srcArrayIdExpr->getType().range().isKind(Type::Unknown) ||
       dstArrayIdExpr->getType().range() != srcArrayIdExpr->getType().range())
@@ -962,7 +962,7 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
       ref<Expr> E = AtomicExpr::create(PtrArr, PtrOfs, AtomicArgs,
                                        CI->getCalledFunction()->getName(),
                                        NumElems, i + 1);
-      addEvalStmt(BBB, E);
+      BBB->addEvalStmt(E, currentSourceLocs);
       Elems.push_back(E);
       PtrOfs = BVAddExpr::create(
           PtrOfs, BVConstExpr::create(TM->TD.getPointerSizeInBits(), 1));
@@ -1099,7 +1099,7 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
         ValExpr = BVToPtrExpr::create(ValExpr);
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
-      addEvalStmt(BBB, ValExpr);
+      BBB->addEvalStmt(ValExpr, currentSourceLocs);
       BBB->addStmt(StoreStmt::create(DstPtrArr, StoreOfs, ValExpr,
                                      currentSourceLocs));
     }
@@ -1168,7 +1168,7 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
           LoadExpr::create(SrcPtrArr, LoadOfs, SrcRangeTy, LoadsAreTemporal);
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
-      addEvalStmt(BBB, Val);
+      BBB->addEvalStmt(Val, currentSourceLocs);
       BBB->addStmt(StoreStmt::create(DstPtrArr, StoreOfs, Val,
                                      currentSourceLocs));
     }
@@ -1374,9 +1374,8 @@ ref<Expr> TranslateFunction::handleWaitGroupEvents(bugle::BasicBlock *BBB,
         EventsPtrOfs, BVConstExpr::create(TM->BM->getPointerWidth(), i));
     auto LE =
         LoadExpr::create(EventsPtrArr, Off, EventsRangeTy, LoadsAreTemporal);
-    addEvalStmt(BBB, LE);
-    auto ES = BBB->addEvalStmt(WaitGroupEventExpr::create(LE));
-    ES->setSourceLocs(currentSourceLocs);
+    BBB->addEvalStmt(LE, currentSourceLocs);
+    BBB->addEvalStmt(WaitGroupEventExpr::create(LE), currentSourceLocs);
   }
 
   return 0;
@@ -1497,16 +1496,16 @@ ref<Expr> TranslateFunction::handleRsqrt(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleAddNoovflUnsigned(bugle::BasicBlock *BBB,
                                                      llvm::CallInst *CI,
                                                      const ExprVec &Args) {
-  ref<Expr> E = AddNoovflExpr::create(Args[0], Args[1], false);
-  BBB->addEvalStmt(E);
+  ref<Expr> E = AddNoovflExpr::create(Args[0], Args[1], /*isSigned=*/false);
+  BBB->addEvalStmt(E, currentSourceLocs);
   return E;
 }
 
 ref<Expr> TranslateFunction::handleAddNoovflSigned(bugle::BasicBlock *BBB,
                                                    llvm::CallInst *CI,
                                                    const ExprVec &Args) {
-  ref<Expr> E = AddNoovflExpr::create(Args[0], Args[1], true);
-  BBB->addEvalStmt(E);
+  ref<Expr> E = AddNoovflExpr::create(Args[0], Args[1], /*isSigned=*/true);
+  BBB->addEvalStmt(E, currentSourceLocs);
   return E;
 }
 
@@ -1560,12 +1559,6 @@ ref<Expr> TranslateFunction::handleAtomicHasTakenValue(bugle::BasicBlock *BBB,
   return result;
 }
 
-void TranslateFunction::addEvalStmt(bugle::BasicBlock *BBB, ref<Expr> E) {
-  auto ES = BBB->addEvalStmt(E);
-  if (ES)
-    ES->setSourceLocs(currentSourceLocs);
-}
-
 ref<Expr> TranslateFunction::maybeTranslateSIMDInst(
     bugle::BasicBlock *BBB, llvm::Type *Ty, llvm::Type *OpTy, ref<Expr> Op,
     std::function<ref<Expr>(llvm::Type *, ref<Expr>)> F) {
@@ -1580,7 +1573,7 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(
   for (unsigned i = 0; i < NumElems; ++i) {
     ref<Expr> Opi = BVExtractExpr::create(Op, i * ElemWidth, ElemWidth);
     ref<Expr> Elem = F(VT->getElementType(), Opi);
-    BBB->addEvalStmt(Elem);
+    BBB->addEvalStmt(Elem, currentSourceLocs);
     Elems.push_back(Elem);
   }
   return Expr::createBVConcatN(Elems);
@@ -1601,7 +1594,7 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(
     ref<Expr> LHSi = BVExtractExpr::create(LHS, i * ElemWidth, ElemWidth);
     ref<Expr> RHSi = BVExtractExpr::create(RHS, i * ElemWidth, ElemWidth);
     ref<Expr> Elem = F(LHSi, RHSi);
-    BBB->addEvalStmt(Elem);
+    BBB->addEvalStmt(Elem, currentSourceLocs);
     Elems.push_back(Elem);
   }
   return Expr::createBVConcatN(Elems);
@@ -1685,7 +1678,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               Div, BVConstExpr::create(Div->getType().width, i));
           ref<Expr> ValElem =
               LoadExpr::create(PtrArr, ElemOfs, LoadElTy, LoadsAreTemporal);
-          addEvalStmt(BBB, ValElem);
+          BBB->addEvalStmt(ValElem, currentSourceLocs);
           if (LoadElTy.isKind(Type::Pointer))
             ValElem = PtrToBVExpr::create(ValElem);
           else if (LoadElTy.isKind(Type::FunctionPointer))
@@ -1704,7 +1697,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         ref<Expr> ValByte =
             LoadExpr::create(PtrArr, PtrByteOfs, ArrRangeTy, LoadsAreTemporal);
         BytesLoaded.push_back(ValByte);
-        addEvalStmt(BBB, ValByte);
+        BBB->addEvalStmt(ValByte, currentSourceLocs);
       }
       E = Expr::createBVConcatN(BytesLoaded);
       if (LoadTy.isKind(Type::Pointer))
@@ -1769,11 +1762,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       }
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
       if (StoreTy.isKind(Type::Pointer)) {
-        Val = PtrToBVExpr::create(Val);
-        addEvalStmt(BBB, Val);
+        BBB->addEvalStmt(PtrToBVExpr::create(Val), currentSourceLocs);
       } else if (StoreTy.isKind(Type::FunctionPointer)) {
-        Val = FuncPtrToBVExpr::create(Val);
-        addEvalStmt(BBB, Val);
+        BBB->addEvalStmt(FuncPtrToBVExpr::create(Val), currentSourceLocs);
       }
       for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
         ref<Expr> PtrByteOfs = BVAddExpr::create(
@@ -1850,7 +1841,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           ErrorReporter::reportImplementationLimitation("Unsupported icmp");
         }
       }
-      addEvalStmt(BBB, E);
+      BBB->addEvalStmt(E, currentSourceLocs);
       return BoolToBVExpr::create(E);
     });
   } else if (auto FI = dyn_cast<FCmpInst>(I)) {
@@ -1868,7 +1859,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         E = OrExpr::create(E, FLtExpr::create(LHS, RHS));
       if (FI->getPredicate() & FCmpInst::FCMP_UNO)
         E = OrExpr::create(E, FUnoExpr::create(LHS, RHS));
-      addEvalStmt(BBB, E);
+      BBB->addEvalStmt(E, currentSourceLocs);
       return BoolToBVExpr::create(E);
     });
   } else if (auto ZEI = dyn_cast<ZExtInst>(I)) {
@@ -2055,7 +2046,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           auto V = CI->getCalledValue();
           E = TM->modelCallExpr(V->getType(), CI->getCalledFunction(),
                                 translateValue(V, BBB), Args);
-          addEvalStmt(BBB, E);
+          BBB->addEvalStmt(E, currentSourceLocs);
           ValueExprMap[I] = TM->unmodelValue(F, E);
           return;
         }
@@ -2135,7 +2126,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
   }
   ValueExprMap[I] = E;
   if (LoadsAreTemporal)
-    addEvalStmt(BBB, E);
+    BBB->addEvalStmt(E, currentSourceLocs);
   return;
 }
 

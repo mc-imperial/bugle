@@ -28,10 +28,7 @@ public:
 
   virtual ~Stmt() {}
   virtual Kind getKind() const = 0;
-  void setSourceLocs(const SourceLocsRef &sourcelocs) {
-    Stmt::sourcelocs = sourcelocs;
-  }
-  SourceLocsRef &getSourceLocs() { return sourcelocs; }
+  virtual SourceLocsRef &getSourceLocs() { return sourcelocs; }
 
 protected:
   Stmt() {};
@@ -47,11 +44,12 @@ private:
   static bool classof(const kind##Stmt *) { return true; }
 
 class EvalStmt : public Stmt {
-  EvalStmt(ref<Expr> expr) : expr(expr) {};
+  EvalStmt(ref<Expr> expr, const SourceLocsRef &sourcelocs)
+      : Stmt(sourcelocs), expr(expr) {};
   ref<Expr> expr;
 
 public:
-  static EvalStmt *create(ref<Expr> expr);
+  static EvalStmt *create(ref<Expr> expr, const SourceLocsRef &sourcelocs);
   ~EvalStmt();
 
   STMT_KIND(Eval)
@@ -88,6 +86,8 @@ public:
   static VarAssignStmt *create(const std::vector<Var *> &vars,
                                const std::vector<ref<Expr>> &values);
 
+  SourceLocsRef &getSourceLocs() { assert(false); }
+
   STMT_KIND(VarAssign)
   const std::vector<Var *> &getVars() const { return vars; }
   const std::vector<ref<Expr>> &getValues() const { return values; }
@@ -100,6 +100,8 @@ class GotoStmt : public Stmt {
 public:
   static GotoStmt *create(BasicBlock *block);
   static GotoStmt *create(const std::vector<BasicBlock *> &blocks);
+
+  SourceLocsRef &getSourceLocs() { assert(false); }
 
   STMT_KIND(Goto)
   const std::vector<BasicBlock *> &getBlocks() { return blocks; }
@@ -123,6 +125,8 @@ class AssumeStmt : public Stmt {
 public:
   static AssumeStmt *create(ref<Expr> pred);
   static AssumeStmt *createPartition(ref<Expr> pred);
+
+  SourceLocsRef &getSourceLocs() { assert(false); }
 
   STMT_KIND(Assume)
   ref<Expr> getPredicate() const { return pred; }

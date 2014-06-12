@@ -5,16 +5,16 @@
 
 using namespace bugle;
 
-EvalStmt *EvalStmt::create(ref<Expr> expr) {
+EvalStmt *EvalStmt::create(ref<Expr> expr, const SourceLocsRef &sourcelocs) {
   assert(!expr->hasEvalStmt);
   expr->hasEvalStmt = true;
-  return new EvalStmt(expr);
+  return new EvalStmt(expr, sourcelocs);
 }
 
 EvalStmt::~EvalStmt() { expr->hasEvalStmt = false; }
 
-StoreStmt *StoreStmt::create(ref<Expr> array, ref<Expr> offset,
-                             ref<Expr> value, const SourceLocsRef &sourcelocs) {
+StoreStmt *StoreStmt::create(ref<Expr> array, ref<Expr> offset, ref<Expr> value,
+                             const SourceLocsRef &sourcelocs) {
   assert(array->getType().array);
   assert(offset->getType().isKind(Type::BV));
   assert(array->getType().kind == Type::Any ||

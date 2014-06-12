@@ -1,5 +1,6 @@
 #include "bugle/OwningPtrVector.h"
 #include "bugle/Ref.h"
+#include "bugle/SourceLoc.h"
 #include "bugle/Stmt.h"
 #include <vector>
 
@@ -17,13 +18,12 @@ class BasicBlock {
 public:
   BasicBlock(const std::string &name) : name(name) {}
   void addStmt(Stmt *stmt) { stmts.push_back(stmt); }
-  EvalStmt *addEvalStmt(ref<Expr> e) {
+  void addEvalStmt(ref<Expr> e, const SourceLocsRef &sourcelocs) {
     if (e->hasEvalStmt || e->preventEvalStmt)
-      return 0;
+      return;
 
-    auto ES = EvalStmt::create(e);
+    auto ES = EvalStmt::create(e, sourcelocs);
     addStmt(ES);
-    return ES;
   }
 
   const std::string &getName() { return name; }

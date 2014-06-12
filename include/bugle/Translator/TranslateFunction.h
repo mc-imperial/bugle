@@ -102,7 +102,6 @@ class TranslateFunction {
   void addPhiAssigns(BasicBlock *BBB, llvm::BasicBlock *Pred,
                      llvm::BasicBlock *Succ);
   SourceLocsRef extractSourceLocs(llvm::Instruction *I);
-  void addEvalStmt(BasicBlock *BBB, ref<Expr> E);
 
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF, llvm::Function *F,
