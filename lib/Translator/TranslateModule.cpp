@@ -308,16 +308,13 @@ bugle::Type TranslateModule::translateSourceArrayRangeType(llvm::Type *T) {
   return translateType(T);
 }
 
-bool TranslateModule::sourceArrayIsMultiDimensional(llvm::Type *T,
-                                                    bool IsGlobal) {
+void TranslateModule::getSourceArrayDimensions(llvm::Type *T, bool IsGlobal,
+                                               std::vector<uint64_t> &dim) {
   if (auto AT = dyn_cast<ArrayType>(T)) {
-    if (IsGlobal)
-      return sourceArrayIsMultiDimensional(AT->getElementType(), false);
-    else
-      return true;
+    if (!IsGlobal)
+      dim.push_back(AT->getArrayNumElements());
+    getSourceArrayDimensions(AT->getElementType(), false, dim);
   }
-
-  return false;
 }
 
 bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
@@ -337,9 +334,9 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
     }
   }
   auto ST = translateSourceArrayRangeType(PT->getElementType());
-  auto IMD = sourceArrayIsMultiDimensional(PT->getElementType(),
-                                           isa<GlobalVariable>(V));
-  GA = BM->addGlobal(V->getName(), T, getSourceGlobalArrayName(V), ST, IMD);
+  std::vector<uint64_t> dim;
+  getSourceArrayDimensions(PT->getElementType(), isa<GlobalVariable>(V), dim);
+  GA = BM->addGlobal(V->getName(), T, getSourceGlobalArrayName(V), ST, dim);
 
   addGlobalArrayAttribs(GA, PT);
   GlobalValueMap[GA] = V;
@@ -603,7 +600,8 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
 
 Stmt *TranslateModule::modelCallStmt(llvm::Type *T, llvm::Function *F,
                                      ref<Expr> Val,
-                                     std::vector<ref<Expr>> &args) {
+                                     std::vector<ref<Expr>> &args,
+                                     SourceLocsRef &sourcelocs) {
   std::map<llvm::Function *, Function *> FS;
 
   if (F) {
@@ -624,7 +622,7 @@ Stmt *TranslateModule::modelCallStmt(llvm::Type *T, llvm::Function *F,
                    std::back_inserter(fargs), [&](ref<Expr> E, Argument &Arg) {
       return modelValue(&Arg, E);
     });
-    auto CS = new CallStmt(i->second, fargs);
+    auto CS = CallStmt::create(i->second, fargs, sourcelocs);
     CallSites[i->first].push_back(&CS->getArgs());
     CSS.push_back(CS);
   }
@@ -635,7 +633,7 @@ Stmt *TranslateModule::modelCallStmt(llvm::Type *T, llvm::Function *F,
   if (F)
     return *CSS.begin();
   else
-    return new CallMemberOfStmt(Val, CSS);
+    return CallMemberOfStmt::create(Val, CSS, sourcelocs);
 }
 
 ref<Expr> TranslateModule::modelCallExpr(llvm::Type *T, llvm::Function *F,

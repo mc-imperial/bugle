@@ -223,17 +223,6 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       OS << ", ";
       writeExpr(OS, AWGCE->getHandle().get());
       OS << ");\n";
-    } else if (auto WGEE = dyn_cast<WaitGroupEventExpr>(ES->getExpr())) {
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "procedure {:wait_group_events} _WAIT_GROUP_EVENTS(handle : bv"
-           << MW->M->getPointerWidth() << ")";
-      });
-      OS << "  ";
-      OS << "call {:wait_group_events} ";
-      writeSourceLocs(OS, ES->getSourceLocs());
-      OS << "_WAIT_GROUP_EVENTS(";
-      writeExpr(OS, WGEE->getHandle().get());
-      OS << ");\n";
     } else {
       OS << "  v" << id << " := ";
       writeExpr(OS, ES->getExpr().get());
@@ -310,18 +299,16 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (auto AtS = dyn_cast<AssertStmt>(S)) {
     OS << "  assert ";
-    if (AtS->isGlobal()) {
+    if (AtS->isGlobal())
       OS << "{:do_not_predicate} ";
-    }
-    if (AtS->isCandidate()) {
+    if (AtS->isCandidate())
       OS << "{:tag \"user\"} ";
-    }
-    if (AtS->isInvariant()) {
+    if (AtS->isInvariant())
       OS << "{:originated_from_invariant} ";
-    }
-    if (AtS->isBadAccess()) {
+    if (AtS->isBadAccess())
       OS << "{:bad_pointer_access} ";
-    }
+    if (AtS->isBlockSourceLoc())
+      OS << "{:block_sourceloc} ";
     writeSourceLocs(OS, AtS->getSourceLocs());
     if (AtS->isCandidate()) {
       unsigned candidateNumber = MW->nextCandidateNumber();
@@ -336,6 +323,17 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (isa<ReturnStmt>(S)) {
     OS << "  return;\n";
+  } else if (auto WGES= dyn_cast<WaitGroupEventStmt>(S)) {
+    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+      OS << "procedure {:wait_group_events} _WAIT_GROUP_EVENTS(handle : bv"
+         << MW->M->getPointerWidth() << ")";
+    });
+    OS << "  ";
+    OS << "call {:wait_group_events} ";
+    writeSourceLocs(OS, S->getSourceLocs());
+    OS << "_WAIT_GROUP_EVENTS(";
+    writeExpr(OS, WGES->getHandle().get());
+    OS << ");\n";
   } else {
     llvm_unreachable("Unsupported statement");
   }
@@ -349,8 +347,7 @@ void BPLFunctionWriter::writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB) {
 
 void BPLFunctionWriter::writeSourceLocs(llvm::raw_ostream &OS,
                                         const SourceLocsRef &sourcelocs) {
-  assert(sourcelocs.get());
-  if (sourcelocs->size() == 0)
+  if (sourcelocs.get() == 0 || sourcelocs->size() == 0)
     return;
   unsigned locnum = MW->SLW->writeSourceLocs(sourcelocs);
   OS << "{:sourceloc_num " << locnum << "}";
@@ -359,11 +356,10 @@ void BPLFunctionWriter::writeSourceLocs(llvm::raw_ostream &OS,
 
 void BPLFunctionWriter::writeSourceLocsMarker(llvm::raw_ostream &OS,
                                               const SourceLocsRef &sourcelocs,
-                                              const unsigned int indent) {
-  assert(sourcelocs.get());
-  if (sourcelocs->size() == 0)
+                                              const unsigned int indentLevel) {
+  if (sourcelocs.get() == 0 || sourcelocs->size() == 0)
     return;
-  OS << std::string(indent, ' ') << "assert {:sourceloc} ";
+  OS << std::string(indentLevel, ' ') << "assert {:sourceloc} ";
   writeSourceLocs(OS, sourcelocs);
   OS << "true;\n";
 }

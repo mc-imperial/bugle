@@ -13,21 +13,20 @@ class GlobalArray {
   Type rangeType;
   std::string sourceName;
   Type sourceRangeType;
-  bool sourceIsMultiDimensional;
+  std::vector<uint64_t> sourceDim;
   std::set<std::string> attributes;
 
 public:
   GlobalArray(const std::string &name, Type rangeType,
               const std::string &sourceName, Type sourceRangeType,
-              bool sourceIsMultiDimensional)
+              std::vector<uint64_t> sourceDim)
       : name(name), rangeType(rangeType), sourceName(sourceName),
-        sourceRangeType(sourceRangeType),
-        sourceIsMultiDimensional(sourceIsMultiDimensional) {}
+        sourceRangeType(sourceRangeType), sourceDim(sourceDim) {}
   const std::string &getName() const { return name; }
   Type getRangeType() const { return rangeType; }
   const std::string &getSourceName() const { return sourceName; }
   Type getSourceRangeType() const { return sourceRangeType; }
-  bool isSourceMultiDimensional() const { return sourceIsMultiDimensional; }
+  const std::vector<uint64_t> &getSourceDimensions() const { return sourceDim; }
   void addAttribute(const std::string &attrib) { attributes.insert(attrib); }
 
   std::set<std::string>::const_iterator attrib_begin() const {

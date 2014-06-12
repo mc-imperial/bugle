@@ -3,6 +3,7 @@
 
 #include "bugle/RaceInstrumenter.h"
 #include "bugle/Ref.h"
+#include "bugle/SourceLoc.h"
 #include "bugle/Type.h"
 #include "klee/util/GetElementPtrTypeIterator.h"
 #include "llvm/ADT/ArrayRef.h"
@@ -91,7 +92,8 @@ private:
   Type translateType(llvm::Type *T);
   Type translateArrayRangeType(llvm::Type *T);
   Type translateSourceArrayRangeType(llvm::Type *T);
-  bool sourceArrayIsMultiDimensional(llvm::Type *T, bool IsGlobal);
+  void getSourceArrayDimensions(llvm::Type *T, bool IsGlobal,
+                                std::vector<uint64_t> &dim);
 
   ref<Expr> translateGEP(ref<Expr> Ptr, klee::gep_type_iterator begin,
                          klee::gep_type_iterator end,
@@ -110,7 +112,7 @@ private:
                          llvm::ArrayRef<ref<Expr>> Assigns);
 
   Stmt *modelCallStmt(llvm::Type *T, llvm::Function *F, ref<Expr> Val,
-                      std::vector<ref<Expr>> &args);
+                      std::vector<ref<Expr>> &args, SourceLocsRef &sourcelocs);
   ref<Expr> modelCallExpr(llvm::Type *T, llvm::Function *F, ref<Expr> Val,
                           std::vector<ref<Expr>> &args);
 

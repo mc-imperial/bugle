@@ -1013,8 +1013,3 @@ ref<Expr> AsyncWorkGroupCopyExpr::create(ref<Expr> dst, ref<Expr> dstOffset,
   return new AsyncWorkGroupCopyExpr(dst, dstOffset, src, srcOffset, size,
                                     handle);
 }
-
-ref<Expr> WaitGroupEventExpr::create(ref<Expr> handle) {
-  assert(handle->getType().isKind(Type::BV));
-  return new WaitGroupEventExpr(handle);
-}
