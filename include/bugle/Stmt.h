@@ -9,6 +9,7 @@ namespace bugle {
 
 class BasicBlock;
 class Expr;
+class Function;
 class Var;
 
 class Stmt {
@@ -47,7 +48,7 @@ class EvalStmt : public Stmt {
 
 public:
   static EvalStmt *create(ref<Expr> expr);
-  ~EvalStmt() { expr->hasEvalStmt = false; }
+  ~EvalStmt();
 
   STMT_KIND(Eval)
   ref<Expr> getExpr() const { return expr; }

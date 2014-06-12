@@ -11,6 +11,8 @@ EvalStmt *EvalStmt::create(ref<Expr> expr) {
   return new EvalStmt(expr);
 }
 
+EvalStmt::~EvalStmt() { expr->hasEvalStmt = false; }
+
 StoreStmt *StoreStmt::create(ref<Expr> array, ref<Expr> offset,
                              ref<Expr> value) {
   assert(array->getType().array);
