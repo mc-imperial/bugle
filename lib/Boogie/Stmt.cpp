@@ -86,16 +86,17 @@ AssertStmt *AssertStmt::createBadAccess(const SourceLocsRef &sourcelocs) {
   return AS;
 }
 
-CallStmt *CallStmt::create(Function *callee,
-                           const std::vector<ref<Expr>> &args) {
-  return new CallStmt(callee, args);
+CallStmt *CallStmt::create(Function *callee, const std::vector<ref<Expr>> &args,
+                           const SourceLocsRef &sourcelocs) {
+  return new CallStmt(callee, args, sourcelocs);
 }
 
 CallMemberOfStmt *CallMemberOfStmt::create(ref<Expr> func,
-                                           std::vector<Stmt *> &callStmts) {
+                                           std::vector<Stmt *> &callStmts,
+                                           const SourceLocsRef &sourcelocs) {
 #ifndef NDEBUG
   for (auto i = callStmts.begin(), e = callStmts.end(); i != e; ++i)
     assert(isa<CallStmt>(*i));
 #endif
-  return new CallMemberOfStmt(func, callStmts);
+  return new CallMemberOfStmt(func, callStmts, sourcelocs);
 }

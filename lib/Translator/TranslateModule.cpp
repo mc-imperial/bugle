@@ -602,7 +602,8 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
 
 Stmt *TranslateModule::modelCallStmt(llvm::Type *T, llvm::Function *F,
                                      ref<Expr> Val,
-                                     std::vector<ref<Expr>> &args) {
+                                     std::vector<ref<Expr>> &args,
+                                     SourceLocsRef &sourcelocs) {
   std::map<llvm::Function *, Function *> FS;
 
   if (F) {
@@ -623,7 +624,7 @@ Stmt *TranslateModule::modelCallStmt(llvm::Type *T, llvm::Function *F,
                    std::back_inserter(fargs), [&](ref<Expr> E, Argument &Arg) {
       return modelValue(&Arg, E);
     });
-    auto CS = CallStmt::create(i->second, fargs);
+    auto CS = CallStmt::create(i->second, fargs, sourcelocs);
     CallSites[i->first].push_back(&CS->getArgs());
     CSS.push_back(CS);
   }
@@ -634,7 +635,7 @@ Stmt *TranslateModule::modelCallStmt(llvm::Type *T, llvm::Function *F,
   if (F)
     return *CSS.begin();
   else
-    return CallMemberOfStmt::create(Val, CSS);
+    return CallMemberOfStmt::create(Val, CSS, sourcelocs);
 }
 
 ref<Expr> TranslateModule::modelCallExpr(llvm::Type *T, llvm::Function *F,

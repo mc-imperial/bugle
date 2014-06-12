@@ -1009,9 +1009,7 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
     BF->addAttribute("barrier_invariant");
   }
 
-  auto CS = CallStmt::create(BF, Args);
-  CS->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(CS);
+  BBB->addStmt(CallStmt::create(BF, Args, currentSourceLocs));
   return 0;
 }
 
@@ -1050,9 +1048,7 @@ TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB,
     BF->addAttribute("binary_barrier_invariant");
   }
 
-  auto CS = CallStmt::create(BF, Args);
-  CS->setSourceLocs(currentSourceLocs);
-  BBB->addStmt(CS);
+  BBB->addStmt(CallStmt::create(BF, Args, currentSourceLocs));
   return 0;
 }
 
@@ -2057,10 +2053,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       } else {
         if (CI->getType()->isVoidTy()) {
           auto V = CI->getCalledValue();
-          auto CS = TM->modelCallStmt(V->getType(), CI->getCalledFunction(),
-                                      translateValue(V, BBB), Args);
-          CS->setSourceLocs(currentSourceLocs);
-          BBB->addStmt(CS);
+          BBB->addStmt(TM->modelCallStmt(V->getType(), CI->getCalledFunction(),
+                                         translateValue(V, BBB), Args,
+                                         currentSourceLocs));
           return;
         } else {
           auto V = CI->getCalledValue();

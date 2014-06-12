@@ -154,13 +154,15 @@ public:
 };
 
 class CallStmt : public Stmt {
-  CallStmt(Function *callee, const std::vector<ref<Expr>> &args)
-      : callee(callee), args(args) {}
+  CallStmt(Function *callee, const std::vector<ref<Expr>> &args,
+           const SourceLocsRef &sourcelocs)
+      : Stmt(sourcelocs), callee(callee), args(args) {}
   Function *callee;
   std::vector<ref<Expr>> args;
 
 public:
-  static CallStmt *create(Function *callee, const std::vector<ref<Expr>> &args);
+  static CallStmt *create(Function *callee, const std::vector<ref<Expr>> &args,
+                          const SourceLocsRef &sourcelocs);
 
   STMT_KIND(Call)
   Function *getCallee() const { return callee; }
@@ -168,14 +170,16 @@ public:
 };
 
 class CallMemberOfStmt : public Stmt {
-  CallMemberOfStmt(ref<Expr> func, std::vector<Stmt *> &callStmts)
-      : func(func), callStmts(callStmts) {};
+  CallMemberOfStmt(ref<Expr> func, std::vector<Stmt *> &callStmts,
+                   const SourceLocsRef &sourcelocs)
+      : Stmt(sourcelocs), func(func), callStmts(callStmts) {};
   ref<Expr> func;
   std::vector<Stmt *> callStmts;
 
 public:
   static CallMemberOfStmt *create(ref<Expr> func,
-                                  std::vector<Stmt *> &callStmts);
+                                  std::vector<Stmt *> &callStmts,
+                                  const SourceLocsRef &sourcelocs);
 
   STMT_KIND(CallMemberOf)
   ref<Expr> getFunc() const { return func; }

@@ -3,6 +3,7 @@
 
 #include "bugle/RaceInstrumenter.h"
 #include "bugle/Ref.h"
+#include "bugle/SourceLoc.h"
 #include "bugle/Type.h"
 #include "klee/util/GetElementPtrTypeIterator.h"
 #include "llvm/DebugInfo.h"
@@ -110,7 +111,7 @@ private:
                          llvm::ArrayRef<ref<Expr>> Assigns);
 
   Stmt *modelCallStmt(llvm::Type *T, llvm::Function *F, ref<Expr> Val,
-                      std::vector<ref<Expr>> &args);
+                      std::vector<ref<Expr>> &args, SourceLocsRef &sourcelocs);
   ref<Expr> modelCallExpr(llvm::Type *T, llvm::Function *F, ref<Expr> Val,
                           std::vector<ref<Expr>> &args);
 
