@@ -361,7 +361,8 @@ void BPLFunctionWriter::writeSourceLocs(llvm::raw_ostream &OS,
 void BPLFunctionWriter::writeSourceLocsMarker(llvm::raw_ostream &OS,
                                               const SourceLocsRef &sourcelocs,
                                               const unsigned int indent) {
-  assert(sourcelocs.get());
+  if (sourcelocs.get() == 0)
+    return;
   if (sourcelocs->size() == 0)
     return;
   OS << std::string(indent, ' ') << "assert {:sourceloc} ";
