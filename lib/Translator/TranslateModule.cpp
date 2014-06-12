@@ -303,7 +303,7 @@ bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
 
 bugle::Type TranslateModule::translateSourceArrayRangeType(llvm::Type *T) {
   if (auto AT = dyn_cast<ArrayType>(T))
-    return translateArrayRangeType(AT->getElementType());
+    return translateSourceArrayRangeType(AT->getElementType());
 
   return translateType(T);
 }
