@@ -4,6 +4,7 @@
 #include "bugle/Expr.h"
 #include "bugle/Ref.h"
 #include "bugle/SourceLoc.h"
+#include "llvm/Support/ErrorHandling.h"
 
 namespace bugle {
 
@@ -87,7 +88,7 @@ public:
   static VarAssignStmt *create(const std::vector<Var *> &vars,
                                const std::vector<ref<Expr>> &values);
 
-  SourceLocsRef &getSourceLocs() { assert(false); }
+  SourceLocsRef &getSourceLocs() { llvm_unreachable("No source location"); }
 
   STMT_KIND(VarAssign)
   const std::vector<Var *> &getVars() const { return vars; }
@@ -102,7 +103,7 @@ public:
   static GotoStmt *create(BasicBlock *block);
   static GotoStmt *create(const std::vector<BasicBlock *> &blocks);
 
-  SourceLocsRef &getSourceLocs() { assert(false); }
+  SourceLocsRef &getSourceLocs() { llvm_unreachable("No source location"); }
 
   STMT_KIND(Goto)
   const std::vector<BasicBlock *> &getBlocks() { return blocks; }
@@ -127,7 +128,7 @@ public:
   static AssumeStmt *create(ref<Expr> pred);
   static AssumeStmt *createPartition(ref<Expr> pred);
 
-  SourceLocsRef &getSourceLocs() { assert(false); }
+  SourceLocsRef &getSourceLocs() { llvm_unreachable("No source location"); }
 
   STMT_KIND(Assume)
   ref<Expr> getPredicate() const { return pred; }
