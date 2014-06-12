@@ -92,7 +92,8 @@ private:
   Type translateType(llvm::Type *T);
   Type translateArrayRangeType(llvm::Type *T);
   Type translateSourceArrayRangeType(llvm::Type *T);
-  bool sourceArrayIsMultiDimensional(llvm::Type *T, bool IsGlobal);
+  void getSourceArrayDimensions(llvm::Type *T, bool IsGlobal,
+                                std::vector<uint64_t> &dim);
 
   ref<Expr> translateGEP(ref<Expr> Ptr, klee::gep_type_iterator begin,
                          klee::gep_type_iterator end,

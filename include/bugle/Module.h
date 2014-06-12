@@ -39,10 +39,10 @@ public:
 
   GlobalArray *addGlobal(const std::string &name, Type rangeType,
                          const std::string &sourceName, Type sourceRangeType,
-                         bool sourceIsMultiDimensional) {
+                         const std::vector<uint64_t> &sourceDim) {
     GlobalArray *GA =
         new GlobalArray(globalNames.makeName(makeBoogieIdent(name)), rangeType,
-                        sourceName, sourceRangeType, sourceIsMultiDimensional);
+                        sourceName, sourceRangeType, sourceDim);
     globals.push_back(GA);
     return GA;
   }

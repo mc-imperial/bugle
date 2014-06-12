@@ -308,16 +308,13 @@ bugle::Type TranslateModule::translateSourceArrayRangeType(llvm::Type *T) {
   return translateType(T);
 }
 
-bool TranslateModule::sourceArrayIsMultiDimensional(llvm::Type *T,
-                                                    bool IsGlobal) {
+void TranslateModule::getSourceArrayDimensions(llvm::Type *T, bool IsGlobal,
+                                               std::vector<uint64_t> &dim) {
   if (auto AT = dyn_cast<ArrayType>(T)) {
-    if (IsGlobal)
-      return sourceArrayIsMultiDimensional(AT->getElementType(), false);
-    else
-      return true;
+    if (!IsGlobal)
+      dim.push_back(AT->getArrayNumElements());
+    getSourceArrayDimensions(AT->getElementType(), false, dim);
   }
-
-  return false;
 }
 
 bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
@@ -337,9 +334,9 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
     }
   }
   auto ST = translateSourceArrayRangeType(PT->getElementType());
-  auto IMD = sourceArrayIsMultiDimensional(PT->getElementType(),
-                                           isa<GlobalVariable>(V));
-  GA = BM->addGlobal(V->getName(), T, getSourceGlobalArrayName(V), ST, IMD);
+  std::vector<uint64_t> dim;
+  getSourceArrayDimensions(PT->getElementType(), isa<GlobalVariable>(V), dim);
+  GA = BM->addGlobal(V->getName(), T, getSourceGlobalArrayName(V), ST, dim);
 
   addGlobalArrayAttribs(GA, PT);
   GlobalValueMap[GA] = V;

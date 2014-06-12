@@ -156,8 +156,11 @@ void BPLModuleWriter::write() {
       AS << attributes << "{:elem_width " << (*i)->getRangeType().width << "} "
          << "{:source_elem_width " << (*i)->getSourceRangeType().width << "} ";
 
-      if ((*i)->isSourceMultiDimensional())
-        AS << "{:source_is_multi_dimensional} ";
+      AS << "{:source_dimensions \"*";
+      std::vector<uint64_t> dimensions = (*i)->getSourceDimensions();
+      for (auto di = dimensions.begin(), de = dimensions.end(); di != de; ++di)
+        AS << "," << (*di);
+      AS << "\"} ";
 
       OS << "var" << AS.str() << "_READ_HAS_OCCURRED_$$" << (*i)->getName()
          << " : bool;\n";
