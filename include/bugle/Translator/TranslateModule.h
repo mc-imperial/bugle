@@ -104,6 +104,16 @@ private:
   ref<Expr> translateBitCast(llvm::Type *SrcTy, llvm::Type *DestTy,
                              ref<Expr> Op);
   ref<Expr> translateArbitrary(Type t);
+  ref<Expr> translateICmp(llvm::CmpInst::Predicate P, ref<Expr> LHS,
+                          ref<Expr> RHS);
+
+  ref<Expr>
+  maybeTranslateSIMDInst(llvm::Type *Ty, llvm::Type *OpTy, ref<Expr> Op,
+                         std::function<ref<Expr>(llvm::Type *, ref<Expr>)> F);
+  ref<Expr>
+  maybeTranslateSIMDInst(llvm::Type *Ty, llvm::Type *OpTy, ref<Expr> LHS,
+                         ref<Expr> RHS,
+                         std::function<ref<Expr>(ref<Expr>, ref<Expr>)> F);
 
   ref<Expr> modelValue(llvm::Value *V, ref<Expr> E);
   Type getModelledType(llvm::Value *V);
