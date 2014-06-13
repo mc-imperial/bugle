@@ -224,6 +224,11 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
                 RHS = translateConstant(CE->getOperand(1));
       return BVMulExpr::create(LHS, RHS);
     }
+    case Instruction::SDiv: {
+      ref<Expr> LHS = translateConstant(CE->getOperand(0)),
+                RHS = translateConstant(CE->getOperand(1));
+      return BVSDivExpr::create(LHS, RHS);
+    }
     case Instruction::PtrToInt: {
       ref<Expr> Op = translateConstant(CE->getOperand(0));
       Type OpTy = Op->getType();
