@@ -150,6 +150,57 @@ ref<Expr> TranslateModule::translateArbitrary(bugle::Type t) {
     return E;
 }
 
+ref<Expr> TranslateModule::translateICmp(CmpInst::Predicate P, ref<Expr> LHS,
+                                         ref<Expr> RHS) {
+  if (P == ICmpInst::ICMP_EQ)
+    return EqExpr::create(LHS, RHS);
+  else if (P == ICmpInst::ICMP_NE)
+    return NeExpr::create(LHS, RHS);
+  else if (LHS->getType().isKind(Type::Pointer)) {
+    assert(RHS->getType().isKind(Type::Pointer));
+    switch (P) {
+    case ICmpInst::ICMP_ULT:
+    case ICmpInst::ICMP_SLT: return Expr::createPtrLt(LHS, RHS);
+    case ICmpInst::ICMP_ULE:
+    case ICmpInst::ICMP_SLE: return Expr::createPtrLe(LHS, RHS);
+    case ICmpInst::ICMP_UGT:
+    case ICmpInst::ICMP_SGT: return Expr::createPtrLt(RHS, LHS);
+    case ICmpInst::ICMP_UGE:
+    case ICmpInst::ICMP_SGE: return Expr::createPtrLe(RHS, LHS);
+    default:
+      ErrorReporter::reportImplementationLimitation("Unsupported ptr icmp");
+    }
+  } else if (LHS->getType().isKind(Type::FunctionPointer)) {
+    assert(RHS->getType().isKind(Type::FunctionPointer));
+    switch (P) {
+    case ICmpInst::ICMP_ULT:
+    case ICmpInst::ICMP_SLT: return Expr::createFuncPtrLt(LHS, RHS);
+    case ICmpInst::ICMP_ULE:
+    case ICmpInst::ICMP_SLE: return Expr::createFuncPtrLe(LHS, RHS);
+    case ICmpInst::ICMP_UGT:
+    case ICmpInst::ICMP_SGT: return Expr::createFuncPtrLt(RHS, LHS);
+    case ICmpInst::ICMP_UGE:
+    case ICmpInst::ICMP_SGE: return Expr::createFuncPtrLe(RHS, LHS);
+    default:
+      ErrorReporter::reportImplementationLimitation("Unsupported ptr icmp");
+    }
+  } else {
+    assert(RHS->getType().isKind(Type::BV));
+    switch (P) {
+    case ICmpInst::ICMP_UGT: return BVUgtExpr::create(LHS, RHS);
+    case ICmpInst::ICMP_UGE: return BVUgeExpr::create(LHS, RHS);
+    case ICmpInst::ICMP_ULT: return BVUltExpr::create(LHS, RHS);
+    case ICmpInst::ICMP_ULE: return BVUleExpr::create(LHS, RHS);
+    case ICmpInst::ICMP_SGT: return BVSgtExpr::create(LHS, RHS);
+    case ICmpInst::ICMP_SGE: return BVSgeExpr::create(LHS, RHS);
+    case ICmpInst::ICMP_SLT: return BVSltExpr::create(LHS, RHS);
+    case ICmpInst::ICMP_SLE: return BVSleExpr::create(LHS, RHS);
+    default:
+      ErrorReporter::reportImplementationLimitation("Unsupported icmp");
+    }
+  }
+}
+
 ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
   if (auto CI = dyn_cast<ConstantInt>(C))
     return BVConstExpr::create(CI->getValue());
@@ -193,15 +244,8 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     case Instruction::ICmp: {
       ref<Expr> LHS = translateConstant(CE->getOperand(0)),
                 RHS = translateConstant(CE->getOperand(1));
-      switch (CE->getPredicate()) {
-      case ICmpInst::ICMP_EQ:
-        return BoolToBVExpr::create(EqExpr::create(LHS, RHS));
-      case ICmpInst::ICMP_NE:
-        return BoolToBVExpr::create(NeExpr::create(LHS, RHS));
-      default:
-        std::string msg = "Unhandled icmp expression";
-        ErrorReporter::reportImplementationLimitation(msg);
-      }
+      CmpInst::Predicate P = (CmpInst::Predicate)CE->getPredicate();
+      return BoolToBVExpr::create(translateICmp(P, LHS, RHS));
     }
     case Instruction::ZExt: {
       llvm::IntegerType *IntTy = cast<IntegerType>(CE->getType());

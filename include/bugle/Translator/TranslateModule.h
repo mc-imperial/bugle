@@ -104,6 +104,8 @@ private:
   ref<Expr> translateBitCast(llvm::Type *SrcTy, llvm::Type *DestTy,
                              ref<Expr> Op);
   ref<Expr> translateArbitrary(Type t);
+  ref<Expr> translateICmp(llvm::CmpInst::Predicate P, ref<Expr> LHS,
+                          ref<Expr> RHS);
 
   ref<Expr> modelValue(llvm::Value *V, ref<Expr> E);
   Type getModelledType(llvm::Value *V);
