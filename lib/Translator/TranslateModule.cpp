@@ -201,6 +201,45 @@ ref<Expr> TranslateModule::translateICmp(CmpInst::Predicate P, ref<Expr> LHS,
   }
 }
 
+ref<Expr> TranslateModule::maybeTranslateSIMDInst(
+    llvm::Type *Ty, llvm::Type *OpTy, ref<Expr> Op,
+    std::function<ref<Expr>(llvm::Type *, ref<Expr>)> F) {
+  if (!isa<VectorType>(Ty))
+    return F(Ty, Op);
+
+  auto VT = cast<VectorType>(Ty);
+  unsigned NumElems = VT->getNumElements();
+  assert(cast<VectorType>(OpTy)->getNumElements() == NumElems);
+  unsigned ElemWidth = Op->getType().width / NumElems;
+  std::vector<ref<Expr>> Elems;
+  for (unsigned i = 0; i < NumElems; ++i) {
+    ref<Expr> Opi = BVExtractExpr::create(Op, i * ElemWidth, ElemWidth);
+    ref<Expr> Elem = F(VT->getElementType(), Opi);
+    Elems.push_back(Elem);
+  }
+  return Expr::createBVConcatN(Elems);
+}
+
+ref<Expr> TranslateModule::maybeTranslateSIMDInst(
+    llvm::Type *Ty, llvm::Type *OpTy, ref<Expr> LHS, ref<Expr> RHS,
+    std::function<ref<Expr>(ref<Expr>, ref<Expr>)> F) {
+  if (!isa<VectorType>(Ty))
+    return F(LHS, RHS);
+
+  auto VT = cast<VectorType>(Ty);
+  unsigned NumElems = VT->getNumElements();
+  assert(cast<VectorType>(OpTy)->getNumElements() == NumElems);
+  unsigned ElemWidth = LHS->getType().width / NumElems;
+  std::vector<ref<Expr>> Elems;
+  for (unsigned i = 0; i < NumElems; ++i) {
+    ref<Expr> LHSi = BVExtractExpr::create(LHS, i * ElemWidth, ElemWidth);
+    ref<Expr> RHSi = BVExtractExpr::create(RHS, i * ElemWidth, ElemWidth);
+    ref<Expr> Elem = F(LHSi, RHSi);
+    Elems.push_back(Elem);
+  }
+  return Expr::createBVConcatN(Elems);
+}
+
 ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
   if (auto CI = dyn_cast<ConstantInt>(C))
     return BVConstExpr::create(CI->getValue());
@@ -222,12 +261,14 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     case Instruction::Mul: {
       ref<Expr> LHS = translateConstant(CE->getOperand(0)),
                 RHS = translateConstant(CE->getOperand(1));
-      return BVMulExpr::create(LHS, RHS);
+      return maybeTranslateSIMDInst(CE->getType(), CE->getType(), LHS, RHS,
+                                    BVMulExpr::create);
     }
     case Instruction::SDiv: {
       ref<Expr> LHS = translateConstant(CE->getOperand(0)),
                 RHS = translateConstant(CE->getOperand(1));
-      return BVSDivExpr::create(LHS, RHS);
+      return maybeTranslateSIMDInst(CE->getType(), CE->getType(), LHS, RHS,
+                                    BVSDivExpr::create);
     }
     case Instruction::PtrToInt: {
       ref<Expr> Op = translateConstant(CE->getOperand(0));
@@ -249,13 +290,21 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     case Instruction::ICmp: {
       ref<Expr> LHS = translateConstant(CE->getOperand(0)),
                 RHS = translateConstant(CE->getOperand(1));
-      CmpInst::Predicate P = (CmpInst::Predicate)CE->getPredicate();
-      return BoolToBVExpr::create(translateICmp(P, LHS, RHS));
+      return maybeTranslateSIMDInst(
+          CE->getType(), CE->getOperand(0)->getType(), LHS, RHS,
+          [&](ref<Expr> LHS, ref<Expr> RHS) -> ref<Expr> {
+            CmpInst::Predicate P = (CmpInst::Predicate)CE->getPredicate();
+            ref<Expr> E = translateICmp(P, LHS, RHS);
+            return BoolToBVExpr::create(E);
+          });
     }
     case Instruction::ZExt: {
-      llvm::IntegerType *IntTy = cast<IntegerType>(CE->getType());
       ref<Expr> Op = translateConstant(CE->getOperand(0));
-      return BVZExtExpr::create(IntTy->getBitWidth(), Op);
+      return maybeTranslateSIMDInst(CE->getType(), CE->getOperand(0)->getType(),
+                                    Op, [&](llvm::Type *Ty, ref<Expr> Op) {
+        llvm::IntegerType *IntTy = cast<IntegerType>(CE->getType());
+        return BVZExtExpr::create(IntTy->getBitWidth(), Op);
+      });
     }
     default:
       std::string name = CE->getOpcodeName();
