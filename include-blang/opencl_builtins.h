@@ -93,18 +93,6 @@ _FLOAT_UNARY_MACRO(half_tan)
 #define INFINITY (1.0f/0.0f)
 #define NAN      (0.0f/0.0f)
 
-// 6.12.2.1 Floating point macros and pragmas
-
-#define M_E_F                   2.7182818284590452354f  /* e */
-#define M_PI_2_F                1.57079632679489661923f /* pi/2 */
-#define M_PI_4_F                0.78539816339744830962f /* pi/4 */
-#define M_1_PI_F                0.31830988618379067154f /* 1/pi */
-#define M_2_PI_F                0.63661977236758134308f /* 2/pi */
-#define M_2_SQRTPI_F            1.12837916709551257390f /* 2/sqrt(pi) */
-#define M_SQRT2_F               1.41421356237309504880f /* sqrt(2) */
-#define M_SQRT1_2_F             0.70710678118654752440f /* 1/sqrt(2) */
-
-
 // 6.12.3: Integer functions
 
 #define _INTEGER_UNARY_MACRO(NAME)          \
