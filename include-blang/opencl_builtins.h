@@ -90,7 +90,6 @@ _FLOAT_UNARY_MACRO(half_sin)
 _FLOAT_UNARY_MACRO(half_sqrt)
 _FLOAT_UNARY_MACRO(half_tan)
 
-#define INFINITY (1.0f/0.0f)
 #define NAN      (0.0f/0.0f)
 
 // 6.12.3: Integer functions
