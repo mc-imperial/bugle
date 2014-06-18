@@ -13,6 +13,8 @@
 
 #include <bugle.h>
 #include <clc/clc.h>
+// libclc's NAN is currently broken, so undef it immediately
+#undef NAN
 #include <annotations/annotations.h>
 #include <opencl_builtins.h>
 #include <opencl_limits.h>
