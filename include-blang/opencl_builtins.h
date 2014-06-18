@@ -57,22 +57,6 @@ _FLOAT_UNARY_MACRO(log10)
 _FLOAT_UNARY_MACRO(log1p)
 _FLOAT_UNARY_MACRO(logb)
 
-#define _POWN_MACRO(FLOATGENTYPE, INTGENTYPE) \
-    FLOATGENTYPE __pown##_##FLOATGENTYPE##_##INTGENTYPE(FLOATGENTYPE x, INTGENTYPE y); \
-    _CLC_INLINE _CLC_OVERLOAD FLOATGENTYPE pown(FLOATGENTYPE x, INTGENTYPE y) { \
-        return __pown##_##FLOATGENTYPE##_##INTGENTYPE(x, y); \
-    }
-
-
-_POWN_MACRO(float, int)
-_POWN_MACRO(float2, int2)
-_POWN_MACRO(float3, int3)
-_POWN_MACRO(float4, int4)
-_POWN_MACRO(float8, int8)
-_POWN_MACRO(float16, int16)
-
-#undef _POWN_MACRO
-
 // Table 6.9
 
 _FLOAT_UNARY_MACRO(half_cos)
