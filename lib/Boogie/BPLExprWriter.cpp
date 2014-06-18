@@ -415,7 +415,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     case Expr::FFloor:
     case Expr::FLog:
     case Expr::FPConv:
-    case Expr::FPow:
     case Expr::FPToSI:
     case Expr::FPToUI:
     case Expr::FrexpExp:
@@ -455,7 +454,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       case Expr::FLog:         IntS << "FLOG" << ToWidth;       break;
       case Expr::FPConv:       IntS << "FP" << FromWidth
                                     << "_CONV" << ToWidth;      break;
-      case Expr::FPow:         IntS << "FPOW" << ToWidth;       break;
       case Expr::FPToSI:       IntS << "FP" << FromWidth
                                     << "_TO_SI" << ToWidth;     break;
       case Expr::FPToUI:       IntS << "FP" << FromWidth
@@ -590,6 +588,26 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
         MW->writeType(OS, BinE->getType());
         OS << ", ";
         MW->writeType(OS, BinE->getType());
+        OS << ") : ";
+        MW->writeType(OS, BinE->getType());
+      });
+      break;
+    }
+    case Expr::FPowi: {
+      const char *IntName;
+      switch (BinE->getKind()) {
+      case Expr::FPowi: IntName = "FPOWI"; break;
+      default:
+        llvm_unreachable("huh?");
+      }
+      OS << IntName << BinE->getType().width << "_I"
+         << BinE->getRHS()->getType().width;
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function " << IntName << BinE->getType().width << "_I"
+           << BinE->getRHS()->getType().width << "(";
+        MW->writeType(OS, BinE->getType());
+        OS << ", ";
+        MW->writeType(OS, BinE->getRHS()->getType());
         OS << ") : ";
         MW->writeType(OS, BinE->getType());
       });
