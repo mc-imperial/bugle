@@ -593,6 +593,26 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       });
       break;
     }
+    case Expr::FPowi: {
+      const char *IntName;
+      switch (BinE->getKind()) {
+      case Expr::FPowi: IntName = "FPOWI"; break;
+      default:
+        llvm_unreachable("huh?");
+      }
+      OS << IntName << BinE->getType().width << "_I"
+         << BinE->getRHS()->getType().width;
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+        OS << "function " << IntName << BinE->getType().width << "_I"
+           << BinE->getRHS()->getType().width << "(";
+        MW->writeType(OS, BinE->getType());
+        OS << ", ";
+        MW->writeType(OS, BinE->getRHS()->getType());
+        OS << ") : ";
+        MW->writeType(OS, BinE->getType());
+      });
+      break;
+    }
     case Expr::FEq:
     case Expr::FLt:
     case Expr::FUno: {
