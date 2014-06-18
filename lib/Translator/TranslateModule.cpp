@@ -300,11 +300,12 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     }
     case Instruction::ZExt: {
       ref<Expr> Op = translateConstant(CE->getOperand(0));
-      return maybeTranslateSIMDInst(CE->getType(), CE->getOperand(0)->getType(),
-                                    Op, [&](llvm::Type *Ty, ref<Expr> Op) {
-        llvm::IntegerType *IntTy = cast<IntegerType>(CE->getType());
-        return BVZExtExpr::create(IntTy->getBitWidth(), Op);
-      });
+      return maybeTranslateSIMDInst(
+          CE->getType(), CE->getOperand(0)->getType(), Op,
+          [&](llvm::Type *Ty, ref<Expr> Op) -> ref<Expr> {
+            llvm::IntegerType *IntTy = cast<IntegerType>(CE->getType());
+            return BVZExtExpr::create(IntTy->getBitWidth(), Op);
+          });
     }
     default:
       std::string name = CE->getOpcodeName();
