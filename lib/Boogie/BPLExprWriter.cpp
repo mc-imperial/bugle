@@ -415,7 +415,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     case Expr::FFloor:
     case Expr::FLog:
     case Expr::FPConv:
-    case Expr::FPow:
     case Expr::FPToSI:
     case Expr::FPToUI:
     case Expr::FrexpExp:
@@ -455,7 +454,6 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       case Expr::FLog:         IntS << "FLOG" << ToWidth;       break;
       case Expr::FPConv:       IntS << "FP" << FromWidth
                                     << "_CONV" << ToWidth;      break;
-      case Expr::FPow:         IntS << "FPOW" << ToWidth;       break;
       case Expr::FPToSI:       IntS << "FP" << FromWidth
                                     << "_TO_SI" << ToWidth;     break;
       case Expr::FPToUI:       IntS << "FP" << FromWidth
