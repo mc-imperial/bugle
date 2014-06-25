@@ -36,6 +36,8 @@ class BPLModuleWriter : BPLExprWriter {
   void writeIntrinsic(std::function<void(llvm::raw_ostream &)> F,
                       bool addSeparator = true);
   unsigned nextCandidateNumber();
+  unsigned bitsRequiredForArrayBases();
+  unsigned bitsRequiredForFunctionPointers();
 
 public:
   BPLModuleWriter(llvm::raw_ostream &OS, bugle::Module *M,
