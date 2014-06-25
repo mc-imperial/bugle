@@ -38,6 +38,7 @@ class BPLModuleWriter : BPLExprWriter {
   unsigned nextCandidateNumber();
   unsigned bitsRequiredForArrayBases();
   unsigned bitsRequiredForFunctionPointers();
+
 public:
   BPLModuleWriter(llvm::raw_ostream &OS, bugle::Module *M,
                   bugle::IntegerRepresentation *IntRep,
