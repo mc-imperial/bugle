@@ -91,13 +91,7 @@ void BPLModuleWriter::write() {
          << MW->IntRep->getType(M->getPointerWidth())
          << ") : ptr;\n\n";
     } else {
-      // We reserve an array base value for "null", and a value for
-      // "undefined"
-      const unsigned NumberOfSpecialArrayBaseValues = 2;
-      unsigned BitsRequiredForArrayBases = (unsigned)std::ceil(
-          std::log(
-              (double)(M->global_size() + NumberOfSpecialArrayBaseValues)) /
-          std::log((double)2));
+      unsigned BitsRequiredForArrayBases = bitsRequiredForArrayBases();
       OS << "type ptr = bv"
          << (M->getPointerWidth() + BitsRequiredForArrayBases) << ";\n"
          << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n"
@@ -131,7 +125,8 @@ void BPLModuleWriter::write() {
     }
   }
 
-  for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
+  unsigned arrayIdCounter = 1;
+  for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i, ++arrayIdCounter) {
     OS << "var {:source_name \"" << (*i)->getSourceName() << "\"} ";
     for (auto ai = (*i)->attrib_begin(), ae = (*i)->attrib_end(); ai != ae;
          ++ai) {
@@ -188,8 +183,17 @@ void BPLModuleWriter::write() {
       }
     }
 
-    if (UsesPointers)
-      OS << "const unique $arrayId$$" << (*i)->getName() << " : arrayId;\n";
+    if (UsesPointers) {
+      OS << "const ";
+      if(RepresentPointersAsDatatype) {
+        OS << "unique ";
+      }
+      OS << "$arrayId$$" << (*i)->getName() << " : arrayId;\n";
+      if(!RepresentPointersAsDatatype) {
+        OS << "axiom $arrayId$$" << (*i)->getName() << " == " << arrayIdCounter
+           << "bv" << bitsRequiredForArrayBases() << ";\n";
+      }
+    }
 
     OS << "\n";
   }
@@ -198,29 +202,50 @@ void BPLModuleWriter::write() {
     OS << "const _WATCHED_OFFSET : " << IntRep->getType(M->getPointerWidth())
        << ";\n";
 
-  if (UsesPointers)
-    OS << "const unique $arrayId$$null$ : arrayId;\n\n";
+  if (UsesPointers) {
+    OS << "const ";
+    if (RepresentPointersAsDatatype) {
+      OS << "unique ";
+    }
+    OS << "$arrayId$$null$ : arrayId;\n";
+    if (!RepresentPointersAsDatatype) {
+      OS << "axiom $arrayId$$null$ == 0bv" << bitsRequiredForArrayBases()
+         << ";\n";
+    }
+    OS << "\n";
+  }
 
   if (UsesFunctionPointers) {
     OS << "type functionPtr";
     if (!RepresentPointersAsDatatype) {
-      // We reserve a function pointer value for "null", and a value for
-      // "undefined"
-      const unsigned NumberOfSpecialFunctionPointerValues = 2;
-      unsigned BitsRequiredForFunctionPointers = (unsigned)std::ceil(
-          std::log((double)(M->function_size() +
-                            NumberOfSpecialFunctionPointerValues)) /
-          std::log((double)2));
-      OS << " = bv" << BitsRequiredForFunctionPointers;
+      OS << " = bv" << bitsRequiredForFunctionPointers();
     }
     OS << ";\n";
 
-    for (auto i = M->function_begin(), e = M->function_end(); i != e; ++i) {
-      OS << "const unique $functionId$$" << (*i)->getName()
+    unsigned functionIdCounter = 1;
+    for (auto i = M->function_begin(), e = M->function_end(); i != e; ++i, ++functionIdCounter) {
+      OS << "const ";
+      if (RepresentPointersAsDatatype) {
+        OS << "unique ";
+      }
+      OS << "$functionId$$" << (*i)->getName()
          << " : functionPtr;\n";
+      if (!RepresentPointersAsDatatype) {
+        OS << "axiom $functionId$$" << (*i)->getName() + " == "
+           << functionIdCounter << "bv" << bitsRequiredForFunctionPointers()
+           << ";\n";
+      }
     }
 
-    OS << "const unique $functionId$$null$ : functionPtr;\n\n";
+    OS << "const ";
+    if (RepresentPointersAsDatatype) {
+      OS << "unique ";
+    }
+    OS << "$functionId$$null$ : functionPtr;\n";
+    if (!RepresentPointersAsDatatype) {
+      OS << "axiom $functionId$$null$ == 0bv" << bitsRequiredForFunctionPointers() << ";\n";
+    }
+    OS << "\n";
   }
 
   for (auto i = IntrinsicSet.begin(), e = IntrinsicSet.end(); i != e; ++i) {
@@ -234,4 +259,22 @@ unsigned BPLModuleWriter::nextCandidateNumber() {
   unsigned result = candidateNumber;
   candidateNumber++;
   return result;
+}
+
+unsigned BPLModuleWriter::bitsRequiredForArrayBases() {
+  // We reserve an array base value for "null", and a value for
+  // "undefined"
+  const unsigned NumberOfSpecialArrayBaseValues = 2;
+  return (unsigned)std::ceil(std::log(
+         (double)(M->global_size() + NumberOfSpecialArrayBaseValues)) /
+         std::log((double)2));
+}
+
+unsigned BPLModuleWriter::bitsRequiredForFunctionPointers() {
+  // We reserve a function pointer value for "null", and a value for
+  // "undefined"
+  const unsigned NumberOfSpecialFunctionPointerValues = 2;
+  return (unsigned)std::ceil(std::log(
+         (double)(M->function_size() + NumberOfSpecialFunctionPointerValues)) /
+         std::log((double)2));
 }
