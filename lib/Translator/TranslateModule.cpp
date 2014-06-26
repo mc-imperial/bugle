@@ -38,25 +38,26 @@ ref<Expr> TranslateModule::translateConstant(Constant *C) {
   return E;
 }
 
-void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned Offset,
+void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned ByteOffset,
                                           Constant *Init) {
   if (auto CS = dyn_cast<ConstantStruct>(Init)) {
     auto SL = TD.getStructLayout(CS->getType());
     for (unsigned i = 0; i < CS->getNumOperands(); ++i)
-      translateGlobalInit(GA, Offset + SL->getElementOffset(i),
+      translateGlobalInit(GA, ByteOffset + SL->getElementOffset(i),
                           CS->getOperand(i));
   } else if (auto CA = dyn_cast<ConstantArray>(Init)) {
-    uint64_t ElemSize = TD.getTypeStoreSize(CA->getType()->getElementType());
+    uint64_t ElemSize = TD.getTypeAllocSize(CA->getType()->getElementType());
     for (unsigned i = 0; i < CA->getNumOperands(); ++i)
-      translateGlobalInit(GA, Offset + i * ElemSize, CA->getOperand(i));
+      translateGlobalInit(GA, ByteOffset + i * ElemSize, CA->getOperand(i));
   } else {
     ref<Expr> Const = translateConstant(Init);
     unsigned InitByteWidth = Const->getType().width / 8;
     Type GATy = GA->getRangeType();
-    if (GATy == Const->getType() && Offset % InitByteWidth == 0) {
-      BM->addGlobalInit(GA, Offset / InitByteWidth, Const);
-    } else if (GATy.isKind(Type::BV) && Offset % (GATy.width / 8) == 0 &&
-               InitByteWidth % (GATy.width / 8) == 0) {
+    unsigned GAByteWidth = GATy.width / 8;
+    if (GATy == Const->getType() && ByteOffset % InitByteWidth == 0) {
+      BM->addGlobalInit(GA, ByteOffset / InitByteWidth, Const);
+    } else if (GATy.isKind(Type::BV) && ByteOffset % GAByteWidth == 0 &&
+               InitByteWidth % GAByteWidth == 0) {
       llvm::Type *InitTy = Init->getType();
       if (InitTy->isPointerTy()) {
         if (InitTy->getPointerElementType()->isFunctionTy())
@@ -66,8 +67,8 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned Offset,
       }
 
       unsigned GAWidth = GATy.width;
-      for (unsigned i = 0; i < Const->getType().width / GAWidth; ++i) {
-        BM->addGlobalInit(GA, Offset + i,
+      for (unsigned i = 0; i < InitByteWidth / GAByteWidth; ++i) {
+        BM->addGlobalInit(GA, (ByteOffset / GAByteWidth) + i,
                           BVExtractExpr::create(Const, i * GAWidth, GAWidth));
       }
     } else {
@@ -379,11 +380,20 @@ bugle::Type TranslateModule::translateType(llvm::Type *T) {
   return Type(K, TD.getTypeSizeInBits(T));
 }
 
+bugle::Type TranslateModule::addPadding(bugle::Type ElTy, llvm::Type *T) {
+  unsigned Padding = TD.getTypeAllocSizeInBits(T) - TD.getTypeSizeInBits(T);
+
+  if (Padding % ElTy.width == 0)
+    return ElTy;
+  else
+    return Type(Type::BV, 8);
+}
+
 bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
   if (auto AT = dyn_cast<ArrayType>(T))
-    return translateArrayRangeType(AT->getElementType());
+    return addPadding(translateArrayRangeType(AT->getElementType()), T);
   if (auto VT = dyn_cast<VectorType>(T))
-    return translateArrayRangeType(VT->getElementType());
+    return addPadding(translateArrayRangeType(VT->getElementType()), T);
   if (auto ST = dyn_cast<StructType>(T)) {
     auto i = ST->element_begin(), e = ST->element_end();
     if (i == e)
@@ -394,17 +404,32 @@ bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
       if (ET != *i)
         return Type(Type::BV, 8);
     }
-    return translateArrayRangeType(ET);
+    return addPadding(translateArrayRangeType(ET), T);
   }
 
   return translateType(T);
+}
+
+bugle::Type TranslateModule::translateSourceType(llvm::Type *T) {
+  Type::Kind K;
+  if (T->isPointerTy()) {
+    llvm::Type *ElTy = T->getPointerElementType();
+    if (ElTy->isFunctionTy())
+      K = Type::FunctionPointer;
+    else
+      K = Type::Pointer;
+  } else {
+    K = Type::BV;
+  }
+
+  return Type(K, TD.getTypeAllocSizeInBits(T));
 }
 
 bugle::Type TranslateModule::translateSourceArrayRangeType(llvm::Type *T) {
   if (auto AT = dyn_cast<ArrayType>(T))
     return translateSourceArrayRangeType(AT->getElementType());
 
-  return translateType(T);
+  return translateSourceType(T);
 }
 
 void TranslateModule::getSourceArrayDimensions(llvm::Type *T, bool IsGlobal,
@@ -456,7 +481,7 @@ TranslateModule::translateGEP(ref<Expr> Ptr, klee::gep_type_iterator begin,
       PtrOfs = BVAddExpr::create(
           PtrOfs, BVConstExpr::create(BM->getPointerWidth(), addend));
     } else if (SequentialType *set = cast<SequentialType>(*i)) {
-      uint64_t elementSize = TD.getTypeStoreSize(set->getElementType());
+      uint64_t elementSize = TD.getTypeAllocSize(set->getElementType());
       Value *operand = i.getOperand();
       ref<Expr> index = xlate(operand);
       index = BVZExtExpr::create(BM->getPointerWidth(), index);
