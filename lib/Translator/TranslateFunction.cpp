@@ -746,7 +746,7 @@ ref<Expr> TranslateFunction::handleReadsFrom(bugle::BasicBlock *BBB,
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   BF->addModifies(AccessHasOccurredExpr::create(arrayIdExpr, false),
                   extractSourceLocs(CI));
-  if (TM->RaceInst == bugle::RaceInstrumenter::Standard) {
+  if (TM->RaceInst == bugle::RaceInstrumenter::Original) {
     ref<Expr> access = AccessOffsetExpr::create(
         arrayIdExpr, TM->TD.getPointerSizeInBits(), false);
     BF->addModifies(access, extractSourceLocs(CI));
@@ -762,7 +762,7 @@ ref<Expr> TranslateFunction::handleWritesTo(bugle::BasicBlock *BBB,
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   BF->addModifies(AccessHasOccurredExpr::create(arrayIdExpr, true),
                   extractSourceLocs(CI));
-  if (TM->RaceInst == bugle::RaceInstrumenter::Standard) {
+  if (TM->RaceInst == bugle::RaceInstrumenter::Original) {
     ref<Expr> access = AccessOffsetExpr::create(
         arrayIdExpr, TM->TD.getPointerSizeInBits(), true);
     BF->addModifies(access, extractSourceLocs(CI));

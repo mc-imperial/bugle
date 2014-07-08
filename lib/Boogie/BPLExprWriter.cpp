@@ -753,7 +753,7 @@ void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
   }
 
   std::string prefix;
-  if (MW->RaceInst == bugle::RaceInstrumenter::Standard) {
+  if (MW->RaceInst == bugle::RaceInstrumenter::Original) {
     prefix = "_" + accessKind + "_OFFSET_$$";
   } else {
     assert(MW->RaceInst == bugle::RaceInstrumenter::WatchdogMultiple);

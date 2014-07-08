@@ -166,7 +166,7 @@ void BPLModuleWriter::write() {
          << " : bool;\n";
 
       switch (RaceInst) {
-      case RaceInstrumenter::Standard:
+      case RaceInstrumenter::Original:
         OS << "var" << attributes << "_READ_OFFSET_$$" << (*i)->getName()
            << " : " << IntRep->getType(M->getPointerWidth()) << ";\n";
         OS << "var" << attributes << "_WRITE_OFFSET_$$" << (*i)->getName()
