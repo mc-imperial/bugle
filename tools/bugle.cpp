@@ -58,8 +58,8 @@ static cl::opt<bool> Inlining(
 
 static cl::opt<std::string> RaceInstrumentation(
     "race-instrumentation",
-    cl::desc("Race instrumentation method to use (standard, watchdog-single, "
-             "watchdog-multiple; default standard)"));
+    cl::desc("Race instrumentation method to use (original, watchdog-single, "
+             "watchdog-multiple; default watchdog-single)"));
 
 static cl::opt<bool> DatatypePointerRepresentation(
     "datatype", cl::ValueDisallowed,
@@ -149,10 +149,10 @@ int main(int argc, char **argv) {
   }
 
   bugle::RaceInstrumenter RaceInst;
-  if (RaceInstrumentation.empty() || RaceInstrumentation == "standard")
-    RaceInst = bugle::RaceInstrumenter::Standard;
-  else if (RaceInstrumentation == "watchdog-single")
+  if (RaceInstrumentation.empty() || RaceInstrumentation == "watchdog-single")
     RaceInst = bugle::RaceInstrumenter::WatchdogSingle;
+  else if (RaceInstrumentation == "original")
+    RaceInst = bugle::RaceInstrumenter::Original;
   else if (RaceInstrumentation == "watchdog-multiple")
     RaceInst = bugle::RaceInstrumenter::WatchdogMultiple;
   else {
