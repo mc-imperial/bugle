@@ -449,7 +449,7 @@ void TranslateFunction::translate() {
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
     if (isGPUEntryPoint && i->getType()->isPointerTy() &&
         !i->getType()->getPointerElementType()->isFunctionTy()) {
-      GlobalArray *GA = TM->getGlobalArray(&*i);
+      GlobalArray *GA = TM->getGlobalArray(&*i, /*IsParameter=*/true);
       if (TM->SL == TranslateModule::SL_CUDA)
         GA->addAttribute("global");
       ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),

@@ -14,14 +14,16 @@ class GlobalArray {
   std::string sourceName;
   Type sourceRangeType;
   std::vector<uint64_t> sourceDim;
+  bool isParameter;
   std::set<std::string> attributes;
 
 public:
   GlobalArray(const std::string &name, Type rangeType,
               const std::string &sourceName, Type sourceRangeType,
-              std::vector<uint64_t> sourceDim)
+              std::vector<uint64_t> sourceDim, bool isParameter)
       : name(name), rangeType(rangeType), sourceName(sourceName),
-        sourceRangeType(sourceRangeType), sourceDim(sourceDim) {}
+        sourceRangeType(sourceRangeType), sourceDim(sourceDim),
+        isParameter(isParameter) {}
   const std::string &getName() const { return name; }
   Type getRangeType() const { return rangeType; }
   const std::string &getSourceName() const { return sourceName; }
@@ -55,6 +57,10 @@ public:
 
   bool isGlobalOrGroupSharedOrConstant() const {
     return isGlobal() || isGroupShared() || isConstant();
+  }
+
+  bool isParameterArray() const {
+    return isParameter;
   }
 };
 }

@@ -432,16 +432,16 @@ bugle::Type TranslateModule::translateSourceArrayRangeType(llvm::Type *T) {
   return translateSourceType(T);
 }
 
-void TranslateModule::getSourceArrayDimensions(llvm::Type *T, bool IsGlobal,
+void TranslateModule::getSourceArrayDimensions(llvm::Type *T,
                                                std::vector<uint64_t> &dim) {
   if (auto AT = dyn_cast<ArrayType>(T)) {
-    if (!IsGlobal)
-      dim.push_back(AT->getArrayNumElements());
-    getSourceArrayDimensions(AT->getElementType(), false, dim);
+    dim.push_back(AT->getArrayNumElements());
+    getSourceArrayDimensions(AT->getElementType(), dim);
   }
 }
 
-bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
+bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V,
+                                                    bool IsParameter) {
   GlobalArray *&GA = ValueGlobalMap[V];
   if (GA)
     return GA;
@@ -459,8 +459,11 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V) {
   }
   auto ST = translateSourceArrayRangeType(PT->getElementType());
   std::vector<uint64_t> dim;
-  getSourceArrayDimensions(PT->getElementType(), isa<GlobalVariable>(V), dim);
-  GA = BM->addGlobal(V->getName(), T, getSourceGlobalArrayName(V), ST, dim);
+  if (IsParameter)
+    dim.push_back(0);
+  getSourceArrayDimensions(PT->getElementType(), dim);
+  std::string SN = getSourceGlobalArrayName(V);
+  GA = BM->addGlobal(V->getName(), T, SN, ST, dim, IsParameter);
 
   addGlobalArrayAttribs(GA, PT);
   GlobalValueMap[GA] = V;

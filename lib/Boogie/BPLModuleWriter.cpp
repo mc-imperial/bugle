@@ -133,11 +133,26 @@ void BPLModuleWriter::write() {
          ++ai) {
       OS << "{:" << *ai << "} ";
     }
-    OS << "$$" << (*i)->getName() << " : ["
-       << IntRep->getType(M->getPointerWidth())
-       << "]";
+    OS << "$$" << (*i)->getName()
+       << " : [" << IntRep->getType(M->getPointerWidth()) << "]";
     writeType(OS, (*i)->getRangeType());
     OS << ";\n";
+
+    OS << "axiom {:array_info \"$$" << (*i)->getName() << "\"} ";
+    for (auto ai = (*i)->attrib_begin(),ae = (*i)->attrib_end(); ai != ae; ++ai)
+      OS << "{:" << *ai << "} ";
+    OS << "{:elem_width " << (*i)->getRangeType().width << "} "
+       << "{:source_name \"" << (*i)->getSourceName() << "\"} "
+       << "{:source_elem_width " << (*i)->getSourceRangeType().width << "} ";
+    OS << "{:source_dimensions \"";
+    std::vector<uint64_t> dimensions = (*i)->getSourceDimensions();
+    if ((*i)->isParameterArray() && dimensions[0] == 0)
+      OS << "*";
+    else
+      OS << dimensions[0];
+    for (auto di = dimensions.begin() + 1,de = dimensions.end(); di != de; ++di)
+      OS << "," << (*di);
+    OS << "\"} true;\n";
 
     if ((*i)->isGlobalOrGroupShared()) {
       std::string attributes;
@@ -154,7 +169,7 @@ void BPLModuleWriter::write() {
 
       AS << "{:source_dimensions \"*";
       std::vector<uint64_t> dimensions = (*i)->getSourceDimensions();
-      for (auto di = dimensions.begin(), de = dimensions.end(); di != de; ++di)
+      for (auto di = dimensions.begin() + 1, de = dimensions.end(); di != de; ++di)
         AS << "," << (*di);
       AS << "\"} ";
 
