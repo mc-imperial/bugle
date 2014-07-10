@@ -136,7 +136,8 @@ public:
   globalEnsures_begin() const {
     return globalEnsures.begin();
   }
-  OwningPtrVector<SpecificationInfo>::const_iterator globalEnsures_end() const {
+  OwningPtrVector<SpecificationInfo>::const_iterator
+  globalEnsures_end() const {
     return globalEnsures.end();
   }
 
@@ -147,13 +148,14 @@ public:
     return modifies.end();
   }
 
-  OwningPtrVector<SpecificationInfo>::const_iterator procedureWideInvariant_begin() const {
+  OwningPtrVector<SpecificationInfo>::const_iterator
+  procedureWideInvariant_begin() const {
     return procedureWideInvariant.begin();
   }
-  OwningPtrVector<SpecificationInfo>::const_iterator procedureWideInvariant_end() const {
+  OwningPtrVector<SpecificationInfo>::const_iterator
+  procedureWideInvariant_end() const {
     return procedureWideInvariant.end();
   }
-
 };
 }
 

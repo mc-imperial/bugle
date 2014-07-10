@@ -88,21 +88,19 @@ void BPLModuleWriter::write() {
       OS << "type {:datatype} ptr;\n"
          << "type arrayId;\n"
          << "function {:constructor} MKPTR(base: arrayId, offset: "
-         << MW->IntRep->getType(M->getPointerWidth())
-         << ") : ptr;\n\n";
+         << MW->IntRep->getType(M->getPointerWidth()) << ") : ptr;\n\n";
     } else {
       unsigned BitsRequiredForArrayBases = bitsRequiredForArrayBases();
       OS << "type ptr = bv"
          << (M->getPointerWidth() + BitsRequiredForArrayBases) << ";\n"
          << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n"
          << "function {:inline true} MKPTR(base: arrayId, offset: "
-         << MW->IntRep->getType(M->getPointerWidth())
-         << ") : ptr {\n"
+         << MW->IntRep->getType(M->getPointerWidth()) << ") : ptr {\n"
          << "  base ++ offset\n"
          << "}\n\n"
          << "function {:inline true} base#MKPTR(p: ptr) : arrayId {\n"
-         << "  p[" << (M->getPointerWidth() + BitsRequiredForArrayBases)
-         << ":" << M->getPointerWidth() << "]\n"
+         << "  p[" << (M->getPointerWidth() + BitsRequiredForArrayBases) << ":"
+         << M->getPointerWidth() << "]\n"
          << "}\n\n"
          << "function {:inline true} offset#MKPTR(p : ptr) : bv"
          << M->getPointerWidth() << "{\n"
@@ -139,7 +137,8 @@ void BPLModuleWriter::write() {
     OS << ";\n";
 
     OS << "axiom {:array_info \"$$" << (*i)->getName() << "\"} ";
-    for (auto ai = (*i)->attrib_begin(),ae = (*i)->attrib_end(); ai != ae; ++ai)
+    for (auto ai = (*i)->attrib_begin(), ae = (*i)->attrib_end(); ai != ae;
+         ++ai)
       OS << "{:" << *ai << "} ";
     OS << "{:elem_width " << (*i)->getRangeType().width << "} "
        << "{:source_name \"" << (*i)->getSourceName() << "\"} "
@@ -150,7 +149,8 @@ void BPLModuleWriter::write() {
       OS << "*";
     else
       OS << dimensions[0];
-    for (auto di = dimensions.begin() + 1,de = dimensions.end(); di != de; ++di)
+    for (auto di = dimensions.begin() + 1, de = dimensions.end(); di != de;
+         ++di)
       OS << "," << (*di);
     OS << "\"} true;\n";
 
@@ -169,7 +169,8 @@ void BPLModuleWriter::write() {
 
       AS << "{:source_dimensions \"*";
       std::vector<uint64_t> dimensions = (*i)->getSourceDimensions();
-      for (auto di = dimensions.begin() + 1, de = dimensions.end(); di != de; ++di)
+      for (auto di = dimensions.begin() + 1, de = dimensions.end(); di != de;
+           ++di)
         AS << "," << (*di);
       AS << "\"} ";
 

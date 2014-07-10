@@ -578,7 +578,8 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
     BBB->addStmt(VarAssignStmt::create(Vars, Exprs));
 }
 
-SourceLocsRef TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB) {
+SourceLocsRef
+TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB) {
   SourceLocsRef sourcelocs;
   for (auto i = BB->begin(), e = BB->end(); i != e; ++i) {
     sourcelocs = extractSourceLocs(i);
@@ -588,7 +589,8 @@ SourceLocsRef TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB)
   return sourcelocs;
 }
 
-SourceLocsRef TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
+SourceLocsRef
+TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
   SourceLocs *sourcelocs = 0;
   if (MDNode *mdnode = I->getMetadata("dbg")) {
     sourcelocs = new SourceLocs();
@@ -742,9 +744,10 @@ ref<Expr> TranslateFunction::handleGlobalEnsures(bugle::BasicBlock *BBB,
 }
 
 ref<Expr> TranslateFunction::handleFunctionWideInvariant(bugle::BasicBlock *BBB,
-                                                 llvm::CallInst *CI,
-                                                 const ExprVec &Args) {
-  BF->addProcedureWideInvariant(Expr::createNeZero(Args[0]), extractSourceLocs(CI));
+                                                         llvm::CallInst *CI,
+                                                         const ExprVec &Args) {
+  BF->addProcedureWideInvariant(Expr::createNeZero(Args[0]),
+                                extractSourceLocs(CI));
   return 0;
 }
 
@@ -1122,8 +1125,8 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
       BBB->addEvalStmt(ValExpr, currentSourceLocs);
-      BBB->addStmt(StoreStmt::create(DstPtrArr, StoreOfs, ValExpr,
-                                     currentSourceLocs));
+      BBB->addStmt(
+          StoreStmt::create(DstPtrArr, StoreOfs, ValExpr, currentSourceLocs));
     }
   } else {
     TM->NeedAdditionalByteArrayModels = true;
@@ -1191,8 +1194,8 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
       BBB->addEvalStmt(Val, currentSourceLocs);
-      BBB->addStmt(StoreStmt::create(DstPtrArr, StoreOfs, Val,
-                                     currentSourceLocs));
+      BBB->addStmt(
+          StoreStmt::create(DstPtrArr, StoreOfs, Val, currentSourceLocs));
     }
   } else {
     TM->NeedAdditionalByteArrayModels = true;
@@ -1786,8 +1789,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             ValElem = BVToPtrExpr::create(ValElem);
           else if (StoreElTy.isKind(Type::FunctionPointer))
             ValElem = BVToFuncPtrExpr::create(ValElem);
-          BBB->addStmt(StoreStmt::create(PtrArr, ElemOfs, ValElem,
-                                         currentSourceLocs));
+          BBB->addStmt(
+              StoreStmt::create(PtrArr, ElemOfs, ValElem, currentSourceLocs));
         }
       } else {
         BBB->addStmt(StoreStmt::create(PtrArr, Div, Val, currentSourceLocs));
@@ -1803,8 +1806,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             PtrOfs, BVConstExpr::create(PtrOfs->getType().width, i));
         ref<Expr> ValByte =
             BVExtractExpr::create(Val, i * 8, 8); // Assumes little endian
-        BBB->addStmt(StoreStmt::create(PtrArr, PtrByteOfs, ValByte,
-                                       currentSourceLocs));
+        BBB->addStmt(
+            StoreStmt::create(PtrArr, PtrByteOfs, ValByte, currentSourceLocs));
       }
     } else {
       TM->NeedAdditionalByteArrayModels = true;
