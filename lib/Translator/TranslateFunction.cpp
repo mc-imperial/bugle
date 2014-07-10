@@ -1680,6 +1680,14 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     E = TM->translateEV(Vec, klee::ev_type_begin(EV), klee::ev_type_end(EV),
                         [&](Value *V) { return translateValue(V, BBB); });
   } else if (auto AI = dyn_cast<AllocaInst>(I)) {
+    auto AS = dyn_cast<Constant>(AI->getArraySize());
+    if (!AS)
+      ErrorReporter::reportImplementationLimitation(
+          "Variable length arrays not supported");
+    auto NE = dyn_cast<BVConstExpr>(TM->translateConstant(AS));
+    if (!NE || NE->getValue().getZExtValue() != 1)
+      ErrorReporter::reportImplementationLimitation(
+          "Only alloca with one element supported");
     GlobalArray *GA = TM->getGlobalArray(AI);
     E = PointerExpr::create(
         GlobalArrayRefExpr::create(GA),
