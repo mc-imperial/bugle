@@ -61,12 +61,13 @@ class TranslateFunction {
       handleInvariant, handleGlobalInvariant, handleCandidateInvariant,
       handleCandidateGlobalInvariant, handleNonTemporalLoadsBegin,
       handleNonTemporalLoadsEnd, handleRequires, handleEnsures,
-      handleGlobalRequires, handleGlobalEnsures, handleReadsFrom,
-      handleWritesTo, handleAll, handleExclusive, handleEnabled, handleOtherInt,
-      handleOtherBool, handleOtherPtrBase, handleOld, handleReturnVal,
-      handleImplies, handleReadHasOccurred, handleWriteHasOccurred,
-      handleReadOffset, handleWriteOffset, handlePtrOffset, handlePtrBase,
-      handleArraySnapshot, handleBarrierInvariant, handleBarrierInvariantBinary,
+      handleGlobalRequires, handleGlobalEnsures, handleFunctionWideInvariant,
+      handleReadsFrom, handleWritesTo, handleAll, handleExclusive,
+      handleEnabled, handleOtherInt, handleOtherBool, handleOtherPtrBase,
+      handleOld, handleReturnVal, handleImplies, handleReadHasOccurred,
+      handleWriteHasOccurred, handleReadOffset, handleWriteOffset,
+      handlePtrOffset, handlePtrBase, handleArraySnapshot,
+      handleBarrierInvariant, handleBarrierInvariantBinary,
       handleAddNoovflUnsigned, handleAddNoovflSigned, handleAddNoovflPredicate,
       handleAdd, handleIte, handleUninterpretedFunction,
       handleAtomicHasTakenValue, handleMemset, handleMemcpy, handleTrap;
@@ -77,7 +78,7 @@ class TranslateFunction {
 
   SpecialFnHandler handleCeil, handleCos, handleExp, handleFabs, handleFloor,
       handleFrexpExp, handleFrexpFrac, handleFma, handleSqrt, handleLog,
-      handlePow, handlePowi, handleSin, handleRsqrt;
+      handlePow, handlePowi, handleRsqrt, handleSin;
 
   SpecialFnHandler handleAtomic;
 

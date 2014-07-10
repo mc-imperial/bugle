@@ -84,7 +84,7 @@ private:
   bool hasInitializer(llvm::GlobalVariable *GV);
   ref<Expr> translateGlobalVariable(llvm::GlobalVariable *GV);
   void addGlobalArrayAttribs(GlobalArray *GA, llvm::PointerType *PT);
-  bugle::GlobalArray *getGlobalArray(llvm::Value *V);
+  bugle::GlobalArray *getGlobalArray(llvm::Value *V, bool IsParameter = false);
 
   ref<Expr> translateConstant(llvm::Constant *C);
   ref<Expr> doTranslateConstant(llvm::Constant *C);
@@ -94,8 +94,7 @@ private:
   Type translateArrayRangeType(llvm::Type *T);
   Type translateSourceType(llvm::Type *T);
   Type translateSourceArrayRangeType(llvm::Type *T);
-  void getSourceArrayDimensions(llvm::Type *T, bool IsGlobal,
-                                std::vector<uint64_t> &dim);
+  void getSourceArrayDimensions(llvm::Type *T, std::vector<uint64_t> &dim);
 
   ref<Expr> translateGEP(ref<Expr> Ptr, klee::gep_type_iterator begin,
                          klee::gep_type_iterator end,

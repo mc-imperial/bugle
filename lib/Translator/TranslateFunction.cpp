@@ -152,6 +152,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
     fns["__ensures"] = &TranslateFunction::handleEnsures;
     fns["__global_ensures"] = &TranslateFunction::handleGlobalEnsures;
+    fns["__function_wide_invariant"] = &TranslateFunction::handleFunctionWideInvariant;
     fns["__reads_from"] = &TranslateFunction::handleReadsFrom;
     fns["__reads_from_local"] = &TranslateFunction::handleReadsFrom;
     fns["__reads_from_global"] = &TranslateFunction::handleReadsFrom;
@@ -448,7 +449,7 @@ void TranslateFunction::translate() {
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
     if (isGPUEntryPoint && i->getType()->isPointerTy() &&
         !i->getType()->getPointerElementType()->isFunctionTy()) {
-      GlobalArray *GA = TM->getGlobalArray(&*i);
+      GlobalArray *GA = TM->getGlobalArray(&*i, /*IsParameter=*/true);
       if (TM->SL == TranslateModule::SL_CUDA)
         GA->addAttribute("global");
       ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
@@ -577,7 +578,8 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
     BBB->addStmt(VarAssignStmt::create(Vars, Exprs));
 }
 
-SourceLocsRef TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB) {
+SourceLocsRef
+TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB) {
   SourceLocsRef sourcelocs;
   for (auto i = BB->begin(), e = BB->end(); i != e; ++i) {
     sourcelocs = extractSourceLocs(i);
@@ -587,7 +589,8 @@ SourceLocsRef TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB)
   return sourcelocs;
 }
 
-SourceLocsRef TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
+SourceLocsRef
+TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
   SourceLocs *sourcelocs = 0;
   if (MDNode *mdnode = I->getMetadata("dbg")) {
     sourcelocs = new SourceLocs();
@@ -737,6 +740,14 @@ ref<Expr> TranslateFunction::handleGlobalEnsures(bugle::BasicBlock *BBB,
                                                  llvm::CallInst *CI,
                                                  const ExprVec &Args) {
   BF->addGlobalEnsures(Expr::createNeZero(Args[0]), extractSourceLocs(CI));
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleFunctionWideInvariant(bugle::BasicBlock *BBB,
+                                                         llvm::CallInst *CI,
+                                                         const ExprVec &Args) {
+  BF->addProcedureWideInvariant(Expr::createNeZero(Args[0]),
+                                extractSourceLocs(CI));
   return 0;
 }
 
@@ -1114,8 +1125,8 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
       BBB->addEvalStmt(ValExpr, currentSourceLocs);
-      BBB->addStmt(StoreStmt::create(DstPtrArr, StoreOfs, ValExpr,
-                                     currentSourceLocs));
+      BBB->addStmt(
+          StoreStmt::create(DstPtrArr, StoreOfs, ValExpr, currentSourceLocs));
     }
   } else {
     TM->NeedAdditionalByteArrayModels = true;
@@ -1183,8 +1194,8 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
       BBB->addEvalStmt(Val, currentSourceLocs);
-      BBB->addStmt(StoreStmt::create(DstPtrArr, StoreOfs, Val,
-                                     currentSourceLocs));
+      BBB->addStmt(
+          StoreStmt::create(DstPtrArr, StoreOfs, Val, currentSourceLocs));
     }
   } else {
     TM->NeedAdditionalByteArrayModels = true;
@@ -1669,6 +1680,14 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     E = TM->translateEV(Vec, klee::ev_type_begin(EV), klee::ev_type_end(EV),
                         [&](Value *V) { return translateValue(V, BBB); });
   } else if (auto AI = dyn_cast<AllocaInst>(I)) {
+    auto AS = dyn_cast<Constant>(AI->getArraySize());
+    if (!AS)
+      ErrorReporter::reportImplementationLimitation(
+          "Variable length arrays not supported");
+    auto NE = dyn_cast<BVConstExpr>(TM->translateConstant(AS));
+    if (!NE || NE->getValue().getZExtValue() != 1)
+      ErrorReporter::reportImplementationLimitation(
+          "Only alloca with one element supported");
     GlobalArray *GA = TM->getGlobalArray(AI);
     E = PointerExpr::create(
         GlobalArrayRefExpr::create(GA),
@@ -1778,8 +1797,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             ValElem = BVToPtrExpr::create(ValElem);
           else if (StoreElTy.isKind(Type::FunctionPointer))
             ValElem = BVToFuncPtrExpr::create(ValElem);
-          BBB->addStmt(StoreStmt::create(PtrArr, ElemOfs, ValElem,
-                                         currentSourceLocs));
+          BBB->addStmt(
+              StoreStmt::create(PtrArr, ElemOfs, ValElem, currentSourceLocs));
         }
       } else {
         BBB->addStmt(StoreStmt::create(PtrArr, Div, Val, currentSourceLocs));
@@ -1795,8 +1814,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
             PtrOfs, BVConstExpr::create(PtrOfs->getType().width, i));
         ref<Expr> ValByte =
             BVExtractExpr::create(Val, i * 8, 8); // Assumes little endian
-        BBB->addStmt(StoreStmt::create(PtrArr, PtrByteOfs, ValByte,
-                                       currentSourceLocs));
+        BBB->addStmt(
+            StoreStmt::create(PtrArr, PtrByteOfs, ValByte, currentSourceLocs));
       }
     } else {
       TM->NeedAdditionalByteArrayModels = true;

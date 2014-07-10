@@ -323,7 +323,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (isa<ReturnStmt>(S)) {
     OS << "  return;\n";
-  } else if (auto WGES= dyn_cast<WaitGroupEventStmt>(S)) {
+  } else if (auto WGES = dyn_cast<WaitGroupEventStmt>(S)) {
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
       OS << "procedure {:wait_group_events} _WAIT_GROUP_EVENTS(handle : bv"
          << MW->M->getPointerWidth() << ")";
@@ -416,6 +416,15 @@ void BPLFunctionWriter::write() {
     for (auto i = F->globalRequires_begin(), e = F->globalRequires_end();
          i != e; ++i) {
       OS << "requires {:do_not_predicate} ";
+      writeSourceLocs(OS, (*i)->getSourceLocs());
+      writeExpr(OS, (*i)->getExpr().get());
+      OS << ";\n";
+    }
+
+    for (auto i = F->procedureWideInvariant_begin(),
+              e = F->procedureWideInvariant_end();
+         i != e; ++i) {
+      OS << "requires {:procedure_wide_invariant} {:do_not_predicate} ";
       writeSourceLocs(OS, (*i)->getSourceLocs());
       writeExpr(OS, (*i)->getExpr().get());
       OS << ";\n";
