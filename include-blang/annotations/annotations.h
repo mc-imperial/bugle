@@ -28,6 +28,11 @@ _DEVICE_QUALIFIER void __global_invariant(bool expr);
 _DEVICE_QUALIFIER void __candidate_invariant(bool expr);
 _DEVICE_QUALIFIER void __candidate_global_invariant(bool expr);
 
+/* Function-wide invariant: will automatically become a global
+   invariant for every loop in the function
+*/
+_DEVICE_QUALIFIER void __function_wide_invariant(bool expr);
+    
 #define __invariant(X) \
     __non_temporal_loads_begin(), \
     __invariant(X), \

@@ -152,6 +152,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
     fns["__ensures"] = &TranslateFunction::handleEnsures;
     fns["__global_ensures"] = &TranslateFunction::handleGlobalEnsures;
+    fns["__function_wide_invariant"] = &TranslateFunction::handleFunctionWideInvariant;
     fns["__reads_from"] = &TranslateFunction::handleReadsFrom;
     fns["__reads_from_local"] = &TranslateFunction::handleReadsFrom;
     fns["__reads_from_global"] = &TranslateFunction::handleReadsFrom;
@@ -737,6 +738,13 @@ ref<Expr> TranslateFunction::handleGlobalEnsures(bugle::BasicBlock *BBB,
                                                  llvm::CallInst *CI,
                                                  const ExprVec &Args) {
   BF->addGlobalEnsures(Expr::createNeZero(Args[0]), extractSourceLocs(CI));
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleFunctionWideInvariant(bugle::BasicBlock *BBB,
+                                                 llvm::CallInst *CI,
+                                                 const ExprVec &Args) {
+  BF->addProcedureWideInvariant(Expr::createNeZero(Args[0]), extractSourceLocs(CI));
   return 0;
 }
 
