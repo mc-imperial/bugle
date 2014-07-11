@@ -149,8 +149,8 @@ void BPLModuleWriter::write() {
       OS << "*";
     else
       OS << dimensions[0];
-    for (auto di = dimensions.begin() + 1, de = dimensions.end(); di != de;
-         ++di)
+    for (auto di = std::next(dimensions.begin()), de = dimensions.end();
+         di != de; ++di)
       OS << "," << (*di);
     OS << "\"} true;\n";
 
@@ -169,8 +169,8 @@ void BPLModuleWriter::write() {
 
       AS << "{:source_dimensions \"*";
       std::vector<uint64_t> dimensions = (*i)->getSourceDimensions();
-      for (auto di = dimensions.begin() + 1, de = dimensions.end(); di != de;
-           ++di)
+      for (auto di = std::next(dimensions.begin()), de = dimensions.end();
+           di != de; ++di)
         AS << "," << (*di);
       AS << "\"} ";
 
