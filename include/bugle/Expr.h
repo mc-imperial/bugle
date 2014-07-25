@@ -77,9 +77,9 @@ public:
     FLog,
     FrexpExp,
     FrexpFrac,
+    FRsqrt,
     FSin,
     FSqrt,
-    FRsqrt,
     OtherInt,
     OtherBool,
     OtherPtrBase,
@@ -436,8 +436,8 @@ UNARY_EXPR(FFloor)
 UNARY_EXPR(FLog)
 UNARY_EXPR(FrexpFrac)
 UNARY_EXPR(FSin)
-UNARY_EXPR(FSqrt)
 UNARY_EXPR(FRsqrt)
+UNARY_EXPR(FSqrt)
 UNARY_EXPR(OtherInt)
 UNARY_EXPR(OtherBool)
 UNARY_EXPR(OtherPtrBase)

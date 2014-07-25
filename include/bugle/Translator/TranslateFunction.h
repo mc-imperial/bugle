@@ -77,8 +77,8 @@ class TranslateFunction {
       handleAsyncWorkGroupCopy, handleWaitGroupEvents;
 
   SpecialFnHandler handleCeil, handleCos, handleExp, handleFabs, handleFloor,
-      handleFrexpExp, handleFrexpFrac, handleFma, handleSqrt, handleLog,
-      handlePow, handlePowi, handleRsqrt, handleSin;
+      handleFrexpExp, handleFrexpFrac, handleFma, handleLog, handlePow,
+      handlePowi, handleRsqrt, handleSin, handleSqrt, handleTrunc;
 
   SpecialFnHandler handleAtomic;
 

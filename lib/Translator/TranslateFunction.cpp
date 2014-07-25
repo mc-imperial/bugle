@@ -419,6 +419,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::powi] = &TranslateFunction::handlePowi;
     ints[Intrinsic::sin] = &TranslateFunction::handleSin;
     ints[Intrinsic::sqrt] = &TranslateFunction::handleSqrt;
+    ints[Intrinsic::trunc] = &TranslateFunction::handleTrunc;
     ints[Intrinsic::dbg_value] = &TranslateFunction::handleNoop;
     ints[Intrinsic::dbg_declare] = &TranslateFunction::handleNoop;
     ints[Intrinsic::memset] = &TranslateFunction::handleMemset;
@@ -1510,6 +1511,15 @@ ref<Expr> TranslateFunction::handleSin(bugle::BasicBlock *BBB,
       [&](llvm::Type *T, ref<Expr> E) { return FSinExpr::create(E); });
 }
 
+ref<Expr> TranslateFunction::handleRsqrt(bugle::BasicBlock *BBB,
+                                         llvm::CallInst *CI,
+                                         const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  return maybeTranslateSIMDInst(
+      BBB, Ty, Ty, Args[0],
+      [&](llvm::Type *T, ref<Expr> E) { return FRsqrtExpr::create(E); });
+}
+
 ref<Expr> TranslateFunction::handleSqrt(bugle::BasicBlock *BBB,
                                         llvm::CallInst *CI,
                                         const ExprVec &Args) {
@@ -1519,13 +1529,15 @@ ref<Expr> TranslateFunction::handleSqrt(bugle::BasicBlock *BBB,
       [&](llvm::Type *T, ref<Expr> E) { return FSqrtExpr::create(E); });
 }
 
-ref<Expr> TranslateFunction::handleRsqrt(bugle::BasicBlock *BBB,
+ref<Expr> TranslateFunction::handleTrunc(bugle::BasicBlock *BBB,
                                          llvm::CallInst *CI,
                                          const ExprVec &Args) {
   llvm::Type *Ty = CI->getType();
-  return maybeTranslateSIMDInst(
-      BBB, Ty, Ty, Args[0],
-      [&](llvm::Type *T, ref<Expr> E) { return FRsqrtExpr::create(E); });
+  llvm::Type *OpTy = CI->getOperand(0)->getType();
+  return maybeTranslateSIMDInst(BBB, Ty, OpTy, Args[0],
+                                [&](llvm::Type *T, ref<Expr> E) {
+    return FPConvExpr::create(TM->TD.getTypeSizeInBits(Ty), E);
+  });
 }
 
 ref<Expr> TranslateFunction::handleAddNoovflUnsigned(bugle::BasicBlock *BBB,

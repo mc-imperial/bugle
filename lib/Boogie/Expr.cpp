@@ -234,25 +234,21 @@ ref<Expr> FPConvExpr::create(unsigned width, ref<Expr> expr) {
 
 ref<Expr> FPToSIExpr::create(unsigned width, ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
-
   return new FPToSIExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> FPToUIExpr::create(unsigned width, ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
-
   return new FPToUIExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> SIToFPExpr::create(unsigned width, ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
-
   return new SIToFPExpr(Type(Type::BV, width), expr);
 }
 
 ref<Expr> UIToFPExpr::create(unsigned width, ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
-
   return new UIToFPExpr(Type(Type::BV, width), expr);
 }
 
@@ -301,14 +297,14 @@ ref<Expr> FSinExpr::create(ref<Expr> expr) {
   return new FSinExpr(expr->getType(), expr);
 }
 
-ref<Expr> FSqrtExpr::create(ref<Expr> expr) {
-  assert(expr->getType().isKind(Type::BV));
-  return new FSqrtExpr(expr->getType(), expr);
-}
-
 ref<Expr> FRsqrtExpr::create(ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
   return new FRsqrtExpr(expr->getType(), expr);
+}
+
+ref<Expr> FSqrtExpr::create(ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::BV));
+  return new FSqrtExpr(expr->getType(), expr);
 }
 
 ref<Expr> IfThenElseExpr::create(ref<Expr> cond, ref<Expr> trueExpr,
