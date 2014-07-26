@@ -124,4 +124,23 @@ std::string BVIntegerRepresentation::getConcatExpr(const std::string &Lhs,
   SS << Lhs << " ++ " << Rhs;
   return SS.str();
 }
+
+std::string BVIntegerRepresentation::getCtlz(unsigned Width) {
+  // We assume little endian
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "procedure BV" << Width << "_CTLZ"
+     << "(val : bv" << Width << ", isZeroUndef : bool) "
+     << "returns (count : bv" << Width << ");\n";
+  SS << "  ensures (val == 0bv" << Width << " && !isZeroUndef) "
+     << " ==> count == " << Width << "bv" << Width << ";\n";
+  for (unsigned i = 1; i < Width; ++i) {
+    SS << "  ensures ("
+       << "BV" << Width << "_LSHR(val, " << i << "bv" << Width << ") "
+       << "== 0bv" << Width << " && "
+       << "BV" << Width << "_LSHR(val, " << (i - 1) << "bv" << Width << ") "
+       << "!= 0bv" << Width << ")"
+       << " ==> count == " << (Width - i) << "bv" << Width << ";\n";
+  }
+  return SS.str();
+}
 }

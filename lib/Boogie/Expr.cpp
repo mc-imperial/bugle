@@ -143,6 +143,13 @@ ref<Expr> BVExtractExpr::create(ref<Expr> expr, unsigned offset,
   return new BVExtractExpr(expr, offset, width);
 }
 
+ref<Expr> BVCtlzExpr::create(ref<Expr> val, ref<Expr> isZeroUndef) {
+  assert(val->getType().isKind(Type::BV));
+  assert(isZeroUndef->getType().isKind(Type::Bool));
+
+  return new BVCtlzExpr(val->getType(), val, isZeroUndef);
+}
+
 ref<Expr> NotExpr::create(ref<Expr> op) {
   assert(op->getType().isKind(Type::Bool));
   if (auto e = dyn_cast<BoolConstExpr>(op))

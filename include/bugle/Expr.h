@@ -37,6 +37,7 @@ public:
     Call,
     CallMemberOf,
     BVExtract,
+    BVCtlz,
     IfThenElse,
     Havoc,
     AccessHasOccurred,
@@ -343,6 +344,19 @@ public:
   EXPR_KIND(BVExtract)
   ref<Expr> getSubExpr() const { return expr; }
   unsigned getOffset() const { return offset; }
+};
+
+class BVCtlzExpr : public Expr {
+  BVCtlzExpr(Type type, ref<Expr> val, ref<Expr> isZeroUndef)
+      : Expr(type), val(val), isZeroUndef(isZeroUndef) {}
+  ref<Expr> val, isZeroUndef;
+
+public:
+  static ref<Expr> create(ref<Expr> val, ref<Expr> isZeroUndef);
+
+  EXPR_KIND(BVCtlz)
+  ref<Expr> getVal() const { return val; }
+  ref<Expr> getIsZeroUndef() const { return isZeroUndef; }
 };
 
 class IfThenElseExpr : public Expr {

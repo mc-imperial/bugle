@@ -5,6 +5,7 @@
 #include "bugle/Expr.h"
 #include "bugle/Function.h"
 #include "bugle/GlobalArray.h"
+#include "bugle/IntegerRepresentation.h"
 #include "bugle/Module.h"
 #include "bugle/SourceLoc.h"
 #include "bugle/SourceLocWriter.h"
@@ -222,6 +223,25 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       writeExpr(OS, AWGCE->getSize().get());
       OS << ", ";
       writeExpr(OS, AWGCE->getHandle().get());
+      OS << ");\n";
+    } else if (auto CE = dyn_cast<BVCtlzExpr>(ES->getExpr())) {
+      unsigned Width = CE->getVal()->getType().width;
+
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+                           OS << MW->IntRep->getArithmeticBinary(
+                               "LSHR", Expr::BVLShr, Width);
+                         },
+                         false);
+
+      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
+                           OS << MW->IntRep->getCtlz(Width);
+                         },
+                         false);
+
+      OS << "  call v" << id << " := BV" << Width << "_CTLZ(";
+      writeExpr(OS, CE->getVal().get());
+      OS << ", ";
+      writeExpr(OS, CE->getIsZeroUndef().get());
       OS << ");\n";
     } else {
       OS << "  v" << id << " := ";

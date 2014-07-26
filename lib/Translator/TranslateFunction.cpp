@@ -404,11 +404,13 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["rsqrt"] = &TranslateFunction::handleRsqrt;
       fns["log2"] = &TranslateFunction::handleLog;
       fns["exp2"] = &TranslateFunction::handleExp;
+      fns["__clz"] = &TranslateFunction::handleCtlz;
     }
 
     auto &ints = SpecialFunctionMap.Intrinsics;
     ints[Intrinsic::ceil] = &TranslateFunction::handleCeil;
     ints[Intrinsic::cos] = &TranslateFunction::handleCos;
+    ints[Intrinsic::ctlz] = &TranslateFunction::handleCtlz;
     ints[Intrinsic::exp2] = &TranslateFunction::handleExp;
     ints[Intrinsic::fabs] = &TranslateFunction::handleFabs;
     ints[Intrinsic::fma] = &TranslateFunction::handleFma;
@@ -1424,6 +1426,21 @@ ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,
   return maybeTranslateSIMDInst(
       BBB, Ty, Ty, Args[0],
       [&](llvm::Type *T, ref<Expr> E) { return FCosExpr::create(E); });
+}
+
+ref<Expr> TranslateFunction::handleCtlz(bugle::BasicBlock *BBB,
+                                        llvm::CallInst *CI,
+                                        const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  ref<Expr> isZeroUndef;
+  if (TM->SL == TranslateModule::SL_CUDA)
+    isZeroUndef = BoolConstExpr::create(false);
+  else
+    isZeroUndef = BVToBoolExpr::create(Args[1]);
+  return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
+                                [&](llvm::Type *T, ref<Expr> E) {
+    return BVCtlzExpr::create(E, isZeroUndef);
+  });
 }
 
 ref<Expr> TranslateFunction::handleExp(bugle::BasicBlock *BBB,

@@ -14,8 +14,8 @@
 using namespace bugle;
 
 static llvm::cl::opt<bool>
-DumpRefCounts("dump-ref-counts", llvm::cl::Hidden, llvm::cl::init(false),
-              llvm::cl::desc("Dump expression reference counts"));
+    DumpRefCounts("dump-ref-counts", llvm::cl::Hidden, llvm::cl::init(false),
+                  llvm::cl::desc("Dump expression reference counts"));
 
 namespace {
 
@@ -52,11 +52,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     OS << MW->IntRep->getExtractExpr(
         ss.str(), EE->getOffset() + EE->getType().width, EE->getOffset());
     if (MW->IntRep->abstractsExtract()) {
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-                           OS << MW->IntRep->getExtract();
-                         },
-                         false);
+      MW->writeIntrinsic(
+          [&](llvm::raw_ostream &OS) { OS << MW->IntRep->getExtract(); },
+          false);
     }
+  } else if (isa<BVCtlzExpr>(E)) {
+    llvm_unreachable("Handled at statement level");
   } else if (auto ZEE = dyn_cast<BVZExtExpr>(E)) {
     OS << "BV" << ZEE->getSubExpr()->getType().width
        << "_ZEXT" << ZEE->getType().width << "(";
@@ -113,10 +114,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     writeExpr(rhsSS, ConcatE->getRHS().get(), 5);
     OS << MW->IntRep->getConcatExpr(lhsSS.str(), rhsSS.str());
     if (MW->IntRep->abstractsConcat()) {
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-                           OS << MW->IntRep->getConcat();
-                         },
-                         false);
+      MW->writeIntrinsic(
+          [&](llvm::raw_ostream &OS) { OS << MW->IntRep->getConcat(); }, false);
     }
   } else if (auto EE = dyn_cast<EqExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
@@ -178,7 +177,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       writeExpr(OS, i->get());
     }
     OS << ")";
-  } else if (dyn_cast<CallMemberOfExpr>(E)) {
+  } else if (isa<CallMemberOfExpr>(E)) {
     llvm_unreachable("Handled at statement level");
   } else if (auto ANOVE = dyn_cast<AddNoovflExpr>(E)) {
     unsigned width = ANOVE->getFirst()->getType().width;
@@ -202,17 +201,14 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
                        false);
 
     if (MW->IntRep->abstractsConcat()) {
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-                           OS << MW->IntRep->getConcat();
-                         },
-                         false);
+      MW->writeIntrinsic(
+          [&](llvm::raw_ostream &OS) { OS << MW->IntRep->getConcat(); }, false);
     }
 
     if (MW->IntRep->abstractsExtract()) {
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-                           OS << MW->IntRep->getExtract();
-                         },
-                         false);
+      MW->writeIntrinsic(
+          [&](llvm::raw_ostream &OS) { OS << MW->IntRep->getExtract(); },
+          false);
     }
 
     if (ANOVE->getIsSigned()) {
@@ -254,26 +250,25 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
           },
           false);
     } else {
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-                           std::string S; llvm::raw_string_ostream SS(S);
-                           SS << "BV" << (width + 1) << "_ADD("
-                              << MW->IntRep->getConcatExpr(
-                                     MW->IntRep->getLiteral(0, 1), "x") << ", "
-                              << MW->IntRep->getConcatExpr(
-                                     MW->IntRep->getLiteral(0, 1), "y") << ")";
-                           OS << "procedure {:inline 1} $__add_noovfl_unsigned_"
-                              << width << "(x : " << MW->IntRep->getType(width)
-                              << ", y : " << MW->IntRep->getType(width)
-                              << ") returns (z : " << MW->IntRep->getType(width)
-                              << ") {\n"
-                              << "  assume "
-                              << MW->IntRep->getExtractExpr(SS.str(), width + 1,
-                                                            width)
-                              << " == " << MW->IntRep->getLiteral(0, 1) << ";\n"
-                              << "  z := BV" << width << "_ADD(x, y);\n"
-                              << "}";
-                         },
-                         false);
+      MW->writeIntrinsic(
+          [&](llvm::raw_ostream &OS) {
+            std::string S; llvm::raw_string_ostream SS(S);
+            SS << "BV" << (width + 1) << "_ADD("
+               << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "x")
+               << ", "
+               << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, 1), "y")
+               << ")";
+            OS << "procedure {:inline 1} $__add_noovfl_unsigned_" << width
+               << "(x : " << MW->IntRep->getType(width)
+               << ", y : " << MW->IntRep->getType(width)
+               << ") returns (z : " << MW->IntRep->getType(width) << ") {\n"
+               << "  assume "
+               << MW->IntRep->getExtractExpr(SS.str(), width + 1, width)
+               << " == " << MW->IntRep->getLiteral(0, 1) << ";\n"
+               << "  z := BV" << width << "_ADD(x, y);\n"
+               << "}";
+          },
+          false);
     }
   } else if (auto ANOVPE = dyn_cast<AddNoovflPredicateExpr>(E)) {
     auto exprs = ANOVPE->getExprs();
@@ -306,40 +301,35 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
                        },
                        false);
 
-    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-                         OS << "function {:inline true} __add_noovfl_" << n
-                            << "(";
-                         for (unsigned i = 0; i < n; ++i) {
-                           OS << (i > 0 ? ", " : "") << "v" << i << ":"
-                              << MW->IntRep->getType(width);
-                         }
-                         OS << ") : " << MW->IntRep->getType(1) << " {";
-                         if (n == 1) {
-                           OS << MW->IntRep->getLiteral(1, 1);
-                         } else {
-                           OS << "if "
-                              << MW->IntRep->getExtractExpr(lhs, width + b,
-                                                            width)
-                              << " == " << MW->IntRep->getLiteral(0, b)
-                              << " then " << MW->IntRep->getLiteral(1, 1)
-                              << " else " << MW->IntRep->getLiteral(0, 1);
-                         }
-                         OS << "}";
-                       },
-                       false);
+    MW->writeIntrinsic(
+        [&](llvm::raw_ostream &OS) {
+          OS << "function {:inline true} __add_noovfl_" << n << "(";
+          for (unsigned i = 0; i < n; ++i) {
+            OS << (i > 0 ? ", " : "") << "v" << i << ":"
+               << MW->IntRep->getType(width);
+          }
+          OS << ") : " << MW->IntRep->getType(1) << " {";
+          if (n == 1) {
+            OS << MW->IntRep->getLiteral(1, 1);
+          } else {
+            OS << "if " << MW->IntRep->getExtractExpr(lhs, width + b, width)
+               << " == " << MW->IntRep->getLiteral(0, b)
+               << " then " << MW->IntRep->getLiteral(1, 1)
+               << " else " << MW->IntRep->getLiteral(0, 1);
+          }
+          OS << "}";
+        },
+        false);
 
     if (MW->IntRep->abstractsConcat()) {
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-                           OS << MW->IntRep->getConcat();
-                         },
-                         false);
+      MW->writeIntrinsic(
+          [&](llvm::raw_ostream &OS) { OS << MW->IntRep->getConcat(); }, false);
     }
 
     if (MW->IntRep->abstractsExtract()) {
-      MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-                           OS << MW->IntRep->getExtract();
-                         },
-                         false);
+      MW->writeIntrinsic(
+          [&](llvm::raw_ostream &OS) { OS << MW->IntRep->getExtract(); },
+          false);
     }
   } else if (auto UFE = dyn_cast<UninterpretedFunctionExpr>(E)) {
     OS << UFE->getName() << "(";
@@ -391,7 +381,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       ErrorReporter::reportImplementationLimitation(
           "\"Atomic has taken value\" expressions for pointers not supported");
     }
-  } else if (dyn_cast<AsyncWorkGroupCopyExpr>(E)) {
+  } else if (isa<AsyncWorkGroupCopyExpr>(E)) {
     llvm_unreachable("Handled at statement level");
   } else if (auto IE = dyn_cast<ImpliesExpr>(E)) {
     OS << "(";
@@ -681,9 +671,9 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       ErrorReporter::reportImplementationLimitation(
           "Load expressions from pointers not supported");
     }
-  } else if (dyn_cast<AtomicExpr>(E)) {
+  } else if (isa<AtomicExpr>(E)) {
     llvm_unreachable("Handled at statement level");
-  } else if (dyn_cast<ArraySnapshotExpr>(E)) {
+  } else if (isa<ArraySnapshotExpr>(E)) {
     llvm_unreachable("Handled at statement level");
   } else if (auto UAE = dyn_cast<UnderlyingArrayExpr>(E)) {
     auto Array = UAE->getArray().get();
