@@ -78,7 +78,8 @@ class TranslateFunction {
 
   SpecialFnHandler handleCeil, handleCos, handleExp, handleFabs, handleFloor,
       handleFrexpExp, handleFrexpFrac, handleFma, handleLog, handlePow,
-      handlePowi, handleRsqrt, handleSin, handleSqrt, handleTrunc;
+      handlePowi, handleRsqrt, handleSin, handleSqrt, handleTrunc,
+      handleUaddOvl;
 
   SpecialFnHandler handleAtomic;
 
