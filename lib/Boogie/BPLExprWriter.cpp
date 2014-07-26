@@ -422,6 +422,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     case Expr::FRsqrt:
     case Expr::FSin:
     case Expr::FSqrt:
+    case Expr::FTrunc:
     case Expr::FuncPtrToBV:
     case Expr::FuncPtrToPtr:
     case Expr::OtherInt:
@@ -465,6 +466,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       case Expr::FRsqrt:       IntS << "FRSQRT" << ToWidth;     break;
       case Expr::FSin:         IntS << "FSIN" << ToWidth;       break;
       case Expr::FSqrt:        IntS << "FSQRT" << ToWidth;      break;
+      case Expr::FTrunc:       IntS << "FTRUNC" << ToWidth;     break;
       case Expr::OtherInt:     IntS << "__other_bv" << ToWidth; break;
       case Expr::OtherBool:    IntS << "__other_bool";          break;
       case Expr::OtherPtrBase: IntS << "__other_arrayId";       break;

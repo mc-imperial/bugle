@@ -1533,11 +1533,9 @@ ref<Expr> TranslateFunction::handleTrunc(bugle::BasicBlock *BBB,
                                          llvm::CallInst *CI,
                                          const ExprVec &Args) {
   llvm::Type *Ty = CI->getType();
-  llvm::Type *OpTy = CI->getOperand(0)->getType();
-  return maybeTranslateSIMDInst(BBB, Ty, OpTy, Args[0],
-                                [&](llvm::Type *T, ref<Expr> E) {
-    return FPConvExpr::create(TM->TD.getTypeSizeInBits(Ty), E);
-  });
+  return maybeTranslateSIMDInst(
+      BBB, Ty, Ty, Args[0],
+      [&](llvm::Type *T, ref<Expr> E) { return FTruncExpr::create(E); });
 }
 
 ref<Expr> TranslateFunction::handleAddNoovflUnsigned(bugle::BasicBlock *BBB,

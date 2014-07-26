@@ -80,6 +80,7 @@ public:
     FRsqrt,
     FSin,
     FSqrt,
+    FTrunc,
     OtherInt,
     OtherBool,
     OtherPtrBase,
@@ -438,6 +439,7 @@ UNARY_EXPR(FrexpFrac)
 UNARY_EXPR(FSin)
 UNARY_EXPR(FRsqrt)
 UNARY_EXPR(FSqrt)
+UNARY_EXPR(FTrunc)
 UNARY_EXPR(OtherInt)
 UNARY_EXPR(OtherBool)
 UNARY_EXPR(OtherPtrBase)
