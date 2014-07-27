@@ -27,7 +27,7 @@ using namespace llvm;
 typedef std::vector<ref<Expr>> ExprVec;
 
 TranslateFunction::SpecialFnMapTy
-TranslateFunction::SpecialFunctionMaps[TranslateModule::SL_Count];
+    TranslateFunction::SpecialFunctionMaps[TranslateModule::SL_Count];
 
 // Appends at least the given basic block to the given list BBList (if not
 // already present), so as to maintain the invariants that:
@@ -404,11 +404,13 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["rsqrt"] = &TranslateFunction::handleRsqrt;
       fns["log2"] = &TranslateFunction::handleLog;
       fns["exp2"] = &TranslateFunction::handleExp;
+      fns["__clz"] = &TranslateFunction::handleCtlz;
     }
 
     auto &ints = SpecialFunctionMap.Intrinsics;
     ints[Intrinsic::ceil] = &TranslateFunction::handleCeil;
     ints[Intrinsic::cos] = &TranslateFunction::handleCos;
+    ints[Intrinsic::ctlz] = &TranslateFunction::handleCtlz;
     ints[Intrinsic::exp2] = &TranslateFunction::handleExp;
     ints[Intrinsic::fabs] = &TranslateFunction::handleFabs;
     ints[Intrinsic::fma] = &TranslateFunction::handleFma;
@@ -419,6 +421,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::powi] = &TranslateFunction::handlePowi;
     ints[Intrinsic::sin] = &TranslateFunction::handleSin;
     ints[Intrinsic::sqrt] = &TranslateFunction::handleSqrt;
+    ints[Intrinsic::trunc] = &TranslateFunction::handleTrunc;
+    ints[Intrinsic::uadd_with_overflow] = &TranslateFunction::handleUaddOvl;
     ints[Intrinsic::dbg_value] = &TranslateFunction::handleNoop;
     ints[Intrinsic::dbg_declare] = &TranslateFunction::handleNoop;
     ints[Intrinsic::memset] = &TranslateFunction::handleMemset;
@@ -1424,6 +1428,21 @@ ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,
       [&](llvm::Type *T, ref<Expr> E) { return FCosExpr::create(E); });
 }
 
+ref<Expr> TranslateFunction::handleCtlz(bugle::BasicBlock *BBB,
+                                        llvm::CallInst *CI,
+                                        const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  ref<Expr> isZeroUndef;
+  if (TM->SL == TranslateModule::SL_CUDA)
+    isZeroUndef = BoolConstExpr::create(false);
+  else
+    isZeroUndef = BVToBoolExpr::create(Args[1]);
+  return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
+                                [&](llvm::Type *T, ref<Expr> E) {
+    return BVCtlzExpr::create(E, isZeroUndef);
+  });
+}
+
 ref<Expr> TranslateFunction::handleExp(bugle::BasicBlock *BBB,
                                        llvm::CallInst *CI,
                                        const ExprVec &Args) {
@@ -1510,6 +1529,15 @@ ref<Expr> TranslateFunction::handleSin(bugle::BasicBlock *BBB,
       [&](llvm::Type *T, ref<Expr> E) { return FSinExpr::create(E); });
 }
 
+ref<Expr> TranslateFunction::handleRsqrt(bugle::BasicBlock *BBB,
+                                         llvm::CallInst *CI,
+                                         const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  return maybeTranslateSIMDInst(
+      BBB, Ty, Ty, Args[0],
+      [&](llvm::Type *T, ref<Expr> E) { return FRsqrtExpr::create(E); });
+}
+
 ref<Expr> TranslateFunction::handleSqrt(bugle::BasicBlock *BBB,
                                         llvm::CallInst *CI,
                                         const ExprVec &Args) {
@@ -1519,13 +1547,42 @@ ref<Expr> TranslateFunction::handleSqrt(bugle::BasicBlock *BBB,
       [&](llvm::Type *T, ref<Expr> E) { return FSqrtExpr::create(E); });
 }
 
-ref<Expr> TranslateFunction::handleRsqrt(bugle::BasicBlock *BBB,
+ref<Expr> TranslateFunction::handleTrunc(bugle::BasicBlock *BBB,
                                          llvm::CallInst *CI,
                                          const ExprVec &Args) {
   llvm::Type *Ty = CI->getType();
   return maybeTranslateSIMDInst(
       BBB, Ty, Ty, Args[0],
-      [&](llvm::Type *T, ref<Expr> E) { return FRsqrtExpr::create(E); });
+      [&](llvm::Type *T, ref<Expr> E) { return FTruncExpr::create(E); });
+}
+
+ref<Expr> TranslateFunction::handleUaddOvl(bugle::BasicBlock *BBB,
+                                           llvm::CallInst *CI,
+                                           const ExprVec &Args) {
+  // The translation of uadd.with.overflow assumes little endianess
+  llvm::StructType *STy = cast<StructType>(CI->getType());
+  llvm::Type *AddTy = STy->getElementType(0), *OvlTy = STy->getElementType(1);
+  unsigned BitWidth = cast<IntegerType>(AddTy)->getBitWidth();
+  ref<Expr> AddExpr =
+                BVAddExpr::create(BVZExtExpr::create(BitWidth + 1, Args[0]),
+                                  BVZExtExpr::create(BitWidth + 1, Args[1])),
+            AddResult = BVExtractExpr::create(AddExpr, 0, BitWidth),
+            OvlResult = BVExtractExpr::create(AddExpr, BitWidth, 1);
+
+  if (TM->TD.getTypeAllocSize(AddTy) * 8 != BitWidth) {
+    ref<Expr> pad =
+        BVConstExpr::createZero(TM->TD.getTypeAllocSize(AddTy) * 8 - BitWidth);
+    AddResult = BVConcatExpr::create(pad, AddResult);
+  }
+
+  assert(cast<IntegerType>(OvlTy)->getBitWidth() == 1);
+  if (TM->TD.getTypeAllocSize(OvlTy) * 8 != 1) {
+    ref<Expr> pad =
+        BVConstExpr::createZero(TM->TD.getTypeAllocSize(OvlTy) * 8 - 1);
+    OvlResult = BVConcatExpr::create(pad, OvlResult);
+  }
+
+  return BVConcatExpr::create(OvlResult, AddResult);
 }
 
 ref<Expr> TranslateFunction::handleAddNoovflUnsigned(bugle::BasicBlock *BBB,

@@ -189,4 +189,12 @@ std::string MathIntegerRepresentation::getConcatExpr(const std::string &Lhs,
                                                      const std::string &Rhs) {
   return "BV_CONCAT(" + Lhs + ", " + Rhs + ")";
 }
+
+std::string MathIntegerRepresentation::getCtlz(unsigned Width) {
+  std::string S; llvm::raw_string_ostream SS(S);
+  SS << "procedure BV" << Width << "_CTLZ"
+     << "(val : int, isZeroUndef : bool) "
+     << "returns (count : int);";
+  return SS.str();
+}
 }

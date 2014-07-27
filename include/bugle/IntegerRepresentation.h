@@ -19,6 +19,7 @@ public:
   virtual std::string getConcat() = 0;
   virtual std::string getConcatExpr(const std::string &Lhs,
                                     const std::string &Rhs) = 0;
+  virtual std::string getCtlz(unsigned Width) = 0;
   virtual std::string getArithmeticBinary(std::string Name,
                                           bugle::Expr::Kind Kind,
                                           unsigned Width) = 0;
@@ -45,6 +46,7 @@ public:
   virtual std::string getConcat();
   virtual std::string getConcatExpr(const std::string &Lhs,
                                     const std::string &Rhs);
+  virtual std::string getCtlz(unsigned Width);
   virtual std::string
   getArithmeticBinary(std::string Name, bugle::Expr::Kind Kind, unsigned Width);
   virtual std::string getBooleanBinary(std::string Name, bugle::Expr::Kind Kind,
@@ -68,6 +70,7 @@ public:
   virtual std::string getConcat();
   virtual std::string getConcatExpr(const std::string &Lhs,
                                     const std::string &Rhs);
+  virtual std::string getCtlz(unsigned Width);
   virtual std::string
   getArithmeticBinary(std::string Name, bugle::Expr::Kind Kind, unsigned Width);
   virtual std::string getBooleanBinary(std::string Name, bugle::Expr::Kind Kind,

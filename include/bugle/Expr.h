@@ -37,6 +37,7 @@ public:
     Call,
     CallMemberOf,
     BVExtract,
+    BVCtlz,
     IfThenElse,
     Havoc,
     AccessHasOccurred,
@@ -77,9 +78,10 @@ public:
     FLog,
     FrexpExp,
     FrexpFrac,
+    FRsqrt,
     FSin,
     FSqrt,
-    FRsqrt,
+    FTrunc,
     OtherInt,
     OtherBool,
     OtherPtrBase,
@@ -344,6 +346,19 @@ public:
   unsigned getOffset() const { return offset; }
 };
 
+class BVCtlzExpr : public Expr {
+  BVCtlzExpr(Type type, ref<Expr> val, ref<Expr> isZeroUndef)
+      : Expr(type), val(val), isZeroUndef(isZeroUndef) {}
+  ref<Expr> val, isZeroUndef;
+
+public:
+  static ref<Expr> create(ref<Expr> val, ref<Expr> isZeroUndef);
+
+  EXPR_KIND(BVCtlz)
+  ref<Expr> getVal() const { return val; }
+  ref<Expr> getIsZeroUndef() const { return isZeroUndef; }
+};
+
 class IfThenElseExpr : public Expr {
   IfThenElseExpr(ref<Expr> cond, ref<Expr> trueExpr, ref<Expr> falseExpr)
       : Expr(trueExpr->getType()), cond(cond), trueExpr(trueExpr),
@@ -436,8 +451,9 @@ UNARY_EXPR(FFloor)
 UNARY_EXPR(FLog)
 UNARY_EXPR(FrexpFrac)
 UNARY_EXPR(FSin)
-UNARY_EXPR(FSqrt)
 UNARY_EXPR(FRsqrt)
+UNARY_EXPR(FSqrt)
+UNARY_EXPR(FTrunc)
 UNARY_EXPR(OtherInt)
 UNARY_EXPR(OtherBool)
 UNARY_EXPR(OtherPtrBase)

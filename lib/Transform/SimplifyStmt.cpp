@@ -18,7 +18,7 @@ bool isTemporal(Expr *e) {
     return LE->getIsTemporal();
   }
   return isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e) || isa<AtomicExpr>(e) ||
-         isa<AsyncWorkGroupCopyExpr>(e);
+         isa<AsyncWorkGroupCopyExpr>(e) || isa<BVCtlzExpr>(e);
 }
 
 void ProcessBasicBlock(BasicBlock *BB) {
