@@ -4,8 +4,7 @@
 
 #define __read_permission(T, X) \
     { \
-        volatile T __read_permission_temp = X; \
-        (void)__read_permission_temp; \
+        volatile T __read_permission_temp __attribute__((unused)) = X; \
     }
 
 #endif
