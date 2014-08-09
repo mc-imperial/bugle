@@ -133,7 +133,7 @@ private:
 
 public:
   TranslateModule(llvm::Module *M, SourceLanguage SL, std::set<std::string> &EP,
-                  RaceInstrumenter &RaceInst, AddressSpaceMap &AS)
+                  RaceInstrumenter RaceInst, AddressSpaceMap &AS)
       : BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RaceInst),
         AddressSpaces(AS), NeedAdditionalByteArrayModels(false),
         ModelAllAsByteArray(false), NextModelAllAsByteArray(false) {

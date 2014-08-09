@@ -46,21 +46,37 @@ static cl::list<std::string> GPUEntryPoints(
     "k", cl::ZeroOrMore, cl::desc("GPU entry point function name"),
     cl::value_desc("function"));
 
-static cl::opt<std::string> SourceLanguage(
-    "l", cl::desc("Module source language (c, cu, cl; default c)"),
-    cl::value_desc("language"));
+static cl::opt<bugle::TranslateModule::SourceLanguage> SourceLanguage(
+    "l", cl::desc("Module source language"),
+    cl::init(bugle::TranslateModule::SL_C),
+    cl::values(clEnumValN(bugle::TranslateModule::SL_C, "c", "C (default)"),
+               clEnumValN(bugle::TranslateModule::SL_CUDA, "cu", "CUDA"),
+               clEnumValN(bugle::TranslateModule::SL_OpenCL, "cl", "OpenCL"),
+               clEnumValEnd));
 
-static cl::opt<std::string> IntegerRepresentation(
-    "i", cl::desc("Integer representation (bv, math; default bv)"),
-    cl::value_desc("intrep"));
+enum IntRep { BVIntRep, MathIntRep };
+
+static cl::opt<IntRep> IntegerRepresentation(
+    "i", cl::desc("Integer representation"), cl::init(BVIntRep),
+    cl::values(clEnumValN(BVIntRep, "bv",
+                          "Bitvector integer representation (default)"),
+               clEnumValN(MathIntRep, "math",
+                          "Mathematical integer representation"),
+               clEnumValEnd));
 
 static cl::opt<bool> Inlining(
     "inline", cl::ValueDisallowed, cl::desc("Inline all function calls"));
 
-static cl::opt<std::string> RaceInstrumentation(
-    "race-instrumentation",
-    cl::desc("Race instrumentation method to use (original, watchdog-single, "
-             "watchdog-multiple; default watchdog-single)"));
+static cl::opt<bugle::RaceInstrumenter> RaceInstrumentation(
+    "race-instrumentation", cl::desc("Race instrumentation method to use"),
+    cl::init(bugle::RaceInstrumenter::WatchdogSingle),
+    cl::values(clEnumValN(bugle::RaceInstrumenter::Original,
+                          "original", "Original"),
+               clEnumValN(bugle::RaceInstrumenter::WatchdogSingle,
+                          "watchdog-single", "Watchdog single (default)"),
+               clEnumValN(bugle::RaceInstrumenter::WatchdogMultiple,
+                          "watchdog-multiple", "Watchdog multiple"),
+               clEnumValEnd));
 
 static cl::opt<bool> DatatypePointerRepresentation(
     "datatype", cl::ValueDisallowed,
@@ -70,19 +86,16 @@ static cl::opt<bool> DatatypePointerRepresentation(
 // Targets.cpp. There does not appear to be a header file in which they are
 // symbolically defined
 static cl::opt<unsigned> GlobalAddrSpace(
-    "global-space",
-    cl::desc("Set address space used as \"global\" (default 1)"),
-    cl::value_desc("integer"), cl::init(1));
+    "global-space", cl::desc("Global address space (default 1)"),
+    cl::value_desc("int"), cl::init(1));
 
 static cl::opt<unsigned> GroupSharedAddrSpace(
-    "group-shared-space",
-    cl::desc("Set address space used as \"group shared\" (default 3)"),
-    cl::value_desc("integer"), cl::init(3));
+    "group-shared-space", cl::desc("Group shared address space (default 3)"),
+    cl::value_desc("int"), cl::init(3));
 
 static cl::opt<unsigned> ConstantAddrSpace(
-    "constant-space",
-    cl::desc("Set address space used as \"constant\" (default 4)"),
-    cl::value_desc("integer"), cl::init(4));
+    "constant-space", cl::desc("Constant address space (default 4)"),
+    cl::value_desc("int"), cl::init(4));
 
 int main(int argc, char **argv) {
   sys::PrintStackTraceOnErrorSignal();
@@ -125,40 +138,14 @@ int main(int argc, char **argv) {
       bugle::ErrorReporter::reportFatalError("Bitcode did not read correctly");
   }
 
-  bugle::TranslateModule::SourceLanguage SL;
-  if (SourceLanguage.empty() || SourceLanguage == "c")
-    SL = bugle::TranslateModule::SL_C;
-  else if (SourceLanguage == "cu")
-    SL = bugle::TranslateModule::SL_CUDA;
-  else if (SourceLanguage == "cl")
-    SL = bugle::TranslateModule::SL_OpenCL;
-  else {
-    std::string msg = "Unsupported source language: " + SourceLanguage;
-    bugle::ErrorReporter::reportParameterError(msg);
-  }
-
   std::unique_ptr<bugle::IntegerRepresentation> IntRep;
-  if (IntegerRepresentation.empty() || IntegerRepresentation == "bv")
+  switch (IntegerRepresentation) {
+  case BVIntRep:
     IntRep.reset(new bugle::BVIntegerRepresentation());
-  else if (IntegerRepresentation == "math")
-    IntRep.reset(new bugle::MathIntegerRepresentation);
-  else {
-    std::string msg =
-        "Unsupported integer representation: " + IntegerRepresentation;
-    bugle::ErrorReporter::reportParameterError(msg);
-  }
-
-  bugle::RaceInstrumenter RaceInst;
-  if (RaceInstrumentation.empty() || RaceInstrumentation == "watchdog-single")
-    RaceInst = bugle::RaceInstrumenter::WatchdogSingle;
-  else if (RaceInstrumentation == "original")
-    RaceInst = bugle::RaceInstrumenter::Original;
-  else if (RaceInstrumentation == "watchdog-multiple")
-    RaceInst = bugle::RaceInstrumenter::WatchdogMultiple;
-  else {
-    std::string msg =
-        "Unsupported race instrumentation: " + RaceInstrumentation;
-    bugle::ErrorReporter::reportParameterError(msg);
+    break;
+  case MathIntRep:
+    IntRep.reset(new bugle::MathIntegerRepresentation());
+    break;
   }
 
   if (GlobalAddrSpace == 0 || GlobalAddrSpace == GroupSharedAddrSpace ||
@@ -191,14 +178,15 @@ int main(int argc, char **argv) {
   PassManager PM;
   if (Inlining) {
     PM.add(new bugle::CycleDetectPass());
-    PM.add(new bugle::InlinePass(SL, EP));
-    PM.add(new bugle::RemoveBodyPass(SL, EP));
+    PM.add(new bugle::InlinePass(SourceLanguage, EP));
+    PM.add(new bugle::RemoveBodyPass(SourceLanguage, EP));
     PM.add(new bugle::RemovePrototypePass());
   }
-  PM.add(new bugle::RestrictDetectPass(SL, EP, AddressSpaces));
+  PM.add(new bugle::RestrictDetectPass(SourceLanguage, EP, AddressSpaces));
   PM.run(*M.get());
 
-  bugle::TranslateModule TM(M.get(), SL, EP, RaceInst, AddressSpaces);
+  bugle::TranslateModule TM(M.get(), SourceLanguage, EP, RaceInstrumentation,
+                            AddressSpaces);
   TM.translate();
   std::unique_ptr<bugle::Module> BM(TM.takeModule());
 
@@ -224,8 +212,8 @@ int main(int argc, char **argv) {
   }
   std::unique_ptr<bugle::SourceLocWriter> SLW(new bugle::SourceLocWriter(L));
 
-  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get(), RaceInst, SLW.get(),
-                            DatatypePointerRepresentation);
+  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get(), RaceInstrumentation,
+                            SLW.get(), DatatypePointerRepresentation);
   MW.write();
 
   F.os().flush();
