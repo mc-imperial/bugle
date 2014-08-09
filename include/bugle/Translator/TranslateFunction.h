@@ -105,6 +105,7 @@ class TranslateFunction {
                      llvm::BasicBlock *Succ);
   SourceLocsRef extractSourceLocsForBlock(llvm::BasicBlock *BB);
   SourceLocsRef extractSourceLocs(llvm::Instruction *I);
+  void specifyZeroDimensions(llvm::Function *F, unsigned PtrArgs);
 
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF, llvm::Function *F,

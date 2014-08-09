@@ -434,6 +434,35 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
   return SpecialFunctionMap;
 }
 
+void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
+                                              unsigned PtrArgs) {
+  std::vector<uint64_t> &AS = TM->GPUArraySizes[F->getName()];
+  if (AS.size() != PtrArgs) {
+    std::string msg =
+        "Expected " + std::to_string(PtrArgs) + " array sizes for " +
+        F->getName().str() + " got " + std::to_string(AS.size());
+    ErrorReporter::reportParameterError(msg);
+  }
+
+  auto ArraySize = AS.begin();
+  for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
+    if (isGPUEntryPoint && i->getType()->isPointerTy() &&
+        !i->getType()->getPointerElementType()->isFunctionTy()) {
+      GlobalArray *GA = TM->getGlobalArray(&*i, /*IsParameter=*/true);
+      auto PT = cast<PointerType>(i->getType());
+      uint64_t ElementSize = TM->TD.getTypeAllocSize(PT->getElementType());
+      if (*ArraySize % ElementSize != 0) {
+        std::string msg =
+            "Array size " + std::to_string(*ArraySize) + " not a multiple of " +
+            "element size " + std::to_string(ElementSize);
+        ErrorReporter::reportParameterError(msg);
+      }
+      GA->updateZeroDimension(*ArraySize / ElementSize);
+      ++ArraySize;
+    }
+  }
+}
+
 void TranslateFunction::translate() {
   initSpecialFunctionMap(TM->SL);
 
@@ -450,10 +479,12 @@ void TranslateFunction::translate() {
     BF->setSpecification(true);
 
   unsigned PtrSize = TM->TD.getPointerSizeInBits();
+  unsigned PtrArgs = 0;
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
     if (isGPUEntryPoint && i->getType()->isPointerTy() &&
         !i->getType()->getPointerElementType()->isFunctionTy()) {
       GlobalArray *GA = TM->getGlobalArray(&*i, /*IsParameter=*/true);
+      ++PtrArgs;
       if (TM->SL == TranslateModule::SL_CUDA)
         GA->addAttribute("global");
       ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
@@ -462,6 +493,11 @@ void TranslateFunction::translate() {
       Var *V = BF->addArgument(TM->getModelledType(&*i), i->getName());
       ValueExprMap[&*i] = TM->unmodelValue(&*i, VarRefExpr::create(V));
     }
+  }
+
+  if (isGPUEntryPoint &&
+      TM->GPUArraySizes.find(F->getName()) != TM->GPUArraySizes.end()) {
+    specifyZeroDimensions(F, PtrArgs);
   }
 
   if (BF->return_begin() != BF->return_end())

@@ -466,7 +466,6 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V,
     dim.push_back(1);
   std::string SN = getSourceGlobalArrayName(V);
   GA = BM->addGlobal(V->getName(), T, SN, ST, dim, IsParameter);
-
   addGlobalArrayAttribs(GA, PT);
   GlobalValueMap[GA] = V;
   return GA;

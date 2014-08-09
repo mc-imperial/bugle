@@ -231,7 +231,7 @@ int main(int argc, char **argv) {
   PM.run(*M.get());
 
   bugle::TranslateModule TM(M.get(), SourceLanguage, EP, RaceInstrumentation,
-                            AddressSpaces);
+                            AddressSpaces, KAS);
   TM.translate();
   std::unique_ptr<bugle::Module> BM(TM.takeModule());
 
