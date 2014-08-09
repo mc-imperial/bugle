@@ -23,7 +23,7 @@ static cl::opt<bool> ModelBVAsByteArray(
 TranslateModule::AddressSpaceMap::AddressSpaceMap(unsigned Global,
                                                   unsigned GroupShared,
                                                   unsigned Constant)
-    : standard(0), global(Global), group_shared(GroupShared),
+    : generic(0), global(Global), group_shared(GroupShared),
       constant(Constant) {
   assert(Global != 0 && Global != GroupShared && Global != Constant);
   assert(GroupShared != 0 && GroupShared != Global && GroupShared != Constant);

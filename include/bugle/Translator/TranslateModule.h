@@ -42,7 +42,7 @@ public:
   };
 
   struct AddressSpaceMap {
-    const unsigned standard;
+    const unsigned generic;
     const unsigned global;
     const unsigned group_shared;
     const unsigned constant;
