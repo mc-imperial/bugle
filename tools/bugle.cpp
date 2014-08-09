@@ -26,6 +26,8 @@
 #include "bugle/Translator/TranslateModule.h"
 #include "bugle/util/ErrorReporter.h"
 
+#include <set>
+
 using namespace llvm;
 
 static cl::opt<std::string> InputFilename(
@@ -40,7 +42,7 @@ static cl::opt<std::string> SourceLocationFilename(
     "s", cl::desc("File for saving source locations"), cl::init(""),
     cl::value_desc("filename"));
 
-static cl::opt<std::string> GPUEntryPoints(
+static cl::list<std::string> GPUEntryPoints(
     "k", cl::ZeroOrMore, cl::desc("GPU entry point function name"),
     cl::value_desc("function"));
 
@@ -184,7 +186,7 @@ int main(int argc, char **argv) {
 
   std::set<std::string> EP;
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
-    EP.insert(&*i);
+    EP.insert(*i);
 
   PassManager PM;
   if (Inlining) {
