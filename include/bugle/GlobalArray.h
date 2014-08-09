@@ -14,7 +14,6 @@ class GlobalArray {
   std::string sourceName;
   Type sourceRangeType;
   std::vector<uint64_t> sourceDim;
-  bool isParameter;
   bool zeroDimensionValid;
   std::set<std::string> attributes;
 
@@ -24,7 +23,7 @@ public:
               std::vector<uint64_t> sourceDim, bool isParameter)
       : name(name), rangeType(rangeType), sourceName(sourceName),
         sourceRangeType(sourceRangeType), sourceDim(sourceDim),
-        isParameter(isParameter), zeroDimensionValid(!isParameter) {}
+        zeroDimensionValid(!isParameter) {}
   const std::string &getName() const { return name; }
   Type getRangeType() const { return rangeType; }
   const std::string &getSourceName() const { return sourceName; }
@@ -33,7 +32,6 @@ public:
   void addAttribute(const std::string &attrib) { attributes.insert(attrib); }
 
   void updateZeroDimension(uint64_t size) {
-    assert(isParameter);
     sourceDim[0] = size;
     zeroDimensionValid = true;
   }
