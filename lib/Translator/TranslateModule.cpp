@@ -23,7 +23,7 @@ static cl::opt<bool> ModelBVAsByteArray(
 TranslateModule::AddressSpaceMap::AddressSpaceMap(unsigned Global,
                                                   unsigned GroupShared,
                                                   unsigned Constant)
-    : standard(0), global(Global), group_shared(GroupShared),
+    : generic(0), global(Global), group_shared(GroupShared),
       constant(Constant) {
   assert(Global != 0 && Global != GroupShared && Global != Constant);
   assert(GroupShared != 0 && GroupShared != Global && GroupShared != Constant);
@@ -466,7 +466,6 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V,
     dim.push_back(1);
   std::string SN = getSourceGlobalArrayName(V);
   GA = BM->addGlobal(V->getName(), T, SN, ST, dim, IsParameter);
-
   addGlobalArrayAttribs(GA, PT);
   GlobalValueMap[GA] = V;
   return GA;

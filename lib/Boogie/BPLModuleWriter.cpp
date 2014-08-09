@@ -145,11 +145,12 @@ void BPLModuleWriter::write() {
        << "{:source_elem_width " << (*i)->getSourceRangeType().width << "} ";
     OS << "{:source_dimensions \"";
     std::vector<uint64_t> dimensions = (*i)->getSourceDimensions();
-    if ((*i)->isParameterArray() && dimensions[0] == 0)
-      OS << "*";
-    else
+    if ((*i)->isZeroDimensionValid())
       OS << dimensions[0];
-    for (std::vector<uint64_t>::iterator di = std::next(dimensions.begin()), de = dimensions.end();
+    else
+      OS << "*";
+    for (std::vector<uint64_t>::iterator di = std::next(dimensions.begin()),
+                                         de = dimensions.end();
          di != de; ++di)
       OS << "," << (*di);
     OS << "\"} true;\n";
@@ -169,7 +170,8 @@ void BPLModuleWriter::write() {
 
       AS << "{:source_dimensions \"*";
       std::vector<uint64_t> dimensions = (*i)->getSourceDimensions();
-      for (std::vector<uint64_t>::iterator di = std::next(dimensions.begin()), de = dimensions.end();
+      for (std::vector<uint64_t>::iterator di = std::next(dimensions.begin()),
+                                           de = dimensions.end();
            di != de; ++di)
         AS << "," << (*di);
       AS << "\"} ";

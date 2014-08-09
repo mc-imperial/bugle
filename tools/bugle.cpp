@@ -9,6 +9,7 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/PrettyStackTrace.h"
+#include "llvm/Support/Regex.h"
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
@@ -27,6 +28,10 @@
 #include "bugle/Translator/TranslateModule.h"
 #include "bugle/util/ErrorReporter.h"
 
+#include <map>
+#include <set>
+#include <vector>
+
 using namespace llvm;
 
 static cl::opt<std::string> InputFilename(
@@ -41,47 +46,118 @@ static cl::opt<std::string> SourceLocationFilename(
     "s", cl::desc("File for saving source locations"), cl::init(""),
     cl::value_desc("filename"));
 
-static cl::opt<std::string> GPUEntryPoints(
+static cl::list<std::string> GPUEntryPoints(
     "k", cl::ZeroOrMore, cl::desc("GPU entry point function name"),
     cl::value_desc("function"));
 
-static cl::opt<std::string> SourceLanguage(
-    "l", cl::desc("Module source language (c, cu, cl; default c)"),
-    cl::value_desc("language"));
+static cl::opt<bugle::TranslateModule::SourceLanguage> SourceLanguage(
+    "l", cl::desc("Module source language"),
+    cl::init(bugle::TranslateModule::SL_C),
+    cl::values(clEnumValN(bugle::TranslateModule::SL_C, "c", "C (default)"),
+               clEnumValN(bugle::TranslateModule::SL_CUDA, "cu", "CUDA"),
+               clEnumValN(bugle::TranslateModule::SL_OpenCL, "cl", "OpenCL"),
+               clEnumValEnd));
 
-static cl::opt<std::string> IntegerRepresentation(
-    "i", cl::desc("Integer representation (bv, math; default bv)"),
-    cl::value_desc("intrep"));
+enum IntRep { BVIntRep, MathIntRep };
+
+static cl::opt<IntRep> IntegerRepresentation(
+    "i", cl::desc("Integer representation"), cl::init(BVIntRep),
+    cl::values(clEnumValN(BVIntRep, "bv",
+                          "Bitvector integer representation (default)"),
+               clEnumValN(MathIntRep, "math",
+                          "Mathematical integer representation"),
+               clEnumValEnd));
 
 static cl::opt<bool> Inlining(
     "inline", cl::ValueDisallowed, cl::desc("Inline all function calls"));
 
-static cl::opt<std::string> RaceInstrumentation(
-    "race-instrumentation",
-    cl::desc("Race instrumentation method to use (original, watchdog-single, "
-             "watchdog-multiple; default watchdog-single)"));
+static cl::opt<bugle::RaceInstrumenter> RaceInstrumentation(
+    "race-instrumentation", cl::desc("Race instrumentation method to use"),
+    cl::init(bugle::RaceInstrumenter::WatchdogSingle),
+    cl::values(clEnumValN(bugle::RaceInstrumenter::Original,
+                          "original", "Original"),
+               clEnumValN(bugle::RaceInstrumenter::WatchdogSingle,
+                          "watchdog-single", "Watchdog single (default)"),
+               clEnumValN(bugle::RaceInstrumenter::WatchdogMultiple,
+                          "watchdog-multiple", "Watchdog multiple"),
+               clEnumValEnd));
 
 static cl::opt<bool> DatatypePointerRepresentation(
     "datatype", cl::ValueDisallowed,
     cl::desc("Use datatype representation for pointers"));
 
+static cl::list<std::string>
+    GPUArraySizes("kernel-array-sizes", cl::ZeroOrMore,
+                  cl::desc("Specify GPU entry point array sizes in bytes"),
+                  cl::value_desc("function(,int)*"));
+
 // The default values for the address spaces match NVPTXAddrSpaceMap in
 // Targets.cpp. There does not appear to be a header file in which they are
-// symbolically defined
+// symbolically defined.
 static cl::opt<unsigned> GlobalAddrSpace(
-    "global-space",
-    cl::desc("Set address space used as \"global\" (default 1)"),
-    cl::value_desc("integer"), cl::init(1));
+    "global-space", cl::desc("Global address space (default 1)"),
+    cl::value_desc("int"), cl::init(1));
 
 static cl::opt<unsigned> GroupSharedAddrSpace(
-    "group-shared-space",
-    cl::desc("Set address space used as \"group shared\" (default 3)"),
-    cl::value_desc("integer"), cl::init(3));
+    "group-shared-space", cl::desc("Group shared address space (default 3)"),
+    cl::value_desc("int"), cl::init(3));
 
 static cl::opt<unsigned> ConstantAddrSpace(
-    "constant-space",
-    cl::desc("Set address space used as \"constant\" (default 4)"),
-    cl::value_desc("integer"), cl::init(4));
+    "constant-space", cl::desc("Constant address space (default 4)"),
+    cl::value_desc("int"), cl::init(4));
+
+
+static void CheckAddressSpaces() {
+  if (GlobalAddrSpace == 0 || GlobalAddrSpace == GroupSharedAddrSpace ||
+      GlobalAddrSpace == ConstantAddrSpace) {
+    std::string msg =
+        "Global address space cannot be 0 or equal to group shared or constant "
+        "address space";
+    bugle::ErrorReporter::reportParameterError(msg);
+  } else if (GroupSharedAddrSpace == 0 ||
+             GroupSharedAddrSpace == GlobalAddrSpace ||
+             GroupSharedAddrSpace == ConstantAddrSpace) {
+    std::string msg =
+        "Group shared address space cannot be 0 or equal to global or constant "
+        "address space";
+    bugle::ErrorReporter::reportParameterError(msg);
+  } else if (ConstantAddrSpace == 0 || ConstantAddrSpace == GlobalAddrSpace ||
+             ConstantAddrSpace == GroupSharedAddrSpace) {
+    std::string msg =
+        "Constant address space cannot be 0 or equal to global or group shared "
+        "address space";
+    bugle::ErrorReporter::reportParameterError(msg);
+  }
+}
+
+static void GetArraySizes(std::map<std::string, std::vector<uint64_t>> &KAS) {
+  Regex RegEx = Regex("([a-zA-Z_][a-zA-Z_0-9]*)((,[0-9]+)*)");
+  for (auto i = GPUArraySizes.begin(), e = GPUArraySizes.end(); i != e; ++i) {
+    SmallVector<StringRef, 1> Matches;
+    if (!RegEx.match(*i, &Matches) || Matches[0] != *i) {
+      std::string msg = "Invalid GPU array size specifier: " + *i;
+      bugle::ErrorReporter::reportParameterError(msg);
+    }
+    if (KAS.find(Matches[1]) != KAS.end()) {
+      std::string msg =
+          "Array sizes for " + Matches[1].str() + " specified multiple times";
+      bugle::ErrorReporter::reportParameterError(msg);
+    }
+    SmallVector<StringRef, 1> MatchSizes;
+    std::vector<uint64_t> Sizes;
+    Matches[2].split(MatchSizes, ",");
+    for (auto si = MatchSizes.begin() + 1, se = MatchSizes.end(); si != se;
+         ++si) {
+      uint64_t size;
+      if (si->getAsInteger(0, size)) {
+        std::string msg = "Array size too large: " + si->str();
+        bugle::ErrorReporter::reportParameterError(msg);
+      }
+      Sizes.push_back(size);
+    }
+    KAS[Matches[1].str()] = Sizes;
+  }
+}
 
 int main(int argc, char **argv) {
   sys::PrintStackTraceOnErrorSignal();
@@ -125,80 +201,39 @@ int main(int argc, char **argv) {
       bugle::ErrorReporter::reportFatalError("Bitcode did not read correctly");
   }
 
-  bugle::TranslateModule::SourceLanguage SL;
-  if (SourceLanguage.empty() || SourceLanguage == "c")
-    SL = bugle::TranslateModule::SL_C;
-  else if (SourceLanguage == "cu")
-    SL = bugle::TranslateModule::SL_CUDA;
-  else if (SourceLanguage == "cl")
-    SL = bugle::TranslateModule::SL_OpenCL;
-  else {
-    std::string msg = "Unsupported source language: " + SourceLanguage;
-    bugle::ErrorReporter::reportParameterError(msg);
-  }
-
   std::unique_ptr<bugle::IntegerRepresentation> IntRep;
-  if (IntegerRepresentation.empty() || IntegerRepresentation == "bv")
+  switch (IntegerRepresentation) {
+  case BVIntRep:
     IntRep.reset(new bugle::BVIntegerRepresentation());
-  else if (IntegerRepresentation == "math")
-    IntRep.reset(new bugle::MathIntegerRepresentation);
-  else {
-    std::string msg =
-        "Unsupported integer representation: " + IntegerRepresentation;
-    bugle::ErrorReporter::reportParameterError(msg);
+    break;
+  case MathIntRep:
+    IntRep.reset(new bugle::MathIntegerRepresentation());
+    break;
   }
 
-  bugle::RaceInstrumenter RaceInst;
-  if (RaceInstrumentation.empty() || RaceInstrumentation == "watchdog-single")
-    RaceInst = bugle::RaceInstrumenter::WatchdogSingle;
-  else if (RaceInstrumentation == "original")
-    RaceInst = bugle::RaceInstrumenter::Original;
-  else if (RaceInstrumentation == "watchdog-multiple")
-    RaceInst = bugle::RaceInstrumenter::WatchdogMultiple;
-  else {
-    std::string msg =
-        "Unsupported race instrumentation: " + RaceInstrumentation;
-    bugle::ErrorReporter::reportParameterError(msg);
-  }
-
-  if (GlobalAddrSpace == 0 || GlobalAddrSpace == GroupSharedAddrSpace ||
-      GlobalAddrSpace == ConstantAddrSpace) {
-    std::string msg =
-        "Global address space cannot be 0 or equal to group shared or constant "
-        "address space";
-    bugle::ErrorReporter::reportParameterError(msg);
-  } else if (GroupSharedAddrSpace == 0 ||
-             GroupSharedAddrSpace == GlobalAddrSpace ||
-             GroupSharedAddrSpace == ConstantAddrSpace) {
-    std::string msg =
-        "Group shared address space cannot be 0 or equal to global or constant "
-        "address space";
-    bugle::ErrorReporter::reportParameterError(msg);
-  } else if (ConstantAddrSpace == 0 || ConstantAddrSpace == GlobalAddrSpace ||
-             ConstantAddrSpace == GroupSharedAddrSpace) {
-    std::string msg =
-        "Constant address space cannot be 0 or equal to global or group shared "
-        "address space";
-    bugle::ErrorReporter::reportParameterError(msg);
-  }
+  CheckAddressSpaces();
   bugle::TranslateModule::AddressSpaceMap AddressSpaces(
       GlobalAddrSpace, GroupSharedAddrSpace, ConstantAddrSpace);
 
   std::set<std::string> EP;
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
-    EP.insert(&*i);
+    EP.insert(*i);
+
+  std::map<std::string, std::vector<uint64_t>> KAS;
+  GetArraySizes(KAS);
 
   PassManager PM;
   if (Inlining) {
     PM.add(new bugle::CycleDetectPass());
-    PM.add(new bugle::InlinePass(SL, EP));
-    PM.add(new bugle::RemoveBodyPass(SL, EP));
+    PM.add(new bugle::InlinePass(SourceLanguage, EP));
+    PM.add(new bugle::RemoveBodyPass(SourceLanguage, EP));
     PM.add(new bugle::RemovePrototypePass());
   }
-  PM.add(new bugle::RestrictDetectPass(SL, EP, AddressSpaces));
+  PM.add(new bugle::RestrictDetectPass(SourceLanguage, EP, AddressSpaces));
   PM.run(*M.get());
 
-  bugle::TranslateModule TM(M.get(), SL, EP, RaceInst, AddressSpaces);
+  bugle::TranslateModule TM(M.get(), SourceLanguage, EP, RaceInstrumentation,
+                            AddressSpaces, KAS);
   TM.translate();
   std::unique_ptr<bugle::Module> BM(TM.takeModule());
 
@@ -225,8 +260,8 @@ int main(int argc, char **argv) {
   }
   std::unique_ptr<bugle::SourceLocWriter> SLW(new bugle::SourceLocWriter(L));
 
-  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get(), RaceInst, SLW.get(),
-                            DatatypePointerRepresentation);
+  bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get(), RaceInstrumentation,
+                            SLW.get(), DatatypePointerRepresentation);
   MW.write();
 
   F.os().flush();

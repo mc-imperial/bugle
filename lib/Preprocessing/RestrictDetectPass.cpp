@@ -45,7 +45,7 @@ void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
       continue;
 
     unsigned addressSpace = i->getType()->getPointerAddressSpace();
-    if (addressSpace == AddressSpaces.standard &&
+    if (addressSpace == AddressSpaces.generic &&
         SL == TranslateModule::SL_CUDA)
       AL.push_back(i);
 

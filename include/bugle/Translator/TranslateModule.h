@@ -12,6 +12,7 @@
 #include <functional>
 #include <map>
 #include <set>
+#include <vector>
 
 namespace llvm {
 
@@ -42,7 +43,7 @@ public:
   };
 
   struct AddressSpaceMap {
-    const unsigned standard;
+    const unsigned generic;
     const unsigned global;
     const unsigned group_shared;
     const unsigned constant;
@@ -58,6 +59,7 @@ private:
   std::set<std::string> GPUEntryPoints;
   RaceInstrumenter RaceInst;
   AddressSpaceMap AddressSpaces;
+  std::map<std::string, std::vector<uint64_t>> GPUArraySizes;
 
   std::map<llvm::Function *, bugle::Function *> FunctionMap;
   std::map<llvm::Constant *, ref<Expr>> ConstantMap;
@@ -70,7 +72,7 @@ private:
   bool ModelAllAsByteArray, NextModelAllAsByteArray;
 
   std::map<llvm::Function *, std::vector<const std::vector<ref<Expr>> *>>
-  CallSites;
+      CallSites;
   bool NeedAdditionalGlobalOffsetModels;
   std::map<llvm::Value *, std::set<llvm::Value *>> ModelPtrAsGlobalOffset,
       NextModelPtrAsGlobalOffset;
@@ -133,10 +135,12 @@ private:
 
 public:
   TranslateModule(llvm::Module *M, SourceLanguage SL, std::set<std::string> &EP,
-                  RaceInstrumenter &RaceInst, AddressSpaceMap &AS)
-      : BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RaceInst),
-        AddressSpaces(AS), NeedAdditionalByteArrayModels(false),
-        ModelAllAsByteArray(false), NextModelAllAsByteArray(false) {
+                  RaceInstrumenter RI, AddressSpaceMap &AS,
+                  std::map<std::string, std::vector<uint64_t>> &GAS)
+      : BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RI),
+        AddressSpaces(AS), GPUArraySizes(GAS),
+        NeedAdditionalByteArrayModels(false), ModelAllAsByteArray(false),
+        NextModelAllAsByteArray(false) {
     DIF.processModule(*M);
   }
   static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
