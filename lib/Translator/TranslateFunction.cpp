@@ -439,7 +439,7 @@ void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
   std::vector<uint64_t> &AS = TM->GPUArraySizes[F->getName()];
   if (AS.size() != PtrArgs) {
     std::string msg; llvm::raw_string_ostream msgS(msg);
-    msgS << "Expected " << PtrArgs << " array sizes for " + F->getName()
+    msgS << "Expected " << PtrArgs << " array sizes for " << F->getName()
          << " got " << AS.size();
     ErrorReporter::reportParameterError(msgS.str());
   }
