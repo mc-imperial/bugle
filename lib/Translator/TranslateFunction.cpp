@@ -438,10 +438,10 @@ void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
                                               unsigned PtrArgs) {
   std::vector<uint64_t> &AS = TM->GPUArraySizes[F->getName()];
   if (AS.size() != PtrArgs) {
-    std::string msg =
-        "Expected " + std::to_string(PtrArgs) + " array sizes for " +
-        F->getName().str() + " got " + std::to_string(AS.size());
-    ErrorReporter::reportParameterError(msg);
+    std::string msg; llvm::raw_string_ostream msgS(msg);
+    msgS << "Expected " << PtrArgs << " array sizes for " + F->getName()
+         << " got " << AS.size();
+    ErrorReporter::reportParameterError(msgS.str());
   }
 
   auto ArraySize = AS.begin();
@@ -452,10 +452,10 @@ void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
       auto PT = cast<PointerType>(i->getType());
       uint64_t ElementSize = TM->TD.getTypeAllocSize(PT->getElementType());
       if (*ArraySize % ElementSize != 0) {
-        std::string msg =
-            "Array size " + std::to_string(*ArraySize) + " not a multiple of " +
-            "element size " + std::to_string(ElementSize);
-        ErrorReporter::reportParameterError(msg);
+        std::string msg; llvm::raw_string_ostream msgS(msg);
+        msgS << "Array size " << *ArraySize << " not a multiple of element "
+             << "size " << ElementSize;
+        ErrorReporter::reportParameterError(msgS.str());
       }
       GA->updateZeroDimension(*ArraySize / ElementSize);
       ++ArraySize;
