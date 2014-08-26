@@ -246,17 +246,17 @@ int main(int argc, char **argv) {
     OutFile = sys::path::filename(Path);
   }
 
-  std::string ErrorInfo;
-  tool_output_file F(OutFile.c_str(), ErrorInfo, sys::fs::F_Text);
-  if (!ErrorInfo.empty())
-    bugle::ErrorReporter::reportFatalError(ErrorInfo);
+  std::error_code ErrorCode;
+  tool_output_file F(OutFile, ErrorCode, sys::fs::F_Text);
+  if (ErrorCode)
+    bugle::ErrorReporter::reportFatalError(ErrorCode.message());
 
   tool_output_file *L = 0;
   if (!SourceLocationFilename.empty()) {
-    L = new tool_output_file(SourceLocationFilename.c_str(), ErrorInfo,
+    L = new tool_output_file(SourceLocationFilename, ErrorCode,
                              sys::fs::F_Text);
-    if (!ErrorInfo.empty())
-      bugle::ErrorReporter::reportFatalError(ErrorInfo);
+    if (ErrorCode)
+      bugle::ErrorReporter::reportFatalError(ErrorCode.message());
   }
   std::unique_ptr<bugle::SourceLocWriter> SLW(new bugle::SourceLocWriter(L));
 

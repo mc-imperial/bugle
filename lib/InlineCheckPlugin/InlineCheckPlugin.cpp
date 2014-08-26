@@ -49,8 +49,9 @@ private:
 
 class CheckInlineAction : public PluginASTAction {
 protected:
-  ASTConsumer *CreateASTConsumer(CompilerInstance &CI, llvm::StringRef) {
-    return new CheckInlineConsumer(CI);
+  std::unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
+                                                 llvm::StringRef) {
+    return llvm::make_unique<CheckInlineConsumer>(CI);
   }
 
   bool ParseArgs(const CompilerInstance &CI,
