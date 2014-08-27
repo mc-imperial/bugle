@@ -1595,7 +1595,6 @@ ref<Expr> TranslateFunction::handleTrunc(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleUaddOvl(bugle::BasicBlock *BBB,
                                            llvm::CallInst *CI,
                                            const ExprVec &Args) {
-  // The translation of uadd.with.overflow assumes little endianess
   llvm::StructType *STy = cast<StructType>(CI->getType());
   llvm::Type *AddTy = STy->getElementType(0), *OvlTy = STy->getElementType(1);
   unsigned BitWidth = cast<IntegerType>(AddTy)->getBitWidth();

@@ -126,7 +126,6 @@ std::string BVIntegerRepresentation::getConcatExpr(const std::string &Lhs,
 }
 
 std::string BVIntegerRepresentation::getCtlz(unsigned Width) {
-  // We assume little endian
   std::string S; llvm::raw_string_ostream SS(S);
   SS << "procedure BV" << Width << "_CTLZ"
      << "(val : bv" << Width << ", isZeroUndef : bool) "
