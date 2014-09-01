@@ -273,7 +273,7 @@ __axiom(get_num_groups(0) == __NUM_GROUPS_0)
 #ifndef __GLOBAL_SIZE_0
 __axiom(get_num_groups(0) > 0)
 #else
-__axiom(get_local_size(0) < __GLOBAL_SIZE_0)
+__axiom(get_local_size(0) <= __GLOBAL_SIZE_0)
 __axiom(__GLOBAL_SIZE_0 % get_local_size(0) == 0)
 __axiom(get_num_groups(0) == __GLOBAL_SIZE_0 / get_local_size(0))
 #endif
@@ -287,7 +287,7 @@ __axiom(get_num_groups(1) == __NUM_GROUPS_1)
 #ifndef __GLOBAL_SIZE_1
 __axiom(get_num_groups(1) > 0)
 #else
-__axiom(get_local_size(1) < __GLOBAL_SIZE_0)
+__axiom(get_local_size(1) <= __GLOBAL_SIZE_0)
 __axiom(__GLOBAL_SIZE_1 % get_local_size(1) == 0)
 __axiom(get_num_groups(1) == __GLOBAL_SIZE_1 / get_local_size(1))
 #endif
@@ -301,7 +301,7 @@ __axiom(get_num_groups(2) == __NUM_GROUPS_2)
 #ifndef __GLOBAL_SIZE_2
 __axiom(get_num_groups(2) > 0)
 #else
-__axiom(get_local_size(2) < __GLOBAL_SIZE_2)
+__axiom(get_local_size(2) <= __GLOBAL_SIZE_2)
 __axiom(__GLOBAL_SIZE_2 % get_local_size(2) == 0)
 __axiom(get_num_groups(2) == __GLOBAL_SIZE_2 / get_local_size(2))
 #endif
