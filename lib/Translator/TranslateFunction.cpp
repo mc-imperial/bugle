@@ -436,7 +436,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
 
 void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
                                               unsigned PtrArgs) {
-  std::vector<uint64_t> &AS = TM->GPUArraySizes[F->getName()];
+  ArraySpec &AS = TM->GPUArraySizes[F->getName()];
   if (AS.size() != PtrArgs) {
     std::string msg; llvm::raw_string_ostream msgS(msg);
     msgS << "Expected " << PtrArgs << " array sizes for " << F->getName()
@@ -446,20 +446,23 @@ void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
 
   auto ArraySize = AS.begin();
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
-    if (isGPUEntryPoint && i->getType()->isPointerTy() &&
-        !i->getType()->getPointerElementType()->isFunctionTy()) {
+    if (!isGPUEntryPoint || !i->getType()->isPointerTy() ||
+        i->getType()->getPointerElementType()->isFunctionTy())
+      continue;
+    if (ArraySize->first) {
       GlobalArray *GA = TM->getGlobalArray(&*i, /*IsParameter=*/true);
       auto PT = cast<PointerType>(i->getType());
       uint64_t ElementSize = TM->TD.getTypeAllocSize(PT->getElementType());
-      if (*ArraySize % ElementSize != 0) {
+      uint64_t size = ArraySize->second;
+      if (size % ElementSize != 0) {
         std::string msg; llvm::raw_string_ostream msgS(msg);
-        msgS << "Array size " << *ArraySize << " not a multiple of element "
-             << "size " << ElementSize;
+        msgS << "Array size " << size << " not a multiple of element size "
+             << ElementSize;
         ErrorReporter::reportParameterError(msgS.str());
       }
-      GA->updateZeroDimension(*ArraySize / ElementSize);
-      ++ArraySize;
+      GA->updateZeroDimension(size / ElementSize);
     }
+    ++ArraySize;
   }
 }
 

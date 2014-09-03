@@ -32,6 +32,8 @@ class Module;
 class Stmt;
 class Var;
 
+typedef std::vector<std::pair<bool, uint64_t>> ArraySpec;
+
 class TranslateModule {
 public:
   enum SourceLanguage {
@@ -59,7 +61,7 @@ private:
   std::set<std::string> GPUEntryPoints;
   RaceInstrumenter RaceInst;
   AddressSpaceMap AddressSpaces;
-  std::map<std::string, std::vector<uint64_t>> GPUArraySizes;
+  std::map<std::string, ArraySpec> GPUArraySizes;
 
   std::map<llvm::Function *, bugle::Function *> FunctionMap;
   std::map<llvm::Constant *, ref<Expr>> ConstantMap;
@@ -136,7 +138,7 @@ private:
 public:
   TranslateModule(llvm::Module *M, SourceLanguage SL, std::set<std::string> &EP,
                   RaceInstrumenter RI, AddressSpaceMap &AS,
-                  std::map<std::string, std::vector<uint64_t>> &GAS)
+                  std::map<std::string, ArraySpec> &GAS)
       : BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RI),
         AddressSpaces(AS), GPUArraySizes(GAS),
         NeedAdditionalByteArrayModels(false), ModelAllAsByteArray(false),
