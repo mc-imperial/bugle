@@ -129,8 +129,8 @@ static void CheckAddressSpaces() {
   }
 }
 
-static void GetArraySizes(std::map<std::string, std::vector<uint64_t>> &KAS) {
-  Regex RegEx = Regex("([a-zA-Z_][a-zA-Z_0-9]*)((,[0-9]+)*)");
+static void GetArraySizes(std::map<std::string, bugle::ArraySpec> &KAS) {
+  Regex RegEx = Regex("([a-zA-Z_][a-zA-Z_0-9]*)((,[0-9\\*]+)*)");
   for (auto i = GPUArraySizes.begin(), e = GPUArraySizes.end(); i != e; ++i) {
     SmallVector<StringRef, 1> Matches;
     if (!RegEx.match(*i, &Matches) || Matches[0] != *i) {
@@ -143,18 +143,19 @@ static void GetArraySizes(std::map<std::string, std::vector<uint64_t>> &KAS) {
       bugle::ErrorReporter::reportParameterError(msg);
     }
     SmallVector<StringRef, 1> MatchSizes;
-    std::vector<uint64_t> Sizes;
+    bugle::ArraySpec ArraySizes;
     Matches[2].split(MatchSizes, ",");
     for (auto si = MatchSizes.begin() + 1, se = MatchSizes.end(); si != se;
          ++si) {
-      uint64_t size;
-      if (si->getAsInteger(0, size)) {
+      uint64_t size = 0;
+      bool IsConstrained = !si->equals("*");
+      if (IsConstrained && si->getAsInteger(0, size)) {
         std::string msg = "Array size too large: " + si->str();
         bugle::ErrorReporter::reportParameterError(msg);
       }
-      Sizes.push_back(size);
+      ArraySizes.push_back(std::make_pair(IsConstrained, size));
     }
-    KAS[Matches[1].str()] = Sizes;
+    KAS[Matches[1].str()] = ArraySizes;
   }
 }
 
@@ -217,7 +218,7 @@ int main(int argc, char **argv) {
   for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
     EP.insert(*i);
 
-  std::map<std::string, std::vector<uint64_t>> KAS;
+  std::map<std::string, bugle::ArraySpec> KAS;
   GetArraySizes(KAS);
 
   PassManager PM;
