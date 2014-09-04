@@ -24,7 +24,7 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
   set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fno-exceptions -fno-rtti")
 
   execute_process(
-    COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs bitreader target transformutils
+    COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs bitreader ipo target transformutils
     OUTPUT_VARIABLE LLVM_LIBS
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
@@ -103,7 +103,7 @@ else()
 
   set(LLVM_CXXFLAGS "\"/I${LLVM_SRC}/include\" \"/I${LLVM_BUILD}/include\" -D_SCL_SECURE_NO_WARNINGS -wd4146 -wd4244 -wd4355 -wd4482 -wd4800")
   set(LLVM_LDFLAGS "")
-  set(LLVM_LIBS "${LLVM_LIBDIR}/LLVMTransformUtils.lib" "${LLVM_LIBDIR}/LLVMipa.lib" "${LLVM_LIBDIR}/LLVMAnalysis.lib" "${LLVM_LIBDIR}/LLVMTarget.lib" "${LLVM_LIBDIR}/LLVMMC.lib" "${LLVM_LIBDIR}/LLVMObject.lib" "${LLVM_LIBDIR}/LLVMBitReader.lib" "${LLVM_LIBDIR}/LLVMCore.lib" "${LLVM_LIBDIR}/LLVMSupport.lib")
+  set(LLVM_LIBS "${LLVM_LIBDIR}/LLVMipo.lib" "${LLVM_LIBDIR}/LLVMObjCARCOpts.lib" "${LLVM_LIBDIR}/LLVMVectorize.lib" "${LLVM_LIBDIR}/LLVMScalarOpts.lib" "${LLVM_LIBDIR}/LLVMInstCombine.lib" "${LLVM_LIBDIR}/LLVMTransformUtils.lib" "${LLVM_LIBDIR}/LLVMipa.lib" "${LLVM_LIBDIR}/LLVMAnalysis.lib" "${LLVM_LIBDIR}/LLVMTarget.lib" "${LLVM_LIBDIR}/LLVMMC.lib" "${LLVM_LIBDIR}/LLVMObject.lib" "${LLVM_LIBDIR}/LLVMBitReader.lib" "${LLVM_LIBDIR}/LLVMCore.lib" "${LLVM_LIBDIR}/LLVMSupport.lib")
 
   set(OUTEXT "bpl")
   set(CLANG_OPTS "")
@@ -158,14 +158,12 @@ add_library(bugleBoogie STATIC
 add_library(buglePreprocessing STATIC
   lib/Preprocessing/CycleDetectPass.cpp
   lib/Preprocessing/InlinePass.cpp
-  lib/Preprocessing/RemoveBodyPass.cpp
-  lib/Preprocessing/RemovePrototypePass.cpp
   lib/Preprocessing/RestrictDetectPass.cpp
+  lib/Preprocessing/SimpleInternalizePass.cpp
   include/bugle/Preprocessing/CycleDetectPass.h
   include/bugle/Preprocessing/InlinePass.h
-  include/bugle/Preprocessing/RemoveBodyPass.h
-  include/bugle/Preprocessing/RemovePrototypePass.h
   include/bugle/Preprocessing/RestrictDetectPass.h
+  include/bugle/Preprocessing/SimpleInternalizePass.h
 )
 
 add_library(bugleTranslator STATIC
