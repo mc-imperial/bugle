@@ -12,6 +12,7 @@
 #include "llvm/Support/Signals.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
+#include "llvm/Transforms/IPO.h"
 
 #include "bugle/BPLModuleWriter.h"
 #include "bugle/IntegerRepresentation.h"
@@ -19,9 +20,8 @@
 #include "bugle/SourceLocWriter.h"
 #include "bugle/Preprocessing/CycleDetectPass.h"
 #include "bugle/Preprocessing/InlinePass.h"
-#include "bugle/Preprocessing/RemoveBodyPass.h"
-#include "bugle/Preprocessing/RemovePrototypePass.h"
 #include "bugle/Preprocessing/RestrictDetectPass.h"
+#include "bugle/Preprocessing/SimpleInternalizePass.h"
 #include "bugle/RaceInstrumenter.h"
 #include "bugle/Transform/SimplifyStmt.h"
 #include "bugle/Translator/TranslateModule.h"
@@ -89,6 +89,10 @@ static cl::list<std::string>
     GPUArraySizes("kernel-array-sizes", cl::ZeroOrMore,
                   cl::desc("Specify GPU entry point array sizes in bytes"),
                   cl::value_desc("function(,int)*"));
+
+static cl::opt<bool> OnlyExplicitGPUEntryPoints(
+    "only-explicit-entry-points", cl::ValueDisallowed,
+    cl::desc("Only translate GPU entry points specified with k option"));
 
 // The default values for the address spaces match NVPTXAddrSpaceMap in
 // Targets.cpp. There does not appear to be a header file in which they are
@@ -225,8 +229,11 @@ int main(int argc, char **argv) {
   if (Inlining) {
     PM.add(new bugle::CycleDetectPass());
     PM.add(new bugle::InlinePass(SourceLanguage, EP));
-    PM.add(new bugle::RemoveBodyPass(SourceLanguage, EP));
-    PM.add(new bugle::RemovePrototypePass());
+  }
+  if (Inlining || OnlyExplicitGPUEntryPoints) {
+    PM.add(new bugle::SimpleInternalizePass(SourceLanguage, EP,
+                                            OnlyExplicitGPUEntryPoints));
+    PM.add(createGlobalDCEPass());
   }
   PM.add(new bugle::RestrictDetectPass(SourceLanguage, EP, AddressSpaces));
   PM.run(*M.get());

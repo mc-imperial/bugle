@@ -1,5 +1,4 @@
 #include "bugle/Preprocessing/InlinePass.h"
-#include "bugle/Module.h"
 #include "bugle/Translator/TranslateFunction.h"
 #include "bugle/Translator/TranslateModule.h"
 #include "bugle/util/ErrorReporter.h"
