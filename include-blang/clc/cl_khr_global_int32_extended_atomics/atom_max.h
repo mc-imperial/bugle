@@ -1,4 +1,4 @@
-#define atom_sub __bugle_atom_sub
-#define __CLC_FUNCTION sub
+#define atom_max __bugle_atom_max
+#define __CLC_FUNCTION max
 #include <clc/cl_khr_global_int32_base_atomics/atom_decl.inc>
 #undef __CLC_FUNCTION
