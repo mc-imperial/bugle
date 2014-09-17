@@ -2,9 +2,9 @@
 #include "bugle/Translator/TranslateFunction.h"
 #include "bugle/Translator/TranslateModule.h"
 #include "bugle/util/ErrorReporter.h"
-#include "llvm/DebugInfo.h"
 #include "llvm/Pass.h"
 #include "llvm/ADT/SmallString.h"
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/Path.h"
@@ -20,7 +20,8 @@ bool RestrictDetectPass::doInitialization(llvm::Module &M) {
 }
 
 std::string RestrictDetectPass::getFunctionLocation(llvm::Function *F) {
-  for (auto i = DIF.subprogram_begin(), e = DIF.subprogram_end(); i != e; ++i) {
+  auto SS = DIF.subprograms();
+  for (auto i = SS.begin(), e = SS.end(); i != e; ++i) {
     DISubprogram subprogram(*i);
     if (subprogram.describes(F)) {
       std::string l; llvm::raw_string_ostream lS(l);

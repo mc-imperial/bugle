@@ -11,7 +11,7 @@ public:
   static char ID;
 
   CycleDetectPass() : ModulePass(ID) {
-    initializeCallGraphPass(*llvm::PassRegistry::getPassRegistry());
+    initializeCallGraphWrapperPassPass(*llvm::PassRegistry::getPassRegistry());
   }
 
   virtual const char *getPassName() const {
@@ -20,7 +20,7 @@ public:
 
   virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
     AU.setPreservesAll();
-    AU.addRequired<llvm::CallGraph>();
+    AU.addRequired<llvm::CallGraphWrapperPass>();
   }
 
   virtual bool runOnModule(llvm::Module &M);

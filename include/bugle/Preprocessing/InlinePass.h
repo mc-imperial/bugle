@@ -28,7 +28,7 @@ public:
   virtual const char *getPassName() const { return "Function inlining"; }
 
   virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
-    AU.addRequired<llvm::CallGraph>();
+    AU.addRequired<llvm::CallGraphWrapperPass>();
   }
 
   virtual bool runOnModule(llvm::Module &M);

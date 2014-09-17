@@ -6,6 +6,7 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/DataStream.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/PrettyStackTrace.h"
 #include "llvm/Support/Regex.h"
@@ -191,7 +192,8 @@ int main(int argc, char **argv) {
     M.reset(getStreamedBitcodeModule(DisplayFilename, streamer, Context,
                                      &ErrorMessage));
     if (M.get() != 0) {
-      if (M->MaterializeAllPermanently(&ErrorMessage)) {
+      if (auto EC = M->materializeAllPermanently()) {
+        ErrorMessage = EC.message();
         M.reset();
       }
     }
@@ -253,13 +255,14 @@ int main(int argc, char **argv) {
   }
 
   std::string ErrorInfo;
-  tool_output_file F(OutFile.c_str(), ErrorInfo);
+  tool_output_file F(OutFile.c_str(), ErrorInfo, sys::fs::F_Text);
   if (!ErrorInfo.empty())
     bugle::ErrorReporter::reportFatalError(ErrorInfo);
 
   tool_output_file *L = 0;
   if (!SourceLocationFilename.empty()) {
-    L = new tool_output_file(SourceLocationFilename.c_str(), ErrorInfo);
+    L = new tool_output_file(SourceLocationFilename.c_str(), ErrorInfo,
+                             sys::fs::F_Text);
     if (!ErrorInfo.empty())
       bugle::ErrorReporter::reportFatalError(ErrorInfo);
   }

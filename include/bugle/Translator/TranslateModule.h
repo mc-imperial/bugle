@@ -6,9 +6,9 @@
 #include "bugle/SourceLoc.h"
 #include "bugle/Type.h"
 #include "klee/util/GetElementPtrTypeIterator.h"
-#include "llvm/DebugInfo.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/IR/DataLayout.h"
+#include "llvm/IR/DebugInfo.h"
 #include <functional>
 #include <map>
 #include <set>

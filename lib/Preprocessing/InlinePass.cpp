@@ -4,8 +4,8 @@
 #include "bugle/util/ErrorReporter.h"
 #include "llvm/Pass.h"
 #include "llvm/Analysis/CallGraph.h"
+#include "llvm/IR/CallSite.h"
 #include "llvm/IR/Module.h"
-#include "llvm/Support/CallSite.h"
 #include "llvm/Transforms/Utils/Cloning.h"
 
 using namespace llvm;
@@ -44,8 +44,9 @@ bool InlinePass::doInline(llvm::Instruction *I, llvm::Function *OF) {
     return false;
 
   CallSite CS(CI);
-  const DataLayout *DL = getAnalysisIfAvailable<DataLayout>();
-  CallGraph &CG = getAnalysis<CallGraph>();
+  DataLayoutPass *DLP = getAnalysisIfAvailable<DataLayoutPass>();
+  const DataLayout *DL = DLP ? &DLP->getDataLayout() : 0;
+  CallGraph &CG = getAnalysis<CallGraphWrapperPass>().getCallGraph();
   InlineFunctionInfo IFI(&CG, DL);
   if (InlineFunction(CI, IFI))
     return true;
