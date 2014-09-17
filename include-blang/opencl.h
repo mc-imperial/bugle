@@ -15,6 +15,9 @@
 #include <clc/clc.h>
 // libclc's NAN is currently broken, so undef it immediately
 #undef NAN
+
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+
 #include <annotations/annotations.h>
 #include <opencl_builtins.h>
 #include <opencl_limits.h>
