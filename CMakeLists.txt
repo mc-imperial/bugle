@@ -96,7 +96,7 @@ else()
     message(FATAL_ERROR "Invalid LLVM source directory: ${LLVM_SRC}")
   endif()
 
-  set(LLVM_LIBDIR "${LLVM_BUILD}/lib/${LLVM_BUILD_TYPE}")
+  set(LLVM_LIBDIR "${LLVM_BUILD}/${LLVM_BUILD_TYPE}/lib")
   if (NOT EXISTS "${LLVM_LIBDIR}")
     message(FATAL_ERROR "Invalid LLVM build directory: ${LLVM_BUILD}")
   endif()
