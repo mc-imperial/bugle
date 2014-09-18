@@ -36,7 +36,7 @@ Compiling on Windows
 3. Run CMake from a build directory:
      $ mkdir C:\path\to\bugle-build
      $ cd C:\path\to\bugle-build
-     $ cmake -G "Visual Studio 10" -DLLVM_SRC=C:\path\to\llvm-source -DLLVM_BUILD=C:\path\to\llvm-build -DLIBCLC_DIR=C:\path\to\libclc-inst -DLLVM_BUILD_TYPE=Release C:\path\to\bugle
+     $ cmake -G "Visual Studio 11" -DLLVM_SRC=C:\path\to\llvm-source -DLLVM_BUILD=C:\path\to\llvm-build -DLIBCLC_DIR=C:\path\to\libclc-inst -DLLVM_BUILD_TYPE=Release C:\path\to\bugle
    The LIBCLC_DIR parameter is optional.  Be sure to select the same
    build type (LLVM_BUILD_TYPE) used when compiling LLVM.
 
