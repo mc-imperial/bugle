@@ -85,20 +85,21 @@ void BPLModuleWriter::write() {
 
   if (UsesPointers) {
     unsigned BitsRequiredForArrayBases = bitsRequiredForArrayBases();
-    OS << "type ptr = bv"
-        << (M->getPointerWidth() + BitsRequiredForArrayBases) << ";\n"
+    OS << "type ptr = bv" << M->getPointerWidth() << ";\n"
         << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n"
         << "function {:inline true} MKPTR(base: arrayId, offset: "
         << MW->IntRep->getType(M->getPointerWidth()) << ") : ptr {\n"
-        << "  base ++ offset\n"
+        << "  base ++ offset["
+        << (M->getPointerWidth() - BitsRequiredForArrayBases) << ":0]\n"
         << "}\n\n"
         << "function {:inline true} base#MKPTR(p: ptr) : arrayId {\n"
-        << "  p[" << (M->getPointerWidth() + BitsRequiredForArrayBases) << ":"
-        << M->getPointerWidth() << "]\n"
+        << "  p[" << M->getPointerWidth() << ":"
+        << (M->getPointerWidth() - BitsRequiredForArrayBases) << "]\n"
         << "}\n\n"
         << "function {:inline true} offset#MKPTR(p : ptr) : bv"
-        << M->getPointerWidth() << "{\n"
-        << "  p[" << M->getPointerWidth() << ":0]\n"
+        << M->getPointerWidth() << " {\n"
+        << "  0bv" << BitsRequiredForArrayBases << "++p[" 
+        << (M->getPointerWidth() - BitsRequiredForArrayBases) << ":0]\n"
         << "}\n\n";
   }
 
