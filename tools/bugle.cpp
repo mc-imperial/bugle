@@ -82,10 +82,6 @@ static cl::opt<bugle::RaceInstrumenter> RaceInstrumentation(
                           "watchdog-multiple", "Watchdog multiple"),
                clEnumValEnd));
 
-static cl::opt<bool> DatatypePointerRepresentation(
-    "datatype", cl::ValueDisallowed,
-    cl::desc("Use datatype representation for pointers"));
-
 static cl::list<std::string>
     GPUArraySizes("kernel-array-sizes", cl::ZeroOrMore,
                   cl::desc("Specify GPU entry point array sizes in bytes"),
@@ -269,7 +265,7 @@ int main(int argc, char **argv) {
   std::unique_ptr<bugle::SourceLocWriter> SLW(new bugle::SourceLocWriter(L));
 
   bugle::BPLModuleWriter MW(F.os(), BM.get(), IntRep.get(), RaceInstrumentation,
-                            SLW.get(), DatatypePointerRepresentation);
+                            SLW.get());
   MW.write();
 
   F.os().flush();
