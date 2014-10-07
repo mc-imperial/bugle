@@ -1,11 +1,5 @@
+#define __CLC_FUNC_NAME __bugle_atan2
+#define __CLC_BODY <clc/math/binary_def.inc>
+#include <clc/math/gentype.inc>
+#undef __CLC_FUNC_NAME
 #define atan2 __bugle_atan2
-
-#include <clc/math/vectorize_binary.h>
-
-_CLC_VECTORIZE(__bugle_atan2, float)
-
-#ifdef cl_khr_fp64
-_CLC_VECTORIZE(__bugle_atan2, double)
-#endif
-
-#undef _CLC_VECTORIZE

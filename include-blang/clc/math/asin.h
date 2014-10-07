@@ -1,11 +1,5 @@
+#define __CLC_FUNC_NAME __bugle_asin
+#define __CLC_BODY <clc/math/unary_def.inc>
+#include <clc/math/gentype.inc>
+#undef __CLC_FUNC_NAME
 #define asin __bugle_asin
-
-#include <clc/math/vectorize_unary.h>
-
-_CLC_VECTORIZE(__bugle_asin, float)
-
-#ifdef cl_khr_fp64
-_CLC_VECTORIZE(__bugle_asin, double)
-#endif
-
-#undef _CLC_VECTORIZE
