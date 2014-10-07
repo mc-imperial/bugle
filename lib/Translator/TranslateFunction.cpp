@@ -378,7 +378,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["get_image_height"] = &TranslateFunction::handleGetImageHeight;
       {
         const std::string types[] = {"char", "uchar", "short", "ushort", "int",
-                                     "uint", "long",  "ulong", "float",  ""};
+                                     "uint", "long", "ulong", "float", "double",
+                                     ""};
         for (unsigned i = 0; types[i] != ""; ++i) {
           for (unsigned width = 1; width <= 16; width *= 2) {
             std::string S;
@@ -386,14 +387,14 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
             if (width > 1) {
               SS << width;
             }
-            fns["__async_work_group_copy___global_to___local_" + types[i] +
+            fns["__bugle_async_work_group_copy_global_to_local_" + types[i] +
                 SS.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
-            fns["__async_work_group_copy___local_to___global_" + types[i] +
+            fns["__bugle_async_work_group_copy_local_to_global_" + types[i] +
                 SS.str()] = &TranslateFunction::handleAsyncWorkGroupCopy;
           }
         }
       }
-      fns["wait_group_events"] = &TranslateFunction::handleWaitGroupEvents;
+      fns["__bugle_wait_group_events"] = &TranslateFunction::handleWaitGroupEvents;
     }
 
     if (SL == TranslateModule::SL_CUDA) {
