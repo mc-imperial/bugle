@@ -1,6 +1,7 @@
 #ifndef BUGLE_TRANSLATOR_TRANSLATEMODULE_H
 #define BUGLE_TRANSLATOR_TRANSLATEMODULE_H
 
+#include "bugle/OwningPtrVector.h"
 #include "bugle/RaceInstrumenter.h"
 #include "bugle/Ref.h"
 #include "bugle/SourceLoc.h"
@@ -64,6 +65,7 @@ private:
   std::map<std::string, ArraySpec> GPUArraySizes;
 
   std::map<llvm::Function *, bugle::Function *> FunctionMap;
+  std::map<llvm::Function *, bugle::OwningPtrVector<llvm::Value>> StructMap;
   std::map<llvm::Constant *, ref<Expr>> ConstantMap;
 
   std::map<GlobalArray *, llvm::Value *> GlobalValueMap;

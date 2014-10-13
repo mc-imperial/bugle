@@ -6,6 +6,7 @@
 #include "bugle/Expr.h"
 #include "bugle/GlobalArray.h"
 #include "bugle/Module.h"
+#include "bugle/OwningPtrVector.h"
 #include "bugle/RaceInstrumenter.h"
 #include "bugle/util/ErrorReporter.h"
 #include "bugle/util/Functional.h"
@@ -467,6 +468,50 @@ void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
   }
 }
 
+void TranslateFunction::extractStructArrays(llvm::Value *V) {
+  auto ST = cast<StructType>(V->getType());
+  auto Name = V->getName() + ".coerce";
+  for (unsigned i = 0; i < ST->getNumElements(); ++i) {
+    auto Index = ArrayRef<unsigned>(i);
+    auto E = ExtractValueInst::Create(V, Index, Name + Twine(i));
+    TM->StructMap[F].push_back(E);
+    if (E->getType()->isStructTy())
+      extractStructArrays(E);
+  }
+}
+
+void TranslateFunction::createStructArrays() {
+  if (TM->StructMap.find(F) == TM->StructMap.end()) {
+    for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
+      if (i->getType()->isStructTy())
+        extractStructArrays(i);
+    }
+  }
+
+  BasicBlock* BB = new BasicBlock("");
+  unsigned PtrSize = TM->TD.getPointerSizeInBits();
+
+  const auto &SV = TM->StructMap[F];
+  for (auto i = SV.begin(), e = SV.end(); i != e; ++i) {
+    auto I = cast<Instruction>(*i);
+    translateInstruction(BB, I);
+
+    if (!(*i)->getType()->isPointerTy() ||
+        (*i)->getType()->getPointerElementType()->isFunctionTy())
+      continue;
+
+    GlobalArray *GA = TM->getGlobalArray(*i, /*IsParameter=*/true);
+    if (TM->SL == TranslateModule::SL_CUDA)
+      GA->addAttribute("global");
+    auto PtrExpr = PointerExpr::create(GlobalArrayRefExpr::create(GA),
+                                       BVConstExpr::createZero(PtrSize));
+    BF->addRequires(EqExpr::create(ValueExprMap[I],
+                                   PtrToBVExpr::create(PtrExpr)), 0);
+  }
+
+  delete BB;
+}
+
 void TranslateFunction::translate() {
   initSpecialFunctionMap(TM->SL);
 
@@ -498,6 +543,9 @@ void TranslateFunction::translate() {
       ValueExprMap[&*i] = TM->unmodelValue(&*i, VarRefExpr::create(V));
     }
   }
+
+  if (isGPUEntryPoint)
+    createStructArrays();
 
   if (isGPUEntryPoint &&
       TM->GPUArraySizes.find(F->getName()) != TM->GPUArraySizes.end())
