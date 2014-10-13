@@ -84,29 +84,23 @@ void BPLModuleWriter::write() {
   OS << "type _SIZE_T_TYPE = bv" << M->getPointerWidth() << ";\n\n";
 
   if (UsesPointers) {
-    if (RepresentPointersAsDatatype) {
-      OS << "type {:datatype} ptr;\n"
-         << "type arrayId;\n"
-         << "function {:constructor} MKPTR(base: arrayId, offset: "
-         << MW->IntRep->getType(M->getPointerWidth()) << ") : ptr;\n\n";
-    } else {
-      unsigned BitsRequiredForArrayBases = bitsRequiredForArrayBases();
-      OS << "type ptr = bv"
-         << (M->getPointerWidth() + BitsRequiredForArrayBases) << ";\n"
-         << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n"
-         << "function {:inline true} MKPTR(base: arrayId, offset: "
-         << MW->IntRep->getType(M->getPointerWidth()) << ") : ptr {\n"
-         << "  base ++ offset\n"
-         << "}\n\n"
-         << "function {:inline true} base#MKPTR(p: ptr) : arrayId {\n"
-         << "  p[" << (M->getPointerWidth() + BitsRequiredForArrayBases) << ":"
-         << M->getPointerWidth() << "]\n"
-         << "}\n\n"
-         << "function {:inline true} offset#MKPTR(p : ptr) : bv"
-         << M->getPointerWidth() << "{\n"
-         << "  p[" << M->getPointerWidth() << ":0]\n"
-         << "}\n\n";
-    }
+    unsigned BitsRequiredForArrayBases = bitsRequiredForArrayBases();
+    OS << "type ptr = bv" << M->getPointerWidth() << ";\n"
+        << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n"
+        << "function {:inline true} MKPTR(base: arrayId, offset: "
+        << MW->IntRep->getType(M->getPointerWidth()) << ") : ptr {\n"
+        << "  base ++ offset["
+        << (M->getPointerWidth() - BitsRequiredForArrayBases) << ":0]\n"
+        << "}\n\n"
+        << "function {:inline true} base#MKPTR(p: ptr) : arrayId {\n"
+        << "  p[" << M->getPointerWidth() << ":"
+        << (M->getPointerWidth() - BitsRequiredForArrayBases) << "]\n"
+        << "}\n\n"
+        << "function {:inline true} offset#MKPTR(p : ptr) : bv"
+        << M->getPointerWidth() << " {\n"
+        << "  0bv" << BitsRequiredForArrayBases << "++p[" 
+        << (M->getPointerWidth() - BitsRequiredForArrayBases) << ":0]\n"
+        << "}\n\n";
   }
 
   unsigned long int sizes = 0;
@@ -203,15 +197,9 @@ void BPLModuleWriter::write() {
     }
 
     if (UsesPointers) {
-      OS << "const ";
-      if (RepresentPointersAsDatatype) {
-        OS << "unique ";
-      }
-      OS << "$arrayId$$" << (*i)->getName() << " : arrayId;\n";
-      if (!RepresentPointersAsDatatype) {
-        OS << "axiom $arrayId$$" << (*i)->getName() << " == " << arrayIdCounter
-           << "bv" << bitsRequiredForArrayBases() << ";\n";
-      }
+      OS << "const $arrayId$$" << (*i)->getName() << " : arrayId;\n";
+      OS << "axiom $arrayId$$" << (*i)->getName() << " == " << arrayIdCounter
+         << "bv" << bitsRequiredForArrayBases() << ";\n";
     }
 
     OS << "\n";
@@ -222,50 +210,27 @@ void BPLModuleWriter::write() {
        << ";\n";
 
   if (UsesPointers) {
-    OS << "const ";
-    if (RepresentPointersAsDatatype) {
-      OS << "unique ";
-    }
-    OS << "$arrayId$$null$ : arrayId;\n";
-    if (!RepresentPointersAsDatatype) {
-      OS << "axiom $arrayId$$null$ == 0bv" << bitsRequiredForArrayBases()
-         << ";\n";
-    }
-    OS << "\n";
+    OS << "const $arrayId$$null$ : arrayId;\n";
+    OS << "axiom $arrayId$$null$ == 0bv" << bitsRequiredForArrayBases() 
+       << ";\n\n";
   }
 
   if (UsesFunctionPointers) {
-    OS << "type functionPtr";
-    if (!RepresentPointersAsDatatype) {
-      OS << " = bv" << bitsRequiredForFunctionPointers();
-    }
-    OS << ";\n";
+    OS << "type functionPtr = bv" << bitsRequiredForFunctionPointers() 
+       << ";\n";
 
     unsigned functionIdCounter = 1;
     for (auto i = M->function_begin(), e = M->function_end(); i != e;
          ++i, ++functionIdCounter) {
-      OS << "const ";
-      if (RepresentPointersAsDatatype) {
-        OS << "unique ";
-      }
-      OS << "$functionId$$" << (*i)->getName() << " : functionPtr;\n";
-      if (!RepresentPointersAsDatatype) {
-        OS << "axiom $functionId$$" << (*i)->getName()
-           << " == " << functionIdCounter
-           << "bv" << bitsRequiredForFunctionPointers() << ";\n";
-      }
+      OS << "const $functionId$$" << (*i)->getName() << " : functionPtr;\n";
+      OS << "axiom $functionId$$" << (*i)->getName() << " == " 
+         << functionIdCounter << "bv" << bitsRequiredForFunctionPointers() 
+         << ";\n";
     }
 
-    OS << "const ";
-    if (RepresentPointersAsDatatype) {
-      OS << "unique ";
-    }
-    OS << "$functionId$$null$ : functionPtr;\n";
-    if (!RepresentPointersAsDatatype) {
-      OS << "axiom $functionId$$null$ == 0bv"
-         << bitsRequiredForFunctionPointers() << ";\n";
-    }
-    OS << "\n";
+    OS << "const $functionId$$null$ : functionPtr;\n";
+    OS << "axiom $functionId$$null$ == 0bv" << bitsRequiredForFunctionPointers()
+       << ";\n\n";
   }
 
   for (auto i = IntrinsicSet.begin(), e = IntrinsicSet.end(); i != e; ++i) {
