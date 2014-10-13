@@ -57,6 +57,8 @@ public:
     ArrayOffset,
     BVToPtr,
     PtrToBV,
+    SafeBVToPtr,
+    SafePtrToBV,
     BVToFuncPtr,
     FuncPtrToBV,
     PtrToFuncPtr,
@@ -437,6 +439,8 @@ public:
 UNARY_EXPR(ArrayOffset)
 UNARY_EXPR(BVToPtr)
 UNARY_EXPR(PtrToBV)
+UNARY_EXPR(SafeBVToPtr)
+UNARY_EXPR(SafePtrToBV)
 UNARY_EXPR(BVToFuncPtr)
 UNARY_EXPR(FuncPtrToBV)
 UNARY_EXPR(PtrToFuncPtr)

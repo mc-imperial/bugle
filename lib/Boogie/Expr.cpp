@@ -377,6 +377,35 @@ ref<Expr> PtrToBVExpr::create(ref<Expr> ptr) {
   return new PtrToBVExpr(Type(Type::BV, ty.width), ptr);
 }
 
+ref<Expr> SafeBVToPtrExpr::create(ref<Expr> bv) {
+  const Type &ty = bv->getType();
+  assert(ty.isKind(Type::BV));
+
+  if (auto e = dyn_cast<SafePtrToBVExpr>(bv))
+    return e->getSubExpr();
+
+  if (auto e = dyn_cast<BVConstExpr>(bv))
+    if (e->getValue() == 0)
+      return PointerExpr::create(NullArrayRefExpr::create(),
+                                 BVConstExpr::createZero(ty.width));
+
+  return new SafeBVToPtrExpr(Type(Type::Pointer, ty.width), bv);
+}
+
+ref<Expr> SafePtrToBVExpr::create(ref<Expr> ptr) {
+  const Type &ty = ptr->getType();
+  assert(ty.isKind(Type::Pointer));
+
+  if (auto e = dyn_cast<SafeBVToPtrExpr>(ptr))
+    return e->getSubExpr();
+
+  if (auto e = dyn_cast<PointerExpr>(ptr))
+    if (dyn_cast<NullArrayRefExpr>(e->getArray()))
+      return BVZExtExpr::create(ty.width, e->getOffset());
+
+  return new SafePtrToBVExpr(Type(Type::BV, ty.width), ptr);
+}
+
 ref<Expr> BVToFuncPtrExpr::create(ref<Expr> bv) {
   const Type &ty = bv->getType();
   assert(ty.isKind(Type::BV));

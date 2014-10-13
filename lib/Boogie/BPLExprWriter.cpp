@@ -478,6 +478,10 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       });
       break;
     }
+    case Expr::SafeBVToPtr:
+    case Expr::SafePtrToBV: {
+      break;
+    }
     case Expr::Old: {
       OS << "old";
       break;
