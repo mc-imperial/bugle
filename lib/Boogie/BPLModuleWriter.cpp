@@ -83,26 +83,6 @@ void BPLModuleWriter::write() {
 
   OS << "type _SIZE_T_TYPE = bv" << M->getPointerWidth() << ";\n\n";
 
-  if (UsesPointers) {
-    unsigned BitsRequiredForArrayBases = bitsRequiredForArrayBases();
-    OS << "type ptr = bv" << M->getPointerWidth() << ";\n"
-        << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n"
-        << "function {:inline true} MKPTR(base: arrayId, offset: "
-        << MW->IntRep->getType(M->getPointerWidth()) << ") : ptr {\n"
-        << "  base ++ offset["
-        << (M->getPointerWidth() - BitsRequiredForArrayBases) << ":0]\n"
-        << "}\n\n"
-        << "function {:inline true} base#MKPTR(p: ptr) : arrayId {\n"
-        << "  p[" << M->getPointerWidth() << ":"
-        << (M->getPointerWidth() - BitsRequiredForArrayBases) << "]\n"
-        << "}\n\n"
-        << "function {:inline true} offset#MKPTR(p : ptr) : bv"
-        << M->getPointerWidth() << " {\n"
-        << "  0bv" << BitsRequiredForArrayBases << "++p[" 
-        << (M->getPointerWidth() - BitsRequiredForArrayBases) << ":0]\n"
-        << "}\n\n";
-  }
-
   unsigned long int sizes = 0;
   for (auto i = M->global_begin(), e = M->global_end(); i != e; ++i) {
     unsigned long int size = (1 << (((*i)->getRangeType().width / 8)));
@@ -205,15 +185,32 @@ void BPLModuleWriter::write() {
     OS << "\n";
   }
 
+  if (UsesPointers) {
+    unsigned BitsRequiredForArrayBases = bitsRequiredForArrayBases();
+    OS << "type ptr = bv" << M->getPointerWidth() << ";\n"
+       << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n\n"
+       << "function {:inline true} MKPTR(base: arrayId, offset: "
+       << MW->IntRep->getType(M->getPointerWidth()) << ") : ptr {\n"
+       << "  base ++ offset["
+       << (M->getPointerWidth() - BitsRequiredForArrayBases) << ":0]\n"
+       << "}\n\n"
+       << "function {:inline true} base#MKPTR(p: ptr) : arrayId {\n"
+       << "  p[" << M->getPointerWidth() << ":"
+       << (M->getPointerWidth() - BitsRequiredForArrayBases) << "]\n"
+       << "}\n\n"
+       << "function {:inline true} offset#MKPTR(p : ptr) : bv"
+       << M->getPointerWidth() << " {\n"
+       << "  0bv" << BitsRequiredForArrayBases << "++p["
+       << (M->getPointerWidth() - BitsRequiredForArrayBases) << ":0]\n"
+       << "}\n\n"
+       << "const $arrayId$$null$ : arrayId;\n"
+       << "axiom $arrayId$$null$ == 0bv" << BitsRequiredForArrayBases
+       << ";\n\n";
+  }
+
   if (RaceInst == RaceInstrumenter::WatchdogSingle)
     OS << "const _WATCHED_OFFSET : " << IntRep->getType(M->getPointerWidth())
        << ";\n";
-
-  if (UsesPointers) {
-    OS << "const $arrayId$$null$ : arrayId;\n";
-    OS << "axiom $arrayId$$null$ == 0bv" << bitsRequiredForArrayBases() 
-       << ";\n\n";
-  }
 
   if (UsesFunctionPointers) {
     OS << "type functionPtr = bv" << bitsRequiredForFunctionPointers() 
