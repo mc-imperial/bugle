@@ -13,7 +13,7 @@ template <typename T> class OwningPtrVector : public std::vector<T *> {
 public:
   OwningPtrVector() {}
   ~OwningPtrVector() {
-    std::for_each(this->begin(), this->end(), [](T *p) { delete p; });
+    std::for_each(this->rbegin(), this->rend(), [](T *p) { delete p; });
   }
 };
 }
