@@ -447,7 +447,7 @@ void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
 
   auto ArraySize = AS.begin();
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
-    if (!isGPUEntryPoint || !i->getType()->isPointerTy() ||
+    if (!i->getType()->isPointerTy() ||
         i->getType()->getPointerElementType()->isFunctionTy())
       continue;
     if (ArraySize->first) {
@@ -500,9 +500,8 @@ void TranslateFunction::translate() {
   }
 
   if (isGPUEntryPoint &&
-      TM->GPUArraySizes.find(F->getName()) != TM->GPUArraySizes.end()) {
+      TM->GPUArraySizes.find(F->getName()) != TM->GPUArraySizes.end())
     specifyZeroDimensions(F, PtrArgs);
-  }
 
   if (BF->return_begin() != BF->return_end())
     ReturnVar = *BF->return_begin();
