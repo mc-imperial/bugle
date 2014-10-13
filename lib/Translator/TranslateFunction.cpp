@@ -1890,9 +1890,11 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       }
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
       if (StoreTy.isKind(Type::Pointer)) {
-        BBB->addEvalStmt(PtrToBVExpr::create(Val), currentSourceLocs);
+        Val = PtrToBVExpr::create(Val);
+        BBB->addEvalStmt(Val, currentSourceLocs);
       } else if (StoreTy.isKind(Type::FunctionPointer)) {
-        BBB->addEvalStmt(FuncPtrToBVExpr::create(Val), currentSourceLocs);
+        Val = FuncPtrToBVExpr::create(Val);
+        BBB->addEvalStmt(Val, currentSourceLocs);
       }
       for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
         ref<Expr> PtrByteOfs = BVAddExpr::create(
