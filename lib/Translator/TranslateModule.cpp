@@ -63,7 +63,7 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned ByteOffset,
         if (InitTy->getPointerElementType()->isFunctionTy())
           Const = FuncPtrToBVExpr::create(Const);
         else
-          Const = PtrToBVExpr::create(Const);
+          Const = SafePtrToBVExpr::create(Const);
       }
 
       unsigned GAWidth = GATy.width;
@@ -143,12 +143,13 @@ ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
 
 ref<Expr> TranslateModule::translateArbitrary(bugle::Type t) {
   ref<Expr> E = BVConstExpr::createZero(t.width);
+
   if (t.isKind(Type::Pointer))
-    return BVToPtrExpr::create(E);
+    E = BVToPtrExpr::create(E);
   else if (t.isKind(Type::FunctionPointer))
-    return BVToFuncPtrExpr::create(E);
-  else
-    return E;
+    E = BVToFuncPtrExpr::create(E);
+
+  return E;
 }
 
 ref<Expr> TranslateModule::translateICmp(CmpInst::Predicate P, ref<Expr> LHS,
@@ -449,8 +450,8 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V,
   bugle::Type T(Type::BV, 8);
   auto PT = cast<PointerType>(V->getType());
 
-  if (!(ModelAllAsByteArray ||
-        ModelAsByteArray.find(V) != ModelAsByteArray.end())) {
+  if (!ModelAllAsByteArray &&
+        ModelAsByteArray.find(V) == ModelAsByteArray.end()) {
     T = translateArrayRangeType(PT->getElementType());
     if (ModelBVAsByteArray && T.isKind(Type::BV)) {
       ModelAsByteArray.insert(V);

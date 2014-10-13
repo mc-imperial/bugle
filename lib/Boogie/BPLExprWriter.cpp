@@ -428,44 +428,44 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       unsigned FromWidth = UnE->getSubExpr()->getType().width,
                ToWidth = UnE->getType().width;
       switch (UnE->getKind()) {
-      case Expr::BVToPtr:      IntS << "BV" << FromWidth
-                                    << "_TO_PTR";               break;
-      case Expr::PtrToBV:      IntS << "PTR_TO_BV" << ToWidth;  break;
-      case Expr::BVToFuncPtr:  IntS << "BV" << FromWidth
-                                    << "_TO_FUNCPTR";           break;
-      case Expr::FuncPtrToBV:  IntS << "FUNCPTR_TO_BV"
-                                    << ToWidth;                 break;
-      case Expr::PtrToFuncPtr: IntS << "PTR_TO_FUNCPTR";        break;
-      case Expr::FuncPtrToPtr: IntS << "FUNCPTR_TO_PTR";        break;
-      case Expr::FAbs:         IntS << "FABS" << ToWidth;       break;
-      case Expr::FCeil:        IntS << "FCEIL" << ToWidth;      break;
-      case Expr::FCos:         IntS << "FCOS" << ToWidth;       break;
-      case Expr::FExp:         IntS << "FEXP" << ToWidth;       break;
-      case Expr::FFloor:       IntS << "FFLOOR" << ToWidth;     break;
-      case Expr::FLog:         IntS << "FLOG" << ToWidth;       break;
-      case Expr::FPConv:       IntS << "FP" << FromWidth
-                                    << "_CONV" << ToWidth;      break;
-      case Expr::FPToSI:       IntS << "FP" << FromWidth
-                                    << "_TO_SI" << ToWidth;     break;
-      case Expr::FPToUI:       IntS << "FP" << FromWidth
-                                    << "_TO_UI" << ToWidth;     break;
-      case Expr::FrexpExp:     IntS << "FREXP" << FromWidth
-                                    << "_EXP";                  break;
-      case Expr::FrexpFrac:    IntS << "FREXP" << FromWidth
-                                    << "_FRAC" << ToWidth;      break;
-      case Expr::FRsqrt:       IntS << "FRSQRT" << ToWidth;     break;
-      case Expr::FSin:         IntS << "FSIN" << ToWidth;       break;
-      case Expr::FSqrt:        IntS << "FSQRT" << ToWidth;      break;
-      case Expr::FTrunc:       IntS << "FTRUNC" << ToWidth;     break;
-      case Expr::OtherInt:     IntS << "__other_bv" << ToWidth; break;
-      case Expr::OtherBool:    IntS << "__other_bool";          break;
-      case Expr::OtherPtrBase: IntS << "__other_arrayId";       break;
-      case Expr::SIToFP:       IntS << "SI" << FromWidth
-                                    << "_TO_FP" << ToWidth;     break;
-      case Expr::UIToFP:       IntS << "UI" << FromWidth
-                                    << "_TO_FP" << ToWidth;     break;
-      case Expr::GetImageWidth:  IntS << "GET_IMAGE_WIDTH";     break;
-      case Expr::GetImageHeight: IntS << "GET_IMAGE_HEIGHT";    break;
+      case Expr::BVToPtr:        IntS << "BV" << FromWidth
+                                      << "_TO_PTR";               break;
+      case Expr::PtrToBV:        IntS << "PTR_TO_BV" << ToWidth;  break;
+      case Expr::BVToFuncPtr:    IntS << "BV" << FromWidth
+                                      << "_TO_FUNCPTR";           break;
+      case Expr::FuncPtrToBV:    IntS << "FUNCPTR_TO_BV"
+                                      << ToWidth;                 break;
+      case Expr::PtrToFuncPtr:   IntS << "PTR_TO_FUNCPTR";        break;
+      case Expr::FuncPtrToPtr:   IntS << "FUNCPTR_TO_PTR";        break;
+      case Expr::FAbs:           IntS << "FABS" << ToWidth;       break;
+      case Expr::FCeil:          IntS << "FCEIL" << ToWidth;      break;
+      case Expr::FCos:           IntS << "FCOS" << ToWidth;       break;
+      case Expr::FExp:           IntS << "FEXP" << ToWidth;       break;
+      case Expr::FFloor:         IntS << "FFLOOR" << ToWidth;     break;
+      case Expr::FLog:           IntS << "FLOG" << ToWidth;       break;
+      case Expr::FPConv:         IntS << "FP" << FromWidth
+                                      << "_CONV" << ToWidth;      break;
+      case Expr::FPToSI:         IntS << "FP" << FromWidth
+                                      << "_TO_SI" << ToWidth;     break;
+      case Expr::FPToUI:         IntS << "FP" << FromWidth
+                                      << "_TO_UI" << ToWidth;     break;
+      case Expr::FrexpExp:       IntS << "FREXP" << FromWidth
+                                      << "_EXP";                  break;
+      case Expr::FrexpFrac:      IntS << "FREXP" << FromWidth
+                                      << "_FRAC" << ToWidth;      break;
+      case Expr::FRsqrt:         IntS << "FRSQRT" << ToWidth;     break;
+      case Expr::FSin:           IntS << "FSIN" << ToWidth;       break;
+      case Expr::FSqrt:          IntS << "FSQRT" << ToWidth;      break;
+      case Expr::FTrunc:         IntS << "FTRUNC" << ToWidth;     break;
+      case Expr::OtherInt:       IntS << "__other_bv" << ToWidth; break;
+      case Expr::OtherBool:      IntS << "__other_bool";          break;
+      case Expr::OtherPtrBase:   IntS << "__other_arrayId";       break;
+      case Expr::SIToFP:         IntS << "SI" << FromWidth
+                                      << "_TO_FP" << ToWidth;     break;
+      case Expr::UIToFP:         IntS << "UI" << FromWidth
+                                      << "_TO_FP" << ToWidth;     break;
+      case Expr::GetImageWidth:  IntS << "GET_IMAGE_WIDTH";       break;
+      case Expr::GetImageHeight: IntS << "GET_IMAGE_HEIGHT";      break;
       default:
         llvm_unreachable("Unsupported unary expr opcode");
       }
@@ -476,6 +476,10 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
         OS << ") : ";
         MW->writeType(OS, UnE->getType());
       });
+      break;
+    }
+    case Expr::SafeBVToPtr:
+    case Expr::SafePtrToBV: {
       break;
     }
     case Expr::Old: {
@@ -630,7 +634,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     case Expr::FuncPtrLt: {
       const char *IntName;
       switch (BinE->getKind()) {
-      case Expr::PtrLt:     IntName = "PTR_LT"; break;
+      case Expr::PtrLt:     IntName = "PTR_LT";     break;
       case Expr::FuncPtrLt: IntName = "FUNCPTR_LT"; break;
       default:
         llvm_unreachable("huh?");

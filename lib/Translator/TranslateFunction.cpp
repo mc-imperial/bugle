@@ -447,7 +447,7 @@ void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
 
   auto ArraySize = AS.begin();
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
-    if (!isGPUEntryPoint || !i->getType()->isPointerTy() ||
+    if (!i->getType()->isPointerTy() ||
         i->getType()->getPointerElementType()->isFunctionTy())
       continue;
     if (ArraySize->first) {
@@ -500,9 +500,8 @@ void TranslateFunction::translate() {
   }
 
   if (isGPUEntryPoint &&
-      TM->GPUArraySizes.find(F->getName()) != TM->GPUArraySizes.end()) {
+      TM->GPUArraySizes.find(F->getName()) != TM->GPUArraySizes.end())
     specifyZeroDimensions(F, PtrArgs);
-  }
 
   if (BF->return_begin() != BF->return_end())
     ReturnVar = *BF->return_begin();
@@ -1164,6 +1163,8 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
     unsigned NumElements = Len / (DstRangeTy.width / 8);
     for (unsigned i = 0; i != NumElements; ++i) {
       ref<Expr> ValExpr = BVConstExpr::create(DstRangeTy.width, Val);
+      if (DstRangeTy.isKind(Type::Pointer))
+        ValExpr = SafeBVToPtrExpr::create(ValExpr);
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
       BBB->addEvalStmt(ValExpr, currentSourceLocs);
@@ -1787,11 +1788,6 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         GlobalArrayRefExpr::create(GA),
         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
   } else if (auto LI = dyn_cast<LoadInst>(I)) {
-    // When modelling all as byte arrays, pointer loads will confuse the
-    // pointer and the array element pointed to.
-    /*if (TM->ModelAllAsByteArray && LI->getType()->isPointerTy())
-      ErrorReporter::reportImplementationLimitation(
-          "Pointer loads not supported when modelling all as byte array");*/
     ref<Expr> Ptr = translateValue(LI->getPointerOperand(), BBB),
               PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
@@ -1817,7 +1813,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               LoadExpr::create(PtrArr, ElemOfs, LoadElTy, LoadsAreTemporal);
           BBB->addEvalStmt(ValElem, currentSourceLocs);
           if (LoadElTy.isKind(Type::Pointer))
-            ValElem = PtrToBVExpr::create(ValElem);
+            ValElem = SafePtrToBVExpr::create(ValElem);
           else if (LoadElTy.isKind(Type::FunctionPointer))
             ValElem = FuncPtrToBVExpr::create(ValElem);
           ElemsLoaded.push_back(ValElem);
@@ -1837,7 +1833,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         BBB->addEvalStmt(ValByte, currentSourceLocs);
       }
       E = Expr::createBVConcatN(BytesLoaded);
-      if (LoadTy.isKind(Type::FunctionPointer))
+      if (LoadTy.isKind(Type::Pointer))
+        E = SafeBVToPtrExpr::create(E);
+      else if (LoadTy.isKind(Type::FunctionPointer))
         E = BVToFuncPtrExpr::create(E);
     } else {
       TM->NeedAdditionalByteArrayModels = true;
@@ -1853,12 +1851,6 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       E = TM->translateArbitrary(LoadTy);
     }
   } else if (auto SI = dyn_cast<StoreInst>(I)) {
-    // When modelling all as byte arrays, pointer stores will confuse the
-    // pointer and the array element pointed to.
-    /*if (TM->ModelAllAsByteArray &&
-        SI->getValueOperand()->getType()->isPointerTy())
-      ErrorReporter::reportImplementationLimitation(
-          "Pointer stores not supported when modelling all as byte array");*/
     ref<Expr> Ptr = translateValue(SI->getPointerOperand(), BBB),
               Val = translateValue(SI->getValueOperand(), BBB),
               PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
@@ -1885,7 +1877,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               Div, BVConstExpr::create(Div->getType().width, i));
           ref<Expr> ValElem =
               BVExtractExpr::create(Val, i * StoreElTy.width, StoreElTy.width);
-          if (StoreElTy.isKind(Type::FunctionPointer))
+          if (StoreElTy.isKind(Type::Pointer))
+            ValElem = SafeBVToPtrExpr::create(ValElem);
+          else if (StoreElTy.isKind(Type::FunctionPointer))
             ValElem = BVToFuncPtrExpr::create(ValElem);
           BBB->addStmt(
               StoreStmt::create(PtrArr, ElemOfs, ValElem, currentSourceLocs));
@@ -1895,9 +1889,11 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       }
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
       if (StoreTy.isKind(Type::Pointer)) {
-        BBB->addEvalStmt(PtrToBVExpr::create(Val), currentSourceLocs);
+        Val = SafePtrToBVExpr::create(Val);
+        BBB->addEvalStmt(Val, currentSourceLocs);
       } else if (StoreTy.isKind(Type::FunctionPointer)) {
-        BBB->addEvalStmt(FuncPtrToBVExpr::create(Val), currentSourceLocs);
+        Val = FuncPtrToBVExpr::create(Val);
+        BBB->addEvalStmt(Val, currentSourceLocs);
       }
       for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
         ref<Expr> PtrByteOfs = BVAddExpr::create(
