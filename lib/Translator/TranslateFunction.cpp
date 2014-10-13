@@ -1164,6 +1164,8 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
     unsigned NumElements = Len / (DstRangeTy.width / 8);
     for (unsigned i = 0; i != NumElements; ++i) {
       ref<Expr> ValExpr = BVConstExpr::create(DstRangeTy.width, Val);
+      if (DstRangeTy.isKind(Type::Pointer))
+        ValExpr = BVToPtrExpr::create(ValExpr);
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
       BBB->addEvalStmt(ValExpr, currentSourceLocs);
@@ -1837,7 +1839,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         BBB->addEvalStmt(ValByte, currentSourceLocs);
       }
       E = Expr::createBVConcatN(BytesLoaded);
-      if (LoadTy.isKind(Type::FunctionPointer))
+      if (LoadTy.isKind(Type::Pointer))
+        E = BVToPtrExpr::create(E);
+      else if (LoadTy.isKind(Type::FunctionPointer))
         E = BVToFuncPtrExpr::create(E);
     } else {
       TM->NeedAdditionalByteArrayModels = true;
@@ -1885,7 +1889,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               Div, BVConstExpr::create(Div->getType().width, i));
           ref<Expr> ValElem =
               BVExtractExpr::create(Val, i * StoreElTy.width, StoreElTy.width);
-          if (StoreElTy.isKind(Type::FunctionPointer))
+          if (StoreElTy.isKind(Type::Pointer))
+            ValElem = BVToPtrExpr::create(ValElem);
+          else if (StoreElTy.isKind(Type::FunctionPointer))
             ValElem = BVToFuncPtrExpr::create(ValElem);
           BBB->addStmt(
               StoreStmt::create(PtrArr, ElemOfs, ValElem, currentSourceLocs));
