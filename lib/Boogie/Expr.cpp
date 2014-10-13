@@ -182,6 +182,7 @@ Type Expr::getPointerRange(ref<Expr> pointer, Type defaultRange) {
 
 ref<Expr> ArrayIdExpr::create(ref<Expr> pointer, Type defaultRange) {
   assert(pointer->getType().isKind(Type::Pointer));
+
   if (auto e = dyn_cast<PointerExpr>(pointer))
     return e->getArray();
 
