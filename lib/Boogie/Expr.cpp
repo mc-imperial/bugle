@@ -115,6 +115,7 @@ ref<Expr> SpecialVarRefExpr::create(Type t, const std::string &attr) {
 
 ref<Expr> BVExtractExpr::create(ref<Expr> expr, unsigned offset,
                                 unsigned width) {
+  assert(expr->getType().isKind(Type::BV));
   if (offset == 0 && width == expr->getType().width)
     return expr;
 

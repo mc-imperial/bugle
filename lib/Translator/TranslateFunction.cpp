@@ -506,7 +506,7 @@ void TranslateFunction::createStructArrays() {
     auto PtrExpr = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                                        BVConstExpr::createZero(PtrSize));
     BF->addRequires(EqExpr::create(ValueExprMap[I],
-                                   PtrToBVExpr::create(PtrExpr)), 0);
+                                   SafePtrToBVExpr::create(PtrExpr)), 0);
   }
 
   delete BB;
