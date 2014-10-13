@@ -1164,7 +1164,7 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
     for (unsigned i = 0; i != NumElements; ++i) {
       ref<Expr> ValExpr = BVConstExpr::create(DstRangeTy.width, Val);
       if (DstRangeTy.isKind(Type::Pointer))
-        ValExpr = BVToPtrExpr::create(ValExpr);
+        ValExpr = SafeBVToPtrExpr::create(ValExpr);
       ref<Expr> StoreOfs = BVAddExpr::create(
           DstDiv, BVConstExpr::create(Dst->getType().width, i));
       BBB->addEvalStmt(ValExpr, currentSourceLocs);
@@ -1813,7 +1813,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
               LoadExpr::create(PtrArr, ElemOfs, LoadElTy, LoadsAreTemporal);
           BBB->addEvalStmt(ValElem, currentSourceLocs);
           if (LoadElTy.isKind(Type::Pointer))
-            ValElem = PtrToBVExpr::create(ValElem);
+            ValElem = SafePtrToBVExpr::create(ValElem);
           else if (LoadElTy.isKind(Type::FunctionPointer))
             ValElem = FuncPtrToBVExpr::create(ValElem);
           ElemsLoaded.push_back(ValElem);
@@ -1834,7 +1834,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       }
       E = Expr::createBVConcatN(BytesLoaded);
       if (LoadTy.isKind(Type::Pointer))
-        E = BVToPtrExpr::create(E);
+        E = SafeBVToPtrExpr::create(E);
       else if (LoadTy.isKind(Type::FunctionPointer))
         E = BVToFuncPtrExpr::create(E);
     } else {
@@ -1878,7 +1878,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           ref<Expr> ValElem =
               BVExtractExpr::create(Val, i * StoreElTy.width, StoreElTy.width);
           if (StoreElTy.isKind(Type::Pointer))
-            ValElem = BVToPtrExpr::create(ValElem);
+            ValElem = SafeBVToPtrExpr::create(ValElem);
           else if (StoreElTy.isKind(Type::FunctionPointer))
             ValElem = BVToFuncPtrExpr::create(ValElem);
           BBB->addStmt(
@@ -1889,7 +1889,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       }
     } else if (ArrRangeTy == Type(Type::BV, 8)) {
       if (StoreTy.isKind(Type::Pointer)) {
-        Val = PtrToBVExpr::create(Val);
+        Val = SafePtrToBVExpr::create(Val);
         BBB->addEvalStmt(Val, currentSourceLocs);
       } else if (StoreTy.isKind(Type::FunctionPointer)) {
         Val = FuncPtrToBVExpr::create(Val);

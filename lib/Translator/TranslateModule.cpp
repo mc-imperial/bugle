@@ -63,7 +63,7 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned ByteOffset,
         if (InitTy->getPointerElementType()->isFunctionTy())
           Const = FuncPtrToBVExpr::create(Const);
         else
-          Const = PtrToBVExpr::create(Const);
+          Const = SafePtrToBVExpr::create(Const);
       }
 
       unsigned GAWidth = GATy.width;
