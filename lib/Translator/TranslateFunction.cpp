@@ -85,7 +85,7 @@ bool TranslateFunction::isSpecificationFunction(StringRef fnName) {
   return fnName.startswith("__spec");
 }
 
-bool TranslateFunction::isPreOrPostCondition(llvm::StringRef fnName) {
+bool TranslateFunction::isPreOrPostCondition(StringRef fnName) {
   if (fnName == "bugle_requires")
     return true;
   if (fnName == "__requires")
@@ -470,7 +470,7 @@ void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
 
 void TranslateFunction::extractStructArrays(llvm::Value *V) {
   auto ST = cast<StructType>(V->getType());
-  auto Name = V->getName() + ".coerce";
+  auto Name = (V->getName() + ".coerce").str();
   for (unsigned i = 0; i < ST->getNumElements(); ++i) {
     auto Index = ArrayRef<unsigned>(i);
     auto E = ExtractValueInst::Create(V, Index, Name + Twine(i));
