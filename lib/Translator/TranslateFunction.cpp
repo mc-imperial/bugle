@@ -6,7 +6,6 @@
 #include "bugle/Expr.h"
 #include "bugle/GlobalArray.h"
 #include "bugle/Module.h"
-#include "bugle/OwningPtrVector.h"
 #include "bugle/RaceInstrumenter.h"
 #include "bugle/util/ErrorReporter.h"
 #include "bugle/util/Functional.h"
@@ -21,6 +20,7 @@
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/raw_ostream.h"
+#include <vector>
 
 using namespace bugle;
 using namespace llvm;
@@ -474,27 +474,28 @@ void TranslateFunction::extractStructArrays(llvm::Value *V) {
   for (unsigned i = 0; i < ST->getNumElements(); ++i) {
     auto Index = ArrayRef<unsigned>(i);
     auto E = ExtractValueInst::Create(V, Index, Name + Twine(i));
-    TM->StructMap[F].push_back(E);
+    TM->StructMap[F]->push_back(E);
     if (E->getType()->isStructTy())
       extractStructArrays(E);
   }
 }
 
 void TranslateFunction::createStructArrays() {
-  if (TM->StructMap.find(F) == TM->StructMap.end()) {
+  std::vector<llvm::Instruction *> *SV = TM->StructMap[F];
+  if (!SV) {
+    SV = new std::vector<llvm::Instruction *>();
+    TM->StructMap[F] = SV;
     for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
       if (i->getType()->isStructTy())
         extractStructArrays(i);
     }
   }
 
-  BasicBlock* BB = new BasicBlock("");
+  BasicBlock *BB = new BasicBlock("");
   unsigned PtrSize = TM->TD.getPointerSizeInBits();
 
-  const auto &SV = TM->StructMap[F];
-  for (auto i = SV.begin(), e = SV.end(); i != e; ++i) {
-    auto I = cast<Instruction>(*i);
-    translateInstruction(BB, I);
+  for (auto i = SV->begin(), e = SV->end(); i != e; ++i) {
+    translateInstruction(BB, *i);
 
     if (!(*i)->getType()->isPointerTy() ||
         (*i)->getType()->getPointerElementType()->isFunctionTy())
@@ -505,8 +506,8 @@ void TranslateFunction::createStructArrays() {
       GA->addAttribute("global");
     auto PtrExpr = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                                        BVConstExpr::createZero(PtrSize));
-    BF->addRequires(EqExpr::create(ValueExprMap[I],
-                                   SafePtrToBVExpr::create(PtrExpr)), 0);
+    BF->addRequires(
+        EqExpr::create(ValueExprMap[*i], SafePtrToBVExpr::create(PtrExpr)), 0);
   }
 
   delete BB;
