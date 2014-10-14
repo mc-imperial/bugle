@@ -451,7 +451,7 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V,
   auto PT = cast<PointerType>(V->getType());
 
   if (!ModelAllAsByteArray &&
-        ModelAsByteArray.find(V) == ModelAsByteArray.end()) {
+      ModelAsByteArray.find(V) == ModelAsByteArray.end()) {
     T = translateArrayRangeType(PT->getElementType());
     if (ModelBVAsByteArray && T.isKind(Type::BV)) {
       ModelAsByteArray.insert(V);

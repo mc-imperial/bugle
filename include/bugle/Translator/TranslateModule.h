@@ -1,7 +1,6 @@
 #ifndef BUGLE_TRANSLATOR_TRANSLATEMODULE_H
 #define BUGLE_TRANSLATOR_TRANSLATEMODULE_H
 
-#include "bugle/OwningPtrVector.h"
 #include "bugle/RaceInstrumenter.h"
 #include "bugle/Ref.h"
 #include "bugle/SourceLoc.h"
@@ -65,7 +64,7 @@ private:
   std::map<std::string, ArraySpec> GPUArraySizes;
 
   std::map<llvm::Function *, bugle::Function *> FunctionMap;
-  std::map<llvm::Function *, bugle::OwningPtrVector<llvm::Value>> StructMap;
+  std::map<llvm::Function *, std::vector<llvm::Instruction *> *> StructMap;
   std::map<llvm::Constant *, ref<Expr>> ConstantMap;
 
   std::map<GlobalArray *, llvm::Value *> GlobalValueMap;
@@ -147,6 +146,14 @@ public:
         NextModelAllAsByteArray(false) {
     DIF.processModule(*M);
   }
+  ~TranslateModule() {
+    for (auto i = StructMap.begin(), e = StructMap.end(); i != e; ++i) {
+      std::for_each(i->second->rbegin(), i->second->rend(),
+                    [](llvm::Instruction *p) { delete p; });
+      delete i->second;
+    }
+  }
+
   static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
                               SourceLanguage SL, std::set<std::string> &EPS);
   std::string getSourceFunctionName(llvm::Function *F);
