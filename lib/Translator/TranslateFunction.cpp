@@ -684,7 +684,7 @@ TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB) {
 SourceLocsRef
 TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
   SourceLocs *sourcelocs = 0;
-  if (MDNode *mdnode = I->getMetadata("dbg")) {
+  if (MDNode *mdnode = I->getMDNode("dbg")) {
     sourcelocs = new SourceLocs();
     DILocation Loc(mdnode);
     do {
