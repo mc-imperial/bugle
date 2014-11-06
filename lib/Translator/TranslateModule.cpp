@@ -540,7 +540,7 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
   if (SL == SL_OpenCL || SL == SL_CUDA) {
     if (NamedMDNode *NMD = M->getNamedMetadata("nvvm.annotations")) {
       for (unsigned i = 0, e = NMD->getNumOperands(); i != e; ++i) {
-        MDNode *MD = NMD->getOperand(i);
+        MDNode *MD = cast<MDNode>(NMD->getOperand(i));
         if (MD->getOperand(0) == F)
           for (unsigned fi = 1, fe = MD->getNumOperands(); fi != fe; fi += 2)
             if (MD->getOperand(fi)->getName() == "kernel")
@@ -552,7 +552,7 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
   if (SL == SL_OpenCL) {
     if (NamedMDNode *NMD = M->getNamedMetadata("opencl.kernels")) {
       for (unsigned i = 0, e = NMD->getNumOperands(); i != e; ++i) {
-        MDNode *MD = NMD->getOperand(i);
+        MDNode *MD = cast<MDNode>(NMD->getOperand(i));
         if (MD->getOperand(0) == F)
           return true;
       }
