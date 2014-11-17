@@ -543,7 +543,7 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
         MDNode *MD = cast<MDNode>(NMD->getOperand(i));
         if (MD->getOperand(0) == F)
           for (unsigned fi = 1, fe = MD->getNumOperands(); fi != fe; fi += 2)
-            if (MD->getOperand(fi)->getName() == "kernel")
+            if (cast<MDString>(MD->getOperand(fi))->getString() == "kernel")
               return true;
       }
     }
