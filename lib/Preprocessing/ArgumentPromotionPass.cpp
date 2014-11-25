@@ -157,11 +157,11 @@ void ArgumentPromotionPass::promote(llvm::Function *F) {
   }
 
   // Replace the function in the remaining (non-debug) meta-data
+  std::set<MDNode *> doneMD;
   const auto &NMDL = M->getNamedMDList();
   for (auto i = NMDL.begin(), e = NMDL.end(); i != e; ++i) {
     for (unsigned j = 0, k = i->getNumOperands(); j != k; ++j) {
-      std::set<MDNode *> doneMD;
-      MDNode *MD = cast<MDNode>(i->getOperand(j));
+      MDNode *MD = i->getOperand(j);
       replaceMetaData(F, NF, MD, doneMD);
     }
   }
