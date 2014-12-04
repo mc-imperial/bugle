@@ -156,7 +156,6 @@ void BPLModuleWriter::write() {
          << " : bool;\n";
       OS << "var" << AS.str() << "_ATOMIC_HAS_OCCURRED_$$" << (*i)->getName()
          << " : bool;\n";
-      OS << "var _ARRAY_OFFSET_$$" << (*i)->getName() << " : bv32;\n";
 
       switch (RaceInst) {
       case RaceInstrumenter::Original:
