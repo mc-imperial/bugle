@@ -644,39 +644,41 @@ ref<Expr> BVUDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new BVUDivExpr(Type(Type::BV, lhsTy.width), lhs, rhs);
 }
 
-static ref<Expr> createExactBVUDivMul(Expr *nonConstOp, BVConstExpr *constOp,
-                                      uint64_t div) {
-  uint64_t mul = constOp->getValue().getZExtValue();
+static ref<Expr> createExactBVSDivMul(Expr *nonConstOp, BVConstExpr *constOp,
+                                      int64_t div) {
+  int64_t mul = constOp->getValue().getSExtValue();
   if (mul % div == 0) {
-    return BVMulExpr::create(
-        nonConstOp,
-        BVConstExpr::create(nonConstOp->getType().width, mul / div));
+    return BVMulExpr::create(nonConstOp,
+                             BVConstExpr::create(nonConstOp->getType().width,
+                                                 (uint64_t)(mul / div)));
   }
   return ref<Expr>();
 }
 
-ref<Expr> Expr::createExactBVUDiv(ref<Expr> lhs, uint64_t rhs, Var *base) {
+ref<Expr> Expr::createExactBVSDiv(ref<Expr> lhs, uint64_t rhs, Var *base) {
+  assert(rhs <= INT64_MAX);
   if (rhs == 1)
     return lhs;
   if ((rhs & (rhs - 1)) != 0)
     return ref<Expr>();
 
   if (auto CE = dyn_cast<BVConstExpr>(lhs)) {
-    uint64_t val = CE->getValue().getZExtValue();
-    if (val % rhs == 0)
-      return BVConstExpr::create(CE->getType().width, val / rhs);
+    int64_t val = CE->getValue().getSExtValue();
+    if (val % ((int64_t)rhs) == 0)
+      return BVConstExpr::create(CE->getType().width,
+                                 (uint64_t)(val / ((int64_t)rhs)));
   } else if (auto AE = dyn_cast<BVAddExpr>(lhs)) {
-    auto lhsDiv = createExactBVUDiv(AE->getLHS(), rhs, base);
+    auto lhsDiv = createExactBVSDiv(AE->getLHS(), rhs, base);
     if (lhsDiv.isNull())
       return ref<Expr>();
-    auto rhsDiv = createExactBVUDiv(AE->getRHS(), rhs, base);
+    auto rhsDiv = createExactBVSDiv(AE->getRHS(), rhs, base);
     if (!rhsDiv.isNull())
       return BVAddExpr::create(lhsDiv, rhsDiv);
   } else if (auto ME = dyn_cast<BVMulExpr>(lhs)) {
     if (auto CE = dyn_cast<BVConstExpr>(ME->getLHS()))
-      return createExactBVUDivMul(ME->getRHS().get(), CE, rhs);
+      return createExactBVSDivMul(ME->getRHS().get(), CE, (int64_t)rhs);
     if (auto CE = dyn_cast<BVConstExpr>(ME->getRHS()))
-      return createExactBVUDivMul(ME->getLHS().get(), CE, rhs);
+      return createExactBVSDivMul(ME->getLHS().get(), CE, (int64_t)rhs);
   } else if (base) {
     if (auto AOE = dyn_cast<ArrayOffsetExpr>(lhs)) {
       if (auto VRE = dyn_cast<VarRefExpr>(AOE->getSubExpr())) {
