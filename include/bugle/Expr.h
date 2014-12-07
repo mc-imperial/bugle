@@ -147,7 +147,7 @@ public:
   static ref<Expr> createFuncPtrLe(ref<Expr> lhs, ref<Expr> rhs);
   static ref<Expr> createBVConcatN(const std::vector<ref<Expr>> &args);
   static ref<Expr> createNeZero(ref<Expr> bv);
-  static ref<Expr> createExactBVUDiv(ref<Expr> lhs, uint64_t rhs,
+  static ref<Expr> createExactBVSDiv(ref<Expr> lhs, uint64_t rhs,
                                      Var *base = 0);
 
   static Type getArrayCandidateType(const std::set<GlobalArray *> &Globals);

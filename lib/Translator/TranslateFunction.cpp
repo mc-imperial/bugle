@@ -1203,7 +1203,7 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
 
   assert(DstRangeTy.width % 8 == 0);
   assert(DstRangeTy == Type(Type::Unknown) || DstRangeTy.width != 0);
-  ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width / 8);
+  ref<Expr> DstDiv = Expr::createExactBVSDiv(DstPtrOfs, DstRangeTy.width / 8);
   // Handle when Len can be rewritten as an integral number of element writes
   // Special case if Val is 0
   if (DstRangeTy != Type(Type::Unknown) && !DstDiv.isNull() &&
@@ -1270,8 +1270,8 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
   assert(SrcRangeTy.width % 8 == 0);
   assert(DstRangeTy.width % 8 == 0);
   assert(SrcRangeTy == Type(Type::Unknown) || SrcRangeTy.width != 0);
-  ref<Expr> SrcDiv = Expr::createExactBVUDiv(SrcPtrOfs, SrcRangeTy.width / 8);
-  ref<Expr> DstDiv = Expr::createExactBVUDiv(DstPtrOfs, DstRangeTy.width / 8);
+  ref<Expr> SrcDiv = Expr::createExactBVSDiv(SrcPtrOfs, SrcRangeTy.width / 8);
+  ref<Expr> DstDiv = Expr::createExactBVSDiv(DstPtrOfs, DstRangeTy.width / 8);
   // Handle matching source and destination range types where Len can be
   // rewritten as an integral number of element read/writes
   if (SrcRangeTy == DstRangeTy && SrcRangeTy != Type(Type::Unknown) &&
@@ -1427,8 +1427,8 @@ ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
 #endif
 
   ref<Expr> result;
-  ref<Expr> SrcDiv = Expr::createExactBVUDiv(SrcOfs, SrcRangeTy.width / 8);
-  ref<Expr> DstDiv = Expr::createExactBVUDiv(DstOfs, DstRangeTy.width / 8);
+  ref<Expr> SrcDiv = Expr::createExactBVSDiv(SrcOfs, SrcRangeTy.width / 8);
+  ref<Expr> DstDiv = Expr::createExactBVSDiv(DstOfs, DstRangeTy.width / 8);
   if (SrcRangeTy == DstRangeTy && SrcRangeTy.width <= SrcArgRangeTy.width &&
       !SrcDiv.isNull() && !DstDiv.isNull()) {
     // Compensate for the modelled width being smaller than the width expected
@@ -1852,7 +1852,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     assert(LoadTy.width % 8 == 0);
     ref<Expr> Div;
     if ((ArrRangeTy == LoadElTy || ArrRangeTy == Type(Type::Any)) &&
-        !(Div = Expr::createExactBVUDiv(PtrOfs, LoadElTy.width / 8)).isNull()) {
+        !(Div = Expr::createExactBVSDiv(PtrOfs, LoadElTy.width / 8)).isNull()) {
       if (VectorLoad) {
         ExprVec ElemsLoaded;
         for (unsigned i = 0; i != VectorElemsCount; ++i) {
@@ -1918,7 +1918,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     ref<Expr> Div;
     // If ArrRangeTy is Any, then we are using a null pointer for storing
     if ((ArrRangeTy == StoreElTy || ArrRangeTy == Type(Type::Any)) &&
-        !(Div = Expr::createExactBVUDiv(PtrOfs, StoreElTy.width / 8))
+        !(Div = Expr::createExactBVSDiv(PtrOfs, StoreElTy.width / 8))
              .isNull()) {
       if (VectorStore) {
         for (unsigned i = 0; i != VectorElemsCount; ++i) {

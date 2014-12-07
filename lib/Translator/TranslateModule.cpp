@@ -597,7 +597,7 @@ ref<Expr> TranslateModule::modelValue(Value *V, ref<Expr> E) {
     if (OI != ModelPtrAsGlobalOffset.end()) {
       auto GA = getGlobalArray(*OI->second.begin());
       auto Ofs = ArrayOffsetExpr::create(E);
-      Ofs = Expr::createExactBVUDiv(Ofs, GA->getRangeType().width / 8);
+      Ofs = Expr::createExactBVSDiv(Ofs, GA->getRangeType().width / 8);
       assert(!Ofs.isNull() && "Couldn't create div this time!");
 
       if (OI->second.size() == 1 &&
@@ -694,7 +694,7 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
   } else {
     for (auto ai = Assigns.begin(), ae = Assigns.end(); ai != ae; ++ai) {
       auto AOE = ArrayOffsetExpr::create(*ai);
-      if (Expr::createExactBVUDiv(AOE, GlobalsType.width / 8, Var).isNull()) {
+      if (Expr::createExactBVSDiv(AOE, GlobalsType.width / 8, Var).isNull()) {
         ModelGlobalsAsByteArray = true;
         break;
       }
