@@ -141,9 +141,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     } else if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, LE->getArray().get(), ES->getSourceLocs(),
                           [&](GlobalArray *GA, unsigned int indent) {
-        if (GA->isGlobalOrGroupShared()) {
-          writeSourceLocsMarker(OS, ES->getSourceLocs(), indent);
-        }
+        writeSourceLocsMarker(OS, ES->getSourceLocs(), indent);
         assert(LE->getType() == GA->getRangeType());
         OS << std::string(indent, ' ');
         OS << "v" << id << " := $$" << GA->getName() << "[";
@@ -153,9 +151,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     } else if (auto AE = dyn_cast<AtomicExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, AE->getArray().get(), ES->getSourceLocs(),
                           [&](GlobalArray *GA, unsigned int indent) {
-        if (GA->isGlobalOrGroupShared()) {
-          writeSourceLocsMarker(OS, ES->getSourceLocs(), indent);
-        }
+        writeSourceLocsMarker(OS, ES->getSourceLocs(), indent);
         assert(AE->getType() == GA->getRangeType());
         OS << std::string(indent, ' ');
         OS << "call {:atomic} ";
@@ -275,9 +271,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
   } else if (auto SS = dyn_cast<StoreStmt>(S)) {
     maybeWriteCaseSplit(OS, SS->getArray().get(), SS->getSourceLocs(),
                         [&](GlobalArray *GA, unsigned int indent) {
-      if (GA->isGlobalOrGroupSharedOrConstant()) {
-        writeSourceLocsMarker(OS, SS->getSourceLocs(), indent);
-      }
+      writeSourceLocsMarker(OS, SS->getSourceLocs(), indent);
       assert(SS->getValue()->getType() == GA->getRangeType());
       OS << std::string(indent, ' ');
       OS << "$$" << GA->getName() << "[";
