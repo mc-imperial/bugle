@@ -627,7 +627,7 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V,
   if (auto C = dyn_cast<Constant>(V))
     return TM->translateConstant(C);
 
-  if (isa<MDNode>(V)) {
+  if (V->getType()->isMetadataTy()) {
     // ignore metadata values
     return 0;
   }

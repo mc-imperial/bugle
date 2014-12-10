@@ -191,8 +191,8 @@ void ArgumentPromotionPass::replaceMetaData(llvm::Function *F,
   for (unsigned i = 0, e = MD->getNumOperands(); i < e; ++i) {
     if (!MD->getOperand(i))
       continue;
-    else if (MD->getOperand(i) == F)
-      MD->replaceOperandWith(i, NF);
+    else if (MD->getOperand(i) == ValueAsMetadata::get(F))
+      MD->replaceOperandWith(i, ValueAsMetadata::get(NF));
     else if (auto MDV = dyn_cast<MDNode>(MD->getOperand(i)))
       replaceMetaData(F, NF, MDV, doneMD);
   }

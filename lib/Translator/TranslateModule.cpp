@@ -541,7 +541,7 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
     if (NamedMDNode *NMD = M->getNamedMetadata("nvvm.annotations")) {
       for (unsigned i = 0, e = NMD->getNumOperands(); i != e; ++i) {
         MDNode *MD = NMD->getOperand(i);
-        if (MD->getOperand(0) == F)
+        if (MD->getOperand(0) == ValueAsMetadata::get(F))
           for (unsigned fi = 1, fe = MD->getNumOperands(); fi != fe; fi += 2)
             if (cast<MDString>(MD->getOperand(fi))->getString() == "kernel")
               return true;
@@ -553,7 +553,7 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
     if (NamedMDNode *NMD = M->getNamedMetadata("opencl.kernels")) {
       for (unsigned i = 0, e = NMD->getNumOperands(); i != e; ++i) {
         MDNode *MD = NMD->getOperand(i);
-        if (MD->getOperand(0) == F)
+        if (MD->getOperand(0) == ValueAsMetadata::get(F))
           return true;
       }
     }
