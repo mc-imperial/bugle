@@ -25,6 +25,7 @@ private:
 
   bool needsPromotion(llvm::Function *F);
   bool canPromote(llvm::Function *F);
+  bool usesFunctionPointers(llvm::Function *F);
   llvm::Function *createNewFunction(llvm::Function *F);
   void updateCallSite(llvm::CallSite *CS, llvm::Function *F,
                       llvm::Function *NF);

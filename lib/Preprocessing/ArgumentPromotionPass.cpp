@@ -32,6 +32,21 @@ bool ArgumentPromotionPass::canPromote(llvm::Function *F) {
   return true;
 }
 
+bool ArgumentPromotionPass::usesFunctionPointers(llvm::Function *F) {
+  for (auto fi = F->begin(), fe = F->end(); fi != fe; ++fi)
+    for (auto bi = fi->begin(), be = fi->end(); bi != be; ++bi) {
+      auto CI = dyn_cast<CallInst>(bi);
+
+      if (!CI)
+        continue;
+
+      if (!CI->getCalledFunction())
+        return true;
+    }
+
+  return false;
+}
+
 llvm::Function *ArgumentPromotionPass::createNewFunction(llvm::Function *F) {
   FunctionType *FTy = F->getFunctionType();
   const AttributeSet &FAS = F->getAttributes();
@@ -212,6 +227,11 @@ bool ArgumentPromotionPass::runOnModule(llvm::Module &M) {
   bool promoted = false;
   this->M = &M;
   FunctionDIs = makeSubprogramMap(M); // Needed to updated debug information
+
+  for (auto i = M.begin(), e = M.end(); i != e; ++i)
+    if (usesFunctionPointers(i)) {
+      return false;
+    }
 
   for (auto i = M.begin(), e = M.end(); i != e; ++i) {
     if (needsPromotion(i) && canPromote(i)) {
