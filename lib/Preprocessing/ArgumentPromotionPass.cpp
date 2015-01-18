@@ -22,6 +22,16 @@ bool ArgumentPromotionPass::needsPromotion(llvm::Function *F) {
   return false;
 }
 
+bool ArgumentPromotionPass::canPromote(llvm::Function *F) {
+  for (auto i = F->uses().begin(), e = F->uses().end(); i != e; ++i) {
+    CallSite CS(*i);
+    if (!CS.getInstruction())
+      return false;
+  }
+
+  return true;
+}
+
 llvm::Function *ArgumentPromotionPass::createNewFunction(llvm::Function *F) {
   FunctionType *FTy = F->getFunctionType();
   const AttributeSet &FAS = F->getAttributes();
@@ -204,7 +214,7 @@ bool ArgumentPromotionPass::runOnModule(llvm::Module &M) {
   FunctionDIs = makeSubprogramMap(M); // Needed to updated debug information
 
   for (auto i = M.begin(), e = M.end(); i != e; ++i) {
-    if (needsPromotion(i)) {
+    if (needsPromotion(i) && canPromote(i)) {
       promote(i);
       promoted = true;
     }

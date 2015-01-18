@@ -24,6 +24,7 @@ private:
   llvm::DenseMap<const llvm::Function *, llvm::DISubprogram> FunctionDIs;
 
   bool needsPromotion(llvm::Function *F);
+  bool canPromote(llvm::Function *F);
   llvm::Function *createNewFunction(llvm::Function *F);
   void updateCallSite(llvm::CallSite *CS, llvm::Function *F,
                       llvm::Function *NF);
