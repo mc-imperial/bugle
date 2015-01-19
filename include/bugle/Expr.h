@@ -437,12 +437,6 @@ public:
 };
 
 UNARY_EXPR(ArrayOffset)
-UNARY_EXPR(BVToPtr)
-UNARY_EXPR(PtrToBV)
-UNARY_EXPR(SafeBVToPtr)
-UNARY_EXPR(SafePtrToBV)
-UNARY_EXPR(BVToFuncPtr)
-UNARY_EXPR(FuncPtrToBV)
 UNARY_EXPR(PtrToFuncPtr)
 UNARY_EXPR(FuncPtrToPtr)
 UNARY_EXPR(BVToBool)
@@ -474,6 +468,12 @@ UNARY_EXPR(GetImageHeight)
     EXPR_KIND(kind)                                                            \
   };
 
+UNARY_CONV_EXPR(BVToPtr)
+UNARY_CONV_EXPR(PtrToBV)
+UNARY_CONV_EXPR(SafeBVToPtr)
+UNARY_CONV_EXPR(SafePtrToBV)
+UNARY_CONV_EXPR(BVToFuncPtr)
+UNARY_CONV_EXPR(FuncPtrToBV)
 UNARY_CONV_EXPR(BVSExt)
 UNARY_CONV_EXPR(BVZExt)
 UNARY_CONV_EXPR(FPConv)
