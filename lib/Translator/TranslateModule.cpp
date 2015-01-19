@@ -61,9 +61,9 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned ByteOffset,
       llvm::Type *InitTy = Init->getType();
       if (InitTy->isPointerTy()) {
         if (InitTy->getPointerElementType()->isFunctionTy())
-          Const = FuncPtrToBVExpr::create(Const);
+          Const = FuncPtrToBVExpr::create(Const->getType().width, Const);
         else
-          Const = SafePtrToBVExpr::create(Const);
+          Const = SafePtrToBVExpr::create(Const->getType().width, Const);
       }
 
       unsigned GAWidth = GATy.width;
@@ -145,9 +145,9 @@ ref<Expr> TranslateModule::translateArbitrary(bugle::Type t) {
   ref<Expr> E = BVConstExpr::createZero(t.width);
 
   if (t.isKind(Type::Pointer))
-    E = BVToPtrExpr::create(E);
+    E = BVToPtrExpr::create(TD.getPointerSizeInBits(), E);
   else if (t.isKind(Type::FunctionPointer))
-    E = BVToFuncPtrExpr::create(E);
+    E = BVToFuncPtrExpr::create(TD.getPointerSizeInBits(), E);
 
   return E;
 }
@@ -277,17 +277,17 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
       Type OpTy = Op->getType();
       assert(OpTy.isKind(Type::Pointer) || OpTy.isKind(Type::FunctionPointer));
       if (OpTy.isKind(Type::FunctionPointer))
-        return FuncPtrToBVExpr::create(Op);
+        return FuncPtrToBVExpr::create(TD.getTypeSizeInBits(C->getType()), Op);
       else
-        return PtrToBVExpr::create(Op);
+        return PtrToBVExpr::create(TD.getTypeSizeInBits(C->getType()), Op);
     }
     case Instruction::IntToPtr: {
       ref<Expr> Op = translateConstant(CE->getOperand(0));
       assert(CE->getType()->isPointerTy());
       if (CE->getType()->getPointerElementType()->isFunctionTy())
-        return BVToFuncPtrExpr::create(Op);
+        return BVToFuncPtrExpr::create(TD.getPointerSizeInBits(), Op);
       else
-        return BVToPtrExpr::create(Op);
+        return BVToPtrExpr::create(TD.getPointerSizeInBits(), Op);
     }
     case Instruction::ICmp: {
       ref<Expr> LHS = translateConstant(CE->getOperand(0)),

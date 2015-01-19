@@ -349,9 +349,8 @@ ref<Expr> ArrayMemberOfExpr::create(ref<Expr> expr,
   return new ArrayMemberOfExpr(Type(Type::ArrayOf, t), expr, elems);
 }
 
-ref<Expr> BVToPtrExpr::create(ref<Expr> bv) {
-  const Type &ty = bv->getType();
-  assert(ty.isKind(Type::BV));
+ref<Expr> BVToPtrExpr::create(unsigned ptrWidth, ref<Expr> bv) {
+  assert(bv->getType().isKind(Type::BV));
 
   if (auto e = dyn_cast<PtrToBVExpr>(bv))
     return e->getSubExpr();
@@ -359,28 +358,26 @@ ref<Expr> BVToPtrExpr::create(ref<Expr> bv) {
   if (auto e = dyn_cast<BVConstExpr>(bv))
     if (e->getValue() == 0)
       return PointerExpr::create(NullArrayRefExpr::create(),
-                                 BVConstExpr::createZero(ty.width));
+                                 BVConstExpr::createZero(ptrWidth));
 
-  return new BVToPtrExpr(Type(Type::Pointer, ty.width), bv);
+  return new BVToPtrExpr(Type(Type::Pointer, ptrWidth), bv);
 }
 
-ref<Expr> PtrToBVExpr::create(ref<Expr> ptr) {
-  const Type &ty = ptr->getType();
-  assert(ty.isKind(Type::Pointer));
+ref<Expr> PtrToBVExpr::create(unsigned bvWidth, ref<Expr> ptr) {
+  assert(ptr->getType().isKind(Type::Pointer));
 
   if (auto e = dyn_cast<BVToPtrExpr>(ptr))
-    return e->getSubExpr();
+    return BVZExtExpr::create(bvWidth, e->getSubExpr());
 
   if (auto e = dyn_cast<PointerExpr>(ptr))
     if (dyn_cast<NullArrayRefExpr>(e->getArray()))
-      return BVZExtExpr::create(ty.width, e->getOffset());
+      return BVZExtExpr::create(bvWidth, e->getOffset());
 
-  return new PtrToBVExpr(Type(Type::BV, ty.width), ptr);
+  return new PtrToBVExpr(Type(Type::BV, bvWidth), ptr);
 }
 
-ref<Expr> SafeBVToPtrExpr::create(ref<Expr> bv) {
-  const Type &ty = bv->getType();
-  assert(ty.isKind(Type::BV));
+ref<Expr> SafeBVToPtrExpr::create(unsigned ptrWidth, ref<Expr> bv) {
+  assert(bv->getType().isKind(Type::BV));
 
   if (auto e = dyn_cast<SafePtrToBVExpr>(bv))
     return e->getSubExpr();
@@ -388,43 +385,43 @@ ref<Expr> SafeBVToPtrExpr::create(ref<Expr> bv) {
   if (auto e = dyn_cast<BVConstExpr>(bv))
     if (e->getValue() == 0)
       return PointerExpr::create(NullArrayRefExpr::create(),
-                                 BVConstExpr::createZero(ty.width));
+                                 BVConstExpr::createZero(ptrWidth));
 
-  return new SafeBVToPtrExpr(Type(Type::Pointer, ty.width), bv);
+  return new SafeBVToPtrExpr(Type(Type::Pointer, ptrWidth),
+                             BVZExtExpr::create(ptrWidth, bv));
 }
 
-ref<Expr> SafePtrToBVExpr::create(ref<Expr> ptr) {
+ref<Expr> SafePtrToBVExpr::create(unsigned bvWidth, ref<Expr> ptr) {
   const Type &ty = ptr->getType();
   assert(ty.isKind(Type::Pointer));
 
   if (auto e = dyn_cast<SafeBVToPtrExpr>(ptr))
-    return e->getSubExpr();
+    return BVZExtExpr::create(bvWidth, e->getSubExpr());
 
   if (auto e = dyn_cast<PointerExpr>(ptr))
     if (dyn_cast<NullArrayRefExpr>(e->getArray()))
-      return BVZExtExpr::create(ty.width, e->getOffset());
+      return BVZExtExpr::create(bvWidth, e->getOffset());
 
-  return new SafePtrToBVExpr(Type(Type::BV, ty.width), ptr);
+  return BVZExtExpr::create(bvWidth,
+                            new SafePtrToBVExpr(Type(Type::BV, ty.width), ptr));
 }
 
-ref<Expr> BVToFuncPtrExpr::create(ref<Expr> bv) {
-  const Type &ty = bv->getType();
-  assert(ty.isKind(Type::BV));
+ref<Expr> BVToFuncPtrExpr::create(unsigned ptrWidth, ref<Expr> bv) {
+  assert(bv->getType().isKind(Type::BV));
 
   if (auto e = dyn_cast<FuncPtrToBVExpr>(bv))
     return e->getSubExpr();
 
-  return new BVToFuncPtrExpr(Type(Type::FunctionPointer, ty.width), bv);
+  return new BVToFuncPtrExpr(Type(Type::FunctionPointer, ptrWidth), bv);
 }
 
-ref<Expr> FuncPtrToBVExpr::create(ref<Expr> ptr) {
-  const Type &ty = ptr->getType();
-  assert(ty.isKind(Type::FunctionPointer));
+ref<Expr> FuncPtrToBVExpr::create(unsigned bvWidth, ref<Expr> ptr) {
+  assert(ptr->getType().isKind(Type::FunctionPointer));
 
   if (auto e = dyn_cast<BVToFuncPtrExpr>(ptr))
-    return e->getSubExpr();
+    return BVZExtExpr::create(bvWidth, e->getSubExpr());
 
-  return new FuncPtrToBVExpr(Type(Type::BV, ty.width), ptr);
+  return new FuncPtrToBVExpr(Type(Type::BV, bvWidth), ptr);
 }
 
 ref<Expr> PtrToFuncPtrExpr::create(ref<Expr> ptr) {
