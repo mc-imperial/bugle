@@ -45,7 +45,7 @@ bool RestrictDetectPass::ignoreArgument(unsigned i, const DISubprogram *DIS) {
   if (!DIS || SL != TranslateModule::SL_OpenCL)
     return false;
 
-  auto Ty = DIType(DIS->getType().getTypeArray().getElement(i + 1)).getName();
+  auto Ty = DIS->getType().getTypeArray().getElement(i).getName();
   return (Ty == "__bugle_image2d_t" || Ty == "__bugle_image3d_t");
 }
 
