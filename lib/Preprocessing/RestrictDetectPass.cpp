@@ -19,22 +19,38 @@ bool RestrictDetectPass::doInitialization(llvm::Module &M) {
   return false;
 }
 
-std::string RestrictDetectPass::getFunctionLocation(llvm::Function *F) {
+const DISubprogram *RestrictDetectPass::getDebugInfo(llvm::Function *F) {
   auto SS = DIF.subprograms();
   for (auto i = SS.begin(), e = SS.end(); i != e; ++i) {
     DISubprogram subprogram(*i);
-    if (subprogram.describes(F)) {
-      std::string l; llvm::raw_string_ostream lS(l);
-      lS << "'" << subprogram.getName() << "' on line "
-         << subprogram.getLineNumber() << " of " << subprogram.getFilename();
-      return lS.str();
-    }
+    if (subprogram.describes(F))
+      return i;
   }
 
-  return "'" + F->getName().str() + "'";
+  return 0;
+}
+
+std::string RestrictDetectPass::getFunctionLocation(llvm::Function *F) {
+  auto DIS = getDebugInfo(F);
+  if (DIS) {
+    std::string l; llvm::raw_string_ostream lS(l);
+    lS << "'" << DIS->getName() << "' on line " << DIS->getLineNumber()
+       << " of " << DIS->getFilename();
+    return lS.str();
+  } else
+    return "'" + F->getName().str() + "'";
+}
+
+bool RestrictDetectPass::ignoreArgument(unsigned i, const DISubprogram *DIS) {
+  if (!DIS || SL != TranslateModule::SL_OpenCL)
+    return false;
+
+  auto Ty = DIType(DIS->getType().getTypeArray().getElement(i + 1)).getName();
+  return (Ty == "__bugle_image2d_t" || Ty == "__bugle_image3d_t");
 }
 
 void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
+  const DISubprogram *DIS = getDebugInfo(&F);
   std::vector<Argument *> AL;
   for (auto i = F.arg_begin(), e = F.arg_end(); i != e; ++i) {
     if (!i->getType()->isPointerTy())
@@ -42,6 +58,8 @@ void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
     if (i->hasNoAliasAttr())
       continue;
     if (i->getType()->getPointerElementType()->isFunctionTy())
+      continue;
+    if (ignoreArgument(i->getArgNo(), DIS))
       continue;
 
     unsigned addressSpace = i->getType()->getPointerAddressSpace();
