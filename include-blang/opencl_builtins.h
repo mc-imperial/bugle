@@ -49,7 +49,6 @@
 // Table 6.8
 
 _FLOAT_UNARY_MACRO(cbrt)
-_FLOAT_UNARY_MACRO(log10)
 _FLOAT_UNARY_MACRO(logb)
 
 // Table 6.9
