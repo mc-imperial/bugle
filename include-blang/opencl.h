@@ -314,4 +314,36 @@ __axiom(get_num_groups(2) == __GLOBAL_SIZE_2 / get_local_size(2))
 #endif
 #endif
 
+// Global id and offset
+
+size_t get_global_offset(uint dim);
+
+#define get_global_id(X) __bugle_get_global_id(X)
+
+_CLC_INLINE size_t get_global_id(uint dim) {
+#if defined(__GLOBAL_OFFSET_0) || defined(__GLOBAL_OFFSET_1) || defined(__GLOBAL_OFFSET_2)
+  return get_group_id(dim)*get_local_size(dim) + get_local_id(dim) + get_global_offset(dim);
+#else
+  return get_group_id(dim)*get_local_size(dim) + get_local_id(dim);
+#endif
+}
+
+#ifdef __GLOBAL_OFFSET_0
+__axiom(get_global_offset(0) == __GLOBAL_OFFSET_0)
+#else
+__axiom(get_global_offset(0) == 0)
+#endif
+
+#ifdef __GLOBAL_OFFSET_1
+__axiom(get_global_offset(1) == __GLOBAL_OFFSET_1)
+#else
+__axiom(get_global_offset(1) == 0)
+#endif
+
+#ifdef __GLOBAL_OFFSET_2
+__axiom(get_global_offset(2) == __GLOBAL_OFFSET_2)
+#else
+__axiom(get_global_offset(2) == 0)
+#endif
+
 #endif

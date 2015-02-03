@@ -73,8 +73,8 @@ class TranslateFunction {
       handleAtomicHasTakenValue, handleMemset, handleMemcpy, handleTrap;
 
   SpecialFnHandler handleGetLocalId, handleGetGroupId, handleGetLocalSize,
-      handleGetNumGroups, handleGetImageWidth, handleGetImageHeight,
-      handleAsyncWorkGroupCopy, handleWaitGroupEvents;
+      handleGetNumGroups, handleGetGlobalOffset,handleGetImageWidth,
+      handleGetImageHeight, handleAsyncWorkGroupCopy, handleWaitGroupEvents;
 
   SpecialFnHandler handleCeil, handleCos, handleCtlz, handleExp, handleFabs,
       handleFloor, handleFrexpExp, handleFrexpFrac, handleFma, handleLog,
