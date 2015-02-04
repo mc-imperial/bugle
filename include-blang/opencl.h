@@ -49,10 +49,6 @@ typedef __global void *image3d_t;
 #define CLK_FILTER_NEAREST          0
 #define CLK_FILTER_LINEAR           16
 
-#define sampler_t __bugle_sampler_t
-
-typedef unsigned int sampler_t;
-
 #pragma OPENCL EXTENSION cl_clang_storage_class_specifiers: enable
 
 
