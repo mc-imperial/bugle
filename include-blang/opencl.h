@@ -36,8 +36,8 @@ void write_mem_fence(cl_mem_fence_flags flags);
 #define image2d_t __bugle_image2d_t
 #define image3d_t __bugle_image3d_t
 
-typedef __global void *image2d_t;
-typedef __global void *image3d_t;
+typedef __global uint4 *image2d_t;
+typedef __global uint4 *image3d_t;
 
 #define CLK_NORMALIZED_COORDS_TRUE  0
 #define CLK_NORMALIZED_COORDS_FALSE 1
@@ -49,41 +49,37 @@ typedef __global void *image3d_t;
 #define CLK_FILTER_NEAREST          0
 #define CLK_FILTER_LINEAR           16
 
-#pragma OPENCL EXTENSION cl_clang_storage_class_specifiers: enable
-
-
 #ifndef CL_DEVICE_IMAGE1D_MAX_WIDTH
-#define CL_DEVICE_IMAGE1D_MAX_WIDTH (1 << 31)
+#define CL_DEVICE_IMAGE1D_MAX_WIDTH (1 << 27)
 #endif
 
 #ifndef CL_DEVICE_IMAGE2D_MAX_WIDTH
-#define CL_DEVICE_IMAGE2D_MAX_WIDTH (1 << 15)
+#define CL_DEVICE_IMAGE2D_MAX_WIDTH (1 << 13)
 #endif
 
 #ifndef CL_DEVICE_IMAGE2D_MAX_HEIGHT
-#define CL_DEVICE_IMAGE2D_MAX_HEIGHT (1 << 15)
+#define CL_DEVICE_IMAGE2D_MAX_HEIGHT (1 << 13)
 #endif
 
 #ifndef CL_DEVICE_IMAGE3D_MAX_WIDTH
-#define CL_DEVICE_IMAGE3D_MAX_WIDTH (1 << 10)
+#define CL_DEVICE_IMAGE3D_MAX_WIDTH (1 << 9)
 #endif
 
 #ifndef CL_DEVICE_IMAGE3D_MAX_HEIGHT
-#define CL_DEVICE_IMAGE3D_MAX_HEIGHT (1 << 10)
+#define CL_DEVICE_IMAGE3D_MAX_HEIGHT (1 << 9)
 #endif
 
 #ifndef CL_DEVICE_IMAGE3D_MAX_DEPTH
-#define CL_DEVICE_IMAGE3D_MAX_DEPTH (1 << 10)
+#define CL_DEVICE_IMAGE3D_MAX_DEPTH (1 << 9)
 #endif
 
 #define __image_clamp(x, MAX) (unsigned)((x) < 0 ? 0 : ( (x) >= (MAX) ? (MAX) - 1 : (x) ))
 
 #define READ_IMAGE_2D(NAME, COLOUR_TYPE, COORD_TYPE) \
 _CLC_INLINE _CLC_OVERLOAD COLOUR_TYPE NAME(image2d_t image, sampler_t sampler, COORD_TYPE coord) { \
-  __global COLOUR_TYPE *img = image; \
   unsigned __x = __image_clamp((int)coord.x, CL_DEVICE_IMAGE2D_MAX_WIDTH); \
   unsigned __y = __image_clamp((int)coord.y, CL_DEVICE_IMAGE2D_MAX_HEIGHT); \
-  return img[__y*CL_DEVICE_IMAGE2D_MAX_WIDTH + __x]; \
+  return as_##COLOUR_TYPE(image[__y*CL_DEVICE_IMAGE2D_MAX_WIDTH + __x]); \
 }
 
 READ_IMAGE_2D(read_imagef, float4, int2)
@@ -92,25 +88,21 @@ READ_IMAGE_2D(read_imagei, int4, int2)
 READ_IMAGE_2D(read_imagei, int4, float2)
 READ_IMAGE_2D(read_imageui, uint4, int2)
 
-#define WRITE_IMAGE_2D(NAME, COLOUR_TYPE, COORD_TYPE)                 \
+#define WRITE_IMAGE_2D(NAME, COLOUR_TYPE, COORD_TYPE) \
 _CLC_INLINE _CLC_OVERLOAD void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TYPE color) { \
-  __global COLOUR_TYPE *img = image; \
-  img[coord.y*CL_DEVICE_IMAGE2D_MAX_WIDTH + coord.x] = color; \
+  image[coord.y*CL_DEVICE_IMAGE2D_MAX_WIDTH + coord.x] = as_uint4(color); \
 }
 
 WRITE_IMAGE_2D(write_imagef, float4, int2)
 WRITE_IMAGE_2D(write_imagei, int4, int2)
 WRITE_IMAGE_2D(write_imageui, uint4, int2)
 
-#define __MAX_VALUES_PER_COORD_3D (1<<8)
-
 #define READ_IMAGE_3D(NAME, COLOUR_TYPE, COORD_TYPE) \
-_CLC_INLINE _CLC_OVERLOAD COLOUR_TYPE NAME(image2d_t image, sampler_t sampler, COORD_TYPE coord) { \
-  __global COLOUR_TYPE *img = image; \
-  unsigned __x = __image_clamp((unsigned)coord.x, CL_DEVICE_IMAGE3D_MAX_WIDTH); \
-  unsigned __y = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE3D_MAX_HEIGHT); \
-  unsigned __z = __image_clamp((unsigned)coord.y, CL_DEVICE_IMAGE3D_MAX_DEPTH); \
-  return img[(__z*CL_DEVICE_IMAGE3D_MAX_HEIGHT + __y)*CL_DEVICE_IMAGE3D_MAX_WIDTH + __x]; \
+_CLC_INLINE _CLC_OVERLOAD COLOUR_TYPE NAME(image3d_t image, sampler_t sampler, COORD_TYPE coord) { \
+  unsigned __x = __image_clamp((int)coord.x, CL_DEVICE_IMAGE3D_MAX_WIDTH); \
+  unsigned __y = __image_clamp((int)coord.y, CL_DEVICE_IMAGE3D_MAX_HEIGHT); \
+  unsigned __z = __image_clamp((int)coord.z, CL_DEVICE_IMAGE3D_MAX_DEPTH); \
+  return as_##COLOUR_TYPE(image[(__z*CL_DEVICE_IMAGE3D_MAX_HEIGHT + __y)*CL_DEVICE_IMAGE3D_MAX_WIDTH + __x]); \
 }
 
 READ_IMAGE_3D(read_imagef, float4, int4)
@@ -120,20 +112,17 @@ READ_IMAGE_3D(read_imagei, int4, float4)
 READ_IMAGE_3D(read_imageui, uint4, int4)
 READ_IMAGE_3D(read_imageui, uint4, float4)
 
-#define WRITE_IMAGE_3D(NAME, COLOUR_TYPE, COORD_TYPE)                 \
-_CLC_INLINE _CLC_OVERLOAD void NAME(image2d_t image, COORD_TYPE coord, COLOUR_TYPE color) { \
-  __global COLOUR_TYPE *img = image; \
-  img[(coord.z*CL_DEVICE_IMAGE3D_MAX_HEIGHT + coord.y)*CL_DEVICE_IMAGE3D_MAX_WIDTH + coord.x] = color; \
+#define WRITE_IMAGE_3D(NAME, COLOUR_TYPE, COORD_TYPE) \
+_CLC_INLINE _CLC_OVERLOAD void NAME(image3d_t image, COORD_TYPE coord, COLOUR_TYPE color) { \
+  image[(coord.z*CL_DEVICE_IMAGE3D_MAX_HEIGHT + coord.y)*CL_DEVICE_IMAGE3D_MAX_WIDTH + coord.x] = as_uint4(color); \
 }
 
 WRITE_IMAGE_3D(write_imagef, float4, int4)
 WRITE_IMAGE_3D(write_imagei, int4, int4)
 WRITE_IMAGE_3D(write_imageui, uint4, int4)
 
-#pragma OPENCL EXTENSION cl_clang_storage_class_specifiers: disable
-
-int get_image_height (image2d_t image);
-int get_image_width (image2d_t image);
+int get_image_height(image2d_t image);
+int get_image_width(image2d_t image);
 
 // Must define a dimension
 
