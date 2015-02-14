@@ -1,6 +1,6 @@
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/Bitcode/ReaderWriter.h"
-#include "llvm/PassManager.h"
+#include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
@@ -229,7 +229,7 @@ int main(int argc, char **argv) {
   std::map<std::string, bugle::ArraySpec> KAS;
   GetArraySizes(KAS);
 
-  PassManager PM;
+  legacy::PassManager PM;
   PM.add(new bugle::ArgumentPromotionPass(SourceLanguage, EP));
   PM.add(createPromoteMemoryToRegisterPass());
   if (Inlining) {
