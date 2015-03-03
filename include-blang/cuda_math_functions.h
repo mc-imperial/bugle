@@ -5,6 +5,10 @@
 extern "C" {
 #endif
 
+#ifndef __THROW
+#define __THROW throw()
+#endif
+
 /* INTEGER INTRINSICS */
 __device__ unsigned int __brev(unsigned int x);
 __device__ unsigned long long int __brevll(unsigned long long int x);
@@ -101,7 +105,7 @@ __device__ static __inline__ float frexpf(float x, int *exp) {
 
 __device__ float ldexpf(float x, int exp);
 __device__ float scalbnf(float x, int n);
-__device__ float scalblnf(float x, int l);
+__device__ float scalblnf(float x, long int l);
 __device__ float logbf(float x);
 __device__ int   ilogbf(float x);
 __device__ float j0f(float x);
@@ -145,21 +149,21 @@ __device__ float fminf(float x, float y);
 
 /* TABLE C-2 */
 __device__ double rsqrt(double x);
-__device__ double sqrt(double x);
+__device__ double sqrt(double x) __THROW;
 __device__ double cbrt(double x);
 __device__ double rcbrt(double x);
 __device__ double hypot(double x, double y);
-__device__ double exp(double x);
+__device__ double exp(double x) __THROW;
 __device__ double exp2(double x);
 __device__ double exp10(double x);
 __device__ double expm1(double x);
-__device__ double log(double x);
+__device__ double log(double x) __THROW;
 __device__ double log2(double x);
-__device__ double log10(double x);
+__device__ double log10(double x) __THROW;
 __device__ double log1p(double x);
-__device__ double sin(double x);
-__device__ double cos(double x);
-__device__ double tan(double x);
+__device__ double sin(double x) __THROW;
+__device__ double cos(double x) __THROW;
+__device__ double tan(double x) __THROW;
 
 __device__ static __inline__ void sincos(double x, double *sptr, double *cptr) {
   *sptr = sin(x);
@@ -168,17 +172,17 @@ __device__ static __inline__ void sincos(double x, double *sptr, double *cptr) {
 
 __device__ double sinpi(double x);
 __device__ double cospi(double x);
-__device__ double asin(double x);
-__device__ double acos(double x);
-__device__ double atan(double x);
-__device__ double atan2(double y, double x);
-__device__ double sinh(double x);
-__device__ double cosh(double x);
-__device__ double tanh(double x);
+__device__ double asin(double x) __THROW;
+__device__ double acos(double x) __THROW;
+__device__ double atan(double x) __THROW;
+__device__ double atan2(double y, double x) __THROW;
+__device__ double sinh(double x) __THROW;
+__device__ double cosh(double x) __THROW;
+__device__ double tanh(double x) __THROW;
 __device__ double asinh(double x);
 __device__ double acosh(double x);
 __device__ double atanh(double x);
-__device__ double pow(double x, double y);
+__device__ double pow(double x, double y) __THROW;
 __device__ double erf(double x);
 __device__ double erfc(double x);
 __device__ double erfinv(double x);
@@ -188,26 +192,26 @@ __device__ double lgamma(double x);
 __device__ double tgamma(double x);
 __device__ double fma(double x, double y, double z);
 
-__device__ int __bugle_frexp_exp(double x);
-__device__ double __bugle_frexp_frac(double x);
+__device__ int __bugle_frexp_exp(double x) __THROW;
+__device__ double __bugle_frexp_frac(double x) __THROW;
 
-__device__ static __inline__ double frexp(double x, int *exp) {
+__device__ static __inline__ double frexp(double x, int *exp) __THROW {
   *exp = __bugle_frexp_exp(x);
   return __bugle_frexp_frac(x);
 }
 
-__device__ double ldexp(double x, int exp);
+__device__ double ldexp(double x, int exp) __THROW;
 __device__ double scalbn(double x, int n);
-__device__ double scalbln(double x, int l);
+__device__ double scalbln(double x, long int l);
 __device__ double logb(double x);
 __device__ int    ilogb(double x);
 __device__ double j0(double x);
 __device__ double j1(double x);
-__device__ double jn(double x);
+__device__ double jn(int x, double y);
 __device__ double y0(double x);
 __device__ double y1(double x);
 __device__ double yn(int x, double y);
-__device__ double fmod(double x, double y);
+__device__ double fmod(double x, double y) __THROW;
 __device__ double remainder(double x, double y);
 
 __device__ int __bugle_remquo_quo(double x, double y);
@@ -217,10 +221,10 @@ __device__ static __inline__ double remquo(double x, double y, int *iptr) {
   return remainder(x, y);
 }
 
-__device__ double __bugle_modf_ipart(double x);
-__device__ double __bugle_modf_frac(double x);
+__device__ double __bugle_modf_ipart(double x) __THROW;
+__device__ double __bugle_modf_frac(double x) __THROW;
 
-__device__ static __inline__ double modf(double x, double *iptr) {
+__device__ static __inline__ double modf(double x, double *iptr) __THROW {
   *iptr = __bugle_modf_ipart(x);
   return __bugle_modf_frac(x);
 }
@@ -230,13 +234,13 @@ __device__ double trunc(double x);
 __device__ double round(double x);
 __device__ double rint(double x);
 __device__ double nearbyint(double x);
-__device__ double ceil(double x);
-__device__ double floor(double x);
+__device__ double ceil(double x) __THROW;
+__device__ double floor(double x) __THROW;
 __device__ long int lrint(double x);
 __device__ long int  lround(double x);
 __device__ long long int llrint(double x);
 __device__ long long int llround(double x);
-__device__ double fabs(double x);
+__device__ double fabs(double x) __THROW;
 __device__ double fmax(double x, double y);
 __device__ double fmin(double x, double y);
 
