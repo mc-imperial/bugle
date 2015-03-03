@@ -9,6 +9,7 @@
 #undef    __non_temporal_loads_end
 #undef    __invariant
 #undef    __global_invariant
+#undef    __function_wide_invariant
 #undef    __candidate_invariant
 #undef    __candidate_global_invariant
 #ifndef ONLY_REQUIRES
@@ -23,6 +24,7 @@
 #define  __non_temporal_loads_end()       __NOP
 #define  __invariant(X)                   __NOP
 #define  __global_invariant(X)            __NOP
+#define  __function_wide_invariant(X)     __NOP
 #define  __candidate_invariant(X)         __NOP
 #define  __candidate_global_invariant(X)  __NOP
 #ifndef ONLY_REQUIRES
