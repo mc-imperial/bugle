@@ -2212,6 +2212,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     if (BI->isConditional()) {
       ref<Expr> Cond =
           BVToBoolExpr::create(translateValue(BI->getCondition(), BBB));
+      BBB->addEvalStmt(Cond, currentSourceLocs);
 
       bugle::BasicBlock *TrueBB = BF->addBasicBlock("truebb");
       TrueBB->addStmt(AssumeStmt::createPartition(Cond));
