@@ -131,6 +131,9 @@ _DEVICE_QUALIFIER void __candidate_global_assert(bool expr);
 
 /* Used to express whether a thread is enabled at a particuar point */
 _DEVICE_QUALIFIER bool __enabled(void);
+/* Used to express whether a thread is enabled in the block immediately
+   dominating a particuar point */
+_DEVICE_QUALIFIER bool __dominator_enabled(void);
 
 /* Maps to ==> */
 _DEVICE_QUALIFIER bool __implies(bool expr1, bool expr2);
