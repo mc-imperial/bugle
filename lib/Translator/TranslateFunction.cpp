@@ -213,6 +213,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__other_ptr_base"] = &TranslateFunction::handleOtherPtrBase;
     fns["__implies"] = &TranslateFunction::handleImplies;
     fns["__enabled"] = &TranslateFunction::handleEnabled;
+    fns["__dominator_enabled"] = &TranslateFunction::handleDominatorEnabled;
     fns["__read_local"] = &TranslateFunction::handleReadHasOccurred;
     fns["__read_global"] = &TranslateFunction::handleReadHasOccurred;
     fns["__read"] = &TranslateFunction::handleReadHasOccurred;
@@ -925,6 +926,14 @@ ref<Expr> TranslateFunction::handleEnabled(bugle::BasicBlock *BBB,
                                            const ExprVec &Args) {
   ref<Expr> varRef =
       SpecialVarRefExpr::create(bugle::Type(bugle::Type::Bool), "__enabled");
+  return BoolToBVExpr::create(varRef);
+}
+
+ref<Expr> TranslateFunction::handleDominatorEnabled(bugle::BasicBlock *BBB,
+                                                    llvm::CallInst *CI,
+                                                     const ExprVec &Args) {
+  ref<Expr> varRef = SpecialVarRefExpr::create(
+      bugle::Type(bugle::Type::Bool), "__dominator_enabled");
   return BoolToBVExpr::create(varRef);
 }
 
