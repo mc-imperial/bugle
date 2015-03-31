@@ -694,7 +694,7 @@ TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
           SourceLoc(Loc.getLineNumber(), Loc.getColumnNumber(),
                     Loc.getFilename().str(), Loc.getDirectory().str()));
       Loc = Loc.getOrigLocation();
-    } while (Loc != llvm::DILocation(0));
+    } while (Loc.get());
   }
   return SourceLocsRef(sourcelocs);
 }
