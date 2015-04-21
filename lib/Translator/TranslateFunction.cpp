@@ -423,6 +423,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::log2] = &TranslateFunction::handleLog;
     ints[Intrinsic::pow] = &TranslateFunction::handlePow;
     ints[Intrinsic::powi] = &TranslateFunction::handlePowi;
+    ints[Intrinsic::rint] = &TranslateFunction::handleRint;
     ints[Intrinsic::sin] = &TranslateFunction::handleSin;
     ints[Intrinsic::sqrt] = &TranslateFunction::handleSqrt;
     ints[Intrinsic::trunc] = &TranslateFunction::handleTrunc;
@@ -1627,6 +1628,15 @@ ref<Expr> TranslateFunction::handlePowi(bugle::BasicBlock *BBB,
                                 [&](llvm::Type *Ty, ref<Expr> Op) {
     return FPowiExpr::create(Op, Args[1]);
   });
+}
+
+ref<Expr> TranslateFunction::handleRint(bugle::BasicBlock *BBB,
+                                        llvm::CallInst *CI,
+                                        const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  return maybeTranslateSIMDInst(
+      BBB, Ty, Ty, Args[0],
+      [&](llvm::Type *T, ref<Expr> E) { return FRintExpr::create(E); });
 }
 
 ref<Expr> TranslateFunction::handleSin(bugle::BasicBlock *BBB,

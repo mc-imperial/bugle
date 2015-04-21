@@ -81,6 +81,7 @@ public:
     FrexpExp,
     FrexpFrac,
     FRsqrt,
+    FRint,
     FSin,
     FSqrt,
     FTrunc,
@@ -448,6 +449,7 @@ UNARY_EXPR(FExp)
 UNARY_EXPR(FFloor)
 UNARY_EXPR(FLog)
 UNARY_EXPR(FrexpFrac)
+UNARY_EXPR(FRint)
 UNARY_EXPR(FSin)
 UNARY_EXPR(FRsqrt)
 UNARY_EXPR(FSqrt)
