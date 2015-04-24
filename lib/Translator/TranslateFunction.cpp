@@ -688,13 +688,13 @@ TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
   SourceLocs *sourcelocs = 0;
   if (MDNode *mdnode = I->getMetadata("dbg")) {
     sourcelocs = new SourceLocs();
-    DILocation Loc(mdnode);
+    MDLocation *Loc = cast<MDLocation>(mdnode);
     do {
       sourcelocs->push_back(
-          SourceLoc(Loc.getLineNumber(), Loc.getColumnNumber(),
-                    Loc.getFilename().str(), Loc.getDirectory().str()));
-      Loc = Loc.getOrigLocation();
-    } while (Loc.get());
+          SourceLoc(Loc->getLine(), Loc->getColumn(),
+                    Loc->getFilename().str(), Loc->getDirectory().str()));
+      Loc = Loc->getInlinedAt();
+    } while (Loc);
   }
   return SourceLocsRef(sourcelocs);
 }

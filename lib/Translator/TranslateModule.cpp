@@ -565,9 +565,8 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
 std::string TranslateModule::getSourceFunctionName(llvm::Function *F) {
   auto SS = DIF.subprograms();
   for (auto i = SS.begin(), e = SS.end(); i != e; ++i) {
-    DISubprogram subprogram(*i);
-    if (subprogram.describes(F)) {
-      return subprogram.getName();
+    if ((*i)->describes(F)) {
+      return (*i)->getName();
     }
   }
 
@@ -581,9 +580,8 @@ std::string TranslateModule::getSourceGlobalArrayName(llvm::Value *V) {
 
   auto GVS = DIF.global_variables();
   for (auto i = GVS.begin(), e = GVS.end(); i != e; ++i) {
-    DIGlobalVariable globalVariable(*i);
-    if (globalVariable.getGlobal() == GV) {
-      return globalVariable.getName();
+    if (dyn_cast_or_null<GlobalVariable>((*i)->getVariable()) == GV) {
+      return (*i)->getName();
     }
   }
 

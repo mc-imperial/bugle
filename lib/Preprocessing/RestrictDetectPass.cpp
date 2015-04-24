@@ -16,41 +16,42 @@ using namespace bugle;
 bool RestrictDetectPass::doInitialization(llvm::Module &M) {
   this->M = &M;
   DIF.processModule(M);
+  if (NamedMDNode *CU_Nodes = M.getNamedMetadata("llvm.dbg.cu"))
+    DITyMap = generateDITypeIdentifierMap(CU_Nodes);
   return false;
 }
 
-const DISubprogram *RestrictDetectPass::getDebugInfo(llvm::Function *F) {
+const MDSubprogram *RestrictDetectPass::getDebugInfo(llvm::Function *F) {
   auto SS = DIF.subprograms();
   for (auto i = SS.begin(), e = SS.end(); i != e; ++i) {
-    DISubprogram subprogram(*i);
-    if (subprogram.describes(F))
-      return i;
+    if ((*i)->describes(F))
+      return *i;
   }
 
   return 0;
 }
 
 std::string RestrictDetectPass::getFunctionLocation(llvm::Function *F) {
-  auto DIS = getDebugInfo(F);
-  if (DIS) {
+  auto MDS = getDebugInfo(F);
+  if (MDS) {
     std::string l; llvm::raw_string_ostream lS(l);
-    lS << "'" << DIS->getName() << "' on line " << DIS->getLineNumber()
-       << " of " << DIS->getFilename();
+    lS << "'" << MDS->getName() << "' on line " << MDS->getLine()
+       << " of " << MDS->getFilename();
     return lS.str();
   } else
     return "'" + F->getName().str() + "'";
 }
 
-bool RestrictDetectPass::ignoreArgument(unsigned i, const DISubprogram *DIS) {
-  if (!DIS || SL != TranslateModule::SL_OpenCL)
+bool RestrictDetectPass::ignoreArgument(unsigned i, const MDSubprogram *MDS) {
+  if (!MDS || SL != TranslateModule::SL_OpenCL)
     return false;
 
-  auto Ty = DIS->getType().getTypeArray().getElement(i).getName();
+  auto Ty = MDS->getType()->getTypeArray()[i + 1].resolve(DITyMap)->getName();
   return (Ty == "__bugle_image2d_t" || Ty == "__bugle_image3d_t");
 }
 
 void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
-  const DISubprogram *DIS = getDebugInfo(&F);
+  auto *MDS = getDebugInfo(&F);
   std::vector<Argument *> AL;
   for (auto i = F.arg_begin(), e = F.arg_end(); i != e; ++i) {
     if (!i->getType()->isPointerTy())
@@ -59,7 +60,7 @@ void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
       continue;
     if (i->getType()->getPointerElementType()->isFunctionTy())
       continue;
-    if (ignoreArgument(i->getArgNo(), DIS))
+    if (ignoreArgument(i->getArgNo(), MDS))
       continue;
 
     unsigned addressSpace = i->getType()->getPointerAddressSpace();

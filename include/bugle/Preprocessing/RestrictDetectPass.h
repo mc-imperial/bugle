@@ -11,13 +11,14 @@ class RestrictDetectPass : public llvm::FunctionPass {
 private:
   llvm::Module *M;
   llvm::DebugInfoFinder DIF;
+  llvm::DITypeIdentifierMap DITyMap;
   TranslateModule::SourceLanguage SL;
   std::set<std::string> GPUEntryPoints;
   TranslateModule::AddressSpaceMap AddressSpaces;
 
-  const llvm::DISubprogram *getDebugInfo(llvm::Function *F);
+  const llvm::MDSubprogram *getDebugInfo(llvm::Function *F);
   std::string getFunctionLocation(llvm::Function *F);
-  bool ignoreArgument(unsigned i, const llvm::DISubprogram *DIS);
+  bool ignoreArgument(unsigned i, const llvm::MDSubprogram *MS);
   void doRestrictCheck(llvm::Function &F);
 
 public:
