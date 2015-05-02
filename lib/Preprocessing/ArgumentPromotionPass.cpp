@@ -175,7 +175,7 @@ void ArgumentPromotionPass::promote(llvm::Function *F) {
   // Update debug information to point to new function
   auto DI = FunctionDIs.find(F);
   if (DI != FunctionDIs.end()) {
-    MDSubprogram *SP = DI->second;
+    DISubprogram *SP = DI->second;
     SP->replaceFunction(NF);
     FunctionDIs.erase(DI);
     FunctionDIs[NF] = SP;

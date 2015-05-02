@@ -16,9 +16,9 @@ private:
   std::set<std::string> GPUEntryPoints;
   TranslateModule::AddressSpaceMap AddressSpaces;
 
-  const llvm::MDSubprogram *getDebugInfo(llvm::Function *F);
+  const llvm::DISubprogram *getDebugInfo(llvm::Function *F);
   std::string getFunctionLocation(llvm::Function *F);
-  bool ignoreArgument(unsigned i, const llvm::MDSubprogram *MS);
+  bool ignoreArgument(unsigned i, const llvm::DISubprogram *DIS);
   void doRestrictCheck(llvm::Function &F);
 
 public:

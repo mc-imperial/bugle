@@ -688,7 +688,7 @@ TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
   SourceLocs *sourcelocs = 0;
   if (MDNode *mdnode = I->getMetadata("dbg")) {
     sourcelocs = new SourceLocs();
-    MDLocation *Loc = cast<MDLocation>(mdnode);
+    DILocation *Loc = cast<DILocation>(mdnode);
     do {
       sourcelocs->push_back(
           SourceLoc(Loc->getLine(), Loc->getColumn(),
