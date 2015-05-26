@@ -108,6 +108,7 @@ class TranslateFunction {
   void specifyZeroDimensions(llvm::Function *F, unsigned PtrArgs);
   void extractStructArrays(llvm::Value *V);
   void createStructArrays();
+  bool isLegalFunctionWideInvariantValue(llvm::Value *V);
 
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF, llvm::Function *F,
