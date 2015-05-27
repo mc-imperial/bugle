@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 project(Bugle)
 
 set(LIBCLC_DIR "" CACHE PATH "Path to libclc")
@@ -67,6 +67,7 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
   endif()
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    set(CMAKE_MACOSX_RPATH ON)
     set(PLUGIN_LDFLAGS "-Wl,-undefined,dynamic_lookup")
   endif()
 

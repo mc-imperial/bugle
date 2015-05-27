@@ -78,8 +78,8 @@ class TranslateFunction {
 
   SpecialFnHandler handleCeil, handleCos, handleCtlz, handleExp, handleFabs,
       handleFloor, handleFrexpExp, handleFrexpFrac, handleFma, handleLog,
-      handlePow, handlePowi, handleRsqrt, handleSin, handleSqrt, handleTrunc,
-      handleUaddOvl;
+      handlePow, handlePowi, handleRint, handleRsqrt, handleSin, handleSqrt,
+      handleTrunc, handleUaddOvl;
 
   SpecialFnHandler handleAtomic;
 
@@ -108,6 +108,7 @@ class TranslateFunction {
   void specifyZeroDimensions(llvm::Function *F, unsigned PtrArgs);
   void extractStructArrays(llvm::Value *V);
   void createStructArrays();
+  bool isLegalFunctionWideInvariantValue(llvm::Value *V);
 
 public:
   TranslateFunction(TranslateModule *TM, bugle::Function *BF, llvm::Function *F,

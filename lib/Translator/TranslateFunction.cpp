@@ -423,6 +423,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::log2] = &TranslateFunction::handleLog;
     ints[Intrinsic::pow] = &TranslateFunction::handlePow;
     ints[Intrinsic::powi] = &TranslateFunction::handlePowi;
+    ints[Intrinsic::rint] = &TranslateFunction::handleRint;
     ints[Intrinsic::sin] = &TranslateFunction::handleSin;
     ints[Intrinsic::sqrt] = &TranslateFunction::handleSqrt;
     ints[Intrinsic::trunc] = &TranslateFunction::handleTrunc;
@@ -837,9 +838,37 @@ ref<Expr> TranslateFunction::handleGlobalEnsures(bugle::BasicBlock *BBB,
   return 0;
 }
 
+bool TranslateFunction::isLegalFunctionWideInvariantValue(Value *V) {
+  if (isa<PHINode>(V)) {
+    return false;
+  } else if (isa<LoadInst>(V)) {
+    return false;
+  } else if (isa<Instruction>(V)) {
+    auto MI = ValueExprMap.find(V);
+    assert(MI != ValueExprMap.end());
+    if (isa<CallExpr>(MI->second))
+      return false;
+  }
+
+  if (auto U = dyn_cast<User>(V)) {
+    for (auto i = U->op_begin(), e = U->op_end(); i != e; ++i) {
+      if (!isLegalFunctionWideInvariantValue(*i))
+        return false;
+    }
+  }
+  return true;
+}
+
 ref<Expr> TranslateFunction::handleFunctionWideInvariant(bugle::BasicBlock *BBB,
                                                          llvm::CallInst *CI,
                                                          const ExprVec &Args) {
+  if (!isLegalFunctionWideInvariantValue(CI->getArgOperand(0)))
+    ErrorReporter::reportFatalError(
+        "Function-wide invariants can only be constant expressions over "
+        "read-only function arguments");
+  if (!isa<ReturnInst>(CI->getParent()->getTerminator()))
+    ErrorReporter::reportFatalError(
+        "Function-wide invariants must occur at the end of a function");
   BF->addProcedureWideInvariant(Expr::createNeZero(Args[0]),
                                 extractSourceLocs(CI));
   return 0;
@@ -1627,6 +1656,15 @@ ref<Expr> TranslateFunction::handlePowi(bugle::BasicBlock *BBB,
                                 [&](llvm::Type *Ty, ref<Expr> Op) {
     return FPowiExpr::create(Op, Args[1]);
   });
+}
+
+ref<Expr> TranslateFunction::handleRint(bugle::BasicBlock *BBB,
+                                        llvm::CallInst *CI,
+                                        const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  return maybeTranslateSIMDInst(
+      BBB, Ty, Ty, Args[0],
+      [&](llvm::Type *T, ref<Expr> E) { return FRintExpr::create(E); });
 }
 
 ref<Expr> TranslateFunction::handleSin(bugle::BasicBlock *BBB,

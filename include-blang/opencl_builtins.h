@@ -48,6 +48,7 @@
 
 // Table 6.8
 
+_FLOAT_BINARY_MACRO(atan2pi)
 _FLOAT_UNARY_MACRO(cbrt)
 _FLOAT_UNARY_MACRO(logb)
 
@@ -99,6 +100,25 @@ _CLC_INLINE _CLC_OVERLOAD float3 fast_normalize(float3 p) {
 _CLC_INLINE _CLC_OVERLOAD float4 fast_normalize(float4 p) {
     return p*half_rsqrt(p.x*p.x + p.y*p.y + p.z*p.z + p.w*p.w);
 }
+
+
+
+_CLC_INLINE _CLC_OVERLOAD float fast_distance(float p0, float p1) {
+    return fast_length(p0 - p1);
+}
+
+_CLC_INLINE _CLC_OVERLOAD float fast_distance(float2 p0, float2 p1) {
+    return fast_length(p0 - p1);
+}
+
+_CLC_INLINE _CLC_OVERLOAD float fast_distance(float3 p0, float3 p1) {
+    return fast_length(p0 - p1);
+}
+
+_CLC_INLINE _CLC_OVERLOAD float fast_distance(float4 p0, float4 p1) {
+    return fast_length(p0 - p1);
+}
+
 
 #endif
 

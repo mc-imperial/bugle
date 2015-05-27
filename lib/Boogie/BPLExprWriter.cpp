@@ -409,6 +409,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     case Expr::FPToUI:
     case Expr::FrexpExp:
     case Expr::FrexpFrac:
+    case Expr::FRint:
     case Expr::FRsqrt:
     case Expr::FSin:
     case Expr::FSqrt:
@@ -453,6 +454,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
                                       << "_EXP";                  break;
       case Expr::FrexpFrac:      IntS << "FREXP" << FromWidth
                                       << "_FRAC" << ToWidth;      break;
+      case Expr::FRint:          IntS << "FRINT" << ToWidth;      break;
       case Expr::FRsqrt:         IntS << "FRSQRT" << ToWidth;     break;
       case Expr::FSin:           IntS << "FSIN" << ToWidth;       break;
       case Expr::FSqrt:          IntS << "FSQRT" << ToWidth;      break;

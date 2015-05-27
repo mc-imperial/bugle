@@ -301,6 +301,11 @@ ref<Expr> FFloorExpr::create(ref<Expr> expr) {
   return new FFloorExpr(expr->getType(), expr);
 }
 
+ref<Expr> FRintExpr::create(ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::BV));
+  return new FRintExpr(expr->getType(), expr);
+}
+
 ref<Expr> FSinExpr::create(ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
   return new FSinExpr(expr->getType(), expr);
