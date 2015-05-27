@@ -3,6 +3,7 @@
 #include "llvm/PassManager.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/Verifier.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/DataStream.h"
 #include "llvm/Support/Debug.h"
@@ -14,11 +15,13 @@
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/ToolOutputFile.h"
 #include "llvm/Transforms/IPO.h"
+#include "llvm/Transforms/Scalar.h"
 
 #include "bugle/BPLModuleWriter.h"
 #include "bugle/IntegerRepresentation.h"
 #include "bugle/Module.h"
 #include "bugle/SourceLocWriter.h"
+#include "bugle/Preprocessing/ArgumentPromotionPass.h"
 #include "bugle/Preprocessing/CycleDetectPass.h"
 #include "bugle/Preprocessing/InlinePass.h"
 #include "bugle/Preprocessing/RestrictDetectPass.h"
@@ -185,9 +188,12 @@ int main(int argc, char **argv) {
   // Use the bitcode streaming interface
   DataStreamer *streamer = getDataFileStreamer(InputFilename, &ErrorMessage);
   if (streamer) {
-    M.reset(getStreamedBitcodeModule(DisplayFilename, streamer, Context,
-                                     &ErrorMessage));
-    if (M.get() != 0) {
+    ErrorOr<std::unique_ptr<Module>> MOrErr =
+        getStreamedBitcodeModule(DisplayFilename, streamer, Context);
+    if (auto EC = MOrErr.getError())
+      ErrorMessage = EC.message();
+    else {
+      M = std::move(*MOrErr);
       if (auto EC = M->materializeAllPermanently()) {
         ErrorMessage = EC.message();
         M.reset();
@@ -224,6 +230,8 @@ int main(int argc, char **argv) {
   GetArraySizes(KAS);
 
   PassManager PM;
+  PM.add(new bugle::ArgumentPromotionPass(SourceLanguage, EP));
+  PM.add(createPromoteMemoryToRegisterPass());
   if (Inlining) {
     PM.add(new bugle::CycleDetectPass());
     PM.add(new bugle::InlinePass(SourceLanguage, EP));
@@ -231,8 +239,8 @@ int main(int argc, char **argv) {
   if (Inlining || OnlyExplicitGPUEntryPoints) {
     PM.add(new bugle::SimpleInternalizePass(SourceLanguage, EP,
                                             OnlyExplicitGPUEntryPoints));
-    PM.add(createGlobalDCEPass());
   }
+  PM.add(createGlobalDCEPass());
   PM.add(new bugle::RestrictDetectPass(SourceLanguage, EP, AddressSpaces));
   PM.run(*M.get());
 
@@ -250,17 +258,17 @@ int main(int argc, char **argv) {
     OutFile = sys::path::filename(Path);
   }
 
-  std::string ErrorInfo;
-  tool_output_file F(OutFile.c_str(), ErrorInfo, sys::fs::F_Text);
-  if (!ErrorInfo.empty())
-    bugle::ErrorReporter::reportFatalError(ErrorInfo);
+  std::error_code ErrorCode;
+  tool_output_file F(OutFile, ErrorCode, sys::fs::F_Text);
+  if (ErrorCode)
+    bugle::ErrorReporter::reportFatalError(ErrorCode.message());
 
   tool_output_file *L = 0;
   if (!SourceLocationFilename.empty()) {
-    L = new tool_output_file(SourceLocationFilename.c_str(), ErrorInfo,
+    L = new tool_output_file(SourceLocationFilename, ErrorCode,
                              sys::fs::F_Text);
-    if (!ErrorInfo.empty())
-      bugle::ErrorReporter::reportFatalError(ErrorInfo);
+    if (ErrorCode)
+      bugle::ErrorReporter::reportFatalError(ErrorCode.message());
   }
   std::unique_ptr<bugle::SourceLocWriter> SLW(new bugle::SourceLocWriter(L));
 

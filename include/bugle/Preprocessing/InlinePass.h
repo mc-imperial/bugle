@@ -4,6 +4,7 @@
 #include "bugle/Translator/TranslateModule.h"
 #include "llvm/Pass.h"
 #include "llvm/Analysis/CallGraph.h"
+#include <set>
 
 namespace bugle {
 

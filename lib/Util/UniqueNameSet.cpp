@@ -5,7 +5,7 @@ using namespace bugle;
 using namespace llvm;
 
 std::string UniqueNameSet::makeName(StringRef OrigName) {
-  if (!OrigName.empty() && Names.insert(OrigName))
+  if (!OrigName.empty() && Names.insert(OrigName).second)
     return OrigName;
 
   unsigned i = 0;
@@ -13,7 +13,7 @@ std::string UniqueNameSet::makeName(StringRef OrigName) {
     std::string S = OrigName;
     llvm::raw_string_ostream SS(S);
     SS << i;
-    if (Names.insert(SS.str()))
+    if (Names.insert(SS.str()).second)
       return S;
     ++i;
   }
