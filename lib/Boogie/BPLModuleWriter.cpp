@@ -39,9 +39,6 @@ void BPLModuleWriter::writeType(llvm::raw_ostream &OS, const Type &t) {
 
 void BPLModuleWriter::writeIntrinsic(std::function<void(llvm::raw_ostream &)> F,
                                      bool addSeparator) {
-  if (this == 0)
-    return;
-
   std::string S;
   llvm::raw_string_ostream SS(S);
   F(SS);
