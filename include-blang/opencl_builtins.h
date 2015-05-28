@@ -66,26 +66,11 @@ _FLOAT_BINARY_MACRO(half_powr)
 _FLOAT_UNARY_MACRO(half_recip)
 _FLOAT_UNARY_MACRO(half_rsqrt)
 _FLOAT_UNARY_MACRO(half_sin)
-_FLOAT_UNARY_MACRO(half_sqrt)
 _FLOAT_UNARY_MACRO(half_tan)
 
 #define NAN      (0.0f/0.0f)
 
 // 6.12.5: Geometric functions
-
-_CLC_INLINE _CLC_OVERLOAD float fast_length(float p) {
-    return half_sqrt(p*p);
-}
-_CLC_INLINE _CLC_OVERLOAD float fast_length(float2 p) {
-    return half_sqrt(p.x*p.x + p.y*p.y);
-}
-_CLC_INLINE _CLC_OVERLOAD float fast_length(float3 p) {
-    return half_sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
-}
-_CLC_INLINE _CLC_OVERLOAD float fast_length(float4 p) {
-    return half_sqrt(p.x*p.x + p.y*p.y + p.z*p.z + p.w*p.w);
-}
-
 
 
 _CLC_INLINE _CLC_OVERLOAD float fast_normalize(float p) {
@@ -100,25 +85,6 @@ _CLC_INLINE _CLC_OVERLOAD float3 fast_normalize(float3 p) {
 _CLC_INLINE _CLC_OVERLOAD float4 fast_normalize(float4 p) {
     return p*half_rsqrt(p.x*p.x + p.y*p.y + p.z*p.z + p.w*p.w);
 }
-
-
-
-_CLC_INLINE _CLC_OVERLOAD float fast_distance(float p0, float p1) {
-    return fast_length(p0 - p1);
-}
-
-_CLC_INLINE _CLC_OVERLOAD float fast_distance(float2 p0, float2 p1) {
-    return fast_length(p0 - p1);
-}
-
-_CLC_INLINE _CLC_OVERLOAD float fast_distance(float3 p0, float3 p1) {
-    return fast_length(p0 - p1);
-}
-
-_CLC_INLINE _CLC_OVERLOAD float fast_distance(float4 p0, float4 p1) {
-    return fast_length(p0 - p1);
-}
-
 
 #endif
 
