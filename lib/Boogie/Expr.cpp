@@ -869,6 +869,13 @@ ref<Expr> FPowExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new FPowExpr(lhs->getType(), lhs, rhs);
 }
 
+ref<Expr> FMinExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().isKind(Type::BV));
+  assert(lhs->getType() == rhs->getType());
+
+  return new FMinExpr(lhs->getType(), lhs, rhs);
+}
+
 ref<Expr> FPowiExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhs->getType().isKind(Type::BV));
   assert(rhs->getType().isKind(Type::BV));

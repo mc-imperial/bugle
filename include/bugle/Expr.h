@@ -127,6 +127,7 @@ public:
     FMul,
     FDiv,
     FPow,
+    FMin,
     FPowi,
     FLt,
     FEq,
@@ -550,6 +551,7 @@ BINARY_EXPR(FPowi)
 BINARY_EXPR(FLt)
 BINARY_EXPR(FEq)
 BINARY_EXPR(FUno)
+BINARY_EXPR(FMin)
 BINARY_EXPR(PtrLt)
 BINARY_EXPR(FuncPtrLt)
 BINARY_EXPR(Implies)
