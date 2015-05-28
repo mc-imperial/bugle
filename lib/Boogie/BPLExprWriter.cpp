@@ -570,6 +570,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     case Expr::FMul:
     case Expr::FDiv:
     case Expr::FPow:
+    case Expr::FMax:
     case Expr::FMin: {
       const char *IntName;
       switch (BinE->getKind()) {
@@ -578,6 +579,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       case Expr::FMul: IntName = "FMUL"; break;
       case Expr::FDiv: IntName = "FDIV"; break;
       case Expr::FPow: IntName = "FPOW"; break;
+      case Expr::FMax: IntName = "FMAX"; break;
       case Expr::FMin: IntName = "FMIN"; break;
       default:
         llvm_unreachable("huh?");

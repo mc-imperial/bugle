@@ -869,6 +869,13 @@ ref<Expr> FPowExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new FPowExpr(lhs->getType(), lhs, rhs);
 }
 
+ref<Expr> FMaxExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().isKind(Type::BV));
+  assert(lhs->getType() == rhs->getType());
+
+  return new FMaxExpr(lhs->getType(), lhs, rhs);
+}
+
 ref<Expr> FMinExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhs->getType().isKind(Type::BV));
   assert(lhs->getType() == rhs->getType());
