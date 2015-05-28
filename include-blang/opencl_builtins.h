@@ -72,20 +72,6 @@ _FLOAT_UNARY_MACRO(half_tan)
 
 // 6.12.5: Geometric functions
 
-_CLC_INLINE _CLC_OVERLOAD float fast_length(float p) {
-    return half_sqrt(p*p);
-}
-_CLC_INLINE _CLC_OVERLOAD float fast_length(float2 p) {
-    return half_sqrt(p.x*p.x + p.y*p.y);
-}
-_CLC_INLINE _CLC_OVERLOAD float fast_length(float3 p) {
-    return half_sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
-}
-_CLC_INLINE _CLC_OVERLOAD float fast_length(float4 p) {
-    return half_sqrt(p.x*p.x + p.y*p.y + p.z*p.z + p.w*p.w);
-}
-
-
 
 _CLC_INLINE _CLC_OVERLOAD float fast_normalize(float p) {
     return p*half_rsqrt(p*p);
