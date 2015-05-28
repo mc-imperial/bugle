@@ -66,7 +66,6 @@ _FLOAT_BINARY_MACRO(half_powr)
 _FLOAT_UNARY_MACRO(half_recip)
 _FLOAT_UNARY_MACRO(half_rsqrt)
 _FLOAT_UNARY_MACRO(half_sin)
-_FLOAT_UNARY_MACRO(half_sqrt)
 _FLOAT_UNARY_MACRO(half_tan)
 
 #define NAN      (0.0f/0.0f)
