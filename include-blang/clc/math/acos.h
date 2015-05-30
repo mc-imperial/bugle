@@ -1,5 +1,3 @@
 #define __CLC_FUNC_NAME __bugle_acos
-#define __CLC_BODY <clc/math/unary_def.inc>
-#include <clc/math/gentype.inc>
-#undef __CLC_FUNC_NAME
+#include <clc/math/unary_def.inc>
 #define acos __bugle_acos

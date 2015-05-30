@@ -48,7 +48,6 @@
 
 // Table 6.8
 
-_FLOAT_BINARY_MACRO(atan2pi)
 _FLOAT_UNARY_MACRO(cbrt)
 _FLOAT_UNARY_MACRO(logb)
 
@@ -64,27 +63,12 @@ _FLOAT_UNARY_MACRO(half_log2)
 _FLOAT_UNARY_MACRO(half_log10)
 _FLOAT_BINARY_MACRO(half_powr)
 _FLOAT_UNARY_MACRO(half_recip)
-_FLOAT_UNARY_MACRO(half_rsqrt)
 _FLOAT_UNARY_MACRO(half_sin)
 _FLOAT_UNARY_MACRO(half_tan)
 
 #define NAN      (0.0f/0.0f)
 
 // 6.12.5: Geometric functions
-
-
-_CLC_INLINE _CLC_OVERLOAD float fast_normalize(float p) {
-    return p*half_rsqrt(p*p);
-}
-_CLC_INLINE _CLC_OVERLOAD float2 fast_normalize(float2 p) {
-    return p*half_rsqrt(p.x*p.x + p.y*p.y);
-}
-_CLC_INLINE _CLC_OVERLOAD float3 fast_normalize(float3 p) {
-    return p*half_rsqrt(p.x*p.x + p.y*p.y + p.z*p.z);
-}
-_CLC_INLINE _CLC_OVERLOAD float4 fast_normalize(float4 p) {
-    return p*half_rsqrt(p.x*p.x + p.y*p.y + p.z*p.z + p.w*p.w);
-}
 
 #endif
 

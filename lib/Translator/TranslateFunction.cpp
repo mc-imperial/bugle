@@ -398,6 +398,10 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
         }
       }
       fns["__bugle_wait_group_events"] = &TranslateFunction::handleWaitGroupEvents;
+      fns["fmaxf"] = &TranslateFunction::handleFmax;
+      fns["fmax"] = &TranslateFunction::handleFmax;
+      fns["fminf"] = &TranslateFunction::handleFmin;
+      fns["fmin"] = &TranslateFunction::handleFmin;
     }
 
     if (SL == TranslateModule::SL_CUDA) {
@@ -1597,6 +1601,22 @@ ref<Expr> TranslateFunction::handleFabs(bugle::BasicBlock *BBB,
   return maybeTranslateSIMDInst(
       BBB, Ty, Ty, Args[0],
       [&](llvm::Type *T, ref<Expr> E) { return FAbsExpr::create(E); });
+}
+
+ref<Expr> TranslateFunction::handleFmax(bugle::BasicBlock *BBB,
+                                        llvm::CallInst *CI,
+                                        const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0], Args[1],
+                                FMaxExpr::create);
+}
+
+ref<Expr> TranslateFunction::handleFmin(bugle::BasicBlock *BBB,
+                                        llvm::CallInst *CI,
+                                        const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0], Args[1],
+                                FMinExpr::create);
 }
 
 ref<Expr> TranslateFunction::handleFloor(bugle::BasicBlock *BBB,
