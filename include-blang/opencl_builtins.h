@@ -48,7 +48,6 @@
 
 // Table 6.8
 
-_FLOAT_BINARY_MACRO(atan2pi)
 _FLOAT_UNARY_MACRO(cbrt)
 _FLOAT_UNARY_MACRO(logb)
 
