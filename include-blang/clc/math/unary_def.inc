@@ -32,12 +32,14 @@
 
 __CLC_DECLARE_FUNC(__CLC_FUNC_NAME, float)
 
+#ifndef __FLOAT_ONLY
 #ifdef cl_khr_fp64
 
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 __CLC_DECLARE_FUNC(__CLC_FUNC_NAME, double)
 
+#endif
 #endif
 
 #undef __CLC_DEFINE_FUNC
