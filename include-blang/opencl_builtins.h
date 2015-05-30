@@ -64,7 +64,6 @@ _FLOAT_UNARY_MACRO(half_log2)
 _FLOAT_UNARY_MACRO(half_log10)
 _FLOAT_BINARY_MACRO(half_powr)
 _FLOAT_UNARY_MACRO(half_recip)
-_FLOAT_UNARY_MACRO(half_rsqrt)
 _FLOAT_UNARY_MACRO(half_sin)
 _FLOAT_UNARY_MACRO(half_tan)
 
