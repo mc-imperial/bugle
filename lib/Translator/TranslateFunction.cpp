@@ -845,8 +845,6 @@ ref<Expr> TranslateFunction::handleGlobalEnsures(bugle::BasicBlock *BBB,
 bool TranslateFunction::isLegalFunctionWideInvariantValue(Value *V) {
   if (isa<PHINode>(V)) {
     return false;
-  } else if (isa<LoadInst>(V)) {
-    return false;
   } else if (isa<Instruction>(V)) {
     auto MI = ValueExprMap.find(V);
     assert(MI != ValueExprMap.end());
