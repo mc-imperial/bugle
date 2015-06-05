@@ -569,6 +569,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     case Expr::FSub:
     case Expr::FMul:
     case Expr::FDiv:
+    case Expr::FRem:
     case Expr::FPow:
     case Expr::FMax:
     case Expr::FMin: {
@@ -577,6 +578,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       case Expr::FAdd: IntName = "FADD"; break;
       case Expr::FSub: IntName = "FSUB"; break;
       case Expr::FMul: IntName = "FMUL"; break;
+      case Expr::FRem: IntName = "FREM"; break;
       case Expr::FDiv: IntName = "FDIV"; break;
       case Expr::FPow: IntName = "FPOW"; break;
       case Expr::FMax: IntName = "FMAX"; break;

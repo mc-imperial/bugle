@@ -862,6 +862,13 @@ ref<Expr> FDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new FDivExpr(lhs->getType(), lhs, rhs);
 }
 
+ref<Expr> FRemExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
+  assert(lhs->getType().isKind(Type::BV));
+  assert(lhs->getType() == rhs->getType());
+
+  return new FRemExpr(lhs->getType(), lhs, rhs);
+}
+
 ref<Expr> FPowExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhs->getType().isKind(Type::BV));
   assert(lhs->getType() == rhs->getType());
