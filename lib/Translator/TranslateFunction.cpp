@@ -1880,6 +1880,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     case BinaryOperator::FDiv: F = FDivExpr::create;   break;
     case BinaryOperator::SRem: F = BVSRemExpr::create; break;
     case BinaryOperator::URem: F = BVURemExpr::create; break;
+    case BinaryOperator::FRem: F = FRemExpr::create;   break;
     case BinaryOperator::Shl:  F = BVShlExpr::create;  break;
     case BinaryOperator::AShr: F = BVAShrExpr::create; break;
     case BinaryOperator::LShr: F = BVLShrExpr::create; break;
