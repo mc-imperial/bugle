@@ -187,10 +187,11 @@ int main(int argc, char **argv) {
   std::unique_ptr<Module> M;
 
   // Use the bitcode streaming interface
-  DataStreamer *streamer = getDataFileStreamer(InputFilename, &ErrorMessage);
+  std::unique_ptr<DataStreamer> streamer =
+      getDataFileStreamer(InputFilename, &ErrorMessage);
   if (streamer) {
     ErrorOr<std::unique_ptr<Module>> MOrErr =
-        getStreamedBitcodeModule(DisplayFilename, streamer, Context);
+        getStreamedBitcodeModule(DisplayFilename, std::move(streamer), Context);
     if (auto EC = MOrErr.getError())
       ErrorMessage = EC.message();
     else {
