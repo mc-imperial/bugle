@@ -18,8 +18,6 @@
 typedef __SIZE_TYPE__ event_t;
 // include libclc headers
 #include <clc/clc.h>
-// libclc's NAN is currently broken, so undef it immediately
-#undef NAN
 
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 

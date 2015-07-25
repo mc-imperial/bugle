@@ -66,9 +66,4 @@ _FLOAT_UNARY_MACRO(half_recip)
 _FLOAT_UNARY_MACRO(half_sin)
 _FLOAT_UNARY_MACRO(half_tan)
 
-#define NAN      (0.0f/0.0f)
-
-// 6.12.5: Geometric functions
-
 #endif
-
