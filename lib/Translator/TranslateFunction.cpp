@@ -410,7 +410,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["sqrt"] = &TranslateFunction::handleSqrt;
       fns["sqrtf"] = &TranslateFunction::handleSqrt;
       fns["rsqrt"] = &TranslateFunction::handleRsqrt;
-      fns["log2"] = &TranslateFunction::handleLog;
+      fns["log2"] = &TranslateFunction::handleLog2;
       fns["exp2"] = &TranslateFunction::handleExp;
       fns["__clz"] = &TranslateFunction::handleCtlz;
     }
@@ -424,7 +424,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::fma] = &TranslateFunction::handleFma;
     ints[Intrinsic::fmuladd] = &TranslateFunction::handleFma;
     ints[Intrinsic::floor] = &TranslateFunction::handleFloor;
-    ints[Intrinsic::log2] = &TranslateFunction::handleLog;
+    ints[Intrinsic::log] = &TranslateFunction::handleLog;
+    ints[Intrinsic::log2] = &TranslateFunction::handleLog2;
     ints[Intrinsic::pow] = &TranslateFunction::handlePow;
     ints[Intrinsic::powi] = &TranslateFunction::handlePowi;
     ints[Intrinsic::rint] = &TranslateFunction::handleRint;
@@ -1656,6 +1657,16 @@ ref<Expr> TranslateFunction::handleLog(bugle::BasicBlock *BBB,
       BBB, Ty, Ty, Args[0],
       [&](llvm::Type *T, ref<Expr> E) { return FLogExpr::create(E); });
 }
+
+ref<Expr> TranslateFunction::handleLog2(bugle::BasicBlock *BBB,
+                                        llvm::CallInst *CI,
+                                        const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  return maybeTranslateSIMDInst(
+      BBB, Ty, Ty, Args[0],
+      [&](llvm::Type *T, ref<Expr> E) { return FLog2Expr::create(E); });
+}
+
 
 ref<Expr> TranslateFunction::handlePow(bugle::BasicBlock *BBB,
                                        llvm::CallInst *CI,

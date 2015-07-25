@@ -286,6 +286,11 @@ ref<Expr> FLogExpr::create(ref<Expr> expr) {
   return new FLogExpr(expr->getType(), expr);
 }
 
+ref<Expr> FLog2Expr::create(ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::BV));
+  return new FLog2Expr(expr->getType(), expr);
+}
+
 ref<Expr> FrexpExpExpr::create(unsigned width, ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
   return new FrexpExpExpr(Type(Type::BV, width), expr);
