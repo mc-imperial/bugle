@@ -31,17 +31,17 @@ void BPLFunctionWriter::maybeWriteCaseSplit(
       // If we could not compute any candidates, then we take all arrays
       // and the null pointer as candidates.
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray *)0);
+      Globals.insert(nullptr);
     }
 
-    if (Globals.size() == 1 && *Globals.begin() != (bugle::GlobalArray *)0) {
+    if (Globals.size() == 1 && *Globals.begin() != nullptr) {
       F(*Globals.begin(), 2);
       OS << "\n";
     } else {
       MW->UsesPointers = true;
       OS << "  ";
       for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
-        if (*i == (bugle::GlobalArray *)0)
+        if (*i == nullptr)
           continue; // Null pointer; dealt with as last case
         OS << "if (";
         writeExpr(OS, PtrArr);

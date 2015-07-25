@@ -360,10 +360,10 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     std::set<GlobalArray *> Globals;
     if (!Array->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray *)0);
+      Globals.insert(nullptr);
     }
 
-    if (Globals.size() == 1 && *Globals.begin() != (bugle::GlobalArray *)0) {
+    if (Globals.size() == 1 && *Globals.begin() != nullptr) {
       OS << "_USED_$$" << (*Globals.begin())->getName() << "[";
       writeExpr(OS, AHTVE->getOffset().get());
       OS << "][";
@@ -672,10 +672,10 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     std::set<GlobalArray *> Globals;
     if (!PtrArr->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray *)0);
+      Globals.insert(nullptr);
     }
 
-    if (Globals.size() == 1 && *Globals.begin() != (bugle::GlobalArray *)0) {
+    if (Globals.size() == 1 && *Globals.begin() != nullptr) {
       OS << "$$" << (*Globals.begin())->getName() << "[";
       writeExpr(OS, LE->getOffset().get());
       OS << "]";
@@ -695,10 +695,10 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     std::set<GlobalArray *> Globals;
     if (!Array->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray *)0);
+      Globals.insert(nullptr);
     }
 
-    if (Globals.size() == 1 && *Globals.begin() != (bugle::GlobalArray *)0) {
+    if (Globals.size() == 1 && *Globals.begin() != nullptr) {
       OS << "$$" << (*Globals.begin())->getName();
     } else {
       ErrorReporter::reportImplementationLimitation(
@@ -723,17 +723,17 @@ void BPLExprWriter::writeAccessHasOccurredVar(llvm::raw_ostream &OS,
     std::set<GlobalArray *> Globals;
     if (!PtrArr->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray *)0);
+      Globals.insert(nullptr);
     }
 
-    if (Globals.size() == 1 && (*Globals.begin() != (bugle::GlobalArray *)0) &&
+    if (Globals.size() == 1 && (*Globals.begin() != nullptr) &&
         (*Globals.begin())->isGlobalOrGroupShared()) {
       OS << prefix << (*Globals.begin())->getName();
     } else {
       MW->UsesPointers = true;
       OS << "(";
       for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
-        if (*i == (bugle::GlobalArray *)0)
+        if (*i == nullptr)
           continue; // Null pointer; dealt with as last case
         if (!(*i)->isGlobalOrGroupShared())
           continue; // Accesses of local arrays are not tracked
@@ -770,17 +770,17 @@ void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
     std::set<GlobalArray *> Globals;
     if (!PtrArr->computeArrayCandidates(Globals)) {
       Globals.insert(MW->M->global_begin(), MW->M->global_end());
-      Globals.insert((bugle::GlobalArray *)0);
+      Globals.insert(nullptr);
     }
 
-    if (Globals.size() == 1 && (*Globals.begin() != (bugle::GlobalArray *)0) &&
+    if (Globals.size() == 1 && (*Globals.begin() != nullptr) &&
         (*Globals.begin())->isGlobalOrGroupShared()) {
       OS << prefix << (*Globals.begin())->getName();
     } else {
       MW->UsesPointers = true;
       OS << "(";
       for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
-        if (*i == (bugle::GlobalArray *)0)
+        if (*i == nullptr)
           continue; // Null pointer; dealt with as last case
         if (!(*i)->isGlobalOrGroupShared())
           continue; // Offsets of local arrays are not tracked

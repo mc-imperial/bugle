@@ -193,7 +193,7 @@ int main(int argc, char **argv) {
     if (auto EC = MOrErr.getError())
       ErrorMessage = EC.message();
     else {
-      M = std::move(*MOrErr);
+      M = std::move(MOrErr.get());
       if (auto EC = M->materializeAllPermanently()) {
         ErrorMessage = EC.message();
         M.reset();
@@ -201,7 +201,7 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (M.get() == 0) {
+  if (!M) {
     if (ErrorMessage.size())
       bugle::ErrorReporter::reportFatalError(ErrorMessage);
     else
@@ -263,7 +263,7 @@ int main(int argc, char **argv) {
   if (ErrorCode)
     bugle::ErrorReporter::reportFatalError(ErrorCode.message());
 
-  tool_output_file *L = 0;
+  tool_output_file *L = nullptr;
   if (!SourceLocationFilename.empty()) {
     L = new tool_output_file(SourceLocationFilename, ErrorCode,
                              sys::fs::F_Text);
@@ -279,7 +279,7 @@ int main(int argc, char **argv) {
   F.os().flush();
   F.keep();
 
-  if (L != 0) {
+  if (L) {
     L->os().flush();
     L->keep();
   }

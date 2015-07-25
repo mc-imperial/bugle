@@ -140,7 +140,7 @@ public:
   TranslateModule(llvm::Module *M, SourceLanguage SL, std::set<std::string> &EP,
                   RaceInstrumenter RI, AddressSpaceMap &AS,
                   std::map<std::string, ArraySpec> &GAS)
-      : BM(0), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RI),
+      : BM(nullptr), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RI),
         AddressSpaces(AS), GPUArraySizes(GAS),
         NeedAdditionalByteArrayModels(false), ModelAllAsByteArray(false),
         NextModelAllAsByteArray(false) {
