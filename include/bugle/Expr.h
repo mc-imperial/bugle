@@ -152,7 +152,7 @@ public:
   static ref<Expr> createBVConcatN(const std::vector<ref<Expr>> &args);
   static ref<Expr> createNeZero(ref<Expr> bv);
   static ref<Expr> createExactBVSDiv(ref<Expr> lhs, uint64_t rhs,
-                                     Var *base = 0);
+                                     Var *base = nullptr);
 
   static Type getArrayCandidateType(const std::set<GlobalArray *> &Globals);
   static Type getPointerRange(ref<Expr> pointer, Type defaultRange);

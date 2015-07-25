@@ -39,7 +39,7 @@ public:
 
   ArgumentPromotionPass(TranslateModule::SourceLanguage SL,
                         std::set<std::string> &EP)
-      : ModulePass(ID), M(0), SL(SL), GPUEntryPoints(EP) {}
+      : ModulePass(ID), M(nullptr), SL(SL), GPUEntryPoints(EP) {}
 
   virtual const char *getPassName() const { return "Argument promotion"; }
 

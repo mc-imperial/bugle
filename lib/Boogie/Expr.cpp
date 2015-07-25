@@ -15,7 +15,7 @@ bool Expr::computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const {
     GlobalSet.insert(MOE->getElems().begin(), MOE->getElems().end());
     return true;
   } else if (isa<NullArrayRefExpr>(this)) {
-    GlobalSet.insert((bugle::GlobalArray *)0);
+    GlobalSet.insert(nullptr);
     return true;
   } else if (auto ITE = dyn_cast<IfThenElseExpr>(this)) {
     return ITE->getTrueExpr()->computeArrayCandidates(GlobalSet) &&
@@ -347,7 +347,7 @@ ref<Expr> ArrayMemberOfExpr::create(ref<Expr> expr,
   Type t = Expr::getArrayCandidateType(elems);
 #ifndef NDEBUG
   for (auto i = elems.begin(), e = elems.end(); i != e; ++i) {
-    assert(*i == (bugle::GlobalArray *)0 || (*i)->getRangeType() == t);
+    assert(*i == nullptr || (*i)->getRangeType() == t);
   }
 #endif
 
