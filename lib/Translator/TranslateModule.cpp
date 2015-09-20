@@ -323,7 +323,7 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
   if (auto F = dyn_cast<llvm::Function>(C)) {
     auto FI = FunctionMap.find(F);
     if (FI == FunctionMap.end()) {
-      std::string DN = getSourceGlobalArrayName(F);
+      std::string DN = getSourceFunctionName(F);
       std::string msg = "Unsupported function pointer '" + DN + "'";
       ErrorReporter::reportImplementationLimitation(msg);
     }
