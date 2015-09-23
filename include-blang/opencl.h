@@ -37,16 +37,6 @@ void write_mem_fence(cl_mem_fence_flags flags);
 typedef __global uint4 *image2d_t;
 typedef __global uint4 *image3d_t;
 
-#define CLK_NORMALIZED_COORDS_TRUE  0
-#define CLK_NORMALIZED_COORDS_FALSE 1
-#define CLK_ADDRESS_MIRRORED_REPEAT 0
-#define CLK_ADDRESS_REPEAT          2
-#define CLK_ADDRESS_CLAMP_TO_EDGE   4
-#define CLK_ADDRESS_CLAMP           6
-#define CLK_ADDRESS_NONE            8
-#define CLK_FILTER_NEAREST          0
-#define CLK_FILTER_LINEAR           16
-
 #ifndef CL_DEVICE_IMAGE1D_MAX_WIDTH
 #define CL_DEVICE_IMAGE1D_MAX_WIDTH (1 << 27)
 #endif
