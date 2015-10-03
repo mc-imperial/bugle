@@ -15,10 +15,10 @@ class Expr;
 
 class BPLExprWriter {
   virtual void writeAccessHasOccurredVar(llvm::raw_ostream &OS,
-                                         bugle::Expr *array,
+                                         bugle::Expr *PtrArr,
                                          std::string accessKind);
 
-  virtual void writeAccessOffsetVar(llvm::raw_ostream &OS, bugle::Expr *array,
+  virtual void writeAccessOffsetVar(llvm::raw_ostream &OS, bugle::Expr *PtrArr,
                                     std::string accessKind);
 
 protected:
