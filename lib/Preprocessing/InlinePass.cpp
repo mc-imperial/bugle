@@ -57,7 +57,7 @@ void InlinePass::doInline(llvm::BasicBlock *B, llvm::Function *OF) {
   bool AppliedInlining = true;
   while (AppliedInlining) {
     for (auto i = B->begin(), e = B->end(); i != e; ++i) {
-      AppliedInlining = doInline(i, OF);
+      AppliedInlining = doInline(&*i, OF);
       if (AppliedInlining)
         break;
     }
@@ -70,14 +70,14 @@ void InlinePass::doInline(llvm::Function *F) {
     return;
 
   for (auto i = F->begin(), e = F->end(); i != e; ++i)
-    doInline(i, F);
+    doInline(&*i, F);
 }
 
 bool InlinePass::runOnModule(llvm::Module &M) {
   this->M = &M;
 
   for (auto i = M.begin(), e = M.end(); i != e; ++i)
-    doInline(i);
+    doInline(&*i);
 
   return true;
 }

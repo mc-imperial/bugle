@@ -21,7 +21,6 @@ private:
   llvm::Module *M;
   TranslateModule::SourceLanguage SL;
   std::set<std::string> GPUEntryPoints;
-  llvm::DenseMap<const llvm::Function *, llvm::DISubprogram *> FunctionDIs;
 
   bool needsPromotion(llvm::Function *F);
   bool canPromote(llvm::Function *F);

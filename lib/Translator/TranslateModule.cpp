@@ -828,11 +828,11 @@ void TranslateModule::translate() {
         continue;
 
       auto BF = FunctionMap[&*i] =
-          BM->addFunction(i->getName(), getSourceFunctionName(i));
+          BM->addFunction(i->getName(), getSourceFunctionName(&*i));
 
       auto RT = i->getFunctionType()->getReturnType();
       if (!RT->isVoidTy())
-        BF->addReturn(getModelledType(i), "ret");
+        BF->addReturn(getModelledType(&*i), "ret");
     }
 
     for (auto i = M->begin(), e = M->end(); i != e; ++i) {
@@ -851,7 +851,7 @@ void TranslateModule::translate() {
         assert(S->getVars()[0] == RV); (void)RV;
         BM->addAxiom(Expr::createNeZero(S->getValues()[0]));
       } else if (!TranslateFunction::isSpecialFunction(SL, i->getName())) {
-        bool EP = isGPUEntryPoint(i, M, SL, GPUEntryPoints);
+        bool EP = isGPUEntryPoint(&*i, M, SL, GPUEntryPoints);
         TranslateFunction TF(this, FunctionMap[&*i], &*i, EP);
         TF.translate();
       }
@@ -870,7 +870,7 @@ void TranslateModule::translate() {
           std::transform(
               i->second.begin(), i->second.end(), std::back_inserter(Parms),
               [&](const std::vector<ref<Expr>> *cs) { return (*cs)[pidx]; });
-          computeValueModel(pi, 0, Parms);
+          computeValueModel(&*pi, 0, Parms);
         }
       }
     }

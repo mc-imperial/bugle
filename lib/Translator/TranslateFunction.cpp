@@ -495,7 +495,7 @@ void TranslateFunction::createStructArrays() {
     TM->StructMap[F] = SV;
     for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
       if (i->getType()->isStructTy())
-        extractStructArrays(i);
+        extractStructArrays(&*i);
     }
   }
 
@@ -682,7 +682,7 @@ SourceLocsRef
 TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB) {
   SourceLocsRef sourcelocs;
   for (auto i = BB->begin(), e = BB->end(); i != e; ++i) {
-    sourcelocs = extractSourceLocs(i);
+    sourcelocs = extractSourceLocs(&*i);
     if (sourcelocs.get())
       break;
   }

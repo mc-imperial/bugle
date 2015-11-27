@@ -154,15 +154,15 @@ void ArgumentPromotionPass::spliceBody(llvm::Function *F, llvm::Function *NF) {
 
   for (auto i = F->arg_begin(), e = F->arg_end(), ni = NF->arg_begin(); i != e;
        ++i, ++ni) {
-    Value *AI = ni;
-    ni->takeName(i);
+    Value *AI = &*ni;
+    ni->takeName(&*i);
 
     // Copy the value of the function argument into locally allocated space
     if (i->hasByValAttr()) {
-      Instruction *InsertPoint = NF->begin()->begin();
+      Instruction *InsertPoint = &*NF->begin()->begin();
       llvm::Type *ArgTy = cast<PointerType>(i->getType())->getElementType();
       AI = new AllocaInst(ArgTy, ni->getName() + ".val", InsertPoint);
-      new StoreInst(ni, AI, InsertPoint);
+      new StoreInst(&*ni, AI, InsertPoint);
     }
 
     i->replaceAllUsesWith(AI);
@@ -173,13 +173,8 @@ void ArgumentPromotionPass::promote(llvm::Function *F) {
   llvm::Function *NF = createNewFunction(F);
 
   // Update debug information to point to new function
-  auto DI = FunctionDIs.find(F);
-  if (DI != FunctionDIs.end()) {
-    DISubprogram *SP = DI->second;
-    SP->replaceFunction(NF);
-    FunctionDIs.erase(DI);
-    FunctionDIs[NF] = SP;
-  }
+  NF->setSubprogram(F->getSubprogram());
+  F->setSubprogram(nullptr);
 
   // Replace the function in the remaining (non-debug) meta-data
   std::set<MDNode *> doneMD;
@@ -192,7 +187,7 @@ void ArgumentPromotionPass::promote(llvm::Function *F) {
   }
 
   // Insert new function and take F's name
-  F->getParent()->getFunctionList().insert(F, NF);
+  F->getParent()->getFunctionList().insert(F->getIterator(), NF);
   NF->takeName(F);
 
   while (!F->use_empty()) {
@@ -226,16 +221,15 @@ void ArgumentPromotionPass::replaceMetaData(llvm::Function *F,
 bool ArgumentPromotionPass::runOnModule(llvm::Module &M) {
   bool promoted = false;
   this->M = &M;
-  FunctionDIs = makeSubprogramMap(M); // Needed to updated debug information
 
   for (auto i = M.begin(), e = M.end(); i != e; ++i)
-    if (usesFunctionPointers(i)) {
+    if (usesFunctionPointers(&*i)) {
       return false;
     }
 
   for (auto i = M.begin(), e = M.end(); i != e; ++i) {
-    if (needsPromotion(i) && canPromote(i)) {
-      promote(i);
+    if (needsPromotion(&*i) && canPromote(&*i)) {
+      promote(&*i);
       promoted = true;
     }
   }
