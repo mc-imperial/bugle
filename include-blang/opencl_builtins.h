@@ -50,7 +50,7 @@
 
 _FLOAT_UNARY_MACRO(cbrt)
 _FLOAT_UNARY_MACRO(logb)
-_FLOAT_UNARY_MACRO(fdim)
+_FLOAT_BINARY_MACRO(fdim)
 
 // Table 6.9
 
