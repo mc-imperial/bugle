@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
       ErrorMessage = EC.message();
     else {
       M = std::move(MOrErr.get());
-      if (auto EC = M->materializeAllPermanently()) {
+      if (auto EC = M->materializeAll()) {
         ErrorMessage = EC.message();
         M.reset();
       }

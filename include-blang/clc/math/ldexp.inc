@@ -1,5 +1,14 @@
 #ifdef __CLC_SCALAR
 #define __CLC_INTN int
+#if __CLC_FPSIZE == 32
+_CLC_OVERLOAD __CLC_GENTYPE pown(__CLC_GENTYPE x, __CLC_INTN y)
+    __asm("llvm.powi.f32");
+#else
+_CLC_OVERLOAD __CLC_GENTYPE pown(__CLC_GENTYPE x, __CLC_INTN y)
+    __asm("llvm.powi.f64");
+#endif
+#else
+#define __bugle_ldexp_pown(x, y) pown(x, y)
 #endif
 
 #if __CLC_FPSIZE == 32
