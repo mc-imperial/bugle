@@ -34,6 +34,11 @@ void write_mem_fence(cl_mem_fence_flags flags);
 #define image2d_t __bugle_image2d_t
 #define image3d_t __bugle_image3d_t
 
+#define __write_only
+#define write_only
+#define __read_only
+#define read_only
+
 typedef __global uint4 *image2d_t;
 typedef __global uint4 *image3d_t;
 
