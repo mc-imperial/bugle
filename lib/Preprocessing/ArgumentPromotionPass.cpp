@@ -62,14 +62,14 @@ llvm::Function *ArgumentPromotionPass::createNewFunction(llvm::Function *F) {
   // Promote call by value arguments; copy other arguments including attributes
   unsigned ArgIdx = 1;
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i, ++ArgIdx) {
-    if (i->hasByValAttr())
+    if (i->hasByValAttr()) {
       NewArgs.push_back(cast<PointerType>(i->getType())->getElementType());
-    else {
+    } else {
       NewArgs.push_back(i->getType());
       AttributeSet attrs = FAS.getParamAttributes(ArgIdx);
       if (attrs.hasAttributes(ArgIdx)) {
         AttrBuilder B(attrs, ArgIdx);
-        NewAttributes.push_back(AttributeSet::get(FC, NewArgs.size(), B));
+        NewAttributes.push_back(AttributeSet::get(FC, ArgIdx, B));
       }
     }
   }
@@ -107,32 +107,24 @@ void ArgumentPromotionPass::updateCallSite(CallSite *CS, llvm::Function *F,
 
   // Create load instruction for each promoted argument and keep track of the
   // attributes from every other argument
-  unsigned ArgIdx = 0;
-  auto AI = CS->arg_begin();
-  for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i, ++AI, ++ArgIdx) {
-    if (i->hasByValAttr())
-      NewArgs.push_back(new LoadInst(*AI, (*AI)->getName() + ".val", CI));
-    else {
-      NewArgs.push_back(*AI);
+  unsigned ArgIdx = 1;
+  for (auto i = CS->arg_begin(), e = CS->arg_end(); i != e; ++i, ++ArgIdx) {
+    if (CS->isByValArgument(ArgIdx - 1)) {
+      NewArgs.push_back(new LoadInst(*i, (*i)->getName() + ".val", CI));
+    } else {
+      NewArgs.push_back(*i);
       if (CAS.hasAttributes(ArgIdx)) {
         AttrBuilder B(CAS, ArgIdx);
-        NewAttributes.push_back(AttributeSet::get(FC, NewArgs.size(), B));
+        NewAttributes.push_back(AttributeSet::get(FC, ArgIdx, B));
       }
-    }
-  }
-  // Handle varargs although these should no occur in GPU code
-  for (; AI != CS->arg_end(); ++AI, ++ArgIdx) {
-    NewArgs.push_back(*AI);
-    if (CAS.hasAttributes(ArgIdx)) {
-      AttrBuilder B(CAS, ArgIdx);
-      NewAttributes.push_back(AttributeSet::get(FC, NewArgs.size(), B));
     }
   }
 
   // Handle function attributes
-  if (CAS.hasAttributes(AttributeSet::FunctionIndex))
+  if (CAS.hasAttributes(AttributeSet::FunctionIndex)) {
     NewAttributes.push_back(
         AttributeSet::get(CI->getContext(), CAS.getFnAttributes()));
+  }
 
   CallInst *NC = CallInst::Create(NF, NewArgs, "", CI);
   NC->setCallingConv(CS->getCallingConv());
@@ -147,6 +139,24 @@ void ArgumentPromotionPass::updateCallSite(CallSite *CS, llvm::Function *F,
     NC->takeName(CI);
   }
   CI->eraseFromParent();
+}
+
+void ArgumentPromotionPass::replaceMetaData(llvm::Function *F,
+                                            llvm::Function *NF, MDNode *MD,
+                                            std::set<llvm::MDNode *> &doneMD) {
+  if (doneMD.find(MD) != doneMD.end())
+    return;
+
+  doneMD.insert(MD);
+
+  for (unsigned i = 0, e = MD->getNumOperands(); i < e; ++i) {
+    if (!MD->getOperand(i))
+      continue;
+    else if (MD->getOperand(i) == ValueAsMetadata::get(F))
+      MD->replaceOperandWith(i, ValueAsMetadata::get(NF));
+    else if (auto MDV = dyn_cast<MDNode>(MD->getOperand(i)))
+      replaceMetaData(F, NF, MDV, doneMD);
+  }
 }
 
 void ArgumentPromotionPass::spliceBody(llvm::Function *F, llvm::Function *NF) {
@@ -198,24 +208,6 @@ void ArgumentPromotionPass::promote(llvm::Function *F) {
   spliceBody(F, NF);
 
   // The remains of F will be removed by a dead-code elimination pass
-}
-
-void ArgumentPromotionPass::replaceMetaData(llvm::Function *F,
-                                            llvm::Function *NF, MDNode *MD,
-                                            std::set<llvm::MDNode *> &doneMD) {
-  if (doneMD.find(MD) != doneMD.end())
-    return;
-
-  doneMD.insert(MD);
-
-  for (unsigned i = 0, e = MD->getNumOperands(); i < e; ++i) {
-    if (!MD->getOperand(i))
-      continue;
-    else if (MD->getOperand(i) == ValueAsMetadata::get(F))
-      MD->replaceOperandWith(i, ValueAsMetadata::get(NF));
-    else if (auto MDV = dyn_cast<MDNode>(MD->getOperand(i)))
-      replaceMetaData(F, NF, MDV, doneMD);
-  }
 }
 
 bool ArgumentPromotionPass::runOnModule(llvm::Module &M) {
