@@ -444,8 +444,12 @@ void TranslateModule::getSourceArrayDimensions(llvm::Type *T,
 bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V,
                                                     bool IsParameter) {
   GlobalArray *&GA = ValueGlobalMap[V];
-  if (GA)
+  if (GA) {
+    if (IsParameter) {
+      GA->invalidateZeroDimension();
+    }
     return GA;
+  }
 
   bugle::Type T(Type::BV, 8);
   auto PT = cast<PointerType>(V->getType());
