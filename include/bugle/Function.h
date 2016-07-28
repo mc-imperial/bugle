@@ -19,7 +19,7 @@ class Function {
   std::set<std::string> attributes;
   bool entryPoint, specification;
   OwningPtrVector<SpecificationInfo> requires, globalRequires, ensures,
-      globalEnsures, modifies, procedureWideInvariant;
+      globalEnsures, modifies, procedureWideInvariant, procedureWideCandidateInvariant;
   OwningPtrVector<BasicBlock> blocks;
   OwningPtrVector<Var> args, returns, locals;
   UniqueNameSet bbNames, varNames;
@@ -66,6 +66,9 @@ public:
   }
   void addProcedureWideInvariant(ref<Expr> e, const SourceLocsRef &ss) {
     procedureWideInvariant.push_back(new SpecificationInfo(e.get(), ss));
+  }
+  void addProcedureWideCandidateInvariant(ref<Expr> e, const SourceLocsRef &ss) {
+    procedureWideCandidateInvariant.push_back(new SpecificationInfo(e.get(), ss));
   }
 
   const std::string &getName() { return name; }
@@ -156,6 +159,16 @@ public:
   procedureWideInvariant_end() const {
     return procedureWideInvariant.end();
   }
+
+  OwningPtrVector<SpecificationInfo>::const_iterator
+    procedureWideCandidateInvariant_begin() const {
+    return procedureWideCandidateInvariant.begin();
+  }
+  OwningPtrVector<SpecificationInfo>::const_iterator
+    procedureWideCandidateInvariant_end() const {
+    return procedureWideCandidateInvariant.end();
+  }
+
 };
 }
 

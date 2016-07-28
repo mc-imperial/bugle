@@ -62,6 +62,7 @@ class TranslateFunction {
       handleCandidateGlobalInvariant, handleNonTemporalLoadsBegin,
       handleNonTemporalLoadsEnd, handleRequires, handleEnsures,
       handleGlobalRequires, handleGlobalEnsures, handleFunctionWideInvariant,
+      handleFunctionWideCandidateInvariant,
       handleReadsFrom, handleWritesTo, handleAll, handleExclusive,
       handleEnabled, handleDominatorEnabled, handleOtherInt, handleOtherBool,
       handleOtherPtrBase, handleOld, handleReturnVal, handleImplies,
@@ -108,6 +109,7 @@ class TranslateFunction {
   void specifyZeroDimensions(llvm::Function *F, unsigned PtrArgs);
   void extractStructArrays(llvm::Value *V);
   void createStructArrays();
+  void checkFunctionWideInvariant(llvm::CallInst *CI);
   bool isLegalFunctionWideInvariantValue(llvm::Value *V);
 
 public:

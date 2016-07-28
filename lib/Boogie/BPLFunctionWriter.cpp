@@ -444,6 +444,15 @@ void BPLFunctionWriter::write() {
       OS << ";\n";
     }
 
+    for (auto i = F->procedureWideCandidateInvariant_begin(),
+      e = F->procedureWideCandidateInvariant_end();
+      i != e; ++i) {
+      OS << "requires {:candidate} {:procedure_wide_invariant} {:do_not_predicate} ";
+      writeSourceLocs(OS, (*i)->getSourceLocs());
+      writeExpr(OS, (*i)->getExpr().get());
+      OS << ";\n";
+    }
+
     for (auto i = F->ensures_begin(), e = F->ensures_end(); i != e; ++i) {
       OS << "ensures ";
       writeSourceLocs(OS, (*i)->getSourceLocs());

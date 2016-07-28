@@ -154,6 +154,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["__ensures"] = &TranslateFunction::handleEnsures;
     fns["__global_ensures"] = &TranslateFunction::handleGlobalEnsures;
     fns["__function_wide_invariant"] = &TranslateFunction::handleFunctionWideInvariant;
+    fns["__function_wide_candidate_invariant"] = &TranslateFunction::handleFunctionWideCandidateInvariant;
     fns["__reads_from"] = &TranslateFunction::handleReadsFrom;
     fns["__reads_from_local"] = &TranslateFunction::handleReadsFrom;
     fns["__reads_from_global"] = &TranslateFunction::handleReadsFrom;
@@ -862,9 +863,7 @@ bool TranslateFunction::isLegalFunctionWideInvariantValue(Value *V) {
   return true;
 }
 
-ref<Expr> TranslateFunction::handleFunctionWideInvariant(bugle::BasicBlock *BBB,
-                                                         llvm::CallInst *CI,
-                                                         const ExprVec &Args) {
+void TranslateFunction::checkFunctionWideInvariant(llvm::CallInst *CI) {
   if (!isLegalFunctionWideInvariantValue(CI->getArgOperand(0)))
     ErrorReporter::reportFatalError(
         "Function-wide invariants can only be constant expressions over "
@@ -872,8 +871,23 @@ ref<Expr> TranslateFunction::handleFunctionWideInvariant(bugle::BasicBlock *BBB,
   if (!isa<ReturnInst>(CI->getParent()->getTerminator()))
     ErrorReporter::reportFatalError(
         "Function-wide invariants must occur at the end of a function");
+}
+
+ref<Expr> TranslateFunction::handleFunctionWideInvariant(bugle::BasicBlock *BBB,
+                                                         llvm::CallInst *CI,
+                                                         const ExprVec &Args) {
+  checkFunctionWideInvariant(CI);
   BF->addProcedureWideInvariant(Expr::createNeZero(Args[0]),
                                 extractSourceLocs(CI));
+  return 0;
+}
+
+ref<Expr> TranslateFunction::handleFunctionWideCandidateInvariant(bugle::BasicBlock *BBB,
+                                                                  llvm::CallInst *CI,
+                                                                  const ExprVec &Args) {
+  checkFunctionWideInvariant(CI);
+  BF->addProcedureWideCandidateInvariant(Expr::createNeZero(Args[0]),
+                                         extractSourceLocs(CI));
   return 0;
 }
 

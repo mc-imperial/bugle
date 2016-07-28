@@ -29,9 +29,12 @@ _DEVICE_QUALIFIER void __candidate_invariant(bool expr);
 _DEVICE_QUALIFIER void __candidate_global_invariant(bool expr);
 
 /* Function-wide invariant: will automatically become a global
-   invariant for every loop in the function
+   invariant for every loop in the function.  The candidate
+   version becomes an independent candidate invariant for each
+   loop in the function.
 */
 _DEVICE_QUALIFIER void __function_wide_invariant(bool expr);
+_DEVICE_QUALIFIER void __function_wide_candidate_invariant(bool expr);
 
 #define __invariant(X) \
     __non_temporal_loads_begin(), \
