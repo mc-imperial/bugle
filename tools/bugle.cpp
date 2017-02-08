@@ -165,14 +165,14 @@ static void GetArraySizes(std::map<std::string, bugle::ArraySpec> &KAS) {
 }
 
 int main(int argc, char **argv) {
-  sys::PrintStackTraceOnErrorSignal();
+  sys::PrintStackTraceOnErrorSignal(argv[0]);
   llvm::PrettyStackTraceProgram X(argc, argv);
 
   // Enable debug stream buffering.
   EnableDebugBuffering = true;
 
   llvm_shutdown_obj Y; // Call llvm_shutdown() on exit.
-  LLVMContext &Context = getGlobalContext();
+  LLVMContext Context;
 
   cl::ParseCommandLineOptions(argc, argv, "LLVM to Boogie translator\n");
 

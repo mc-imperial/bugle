@@ -16,8 +16,6 @@ using namespace bugle;
 bool RestrictDetectPass::doInitialization(llvm::Module &M) {
   this->M = &M;
   DIF.processModule(M);
-  if (NamedMDNode *CU_Nodes = M.getNamedMetadata("llvm.dbg.cu"))
-    DITyMap = generateDITypeIdentifierMap(CU_Nodes);
   return false;
 }
 
@@ -46,7 +44,7 @@ bool RestrictDetectPass::ignoreArgument(unsigned i, const DISubprogram *DIS) {
   if (!DIS || SL != TranslateModule::SL_OpenCL)
     return false;
 
-  auto Ty = DIS->getType()->getTypeArray()[i + 1].resolve(DITyMap)->getName();
+  auto Ty = DIS->getType()->getTypeArray()[i + 1].resolve()->getName();
   return (Ty == "__bugle_image2d_t" || Ty == "__bugle_image3d_t");
 }
 

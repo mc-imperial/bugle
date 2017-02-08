@@ -1,6 +1,7 @@
 #include "bugle/Ref.h"
 #include "bugle/Type.h"
 #include "bugle/Var.h"
+#include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/APInt.h"
 #include <set>
 #include <vector>

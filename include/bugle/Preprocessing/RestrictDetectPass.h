@@ -11,7 +11,6 @@ class RestrictDetectPass : public llvm::FunctionPass {
 private:
   llvm::Module *M;
   llvm::DebugInfoFinder DIF;
-  llvm::DITypeIdentifierMap DITyMap;
   TranslateModule::SourceLanguage SL;
   std::set<std::string> GPUEntryPoints;
   TranslateModule::AddressSpaceMap AddressSpaces;
