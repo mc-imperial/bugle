@@ -399,10 +399,6 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
         }
       }
       fns["__bugle_wait_group_events"] = &TranslateFunction::handleWaitGroupEvents;
-      fns["fmaxf"] = &TranslateFunction::handleFmax;
-      fns["fmax"] = &TranslateFunction::handleFmax;
-      fns["fminf"] = &TranslateFunction::handleFmin;
-      fns["fmin"] = &TranslateFunction::handleFmin;
     }
 
     if (SL == TranslateModule::SL_CUDA) {
@@ -427,6 +423,8 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::floor] = &TranslateFunction::handleFloor;
     ints[Intrinsic::log] = &TranslateFunction::handleLog;
     ints[Intrinsic::log2] = &TranslateFunction::handleLog2;
+    ints[Intrinsic::maxnum] = &TranslateFunction::handleFmax;
+    ints[Intrinsic::minnum] = &TranslateFunction::handleFmin;
     ints[Intrinsic::pow] = &TranslateFunction::handlePow;
     ints[Intrinsic::powi] = &TranslateFunction::handlePowi;
     ints[Intrinsic::rint] = &TranslateFunction::handleRint;
