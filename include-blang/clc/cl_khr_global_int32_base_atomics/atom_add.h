@@ -1,4 +1,4 @@
 #define atom_add __bugle_atom_add
 #define __CLC_FUNCTION add
-#include <clc/cl_khr_global_int32_base_atomics/atom_decl.inc>
+#include <clc/cl_khr_global_int32_base_atomics/atom_binary_decl.inc>
 #undef __CLC_FUNCTION
