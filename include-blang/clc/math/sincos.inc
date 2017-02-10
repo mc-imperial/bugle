@@ -1,5 +1,5 @@
 #define __CLC_DECLARE_SINCOS(ADDRSPACE, TYPE) \
-  _CLC_OVERLOAD _CLC_INLINE TYPE __bugle_sincos(TYPE x, ADDRSPACE TYPE * cv) { \
+  _CLC_OVERLOAD _CLC_INLINE TYPE __bugle_sincos(TYPE x, ADDRSPACE TYPE *cv) { \
     *cv = cos(x); \
     return sin(x); \
   }
