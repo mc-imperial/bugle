@@ -68,8 +68,14 @@ namespace klee {
     }
 
     llvm::Type *getIndexedType() const {
-      llvm::CompositeType *CT = cast<llvm::CompositeType>(CurTy);
-      return CT->getTypeAtIndex(getOperand());
+      if (llvm::CompositeType *CT =
+          dyn_cast<llvm::CompositeType>(CurTy)) {
+        return CT->getTypeAtIndex(getOperand());
+      } else if (llvm::PointerType *PT =
+                 dyn_cast<llvm::PointerType>(CurTy)) {
+        return PT->getElementType();
+      }
+      return 0;
     }
 
     // This is a non-standard operator->.  It allows you to call methods on the
@@ -79,9 +85,10 @@ namespace klee {
     llvm::Value *getOperand() const { return asValue(*OpIt); }
 
     generic_gep_type_iterator& operator++() {   // Preincrement
-      if (llvm::CompositeType *CT =
-            dyn_cast<llvm::CompositeType>(CurTy)) {
+      if (llvm::CompositeType *CT = dyn_cast<llvm::CompositeType>(CurTy)) {
         CurTy = CT->getTypeAtIndex(getOperand());
+      } else if (llvm::PointerType *PT = dyn_cast<llvm::PointerType>(CurTy)) {
+        CurTy = PT->getElementType();
       } else {
         CurTy = 0;
       }

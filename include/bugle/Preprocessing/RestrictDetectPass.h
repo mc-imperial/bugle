@@ -28,16 +28,16 @@ public:
                      TranslateModule::AddressSpaceMap &AS)
       : FunctionPass(ID), M(0), SL(SL), GPUEntryPoints(EP), AddressSpaces(AS) {}
 
-  virtual const char *getPassName() const {
+  llvm::StringRef getPassName() const override {
     return "Detect restrict usage on global pointers";
   }
 
-  virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
+  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override {
     AU.setPreservesAll();
   }
 
-  virtual bool doInitialization(llvm::Module &M);
-  virtual bool runOnFunction(llvm::Function &F);
+  bool doInitialization(llvm::Module &M) override;
+  bool runOnFunction(llvm::Function &F) override;
 };
 }
 

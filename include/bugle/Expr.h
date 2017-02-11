@@ -176,7 +176,7 @@ public:
 };
 
 #define EXPR_KIND(kind)                                                        \
-  Kind getKind() const { return kind; }                                        \
+  Kind getKind() const override { return kind; }                               \
   static bool classof(const Expr *E) { return E->getKind() == kind; }          \
   static bool classof(const kind##Expr *) { return true; }
 
@@ -315,8 +315,8 @@ public:
   unsigned int getPart() const { return part; }
 };
 
-/// Local variable reference.  Used for phi nodes, parameters and return
-/// variables.
+// Local variable reference.  Used for phi nodes, parameters and return
+// variables.
 class VarRefExpr : public Expr {
   Var *var;
   VarRefExpr(Var *var) : Expr(var->getType()), var(var) {
@@ -329,7 +329,7 @@ public:
   Var *getVar() const { return var; }
 };
 
-/// A reference to the special variable marked with the given attribute.
+// A reference to the special variable marked with the given attribute.
 class SpecialVarRefExpr : public Expr {
   std::string attr;
   SpecialVarRefExpr(Type t, const std::string &attr) : Expr(t), attr(attr) {}

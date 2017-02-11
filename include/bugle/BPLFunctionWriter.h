@@ -34,7 +34,7 @@ class BPLFunctionWriter : BPLExprWriter {
                            const SourceLocsRef &SLocs,
                            std::function<void(GlobalArray *, unsigned int)> F);
   void writeVar(llvm::raw_ostream &OS, Var *V);
-  void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0);
+  void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0) override;
   void writeCallStmt(llvm::raw_ostream &OS, CallStmt *CS);
   void writeStmt(llvm::raw_ostream &OS, Stmt *S);
   void writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB);

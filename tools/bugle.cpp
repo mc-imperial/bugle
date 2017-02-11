@@ -1,11 +1,10 @@
 #include "llvm/ADT/StringExtras.h"
-#include "llvm/Bitcode/ReaderWriter.h"
+#include "llvm/Bitcode/BitcodeReader.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/CommandLine.h"
-#include "llvm/Support/DataStream.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/ManagedStatic.h"
@@ -59,8 +58,7 @@ static cl::opt<bugle::TranslateModule::SourceLanguage> SourceLanguage(
     cl::init(bugle::TranslateModule::SL_C),
     cl::values(clEnumValN(bugle::TranslateModule::SL_C, "c", "C (default)"),
                clEnumValN(bugle::TranslateModule::SL_CUDA, "cu", "CUDA"),
-               clEnumValN(bugle::TranslateModule::SL_OpenCL, "cl", "OpenCL"),
-               clEnumValEnd));
+               clEnumValN(bugle::TranslateModule::SL_OpenCL, "cl", "OpenCL")));
 
 enum IntRep { BVIntRep, MathIntRep };
 
@@ -69,8 +67,7 @@ static cl::opt<IntRep> IntegerRepresentation(
     cl::values(clEnumValN(BVIntRep, "bv",
                           "Bitvector integer representation (default)"),
                clEnumValN(MathIntRep, "math",
-                          "Mathematical integer representation"),
-               clEnumValEnd));
+                          "Mathematical integer representation")));
 
 static cl::opt<bool> Inlining(
     "inline", cl::ValueDisallowed, cl::desc("Inline all function calls"));
@@ -83,8 +80,7 @@ static cl::opt<bugle::RaceInstrumenter> RaceInstrumentation(
                clEnumValN(bugle::RaceInstrumenter::WatchdogSingle,
                           "watchdog-single", "Watchdog single (default)"),
                clEnumValN(bugle::RaceInstrumenter::WatchdogMultiple,
-                          "watchdog-multiple", "Watchdog multiple"),
-               clEnumValEnd));
+                          "watchdog-multiple", "Watchdog multiple")));
 
 static cl::list<std::string>
     GPUArraySizes("kernel-array-sizes", cl::ZeroOrMore,
@@ -186,21 +182,22 @@ int main(int argc, char **argv) {
   std::string ErrorMessage;
   std::unique_ptr<Module> M;
 
-  // Use the bitcode streaming interface
-  std::unique_ptr<DataStreamer> streamer =
-      getDataFileStreamer(InputFilename, &ErrorMessage);
-  if (streamer) {
-    ErrorOr<std::unique_ptr<Module>> MOrErr =
-        getStreamedBitcodeModule(DisplayFilename, std::move(streamer), Context);
-    if (auto EC = MOrErr.getError())
+  // Read module
+  ErrorOr<std::unique_ptr<MemoryBuffer>> BufferOrErr =
+      MemoryBuffer::getFile(InputFilename);
+
+  if (std::error_code EC = BufferOrErr.getError()) {
+    ErrorMessage = EC.message();
+  } else {
+    std::unique_ptr<MemoryBuffer> &BufferPtr = BufferOrErr.get();
+    ErrorOr<std::unique_ptr<Module>> ModuleOrErr =
+        expectedToErrorOrAndEmitErrors(
+            Context,
+            parseBitcodeFile(BufferPtr.get()->getMemBufferRef(), Context));
+    if (std::error_code EC = ModuleOrErr.getError())
       ErrorMessage = EC.message();
-    else {
-      M = std::move(MOrErr.get());
-      if (auto EC = M->materializeAll()) {
-        ErrorMessage = EC.message();
-        M.reset();
-      }
-    }
+    else
+      M = std::move(ModuleOrErr.get());
   }
 
   if (!M) {

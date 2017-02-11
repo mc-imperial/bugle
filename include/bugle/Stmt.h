@@ -41,7 +41,7 @@ private:
 };
 
 #define STMT_KIND(kind)                                                        \
-  Kind getKind() const { return kind; }                                        \
+  Kind getKind() const override { return kind; }                               \
   static bool classof(const Stmt *S) { return S->getKind() == kind; }          \
   static bool classof(const kind##Stmt *) { return true; }
 
@@ -88,7 +88,9 @@ public:
   static VarAssignStmt *create(const std::vector<Var *> &vars,
                                const std::vector<ref<Expr>> &values);
 
-  SourceLocsRef &getSourceLocs() { llvm_unreachable("No source location"); }
+  SourceLocsRef &getSourceLocs() override {
+    llvm_unreachable("No source location");
+  }
 
   STMT_KIND(VarAssign)
   const std::vector<Var *> &getVars() const { return vars; }
@@ -103,7 +105,9 @@ public:
   static GotoStmt *create(BasicBlock *block);
   static GotoStmt *create(const std::vector<BasicBlock *> &blocks);
 
-  SourceLocsRef &getSourceLocs() { llvm_unreachable("No source location"); }
+  SourceLocsRef &getSourceLocs() override {
+    llvm_unreachable("No source location");
+  }
 
   STMT_KIND(Goto)
   const std::vector<BasicBlock *> &getBlocks() { return blocks; }
@@ -128,7 +132,9 @@ public:
   static AssumeStmt *create(ref<Expr> pred);
   static AssumeStmt *createPartition(ref<Expr> pred);
 
-  SourceLocsRef &getSourceLocs() { llvm_unreachable("No source location"); }
+  SourceLocsRef &getSourceLocs() override {
+    llvm_unreachable("No source location");
+  }
 
   STMT_KIND(Assume)
   ref<Expr> getPredicate() const { return pred; }

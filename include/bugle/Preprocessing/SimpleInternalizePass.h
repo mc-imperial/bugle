@@ -24,15 +24,15 @@ public:
       : ModulePass(ID), SL(SL), GPUEntryPoints(EP),
         OnlyExplicitEntryPoints(EEP) {}
 
-  virtual const char *getPassName() const {
+  llvm::StringRef getPassName() const override {
     return "Internalize all normal functions that are not entry points";
   }
 
-  virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
+  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override {
     AU.setPreservesCFG();
   }
 
-  virtual bool runOnModule(llvm::Module &M);
+  bool runOnModule(llvm::Module &M) override;
 };
 }
 

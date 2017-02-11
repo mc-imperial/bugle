@@ -40,9 +40,9 @@ public:
                         std::set<std::string> &EP)
       : ModulePass(ID), M(nullptr), SL(SL), GPUEntryPoints(EP) {}
 
-  virtual const char *getPassName() const { return "Argument promotion"; }
+  llvm::StringRef getPassName() const override { return "Argument promotion"; }
 
-  virtual bool runOnModule(llvm::Module &M);
+  bool runOnModule(llvm::Module &M) override;
 };
 }
 

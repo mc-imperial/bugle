@@ -14,16 +14,16 @@ public:
     initializeCallGraphWrapperPassPass(*llvm::PassRegistry::getPassRegistry());
   }
 
-  virtual const char *getPassName() const {
+  llvm::StringRef getPassName() const override {
     return "CallGraph cycle detection";
   }
 
-  virtual void getAnalysisUsage(llvm::AnalysisUsage &AU) const {
+  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override {
     AU.setPreservesAll();
     AU.addRequired<llvm::CallGraphWrapperPass>();
   }
 
-  virtual bool runOnModule(llvm::Module &M);
+  bool runOnModule(llvm::Module &M) override;
 };
 }
 

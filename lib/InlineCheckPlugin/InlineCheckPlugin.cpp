@@ -39,7 +39,7 @@ class CheckInlineConsumer : public ASTConsumer {
 public:
   explicit CheckInlineConsumer(CompilerInstance &CI) : Visitor(CI) {}
 
-  virtual void HandleTranslationUnit(ASTContext &AT) {
+  void HandleTranslationUnit(ASTContext &AT) override {
     Visitor.TraverseDecl(AT.getTranslationUnitDecl());
   }
 

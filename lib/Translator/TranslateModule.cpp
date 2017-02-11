@@ -83,9 +83,9 @@ void TranslateModule::addGlobalArrayAttribs(GlobalArray *GA, PointerType *PT) {
   // is constant, unless used as a pointer, the memory pointed to will be
   // cudaMalloc'ed and hence be in device memory.
   if (SL == SL_CUDA && PT->getElementType()->isPointerTy() &&
-      PT->getAddressSpace() == AddressSpaces.constant)
+      PT->getAddressSpace() == AddressSpaces.constant) {
     GA->addAttribute("global");
-  else if (SL == SL_OpenCL || SL == SL_CUDA) {
+  } else if (SL == SL_OpenCL || SL == SL_CUDA) {
     if (PT->getAddressSpace() == AddressSpaces.global)
       GA->addAttribute("global");
     else if (PT->getAddressSpace() == AddressSpaces.group_shared)
@@ -483,13 +483,21 @@ TranslateModule::translateGEP(ref<Expr> Ptr, klee::gep_type_iterator begin,
   ref<Expr> PtrArr = ArrayIdExpr::create(Ptr, defaultRange()),
             PtrOfs = ArrayOffsetExpr::create(Ptr);
   for (auto i = begin; i != end; ++i) {
-    if (StructType *st = dyn_cast<StructType>(*i)) {
+    if (auto *st = dyn_cast<StructType>(*i)) {
       const StructLayout *sl = TD.getStructLayout(st);
       const ConstantInt *ci = cast<ConstantInt>(i.getOperand());
       uint64_t addend = sl->getElementOffset((unsigned)ci->getZExtValue());
       PtrOfs = BVAddExpr::create(
           PtrOfs, BVConstExpr::create(BM->getPointerWidth(), addend));
-    } else if (SequentialType *set = cast<SequentialType>(*i)) {
+    } else if (auto *set = dyn_cast<SequentialType>(*i)) {
+      uint64_t elementSize = TD.getTypeAllocSize(set->getElementType());
+      Value *operand = i.getOperand();
+      ref<Expr> index = xlate(operand);
+      index = BVZExtExpr::create(BM->getPointerWidth(), index);
+      ref<Expr> addend = BVMulExpr::create(
+          index, BVConstExpr::create(BM->getPointerWidth(), elementSize));
+      PtrOfs = BVAddExpr::create(PtrOfs, addend);
+    } else if (auto *set = dyn_cast<PointerType>(*i)) {
       uint64_t elementSize = TD.getTypeAllocSize(set->getElementType());
       Value *operand = i.getOperand();
       ref<Expr> index = xlate(operand);
@@ -582,12 +590,10 @@ std::string TranslateModule::getSourceGlobalArrayName(llvm::Value *V) {
   if (!GV)
     return V->getName();
 
-  auto GVS = DIF.global_variables();
-  for (auto i = GVS.begin(), e = GVS.end(); i != e; ++i) {
-    if (dyn_cast_or_null<GlobalVariable>((*i)->getVariable()) == GV) {
-      return (*i)->getName();
-    }
-  }
+  SmallVector<DIGlobalVariableExpression *, 1> DIs;
+  GV->getDebugInfo(DIs);
+  if (DIs.size() > 0)
+    return DIs[0]->getVariable()->getName();
 
   return GV->getName().str();
 }

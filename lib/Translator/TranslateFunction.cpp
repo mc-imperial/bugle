@@ -20,6 +20,7 @@
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/Support/raw_ostream.h"
+#include <string>
 #include <vector>
 
 using namespace bugle;
@@ -2257,8 +2258,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         if (E.isNull())
           return;
       } else {
-        std::string msg =
-            "Intrinsic '" + Intrinsic::getName(ID) + "' not supported";
+        std::string name = Intrinsic::getName(ID);
+        std::string msg = "Intrinsic '" + name + "' not supported";
         ErrorReporter::reportImplementationLimitation(msg);
       }
     } else {

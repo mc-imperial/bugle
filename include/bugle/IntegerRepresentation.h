@@ -6,7 +6,6 @@
 namespace bugle {
 
 class IntegerRepresentation {
-
 public:
   virtual std::string getType(unsigned bitWidth) = 0;
   virtual std::string getLiteral(unsigned literal, unsigned bitWidth) = 0;
@@ -33,51 +32,49 @@ public:
 };
 
 class BVIntegerRepresentation : public IntegerRepresentation {
-
 public:
-  virtual std::string getType(unsigned bitWidth);
-  virtual std::string getLiteralSuffix(unsigned bitWidth);
-  virtual std::string getLiteral(unsigned literal, unsigned bitWidth);
-  virtual std::string getZeroExtend(unsigned FromWidth, unsigned ToWidth);
-  virtual std::string getSignExtend(unsigned FromWidth, unsigned ToWidth);
-  virtual std::string getExtract();
-  virtual std::string getExtractExpr(const std::string &Expr, unsigned UpperBit,
-                                     unsigned LowerBit);
-  virtual std::string getConcat();
-  virtual std::string getConcatExpr(const std::string &Lhs,
-                                    const std::string &Rhs);
-  virtual std::string getCtlz(unsigned Width);
-  virtual std::string
-  getArithmeticBinary(std::string Name, bugle::Expr::Kind Kind, unsigned Width);
-  virtual std::string getBooleanBinary(std::string Name, bugle::Expr::Kind Kind,
-                                       unsigned Width);
-  virtual void printVal(llvm::raw_ostream &OS, const llvm::APInt &Val);
-  virtual bool abstractsExtract();
-  virtual bool abstractsConcat();
+  std::string getType(unsigned bitWidth) override;
+  std::string getLiteralSuffix(unsigned bitWidth) override;
+  std::string getLiteral(unsigned literal, unsigned bitWidth) override;
+  std::string getZeroExtend(unsigned FromWidth, unsigned ToWidth) override;
+  std::string getSignExtend(unsigned FromWidth, unsigned ToWidth) override;
+  std::string getExtract() override;
+  std::string getExtractExpr(const std::string &Expr, unsigned UpperBit,
+                             unsigned LowerBit) override;
+  std::string getConcat() override;
+  std::string getConcatExpr(const std::string &Lhs,
+                            const std::string &Rhs) override;
+  std::string getCtlz(unsigned Width) override;
+  std::string getArithmeticBinary(std::string Name, bugle::Expr::Kind Kind,
+                                  unsigned Width) override;
+  std::string getBooleanBinary(std::string Name, bugle::Expr::Kind Kind,
+                               unsigned Width) override;
+  void printVal(llvm::raw_ostream &OS, const llvm::APInt &Val) override;
+  bool abstractsExtract() override;
+  bool abstractsConcat() override;
 };
 
 class MathIntegerRepresentation : public IntegerRepresentation {
-
 public:
-  virtual std::string getType(unsigned bitWidth);
-  virtual std::string getLiteralSuffix(unsigned bitWidth);
-  virtual std::string getLiteral(unsigned literal, unsigned bitWidth);
-  virtual std::string getZeroExtend(unsigned FromWidth, unsigned ToWidth);
-  virtual std::string getSignExtend(unsigned FromWidth, unsigned ToWidth);
-  virtual std::string getExtract();
-  virtual std::string getExtractExpr(const std::string &Expr, unsigned UpperBit,
-                                     unsigned LowerBit);
-  virtual std::string getConcat();
-  virtual std::string getConcatExpr(const std::string &Lhs,
-                                    const std::string &Rhs);
-  virtual std::string getCtlz(unsigned Width);
-  virtual std::string
-  getArithmeticBinary(std::string Name, bugle::Expr::Kind Kind, unsigned Width);
-  virtual std::string getBooleanBinary(std::string Name, bugle::Expr::Kind Kind,
-                                       unsigned Width);
-  virtual void printVal(llvm::raw_ostream &OS, const llvm::APInt &Val);
-  virtual bool abstractsExtract();
-  virtual bool abstractsConcat();
+  std::string getType(unsigned bitWidth) override;
+  std::string getLiteralSuffix(unsigned bitWidth) override;
+  std::string getLiteral(unsigned literal, unsigned bitWidth) override;
+  std::string getZeroExtend(unsigned FromWidth, unsigned ToWidth) override;
+  std::string getSignExtend(unsigned FromWidth, unsigned ToWidth) override;
+  std::string getExtract() override;
+  std::string getExtractExpr(const std::string &Expr, unsigned UpperBit,
+                             unsigned LowerBit) override;
+  std::string getConcat() override;
+  std::string getConcatExpr(const std::string &Lhs,
+                            const std::string &Rhs) override;
+  std::string getCtlz(unsigned Width) override;
+  std::string getArithmeticBinary(std::string Name, bugle::Expr::Kind Kind,
+                                  unsigned Width) override;
+  std::string getBooleanBinary(std::string Name, bugle::Expr::Kind Kind,
+                               unsigned Width) override;
+  void printVal(llvm::raw_ostream &OS, const llvm::APInt &Val) override;
+  bool abstractsExtract() override;
+  bool abstractsConcat() override;
 };
 }
 
