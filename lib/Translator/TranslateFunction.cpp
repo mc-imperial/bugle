@@ -682,6 +682,12 @@ SourceLocsRef
 TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB) {
   SourceLocsRef sourcelocs;
   for (auto i = BB->begin(), e = BB->end(); i != e; ++i) {
+    // Skip over llvm.dbg.value, as these may point to the point of declaration
+    // of a variable, which may be outside the current basic block.
+    if (auto *II = dyn_cast<IntrinsicInst>(&*i)) {
+      if (II->getIntrinsicID() == Intrinsic::dbg_value)
+        continue;
+    }
     sourcelocs = extractSourceLocs(&*i);
     if (sourcelocs.get())
       break;
