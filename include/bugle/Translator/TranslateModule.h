@@ -149,7 +149,7 @@ public:
   ~TranslateModule() {
     for (auto i = StructMap.begin(), e = StructMap.end(); i != e; ++i) {
       std::for_each(i->second->rbegin(), i->second->rend(),
-                    [](llvm::Instruction *p) { delete p; });
+                    [](llvm::Instruction *p) { p->deleteValue(); });
       delete i->second;
     }
   }

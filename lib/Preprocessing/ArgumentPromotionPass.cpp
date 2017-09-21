@@ -49,34 +49,20 @@ bool ArgumentPromotionPass::usesFunctionPointers(llvm::Function *F) {
 
 llvm::Function *ArgumentPromotionPass::createNewFunction(llvm::Function *F) {
   FunctionType *FTy = F->getFunctionType();
-  const AttributeSet &FAS = F->getAttributes();
-  LLVMContext &FC = F->getContext();
+  const AttributeList &FAL = F->getAttributes();
   std::vector<llvm::Type *> NewArgs;
   std::vector<AttributeSet> NewAttributes;
 
-  if (FAS.hasAttributes(AttributeSet::ReturnIndex)) {
-    AttributeSet RA = AttributeSet::get(FC, FAS.getRetAttributes());
-    NewAttributes.push_back(RA);
-  }
-
   // Promote call by value arguments; copy other arguments including attributes
-  unsigned ArgIdx = 1;
-  for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i, ++ArgIdx) {
+  unsigned ArgNo = 0;
+  for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i, ++ArgNo) {
     if (i->hasByValAttr()) {
       NewArgs.push_back(cast<PointerType>(i->getType())->getElementType());
+      NewAttributes.push_back(AttributeSet());
     } else {
       NewArgs.push_back(i->getType());
-      AttributeSet attrs = FAS.getParamAttributes(ArgIdx);
-      if (attrs.hasAttributes(ArgIdx)) {
-        AttrBuilder B(attrs, ArgIdx);
-        NewAttributes.push_back(AttributeSet::get(FC, ArgIdx, B));
-      }
+      NewAttributes.push_back(FAL.getParamAttributes(ArgNo));
     }
-  }
-
-  if (FAS.hasAttributes(AttributeSet::FunctionIndex)) {
-    LLVMContext &FTyC = FTy->getContext();
-    NewAttributes.push_back(AttributeSet::get(FTyC, FAS.getFnAttributes()));
   }
 
   llvm::Type *RetTy = FTy->getReturnType();
@@ -84,7 +70,8 @@ llvm::Function *ArgumentPromotionPass::createNewFunction(llvm::Function *F) {
   llvm::Function *NF =
       llvm::Function::Create(NFty, F->getLinkage(), F->getName());
   NF->copyAttributesFrom(F);
-  NF->setAttributes(AttributeSet::get(FC, NewAttributes));
+  NF->setAttributes(AttributeList::get(F->getContext(), FAL.getFnAttributes(),
+                                       FAL.getRetAttributes(), NewAttributes));
 
   return NF;
 }
@@ -92,8 +79,7 @@ llvm::Function *ArgumentPromotionPass::createNewFunction(llvm::Function *F) {
 void ArgumentPromotionPass::updateCallSite(CallSite *CS, llvm::Function *F,
                                            llvm::Function *NF) {
   Instruction *CI = CS->getInstruction();
-  const AttributeSet &CAS = CS->getAttributes();
-  LLVMContext &FC = F->getContext();
+  const AttributeList &CAL = CS->getAttributes();
   std::vector<Value *> NewArgs;
   std::vector<AttributeSet> NewAttributes;
 
@@ -102,33 +88,23 @@ void ArgumentPromotionPass::updateCallSite(CallSite *CS, llvm::Function *F,
         "Only call instructions supported as call sites");
   }
 
-  if (CAS.hasAttributes(AttributeSet::ReturnIndex))
-    NewAttributes.push_back(AttributeSet::get(FC, CAS.getRetAttributes()));
-
   // Create load instruction for each promoted argument and keep track of the
   // attributes from every other argument
-  unsigned ArgIdx = 1;
-  for (auto i = CS->arg_begin(), e = CS->arg_end(); i != e; ++i, ++ArgIdx) {
-    if (CS->isByValArgument(ArgIdx - 1)) {
+  unsigned ArgNo = 1;
+  for (auto i = CS->arg_begin(), e = CS->arg_end(); i != e; ++i, ++ArgNo) {
+    if (CS->isByValArgument(ArgNo)) {
       NewArgs.push_back(new LoadInst(*i, (*i)->getName() + ".val", CI));
+      NewAttributes.push_back(AttributeSet());
     } else {
       NewArgs.push_back(*i);
-      if (CAS.hasAttributes(ArgIdx)) {
-        AttrBuilder B(CAS, ArgIdx);
-        NewAttributes.push_back(AttributeSet::get(FC, ArgIdx, B));
-      }
+      NewAttributes.push_back(CAL.getParamAttributes(ArgNo));
     }
-  }
-
-  // Handle function attributes
-  if (CAS.hasAttributes(AttributeSet::FunctionIndex)) {
-    NewAttributes.push_back(
-        AttributeSet::get(CI->getContext(), CAS.getFnAttributes()));
   }
 
   CallInst *NC = CallInst::Create(NF, NewArgs, "", CI);
   NC->setCallingConv(CS->getCallingConv());
-  NC->setAttributes(AttributeSet::get(NC->getContext(), NewAttributes));
+  NC->setAttributes(AttributeList::get(F->getContext(), CAL.getFnAttributes(),
+                                       CAL.getRetAttributes(), NewAttributes));
   NC->setDebugLoc(CI->getDebugLoc());
   // We do not copy the tail call attribute; we do not need it and it would
   // need to be removed by spliceBody in case any alloca created in spliceBody
@@ -160,6 +136,8 @@ void ArgumentPromotionPass::replaceMetaData(llvm::Function *F,
 }
 
 void ArgumentPromotionPass::spliceBody(llvm::Function *F, llvm::Function *NF) {
+  const DataLayout &DL = F->getParent()->getDataLayout();
+
   NF->getBasicBlockList().splice(NF->begin(), F->getBasicBlockList());
 
   for (auto i = F->arg_begin(), e = F->arg_end(), ni = NF->arg_begin(); i != e;
@@ -171,7 +149,8 @@ void ArgumentPromotionPass::spliceBody(llvm::Function *F, llvm::Function *NF) {
     if (i->hasByValAttr()) {
       Instruction *InsertPoint = &*NF->begin()->begin();
       llvm::Type *ArgTy = cast<PointerType>(i->getType())->getElementType();
-      AI = new AllocaInst(ArgTy, ni->getName() + ".val", InsertPoint);
+      AI = new AllocaInst(ArgTy, DL.getAllocaAddrSpace(),
+                          ni->getName() + ".val", InsertPoint);
       new StoreInst(&*ni, AI, InsertPoint);
     }
 

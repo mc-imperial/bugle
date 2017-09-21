@@ -2337,13 +2337,13 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     std::vector<bugle::BasicBlock *> Succs;
 
     for (auto i = SI->case_begin(), e = SI->case_end(); i != e; ++i) {
-      ref<Expr> Val = TM->translateConstant(i.getCaseValue());
+      ref<Expr> Val = TM->translateConstant(i->getCaseValue());
       bugle::BasicBlock *BB = BF->addBasicBlock("casebb");
       Succs.push_back(BB);
       BB->addStmt(AssumeStmt::createPartition(EqExpr::create(Cond, Val)));
       BB->addStmt(AssertStmt::createBlockSourceLoc(currentSourceLocs));
-      addPhiAssigns(BB, SI->getParent(), i.getCaseSuccessor());
-      BB->addStmt(GotoStmt::create(BasicBlockMap[i.getCaseSuccessor()]));
+      addPhiAssigns(BB, SI->getParent(), i->getCaseSuccessor());
+      BB->addStmt(GotoStmt::create(BasicBlockMap[i->getCaseSuccessor()]));
       DefaultExpr = AndExpr::create(DefaultExpr, NeExpr::create(Cond, Val));
     }
 
@@ -2352,9 +2352,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     DefaultBB->addStmt(AssertStmt::createBlockSourceLoc(currentSourceLocs));
     DefaultBB->addStmt(AssumeStmt::createPartition(DefaultExpr));
     addPhiAssigns(DefaultBB, SI->getParent(),
-                  SI->case_default().getCaseSuccessor());
-    DefaultBB->addStmt(
-        GotoStmt::create(BasicBlockMap[SI->case_default().getCaseSuccessor()]));
+                  SI->case_default()->getCaseSuccessor());
+    DefaultBB->addStmt(GotoStmt::create(
+        BasicBlockMap[SI->case_default()->getCaseSuccessor()]));
 
     BBB->addStmt(GotoStmt::create(Succs));
     return;

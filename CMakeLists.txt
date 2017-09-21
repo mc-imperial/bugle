@@ -104,7 +104,7 @@ else()
 
   set(LLVM_CXXFLAGS "\"/I${LLVM_SRC}/include\" \"/I${LLVM_BUILD}/include\" -D_SCL_SECURE_NO_WARNINGS -wd4141 -wd4146 -wd4244 -wd4291 -wd4624 -wd4800")
   set(LLVM_LDFLAGS "")
-  set(LLVM_LIBS "${LLVM_LIBDIR}/LLVMipo.lib" "${LLVM_LIBDIR}/LLVMObjCARCOpts.lib" "${LLVM_LIBDIR}/LLVMVectorize.lib" "${LLVM_LIBDIR}/LLVMScalarOpts.lib" "${LLVM_LIBDIR}/LLVMInstCombine.lib" "${LLVM_LIBDIR}/LLVMTransformUtils.lib" "${LLVM_LIBDIR}/LLVMAnalysis.lib" "${LLVM_LIBDIR}/LLVMTarget.lib" "${LLVM_LIBDIR}/LLVMMC.lib" "${LLVM_LIBDIR}/LLVMObject.lib" "${LLVM_LIBDIR}/LLVMBitReader.lib" "${LLVM_LIBDIR}/LLVMCore.lib" "${LLVM_LIBDIR}/LLVMSupport.lib")
+  set(LLVM_LIBS "${LLVM_LIBDIR}/LLVMipo.lib" "${LLVM_LIBDIR}/LLVMObjCARCOpts.lib" "${LLVM_LIBDIR}/LLVMVectorize.lib" "${LLVM_LIBDIR}/LLVMScalarOpts.lib" "${LLVM_LIBDIR}/LLVMInstCombine.lib" "${LLVM_LIBDIR}/LLVMTransformUtils.lib" "${LLVM_LIBDIR}/LLVMAnalysis.lib" "${LLVM_LIBDIR}/LLVMTarget.lib" "${LLVM_LIBDIR}/LLVMMC.lib" "${LLVM_LIBDIR}/LLVMObject.lib" "${LLVM_LIBDIR}/LLVMBitReader.lib" "${LLVM_LIBDIR}/LLVMCore.lib" "${LLVM_LIBDIR}/LLVMBinaryFormat.lib" "${LLVM_LIBDIR}/LLVMSupport.lib")
 
   set(OUTEXT "bpl")
   set(CLANG_OPTS "")
