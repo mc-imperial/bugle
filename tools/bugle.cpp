@@ -22,6 +22,7 @@
 #include "bugle/Module.h"
 #include "bugle/SourceLocWriter.h"
 #include "bugle/Preprocessing/ArgumentPromotionPass.h"
+#include "bugle/Preprocessing/ArgumentRenamePass.h"
 #include "bugle/Preprocessing/CycleDetectPass.h"
 #include "bugle/Preprocessing/InlinePass.h"
 #include "bugle/Preprocessing/RestrictDetectPass.h"
@@ -241,6 +242,7 @@ int main(int argc, char **argv) {
   }
   PM.add(createGlobalDCEPass());
   PM.add(new bugle::RestrictDetectPass(SourceLanguage, EP, AddressSpaces));
+  PM.add(new bugle::ArgumentRenamePass());
   PM.run(*M.get());
 
   bugle::TranslateModule TM(M.get(), SourceLanguage, EP, RaceInstrumentation,

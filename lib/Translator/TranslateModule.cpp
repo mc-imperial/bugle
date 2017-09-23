@@ -8,6 +8,7 @@
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
@@ -442,14 +443,15 @@ void TranslateModule::getSourceArrayDimensions(llvm::Type *T,
 }
 
 bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V,
-                                                    bool IsParameter) {
-  GlobalArray *&GA = ValueGlobalMap[V];
-  if (GA) {
-    if (IsParameter) {
-      GA->invalidateZeroDimension();
-    }
-    return GA;
+                                                    llvm::Function *F) {
+  if (!ValueFunctionMap.insert({V, F}).second) {
+    assert(!F || ValueFunctionMap[V] == F);
+    F = ValueFunctionMap[V];
   }
+
+  GlobalArray *&GA = ValueGlobalMap[V];
+  if (GA)
+    return GA;
 
   bugle::Type T(Type::BV, 8);
   auto PT = cast<PointerType>(V->getType());
@@ -464,13 +466,13 @@ bugle::GlobalArray *TranslateModule::getGlobalArray(llvm::Value *V,
   }
   auto ST = translateSourceArrayRangeType(PT->getElementType());
   std::vector<uint64_t> dim;
-  if (IsParameter)
+  if (F)
     dim.push_back(0);
   getSourceArrayDimensions(PT->getElementType(), dim);
   if (dim.size() == 0)
     dim.push_back(1);
-  std::string SN = getSourceGlobalArrayName(V);
-  GA = BM->addGlobal(V->getName(), T, SN, ST, dim, IsParameter);
+  std::string SN = getSourceGlobalArrayName(V, F);
+  GA = BM->addGlobal(V->getName(), T, SN, ST, dim, F);
   addGlobalArrayAttribs(GA, PT);
   GlobalValueMap[GA] = V;
   return GA;
@@ -582,20 +584,37 @@ std::string TranslateModule::getSourceFunctionName(llvm::Function *F) {
     }
   }
 
-  return F->getName().str();
+  return F->getName();
 }
 
-std::string TranslateModule::getSourceGlobalArrayName(llvm::Value *V) {
-  GlobalVariable *GV = dyn_cast<GlobalVariable>(V);
-  if (!GV)
+std::string TranslateModule::getSourceGlobalArrayName(llvm::Value *V,
+                                                      llvm::Function *F) {
+  if (auto GV = dyn_cast<GlobalVariable>(V)) {
+    SmallVector<DIGlobalVariableExpression *, 1> DIs;
+    GV->getDebugInfo(DIs);
+    if (DIs.size() > 0)
+      return DIs[0]->getVariable()->getName();
+
+    return GV->getName();
+  } else if (F) {
+    return getSourceFunctionArgumentName(V, F);
+  } else {
+    return V->getName();
+  }
+}
+
+std::string TranslateModule::getSourceFunctionArgumentName(llvm::Value *V,
+                                                           llvm::Function *F) {
+  if (F->isDeclaration())
     return V->getName();
 
-  SmallVector<DIGlobalVariableExpression *, 1> DIs;
-  GV->getDebugInfo(DIs);
-  if (DIs.size() > 0)
-    return DIs[0]->getVariable()->getName();
+  for (const auto &I : F->front()) {
+    if (const auto *DVI = dyn_cast<DbgValueInst>(&I))
+      if (DVI->getValue() == V)
+        return DVI->getVariable()->getName();
+  }
 
-  return GV->getName().str();
+  return V->getName();
 }
 
 // Convert the given unmodelled expression E to modelled form.

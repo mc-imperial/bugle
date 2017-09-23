@@ -460,7 +460,7 @@ void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
         i->getType()->getPointerElementType()->isFunctionTy())
       continue;
     if (ArraySize->first) {
-      GlobalArray *GA = TM->getGlobalArray(&*i, /*IsParameter=*/true);
+      GlobalArray *GA = TM->getGlobalArray(&*i, F);
       auto PTy = cast<PointerType>(i->getType());
       uint64_t ElementSize = TM->TD.getTypeAllocSize(PTy->getElementType());
       uint64_t size = ArraySize->second;
@@ -509,13 +509,14 @@ void TranslateFunction::createStructArrays() {
         (*i)->getType()->getPointerElementType()->isFunctionTy())
       continue;
 
-    GlobalArray *GA = TM->getGlobalArray(*i, /*IsParameter=*/true);
+    GlobalArray *GA = TM->getGlobalArray(*i, F);
     if (TM->SL == TranslateModule::SL_CUDA)
       GA->addAttribute("global");
     auto PtrExpr = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                                        BVConstExpr::createZero(PtrSize));
-    BF->addRequires(
-        EqExpr::create(ValueExprMap[*i], SafePtrToBVExpr::create(PtrSize, PtrExpr)), 0);
+    BF->addRequires(EqExpr::create(ValueExprMap[*i],
+                                   SafePtrToBVExpr::create(PtrSize, PtrExpr)),
+                    0);
   }
 
   delete BB;
@@ -541,14 +542,16 @@ void TranslateFunction::translate() {
   for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
     if (isGPUEntryPoint && i->getType()->isPointerTy() &&
         !i->getType()->getPointerElementType()->isFunctionTy()) {
-      GlobalArray *GA = TM->getGlobalArray(&*i, /*IsParameter=*/true);
+      GlobalArray *GA = TM->getGlobalArray(&*i, F);
       ++PtrArgs;
       if (TM->SL == TranslateModule::SL_CUDA)
         GA->addAttribute("global");
       ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                                               BVConstExpr::createZero(PtrSize));
     } else {
-      Var *V = BF->addArgument(TM->getModelledType(&*i), i->getName());
+      Var *V = BF->addArgument(
+          TM->getModelledType(&*i),
+          TranslateModule::getSourceFunctionArgumentName(&*i, F));
       ValueExprMap[&*i] = TM->unmodelValue(&*i, VarRefExpr::create(V));
     }
   }

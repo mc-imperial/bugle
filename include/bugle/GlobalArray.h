@@ -36,10 +36,6 @@ public:
     zeroDimensionValid = true;
   }
 
-  void invalidateZeroDimension() {
-    zeroDimensionValid = false;
-  }
-
   std::set<std::string>::const_iterator attrib_begin() const {
     return attributes.begin();
   }

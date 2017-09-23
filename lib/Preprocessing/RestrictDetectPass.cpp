@@ -77,7 +77,7 @@ void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
 
   auto i = AL.begin(), e = AL.end();
   do {
-    msg += "'" + (*i)->getName().str() + "'";
+    msg += "'" + TranslateModule::getSourceFunctionArgumentName(*i, &F) + "'";
     ++i;
     if (i != e)
       msg += ", ";
