@@ -218,10 +218,16 @@ __axiom(get_local_size(2) == 1)
 #ifdef __1D_GRID
 __axiom(get_num_groups(1) == 1)
 __axiom(get_num_groups(2) == 1)
+__axiom(get_work_dim() == 1)
 #endif
 
 #ifdef __2D_GRID
 __axiom(get_num_groups(2) == 1)
+__axiom(get_work_dim() == 2)
+#endif
+
+#ifdef __3D_GRID
+__axiom(get_work_dim() == 3)
 #endif
 
 // Generate axioms for input values

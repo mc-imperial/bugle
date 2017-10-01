@@ -379,6 +379,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["get_local_size"] = &TranslateFunction::handleGetLocalSize;
       fns["get_num_groups"] = &TranslateFunction::handleGetNumGroups;
       fns["get_global_offset"] = &TranslateFunction::handleGetGlobalOffset;
+      fns["get_work_dim"] = &TranslateFunction::handleGetWorkDim;
       fns["get_image_width"] = &TranslateFunction::handleGetImageWidth;
       fns["get_image_height"] = &TranslateFunction::handleGetImageHeight;
       {
@@ -1412,6 +1413,10 @@ static ref<Expr> mkGlobalOffset(bugle::Type t, ref<Expr> dim) {
   return SpecialVarRefExpr::create(t, mkDimName("global_offset", dim));
 }
 
+static ref<Expr> mkWorkDim(bugle::Type t) {
+  return SpecialVarRefExpr::create(t, "work_dim");
+}
+
 ref<Expr> TranslateFunction::handleGetLocalId(bugle::BasicBlock *BBB,
                                               llvm::CallInst *CI,
                                               const ExprVec &Args) {
@@ -1445,6 +1450,13 @@ ref<Expr> TranslateFunction::handleGetGlobalOffset(bugle::BasicBlock *BBB,
                                                    const ExprVec &Args) {
   Type t = TM->translateType(CI->getType());
   return mkGlobalOffset(t, Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleGetWorkDim(bugle::BasicBlock *BBB,
+                                              llvm::CallInst *CI,
+                                              const ExprVec &Args) {
+  Type t = TM->translateType(CI->getType());
+  return mkWorkDim(t);
 }
 
 ref<Expr> TranslateFunction::handleGetImageWidth(bugle::BasicBlock *BBB,
