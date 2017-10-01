@@ -26,10 +26,6 @@ typedef __SIZE_TYPE__ event_t;
 #include <opencl_limits.h>
 #include <opencl_atomics.h>
 
-void mem_fence(cl_mem_fence_flags flags);
-void read_mem_fence(cl_mem_fence_flags flags);
-void write_mem_fence(cl_mem_fence_flags flags);
-
 /* Images */
 #define image2d_t __bugle_image2d_t
 #define image3d_t __bugle_image3d_t
