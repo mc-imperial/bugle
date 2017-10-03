@@ -2221,9 +2221,15 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     ref<Expr> Vec = translateValue(EEI->getVectorOperand(), BBB),
               Idx = translateValue(EEI->getIndexOperand(), BBB);
     unsigned EltBits = TM->TD.getTypeSizeInBits(EEI->getType());
-    BVConstExpr *CEIdx = cast<BVConstExpr>(Idx);
-    unsigned UIdx = CEIdx->getValue().getZExtValue();
-    E = BVExtractExpr::create(Vec, EltBits * UIdx, EltBits);
+    unsigned ElemCount =
+        EEI->getVectorOperand()->getType()->getVectorNumElements();
+    E = BVExtractExpr::create(Vec, EltBits * 0, EltBits);
+    for (unsigned i = 1; i < ElemCount; ++i) {
+      ref<Expr> Cmp =
+          EqExpr::create(BVConstExpr::create(Idx->getType().width, i), Idx);
+      ref<Expr> Extract = BVExtractExpr::create(Vec, EltBits * i, EltBits);
+      E = IfThenElseExpr::create(Cmp, Extract, E);
+    }
   } else if (auto IEI = dyn_cast<InsertElementInst>(I)) {
     ref<Expr> Vec = translateValue(IEI->getOperand(0), BBB),
               NewElt = translateValue(IEI->getOperand(1), BBB),
