@@ -66,6 +66,7 @@ public:
     FuncPtrToPtr,
     BVToBool,
     BoolToBV,
+    BVCtpop,
     BVZExt,
     BVSExt,
     FPConv,
@@ -447,6 +448,7 @@ UNARY_EXPR(PtrToFuncPtr)
 UNARY_EXPR(FuncPtrToPtr)
 UNARY_EXPR(BVToBool)
 UNARY_EXPR(BoolToBV)
+UNARY_EXPR(BVCtpop)
 UNARY_EXPR(FAbs)
 UNARY_EXPR(FCeil)
 UNARY_EXPR(FCos)

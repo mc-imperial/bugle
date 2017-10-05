@@ -416,6 +416,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
 
     auto &ints = SpecialFunctionMap.Intrinsics;
     ints[Intrinsic::ceil] = &TranslateFunction::handleCeil;
+    ints[Intrinsic::ctpop] = &TranslateFunction::handleCtpop;
     ints[Intrinsic::cos] = &TranslateFunction::handleCos;
     ints[Intrinsic::ctlz] = &TranslateFunction::handleCtlz;
     ints[Intrinsic::exp2] = &TranslateFunction::handleExp;
@@ -1592,6 +1593,15 @@ ref<Expr> TranslateFunction::handleCeil(bugle::BasicBlock *BBB,
   return maybeTranslateSIMDInst(
       BBB, Ty, Ty, Args[0],
       [&](llvm::Type *T, ref<Expr> E) { return FCeilExpr::create(E); });
+}
+
+ref<Expr> TranslateFunction::handleCtpop(bugle::BasicBlock *BBB,
+                                         llvm::CallInst *CI,
+                                         const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  return maybeTranslateSIMDInst(
+      BBB, Ty, Ty, Args[0],
+      [&](llvm::Type *T, ref<Expr> E) { return BVCtpopExpr::create(E); });
 }
 
 ref<Expr> TranslateFunction::handleCos(bugle::BasicBlock *BBB,

@@ -261,6 +261,11 @@ ref<Expr> UIToFPExpr::create(unsigned width, ref<Expr> expr) {
   return new UIToFPExpr(Type(Type::BV, width), expr);
 }
 
+ref<Expr> BVCtpopExpr::create(ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::BV));
+  return new BVCtpopExpr(expr->getType(), expr);
+}
+
 ref<Expr> FAbsExpr::create(ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
   return new FAbsExpr(expr->getType(), expr);

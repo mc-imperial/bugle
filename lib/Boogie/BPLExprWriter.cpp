@@ -398,6 +398,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     switch (UnE->getKind()) {
     case Expr::BVToPtr:
     case Expr::BVToFuncPtr:
+    case Expr::BVCtpop:
     case Expr::FAbs:
     case Expr::FCeil:
     case Expr::FCos:
@@ -439,6 +440,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
                                       << ToWidth;                 break;
       case Expr::PtrToFuncPtr:   IntS << "PTR_TO_FUNCPTR";        break;
       case Expr::FuncPtrToPtr:   IntS << "FUNCPTR_TO_PTR";        break;
+      case Expr::BVCtpop:        IntS << "BV" << FromWidth
+                                      << "_CTPOP";                break;
       case Expr::FAbs:           IntS << "FABS" << ToWidth;       break;
       case Expr::FCeil:          IntS << "FCEIL" << ToWidth;      break;
       case Expr::FCos:           IntS << "FCOS" << ToWidth;       break;
