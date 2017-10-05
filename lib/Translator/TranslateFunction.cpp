@@ -2295,7 +2295,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         if (E.isNull())
           return;
       } else {
-        std::string name = Intrinsic::getName(ID);
+        std::string name = Intrinsic::getName(ID, {});
         std::string msg = "Intrinsic '" + name + "' not supported";
         ErrorReporter::reportImplementationLimitation(msg);
       }
