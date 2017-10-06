@@ -436,6 +436,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::trunc] = &TranslateFunction::handleTrunc;
     ints[Intrinsic::uadd_with_overflow] = &TranslateFunction::handleUaddOvl;
     ints[Intrinsic::sadd_with_overflow] = &TranslateFunction::handleSaddOvl;
+    ints[Intrinsic::ssub_with_overflow] = &TranslateFunction::handleSsubOvl;
     ints[Intrinsic::dbg_value] = &TranslateFunction::handleNoop;
     ints[Intrinsic::dbg_declare] = &TranslateFunction::handleNoop;
     ints[Intrinsic::memset] = &TranslateFunction::handleMemset;
@@ -1839,6 +1840,39 @@ ref<Expr> TranslateFunction::handleUaddOvl(bugle::BasicBlock *BBB,
   }
 
   return BVConcatExpr::create(OvlResult, AddResult);
+}
+
+ref<Expr> TranslateFunction::handleSsubOvl(bugle::BasicBlock *BBB,
+                                           llvm::CallInst *CI,
+                                           const ExprVec &Args) {
+  llvm::StructType *STy = cast<StructType>(CI->getType());
+  llvm::Type *SubTy = STy->getElementType(0), *OvlTy = STy->getElementType(1);
+  unsigned BitWidth = cast<IntegerType>(SubTy)->getBitWidth();
+
+  ref<Expr> SubResult = BVSubExpr::create(Args[0], Args[1]),
+            Arg0Sign = BVExtractExpr::create(Args[0], BitWidth - 1, 1),
+            Arg1Sign = BVExtractExpr::create(Args[1], BitWidth - 1, 1),
+            AddSign = BVExtractExpr::create(SubResult, BitWidth - 1, 1);
+
+  // Overflow if the sign bit of the first argument differs from both the sign
+  // bit of the second argument and the sign bit of the result.
+  ref<Expr> OvlResult = BoolToBVExpr::create(AndExpr::create(
+      NeExpr::create(Arg0Sign, Arg1Sign), NeExpr::create(Arg0Sign, AddSign)));
+
+  if (TM->TD.getTypeAllocSize(SubTy) * 8 != BitWidth) {
+    ref<Expr> pad =
+        BVConstExpr::createZero(TM->TD.getTypeAllocSize(SubTy) * 8 - BitWidth);
+    SubResult = BVConcatExpr::create(pad, SubResult);
+  }
+
+  assert(cast<IntegerType>(OvlTy)->getBitWidth() == 1);
+  if (TM->TD.getTypeAllocSize(OvlTy) * 8 != 1) {
+    ref<Expr> pad =
+        BVConstExpr::createZero(TM->TD.getTypeAllocSize(OvlTy) * 8 - 1);
+    OvlResult = BVConcatExpr::create(pad, OvlResult);
+  }
+
+  return BVConcatExpr::create(OvlResult, SubResult);
 }
 
 ref<Expr> TranslateFunction::handleAddNoovflUnsigned(bugle::BasicBlock *BBB,
