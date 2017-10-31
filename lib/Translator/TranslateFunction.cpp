@@ -425,6 +425,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     ints[Intrinsic::fmuladd] = &TranslateFunction::handleFma;
     ints[Intrinsic::floor] = &TranslateFunction::handleFloor;
     ints[Intrinsic::log] = &TranslateFunction::handleLog;
+    ints[Intrinsic::log10] = &TranslateFunction::handleLog10;
     ints[Intrinsic::log2] = &TranslateFunction::handleLog2;
     ints[Intrinsic::maxnum] = &TranslateFunction::handleFmax;
     ints[Intrinsic::minnum] = &TranslateFunction::handleFmin;
@@ -1703,6 +1704,15 @@ ref<Expr> TranslateFunction::handleLog(bugle::BasicBlock *BBB,
   return maybeTranslateSIMDInst(
       BBB, Ty, Ty, Args[0],
       [&](llvm::Type *T, ref<Expr> E) { return FLogExpr::create(E); });
+}
+
+ref<Expr> TranslateFunction::handleLog10(bugle::BasicBlock *BBB,
+                                         llvm::CallInst *CI,
+                                         const ExprVec &Args) {
+  llvm::Type *Ty = CI->getType();
+  return maybeTranslateSIMDInst(
+      BBB, Ty, Ty, Args[0],
+      [&](llvm::Type *T, ref<Expr> E) { return FLog10Expr::create(E); });
 }
 
 ref<Expr> TranslateFunction::handleLog2(bugle::BasicBlock *BBB,

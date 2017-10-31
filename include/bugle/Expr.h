@@ -80,6 +80,7 @@ public:
     FExp,
     FFloor,
     FLog,
+    FLog10,
     FLog2,
     FrexpExp,
     FrexpFrac,
@@ -455,6 +456,7 @@ UNARY_EXPR(FCos)
 UNARY_EXPR(FExp)
 UNARY_EXPR(FFloor)
 UNARY_EXPR(FLog)
+UNARY_EXPR(FLog10)
 UNARY_EXPR(FLog2)
 UNARY_EXPR(FrexpFrac)
 UNARY_EXPR(FRint)
