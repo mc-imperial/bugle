@@ -1,3 +1,6 @@
+Bugle
+=====
+
 Compiling on OS X/Linux
 -----------------------
 
