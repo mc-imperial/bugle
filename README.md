@@ -1,6 +1,8 @@
 Bugle
 =====
 
+[![Build Status](https://travis-ci.org/mc-imperial/bugle.svg?branch=master)](https://travis-ci.org/mc-imperial/bugle)
+
 GPUVerify's LLVM IR to Boogie translator.
 
 Compiling on OS X/Linux
