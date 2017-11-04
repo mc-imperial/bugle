@@ -1,0 +1,26 @@
+language: cpp
+
+sudo: false
+dist: trusty
+
+matrix:
+  include:
+    - os: linux
+      env:
+        - LLVM_VERSION=5.0
+        - LLVM_CONFIG="llvm-config-${LLVM_VERSION}"
+      addons:
+        apt:
+          sources:
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - g++-4.8
+            # From sources above
+            - llvm-5.0-dev
+            - clang-5.0
+
+script:
+  mkdir build && cd build
+  cmake -G ninja -DLLVM_CONFIG_EXECUTABLE=$LLVM_CONFIG -DCMAKE_BUILD_TYPE=Release ..
+  ninja
+
