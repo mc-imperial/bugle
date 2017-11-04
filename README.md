@@ -15,9 +15,11 @@ Compiling on OS X/Linux
      $ ./configure.py nvptx--
 
 3. Run CMake from a build directory:
-     $ mkdir /path/to/bugle-build
-     $ cd /path/to/bugle-build
-     $ cmake -DCMAKE_PREFIX_PATH=/path/to/llvm-build -DCMAKE_BUILD_TYPE=Release -DLIBCLC_DIR=/path/to/libclc /path/to/bugle
+   ```
+   $ mkdir /path/to/bugle-build
+   $ cd /path/to/bugle-build
+   $ cmake -DCMAKE_PREFIX_PATH=/path/to/llvm-build -DCMAKE_BUILD_TYPE=Release -DLIBCLC_DIR=/path/to/libclc /path/to/bugle
+   ```
    The LIBCLC_DIR parameter is optional.  Be sure to select the same
    build type (CMAKE_BUILD_TYPE) used when compiling LLVM.
 
@@ -37,9 +39,11 @@ Compiling on Windows
    and copy the contents of libclc-inst to the Windows machine.
 
 3. Run CMake from a build directory:
-     $ mkdir C:\path\to\bugle-build
-     $ cd C:\path\to\bugle-build
-     $ cmake -G "Visual Studio 11" -DLLVM_SRC=C:\path\to\llvm-source -DLLVM_BUILD=C:\path\to\llvm-build -DLIBCLC_DIR=C:\path\to\libclc-inst -DLLVM_BUILD_TYPE=Release C:\path\to\bugle
+   ```
+   $ mkdir C:\path\to\bugle-build
+   $ cd C:\path\to\bugle-build
+   $ cmake -G "Visual Studio 11" -DLLVM_SRC=C:\path\to\llvm-source -DLLVM_BUILD=C:\path\to\llvm-build -DLIBCLC_DIR=C:\path\to\libclc-inst -DLLVM_BUILD_TYPE=Release C:\path\to\bugle
+   ```
    The LIBCLC_DIR parameter is optional.  Be sure to select the same
    build type (LLVM_BUILD_TYPE) used when compiling LLVM.
 
