@@ -1,14 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(Bugle)
 
-set(LIBCLC_DIR "" CACHE PATH "Path to libclc")
-
-set(CLBLANG_CLANG_OPTS "-Xclang -cl-std=CL1.2 -O0 -target nvptx-- -I${LIBCLC_DIR}/generic/include -Xclang -mlink-bitcode-file -Xclang ${LIBCLC_DIR}/lib/clc/nvptx--.bc -Dcl_khr_fp64 -Dcl_clang_storage_class_specifiers -D__OPENCL_VERSION__")
-set(CLBLANG_BUGLE_OPTS "-l cl")
-
-set(CUBLANG_CLANG_OPTS "-target nvptx-- -emit-llvm -Xclang -fcuda-is-device -D__CUDA_ARCH__")
-set(CUBLANG_BUGLE_OPTS "-l cu")
-
 if (NOT WIN32 OR MSYS OR CYGWIN)
   find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config DOC "llvm-config executable")
   if(LLVM_CONFIG_EXECUTABLE STREQUAL "LLVM_CONFIG_EXECUTABLE-NOTFOUND")
@@ -74,23 +66,6 @@ if (NOT WIN32 OR MSYS OR CYGWIN)
     set(PLUGIN_LDFLAGS "-Wl,-undefined,dynamic_lookup")
   endif()
 
-  set(EXT ".c")
-  set(OUTEXT "bpl")
-  set(CLANG_OPTS "")
-  set(BUGLE_OPTS "")
-  configure_file(${CMAKE_SOURCE_DIR}/blang.sh.in ${CMAKE_BINARY_DIR}/blang @ONLY)
-
-  set(EXT ".cl")
-  set(OUTEXT "gbpl")
-  set(CLANG_OPTS "${CLBLANG_CLANG_OPTS}")
-  set(BUGLE_OPTS "${CLBLANG_BUGLE_OPTS}")
-  configure_file(${CMAKE_SOURCE_DIR}/blang.sh.in ${CMAKE_BINARY_DIR}/clblang @ONLY)
-
-  set(EXT ".cu")
-  set(OUTEXT "gbpl")
-  set(CLANG_OPTS "${CUBLANG_CLANG_OPTS}")
-  set(BUGLE_OPTS "${CUBLANG_BUGLE_OPTS}")
-  configure_file(${CMAKE_SOURCE_DIR}/blang.sh.in ${CMAKE_BINARY_DIR}/cublang @ONLY)
 else()
   set(LLVM_SRC "" CACHE PATH "LLVM source directory")
   set(LLVM_BUILD "" CACHE PATH "LLVM build directory")
@@ -109,20 +84,6 @@ else()
   set(LLVM_LDFLAGS "")
   set(LLVM_LIBS "${LLVM_LIBDIR}/LLVMipo.lib" "${LLVM_LIBDIR}/LLVMObjCARCOpts.lib" "${LLVM_LIBDIR}/LLVMVectorize.lib" "${LLVM_LIBDIR}/LLVMScalarOpts.lib" "${LLVM_LIBDIR}/LLVMInstCombine.lib" "${LLVM_LIBDIR}/LLVMTransformUtils.lib" "${LLVM_LIBDIR}/LLVMAnalysis.lib" "${LLVM_LIBDIR}/LLVMTarget.lib" "${LLVM_LIBDIR}/LLVMMC.lib" "${LLVM_LIBDIR}/LLVMObject.lib" "${LLVM_LIBDIR}/LLVMBitReader.lib" "${LLVM_LIBDIR}/LLVMCore.lib" "${LLVM_LIBDIR}/LLVMBinaryFormat.lib" "${LLVM_LIBDIR}/LLVMSupport.lib")
 
-  set(OUTEXT "bpl")
-  set(CLANG_OPTS "")
-  set(BUGLE_OPTS "")
-  configure_file(${CMAKE_SOURCE_DIR}/blang.bat.in ${CMAKE_BINARY_DIR}/blang.bat)
-
-  set(OUTEXT "gbpl")
-  set(CLANG_OPTS "${CLBLANG_CLANG_OPTS}")
-  set(BUGLE_OPTS "${CLBLANG_BUGLE_OPTS}")
-  configure_file(${CMAKE_SOURCE_DIR}/blang.bat.in ${CMAKE_BINARY_DIR}/clblang.bat)
-
-  set(OUTEXT "gbpl")
-  set(CLANG_OPTS "${CUBLANG_CLANG_OPTS}")
-  set(BUGLE_OPTS "${CUBLANG_BUGLE_OPTS}")
-  configure_file(${CMAKE_SOURCE_DIR}/blang.bat.in ${CMAKE_BINARY_DIR}/cublang.bat)
 endif()
 
 include_directories(include)

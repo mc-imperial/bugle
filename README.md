@@ -1,62 +1,42 @@
 Bugle
 =====
 
+GPUVerify's LLVM IR to Boogie translator.
+
 Compiling on OS X/Linux
 -----------------------
 
-1. Compile LLVM and Clang, as usual.
-   http://clang.llvm.org/get_started.html
+1. Build LLVM and Clang, as usual (see http://clang.llvm.org/get_started.html).
 
-2. (Optional, only required when compiling OpenCL kernels)
-   Compile libclc: http://libclc.llvm.org/
-   When configuring libclc, supply the parameter 'nvptx--'
-   to configure.py in order to build the Bugle version of the library.
-   e.g.
-     $ ./configure.py nvptx--
-
-3. Run CMake from a build directory:
+2. Run CMake from a build directory:
    ```
    $ mkdir /path/to/bugle-build
    $ cd /path/to/bugle-build
-   $ cmake -DCMAKE_PREFIX_PATH=/path/to/llvm-build -DCMAKE_BUILD_TYPE=Release -DLIBCLC_DIR=/path/to/libclc /path/to/bugle
+   $ cmake -DCMAKE_PREFIX_PATH=/path/to/llvm-build -DCMAKE_BUILD_TYPE=Release /path/to/bugle
    ```
-   The LIBCLC_DIR parameter is optional.  Be sure to select the same
-   build type (CMAKE_BUILD_TYPE) used when compiling LLVM.
+   Be sure to select the same build type (CMAKE_BUILD_TYPE) used when compiling
+   LLVM.
 
-4. Run 'make' from the build directory.
+3. Run 'make' from the build directory.
 
 Compiling on Windows
 --------------------
 
-1. Compile LLVM and Clang, as usual.
-   http://clang.llvm.org/get_started.html
+1. Build LLVM and Clang, as usual (see http://clang.llvm.org/get_started.html).
 
-2. (Optional, only required when compiling OpenCL kernels)
-   Build libclc on an OS X/Linux machine, following the instructions
-   above, but supply one additional parameter to configure.py:
-     --prefix=/path/to/libclc-inst
-   Install libclc to the libclc-inst directory using "make install",
-   and copy the contents of libclc-inst to the Windows machine.
-
-3. Run CMake from a build directory:
+2. Run CMake from a build directory:
    ```
    $ mkdir C:\path\to\bugle-build
    $ cd C:\path\to\bugle-build
-   $ cmake -G "Visual Studio 11" -DLLVM_SRC=C:\path\to\llvm-source -DLLVM_BUILD=C:\path\to\llvm-build -DLIBCLC_DIR=C:\path\to\libclc-inst -DLLVM_BUILD_TYPE=Release C:\path\to\bugle
+   $ cmake -G "Visual Studio 14.0" -DLLVM_SRC=C:\path\to\llvm-source -DLLVM_BUILD=C:\path\to\llvm-build -DLLVM_BUILD_TYPE=Release C:\path\to\bugle
    ```
-   The LIBCLC_DIR parameter is optional.  Be sure to select the same
-   build type (LLVM_BUILD_TYPE) used when compiling LLVM.
+   Be sure to select the same build type (LLVM_BUILD_TYPE) used when compiling
+   LLVM.
 
-4. Open the Visual Studio project 'Bugle.sln'.  When building, use the build
+3. Open the Visual Studio project 'Bugle.sln'.  When building, use the build
    type you used for LLVM.
 
 Running Bugle
 -------------
 
-To build a Boogie program using Bugle, use one of the convenience
-scripts located in the Bugle build directory: blang (for C/C++) or
-clblang (for OpenCL).  These scripts generate LLVM IR using Clang
-which is then passed to Bugle.  For example:
-
-  $ blang main.c                       # Generates main.bpl
-  $ clblang kernel.cl                  # Generates kernel.gbpl
+Bugle is best run as part of GPUVerify. 
