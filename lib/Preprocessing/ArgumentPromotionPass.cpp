@@ -3,7 +3,9 @@
 #include "bugle/util/ErrorReporter.h"
 #include "llvm/Pass.h"
 #include "llvm/IR/CallSite.h"
+#include "llvm/IR/DIBuilder.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Support/raw_ostream.h"
 #include <set>
@@ -136,6 +138,7 @@ void ArgumentPromotionPass::replaceMetaData(llvm::Function *F,
 }
 
 void ArgumentPromotionPass::spliceBody(llvm::Function *F, llvm::Function *NF) {
+  DIBuilder DIB(*M);
   const DataLayout &DL = F->getParent()->getDataLayout();
 
   NF->getBasicBlockList().splice(NF->begin(), F->getBasicBlockList());
@@ -144,6 +147,35 @@ void ArgumentPromotionPass::spliceBody(llvm::Function *F, llvm::Function *NF) {
        ++i, ++ni) {
     Value *AI = &*ni;
     ni->takeName(&*i);
+
+    // The splice function does not update the relevant debug intrinsics. Update
+    // these manually.
+    llvm::SmallPtrSet<DbgValueInst *, 32> DVIs;
+    llvm::SmallPtrSet<DbgDeclareInst *, 32> DDIs;
+    for (auto &BB : *NF) {
+      for (auto &I : BB) {
+        if (auto *DVI = dyn_cast<DbgValueInst>(&I))
+          if (DVI->getValue() == &*i)
+            DVIs.insert(DVI);
+        if (auto *DDI = dyn_cast<DbgDeclareInst>(&I))
+          if (DDI->getAddress() == &*i)
+            DDIs.insert(DDI);
+      }
+    }
+
+    for (auto *DVI : DVIs) {
+      DIB.insertDbgValueIntrinsic(AI, DVI->getOffset(), DVI->getVariable(),
+                                  DVI->getExpression(), DVI->getDebugLoc(),
+                                  DVI);
+      DVI->eraseFromParent();
+    }
+
+    for (auto *DDI : DDIs) {
+      DIB.insertDbgValueIntrinsic(AI, 0, DDI->getVariable(),
+                                  DDI->getExpression(), DDI->getDebugLoc(),
+                                  DDI);
+      DDI->eraseFromParent();
+    }
 
     // Copy the value of the function argument into locally allocated space
     if (i->hasByValAttr()) {
