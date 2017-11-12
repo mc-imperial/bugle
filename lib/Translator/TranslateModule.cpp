@@ -846,7 +846,6 @@ void TranslateModule::translate() {
     BM->setPointerWidth(TD.getPointerSizeInBits());
 
     for (auto i = M->begin(), e = M->end(); i != e; ++i) {
-
       if (TranslateFunction::isUninterpretedFunction(i->getName())) {
         TranslateFunction::addUninterpretedFunction(SL, i->getName());
       }

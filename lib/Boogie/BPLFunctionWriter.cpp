@@ -418,7 +418,7 @@ void BPLFunctionWriter::write() {
 
     if (F->isEntryPoint()) {
       OS << MW->getGlobalInitRequires();
-    };
+    }
 
     for (auto i = F->requires_begin(), e = F->requires_end(); i != e; ++i) {
       OS << "requires ";

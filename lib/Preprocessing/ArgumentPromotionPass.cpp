@@ -193,10 +193,11 @@ bool ArgumentPromotionPass::runOnModule(llvm::Module &M) {
   bool promoted = false;
   this->M = &M;
 
-  for (auto i = M.begin(), e = M.end(); i != e; ++i)
+  for (auto i = M.begin(), e = M.end(); i != e; ++i) {
     if (usesFunctionPointers(&*i)) {
       return false;
     }
+  }
 
   for (auto i = M.begin(), e = M.end(); i != e; ++i) {
     if (needsPromotion(&*i) && canPromote(&*i)) {

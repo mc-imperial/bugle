@@ -33,8 +33,8 @@ public:
   virtual SourceLocsRef &getSourceLocs() { return sourcelocs; }
 
 protected:
-  Stmt() {};
-  Stmt(const SourceLocsRef &sourcelocs) : sourcelocs(sourcelocs) {};
+  Stmt() {}
+  Stmt(const SourceLocsRef &sourcelocs) : sourcelocs(sourcelocs) {}
 
 private:
   SourceLocsRef sourcelocs;
@@ -47,7 +47,7 @@ private:
 
 class EvalStmt : public Stmt {
   EvalStmt(ref<Expr> expr, const SourceLocsRef &sourcelocs)
-      : Stmt(sourcelocs), expr(expr) {};
+      : Stmt(sourcelocs), expr(expr) {}
   ref<Expr> expr;
 
 public:
@@ -61,7 +61,7 @@ public:
 class StoreStmt : public Stmt {
   StoreStmt(ref<Expr> array, ref<Expr> offset, ref<Expr> value,
             const SourceLocsRef &sourcelocs)
-      : Stmt(sourcelocs), array(array), offset(offset), value(value){};
+      : Stmt(sourcelocs), array(array), offset(offset), value(value) {}
   ref<Expr> array;
   ref<Expr> offset;
   ref<Expr> value;
@@ -79,7 +79,7 @@ public:
 class VarAssignStmt : public Stmt {
   VarAssignStmt(const std::vector<Var *> &vars,
                 const std::vector<ref<Expr>> &values)
-      : vars(vars), values(values) {};
+      : vars(vars), values(values) {}
   std::vector<Var *> vars;
   std::vector<ref<Expr>> values;
 
@@ -124,7 +124,7 @@ public:
 
 class AssumeStmt : public Stmt {
   AssumeStmt(ref<Expr> pred, bool partition)
-      : pred(pred), partition(partition) {};
+      : pred(pred), partition(partition) {}
   ref<Expr> pred;
   bool partition;
 
@@ -144,7 +144,7 @@ public:
 class AssertStmt : public Stmt {
   AssertStmt(ref<Expr> pred, const SourceLocsRef &sourcelocs)
       : Stmt(sourcelocs), pred(pred), global(false), candidate(false),
-        invariant(false), badAccess(false), blockSourceLoc(false) {};
+        invariant(false), badAccess(false), blockSourceLoc(false) {}
   ref<Expr> pred;
   bool global;
   bool candidate;
@@ -189,7 +189,7 @@ public:
 class CallMemberOfStmt : public Stmt {
   CallMemberOfStmt(ref<Expr> func, std::vector<Stmt *> &callStmts,
                    const SourceLocsRef &sourcelocs)
-      : Stmt(sourcelocs), func(func), callStmts(callStmts) {};
+      : Stmt(sourcelocs), func(func), callStmts(callStmts) {}
   ref<Expr> func;
   std::vector<Stmt *> callStmts;
 
