@@ -608,10 +608,12 @@ std::string TranslateModule::getSourceFunctionArgumentName(llvm::Value *V,
   if (F->isDeclaration())
     return V->getName();
 
-  for (const auto &I : F->front()) {
-    if (const auto *DVI = dyn_cast<DbgValueInst>(&I))
-      if (DVI->getValue() == V)
-        return DVI->getVariable()->getName();
+  for (const auto &BB : *F) {
+    for (const auto &I : BB) {
+      if (const auto *DVI = dyn_cast<DbgValueInst>(&I))
+        if (DVI->getValue() == V)
+          return DVI->getVariable()->getName();
+    }
   }
 
   return V->getName();
