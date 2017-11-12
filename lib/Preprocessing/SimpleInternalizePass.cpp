@@ -17,7 +17,8 @@ bool SimpleInternalizePass::isEntryPoint(llvm::Function *F) {
 }
 
 bool SimpleInternalizePass::doInternalize(llvm::Function *F) {
-  if (!TranslateFunction::isNormalFunction(SL, F) || isEntryPoint(F))
+  if (!TranslateFunction::isNormalFunction(SL, F) || isEntryPoint(F) ||
+      F->isDeclaration())
     return false;
 
   F->setVisibility(GlobalValue::DefaultVisibility);
