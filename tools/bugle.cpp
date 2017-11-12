@@ -231,7 +231,6 @@ int main(int argc, char **argv) {
 
   legacy::PassManager PM;
   PM.add(new bugle::ArgumentPromotionPass(SourceLanguage, EP));
-  PM.add(createPromoteMemoryToRegisterPass());
   if (Inlining) {
     PM.add(new bugle::CycleDetectPass());
     PM.add(new bugle::InlinePass(SourceLanguage, EP));
@@ -240,9 +239,13 @@ int main(int argc, char **argv) {
     PM.add(new bugle::SimpleInternalizePass(SourceLanguage, EP,
                                             OnlyExplicitGPUEntryPoints));
   }
+  PM.add(createPromoteMemoryToRegisterPass());
   PM.add(createGlobalDCEPass());
   PM.add(new bugle::RestrictDetectPass(SourceLanguage, EP, AddressSpaces));
   PM.add(new bugle::ArgumentRenamePass());
+#ifndef NDEBUG
+  PM.add(createVerifierPass());
+#endif
   PM.run(*M.get());
 
   bugle::TranslateModule TM(M.get(), SourceLanguage, EP, RaceInstrumentation,
