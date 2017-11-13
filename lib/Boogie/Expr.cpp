@@ -286,6 +286,11 @@ ref<Expr> FExpExpr::create(ref<Expr> expr) {
   return new FExpExpr(expr->getType(), expr);
 }
 
+ref<Expr> FExp2Expr::create(ref<Expr> expr) {
+  assert(expr->getType().isKind(Type::BV));
+  return new FExp2Expr(expr->getType(), expr);
+}
+
 ref<Expr> FLogExpr::create(ref<Expr> expr) {
   assert(expr->getType().isKind(Type::BV));
   return new FLogExpr(expr->getType(), expr);

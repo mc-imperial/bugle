@@ -78,6 +78,7 @@ public:
     FCeil,
     FCos,
     FExp,
+    FExp2,
     FFloor,
     FLog,
     FLog10,
@@ -454,6 +455,7 @@ UNARY_EXPR(FAbs)
 UNARY_EXPR(FCeil)
 UNARY_EXPR(FCos)
 UNARY_EXPR(FExp)
+UNARY_EXPR(FExp2)
 UNARY_EXPR(FFloor)
 UNARY_EXPR(FLog)
 UNARY_EXPR(FLog10)

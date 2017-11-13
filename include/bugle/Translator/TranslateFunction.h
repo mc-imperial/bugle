@@ -79,10 +79,11 @@ class TranslateFunction {
       handleWaitGroupEvents;
 
   SpecialFnHandler handleCeil, handleCtpop, handleCos, handleCtlz, handleExp,
-      handleFabs, handleFmax, handleFmin, handleFloor, handleFrexpExp,
-      handleFrexpFrac, handleFma, handleLog, handleLog10, handleLog2, handlePow,
-      handlePowi, handleRint, handleRsqrt, handleSaddOvl, handleSin, handleSqrt,
-      handleSsubOvl, handleTrunc, handleUaddOvl, handleUsubOvl;
+      handleExp2, handleFabs, handleFmax, handleFmin, handleFloor,
+      handleFrexpExp, handleFrexpFrac, handleFma, handleLog, handleLog10,
+      handleLog2, handlePow, handlePowi, handleRint, handleRsqrt, handleSaddOvl,
+      handleSin, handleSqrt, handleSsubOvl, handleTrunc, handleUaddOvl,
+      handleUsubOvl;
 
   SpecialFnHandler handleAtomic;
 
