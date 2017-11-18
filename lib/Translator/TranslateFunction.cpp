@@ -949,6 +949,10 @@ ref<Expr> TranslateFunction::handleOld(bugle::BasicBlock *BBB,
 ref<Expr> TranslateFunction::handleReturnVal(bugle::BasicBlock *BBB,
                                              llvm::CallInst *CI,
                                              const ExprVec &Args) {
+  if (TM->getModelledType(CI).width != ReturnVar->getType().width)
+    ErrorReporter::reportFatalError(
+        "Type of __return_val function does not match return type");
+
   return TM->unmodelValue(F, VarRefExpr::create(ReturnVar));
 }
 
