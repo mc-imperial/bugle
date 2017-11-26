@@ -7,7 +7,6 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/IntrinsicInst.h"
 #include "llvm/IR/Module.h"
-#include "llvm/Support/raw_ostream.h"
 #include <set>
 #include <vector>
 
@@ -25,7 +24,7 @@ bool ArgumentPromotionPass::needsPromotion(llvm::Function *F) {
 }
 
 bool ArgumentPromotionPass::canPromote(llvm::Function *F) {
-  for (auto i = F->uses().begin(), e = F->uses().end(); i != e; ++i) {
+  for (auto i = F->users().begin(), e = F->users().end(); i != e; ++i) {
     CallSite CS(*i);
     if (!CS.getInstruction())
       return false;
@@ -92,7 +91,7 @@ void ArgumentPromotionPass::updateCallSite(CallSite *CS, llvm::Function *F,
 
   // Create load instruction for each promoted argument and keep track of the
   // attributes from every other argument
-  unsigned ArgNo = 1;
+  unsigned ArgNo = 0;
   for (auto i = CS->arg_begin(), e = CS->arg_end(); i != e; ++i, ++ArgNo) {
     if (CS->isByValArgument(ArgNo)) {
       NewArgs.push_back(new LoadInst(*i, (*i)->getName() + ".val", CI));
