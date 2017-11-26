@@ -27,6 +27,7 @@
 #include "bugle/Preprocessing/InlinePass.h"
 #include "bugle/Preprocessing/RestrictDetectPass.h"
 #include "bugle/Preprocessing/SimpleInternalizePass.h"
+#include "bugle/Preprocessing/Vector3SimplificationPass.h"
 #include "bugle/RaceInstrumenter.h"
 #include "bugle/Transform/SimplifyStmt.h"
 #include "bugle/Translator/TranslateModule.h"
@@ -231,6 +232,7 @@ int main(int argc, char **argv) {
 
   legacy::PassManager PM;
   PM.add(new bugle::ArgumentPromotionPass(SourceLanguage, EP));
+  PM.add(new bugle::Vector3SimplificationPass());
   if (Inlining) {
     PM.add(new bugle::CycleDetectPass());
     PM.add(new bugle::InlinePass(SourceLanguage, EP));

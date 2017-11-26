@@ -127,12 +127,14 @@ add_library(buglePreprocessing STATIC
   lib/Preprocessing/InlinePass.cpp
   lib/Preprocessing/RestrictDetectPass.cpp
   lib/Preprocessing/SimpleInternalizePass.cpp
+  lib/Preprocessing/Vector3SimplificationPass.cpp
   include/bugle/Preprocessing/ArgumentPromotionPass.h
   include/bugle/Preprocessing/ArgumentRenamePass.h
   include/bugle/Preprocessing/CycleDetectPass.h
   include/bugle/Preprocessing/InlinePass.h
   include/bugle/Preprocessing/RestrictDetectPass.h
   include/bugle/Preprocessing/SimpleInternalizePass.h
+  include/bugle/Preprocessing/Vector3SimplificationPass.h
 )
 
 add_library(bugleTranslator STATIC
