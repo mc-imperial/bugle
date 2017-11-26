@@ -109,6 +109,10 @@ private:
   ref<Expr> translateEV(ref<Expr> Agg, klee::ev_type_iterator begin,
                         klee::ev_type_iterator end,
                         std::function<ref<Expr>(llvm::Value *)> xlate);
+  ref<Expr> translateIV(ref<Expr> Agg, ref<Expr> Val,
+                        klee::iv_type_iterator begin,
+                        klee::iv_type_iterator end,
+                        std::function<ref<Expr>(llvm::Value *)> xlate);
   ref<Expr> translateBitCast(llvm::Type *SrcTy, llvm::Type *DestTy,
                              ref<Expr> Op);
   ref<Expr> translateArbitrary(Type t);

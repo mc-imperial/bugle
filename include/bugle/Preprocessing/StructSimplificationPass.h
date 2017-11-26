@@ -4,13 +4,23 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/Pass.h"
 
+namespace llvm {
+template <typename T, unsigned N> class SmallVector;
+}
+
 namespace bugle {
 
 class StructSimplificationPass : public llvm::FunctionPass {
 private:
   bool isGetElementPtrAllocaChain(llvm::Value *V);
-  llvm::Value *getExtractValueChain(llvm::Value *V, llvm::LoadInst *LI);
+  llvm::AllocaInst *getAllocaAndIndexes(llvm::Value *V,
+                                        llvm::SmallVector<unsigned, 32> &Idxs);
+
+  void simplifySingleLoad(llvm::LoadInst *LI);
   bool simplifyLoads(llvm::Function &F);
+
+  void simplifySingleStore(llvm::StoreInst *SI);
+  bool simplifyStores(llvm::Function &F);
 
 public:
   static char ID;
@@ -18,7 +28,7 @@ public:
   StructSimplificationPass() : FunctionPass(ID) {}
 
   llvm::StringRef getPassName() const override {
-    return "Simplify the handling of structs after argument promotion";
+    return "Simplify the handling of structs";
   }
 
   void getAnalysisUsage(llvm::AnalysisUsage &AU) const override {

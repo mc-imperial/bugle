@@ -2081,6 +2081,12 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     ref<Expr> Agg = translateValue(EV->getAggregateOperand(), BBB);
     E = TM->translateEV(Agg, klee::ev_type_begin(EV), klee::ev_type_end(EV),
                         [&](Value *V) { return translateValue(V, BBB); });
+  } else if (auto IV = dyn_cast<InsertValueInst>(I)) {
+    ref<Expr> Agg = translateValue(IV->getAggregateOperand(), BBB);
+    ref<Expr> Val = translateValue(IV->getInsertedValueOperand(), BBB);
+    E = TM->translateIV(Agg, Val, klee::iv_type_begin(IV),
+                        klee::iv_type_end(IV),
+                        [&](Value *V) { return translateValue(V, BBB); });
   } else if (auto AI = dyn_cast<AllocaInst>(I)) {
     auto AS = dyn_cast<Constant>(AI->getArraySize());
     if (!AS)

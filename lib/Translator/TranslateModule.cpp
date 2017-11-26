@@ -553,6 +553,47 @@ TranslateModule::translateEV(ref<Expr> Agg, klee::ev_type_iterator begin,
   return ValElem;
 }
 
+ref<Expr> TranslateModule::translateIV(
+    ref<Expr> Agg, ref<Expr> Val, klee::iv_type_iterator begin,
+    klee::iv_type_iterator end, std::function<ref<Expr>(Value *)> xlate) {
+  uint64_t offset = 0;
+
+  for (auto i = begin; i != end; ++i) {
+    if (StructType *st = dyn_cast<StructType>(*i)) {
+      const StructLayout *sl = TD.getStructLayout(st);
+      const ConstantInt *ci = cast<ConstantInt>(i.getOperand());
+      offset += sl->getElementOffset((unsigned)ci->getZExtValue());
+    } else if (auto *set = dyn_cast<SequentialType>(*i)) {
+      uint64_t elementSize = TD.getTypeAllocSize(set->getElementType());
+      uint64_t index = cast<ConstantInt>(i.getOperand())->getZExtValue();
+      offset += index * elementSize;
+    } else {
+      ErrorReporter::reportImplementationLimitation("Unhandled IV type");
+    }
+  }
+
+  std::vector<ref<Expr>> Elems;
+
+  if (offset > 0) {
+    Elems.push_back(BVExtractExpr::create(Agg, 0, offset * 8));
+  }
+
+  if (Val->getType().isKind(Type::Pointer))
+    Val = SafePtrToBVExpr::create(Val->getType().width, Val);
+  else if (Val->getType().isKind(Type::FunctionPointer))
+    Val = FuncPtrToBVExpr::create(Val->getType().width, Val);
+
+  Elems.push_back(Val);
+
+  uint64_t aggWidth = Agg->getType().width;
+  uint64_t valEnd = offset * 8 + Val->getType().width;
+  if (valEnd < aggWidth) {
+    Elems.push_back(BVExtractExpr::create(Agg, valEnd, aggWidth - valEnd));
+  }
+
+  return Expr::createBVConcatN(Elems);
+}
+
 ref<Expr> TranslateModule::translateBitCast(llvm::Type *SrcTy,
                                             llvm::Type *DestTy, ref<Expr> Op) {
   if (SrcTy->isPointerTy() && DestTy->isPointerTy() &&
