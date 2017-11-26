@@ -529,6 +529,22 @@ TranslateModule::translateEV(ref<Expr> Agg, klee::ev_type_iterator begin,
       llvm::Type *Ty = st->getElementType((unsigned)ci->getZExtValue());
       uint64_t size = TD.getTypeSizeInBits(Ty);
       ValElem = BVExtractExpr::create(ValElem, addend * 8, size);
+      Type ValElemTy = translateType(Ty);
+      if (ValElemTy.isKind(Type::Pointer))
+        ValElem = SafeBVToPtrExpr::create(ValElem->getType().width, ValElem);
+      else if (ValElemTy.isKind(Type::FunctionPointer))
+        ValElem = BVToFuncPtrExpr::create(ValElem->getType().width, ValElem);
+    } else if (auto *set = dyn_cast<SequentialType>(*i)) {
+      llvm::Type *Ty = set->getElementType();
+      uint64_t elementSize = TD.getTypeAllocSize(Ty);
+      uint64_t index = cast<ConstantInt>(i.getOperand())->getZExtValue();
+      uint64_t size = TD.getTypeSizeInBits(Ty);
+      ValElem = BVExtractExpr::create(ValElem, index * elementSize * 8, size);
+      Type ValElemTy = translateType(Ty);
+      if (ValElemTy.isKind(Type::Pointer))
+        ValElem = SafeBVToPtrExpr::create(ValElem->getType().width, ValElem);
+      else if (ValElemTy.isKind(Type::FunctionPointer))
+        ValElem = BVToFuncPtrExpr::create(ValElem->getType().width, ValElem);
     } else {
       ErrorReporter::reportImplementationLimitation("Unhandled EV type");
     }

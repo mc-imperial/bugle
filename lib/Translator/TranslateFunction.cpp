@@ -521,9 +521,7 @@ void TranslateFunction::createStructArrays() {
       GA->addAttribute("global");
     auto PtrExpr = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                                        BVConstExpr::createZero(PtrSize));
-    BF->addRequires(EqExpr::create(ValueExprMap[*i],
-                                   SafePtrToBVExpr::create(PtrSize, PtrExpr)),
-                    0);
+    BF->addRequires(EqExpr::create(ValueExprMap[*i], PtrExpr), 0);
   }
 
   delete BB;
@@ -2080,8 +2078,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                          klee::gep_type_end(GEPI),
                          [&](Value *V) { return translateValue(V, BBB); });
   } else if (auto EV = dyn_cast<ExtractValueInst>(I)) {
-    ref<Expr> Vec = translateValue(EV->getAggregateOperand(), BBB);
-    E = TM->translateEV(Vec, klee::ev_type_begin(EV), klee::ev_type_end(EV),
+    ref<Expr> Agg = translateValue(EV->getAggregateOperand(), BBB);
+    E = TM->translateEV(Agg, klee::ev_type_begin(EV), klee::ev_type_end(EV),
                         [&](Value *V) { return translateValue(V, BBB); });
   } else if (auto AI = dyn_cast<AllocaInst>(I)) {
     auto AS = dyn_cast<Constant>(AI->getArraySize());
