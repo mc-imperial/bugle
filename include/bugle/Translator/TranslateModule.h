@@ -106,7 +106,7 @@ private:
   ref<Expr> translateGEP(ref<Expr> Ptr, klee::gep_type_iterator begin,
                          klee::gep_type_iterator end,
                          std::function<ref<Expr>(llvm::Value *)> xlate);
-  ref<Expr> translateEV(ref<Expr> Vec, klee::ev_type_iterator begin,
+  ref<Expr> translateEV(ref<Expr> Agg, klee::ev_type_iterator begin,
                         klee::ev_type_iterator end,
                         std::function<ref<Expr>(llvm::Value *)> xlate);
   ref<Expr> translateBitCast(llvm::Type *SrcTy, llvm::Type *DestTy,

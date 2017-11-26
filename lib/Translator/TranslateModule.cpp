@@ -499,8 +499,8 @@ TranslateModule::translateGEP(ref<Expr> Ptr, klee::gep_type_iterator begin,
       ref<Expr> addend = BVMulExpr::create(
           index, BVConstExpr::create(BM->getPointerWidth(), elementSize));
       PtrOfs = BVAddExpr::create(PtrOfs, addend);
-    } else if (auto *set = dyn_cast<PointerType>(*i)) {
-      uint64_t elementSize = TD.getTypeAllocSize(set->getElementType());
+    } else if (auto *pt = dyn_cast<PointerType>(*i)) {
+      uint64_t elementSize = TD.getTypeAllocSize(pt->getElementType());
       Value *operand = i.getOperand();
       ref<Expr> index = xlate(operand);
       index = BVZExtExpr::create(BM->getPointerWidth(), index);
@@ -511,14 +511,16 @@ TranslateModule::translateGEP(ref<Expr> Ptr, klee::gep_type_iterator begin,
       ErrorReporter::reportImplementationLimitation("Unhandled GEP type");
     }
   }
+
   return PointerExpr::create(PtrArr, PtrOfs);
 }
 
 ref<Expr>
-TranslateModule::translateEV(ref<Expr> Vec, klee::ev_type_iterator begin,
+TranslateModule::translateEV(ref<Expr> Agg, klee::ev_type_iterator begin,
                              klee::ev_type_iterator end,
                              std::function<ref<Expr>(Value *)> xlate) {
-  ref<Expr> ValElem = Vec;
+  ref<Expr> ValElem = Agg;
+
   for (auto i = begin; i != end; ++i) {
     if (StructType *st = dyn_cast<StructType>(*i)) {
       const StructLayout *sl = TD.getStructLayout(st);
@@ -531,6 +533,7 @@ TranslateModule::translateEV(ref<Expr> Vec, klee::ev_type_iterator begin,
       ErrorReporter::reportImplementationLimitation("Unhandled EV type");
     }
   }
+
   return ValElem;
 }
 
