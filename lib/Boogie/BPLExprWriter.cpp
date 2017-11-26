@@ -370,7 +370,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       writeExpr(OS, AHTVE->getValue().get());
       OS << "]";
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-        OS << "var {:atomic_usedmap} _USED_$$" << (*Globals.begin())->getName()
+        OS << "var {:atomic_usedmap} ";
+        if ((*Globals.begin())->isGlobal())
+          OS << "{:atomic_global}";
+        else if ((*Globals.begin())->isGroupShared())
+          OS << "{:atomic_group_shared}";
+        OS << "_USED_$$" << (*Globals.begin())->getName()
            << " : [";
         MW->writeType(OS, AHTVE->getOffset()->getType());
         OS << "][";
