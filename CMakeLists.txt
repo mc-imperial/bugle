@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 2.8.12)
 project(Bugle)
 
 if (NOT WIN32 OR MSYS OR CYGWIN)
-  find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config DOC "llvm-config executable")
+  find_program(LLVM_CONFIG_EXECUTABLE NAMES llvm-config DOC
+               "llvm-config executable")
   if(LLVM_CONFIG_EXECUTABLE STREQUAL "LLVM_CONFIG_EXECUTABLE-NOTFOUND")
     message(FATAL_ERROR "llvm-config could not be found!")
   endif()
@@ -167,11 +168,13 @@ set_target_properties(bugle bugleBoogie buglePreprocessing
                       bugleTransform bugleTranslator bugleUtil
     PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS}")
 
-target_link_libraries(bugleTranslator bugleBoogie ${LLVM_LIBS} ${LLVM_LDFLAGS})
-target_link_libraries(bugleTransform bugleBoogie)
-target_link_libraries(buglePreprocessing bugleTranslator)
-target_link_libraries(bugleBoogie bugleUtil)
-target_link_libraries(bugle bugleBoogie buglePreprocessing bugleTranslator bugleTransform bugleUtil)
+target_link_libraries(bugle bugleBoogie
+  buglePreprocessing
+  bugleTranslator
+  bugleTransform
+  bugleUtil
+  ${LLVM_LIBS} ${LLVM_LDFLAGS}
+)
 
 if(NOT WIN32 OR MSYS OR CYGWIN)
 
@@ -182,6 +185,8 @@ add_library(bugleInlineCheckPlugin SHARED
 set_target_properties(bugleInlineCheckPlugin
     PROPERTIES COMPILE_FLAGS "${PLUGIN_CXXFLAGS}")
 
-target_link_libraries(bugleInlineCheckPlugin ${PLUGIN_LIBS} ${PLUGIN_LDFLAGS})
+target_link_libraries(bugleInlineCheckPlugin
+  ${PLUGIN_LIBS} ${PLUGIN_LDFLAGS}
+)
 
 endif()
