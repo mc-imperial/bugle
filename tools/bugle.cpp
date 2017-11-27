@@ -232,9 +232,9 @@ int main(int argc, char **argv) {
   GetArraySizes(KAS);
 
   legacy::PassManager PM;
+  PM.add(new bugle::Vector3SimplificationPass());
   PM.add(new bugle::ArgumentPromotionPass(SourceLanguage, EP));
   PM.add(new bugle::StructSimplificationPass());
-  PM.add(new bugle::Vector3SimplificationPass());
   if (Inlining) {
     PM.add(new bugle::CycleDetectPass());
     PM.add(new bugle::InlinePass(SourceLanguage, EP));
