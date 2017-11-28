@@ -122,6 +122,10 @@ ref<Expr> BVExtractExpr::create(ref<Expr> expr, unsigned offset,
   if (auto e = dyn_cast<BVConstExpr>(expr))
     return BVConstExpr::create(e->getValue().ashr(offset).zextOrTrunc(width));
 
+  if (auto e = dyn_cast<BVExtractExpr>(expr))
+    return BVExtractExpr::create(e->getSubExpr(), e->getOffset() + offset,
+                                 width);
+
   if (auto e = dyn_cast<BVConcatExpr>(expr)) {
     unsigned RHSWidth = e->getRHS()->getType().width;
     if (offset + width <= RHSWidth)
