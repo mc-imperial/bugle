@@ -53,9 +53,9 @@ before_script:
     fi
 
 script:
-  - export GPUVERIFY_DIR=${TRAVIS_BUILD_DIR}/gpuverify
-  - export BUGLE_DIR=${TRAVIS_BUILD_DIR}
-  - export DOWNLOADS_DIR=${TRAVIS_BUILD_DIR}/downloads
+  - export BUILD_ROOT=${TRAVIS_BUILD_DIR}
+  - export GPUVERIFY_DIR=${BUILD_ROOT}/gpuverify
+  - export BUGLE_DIR=${BUILD_ROOT}
+  - export DOWNLOADS_DIR=${BUILD_ROOT}/downloads
   - git clone --depth=${CLONE_DEPTH} --branch=master https://github.com/mc-imperial/gpuverify.git
   - ${GPUVERIFY_DIR}/.travis/build_and_test.sh
-  - find . -name __gvdump.txt -exec cat {} +
