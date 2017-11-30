@@ -168,10 +168,11 @@ set_target_properties(bugle bugleBoogie buglePreprocessing
                       bugleTransform bugleTranslator bugleUtil
     PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS}")
 
-target_link_libraries(bugle bugleBoogie
+target_link_libraries(bugle
   buglePreprocessing
   bugleTranslator
   bugleTransform
+  bugleBoogie
   bugleUtil
   ${LLVM_LIBS} ${LLVM_LDFLAGS}
 )
