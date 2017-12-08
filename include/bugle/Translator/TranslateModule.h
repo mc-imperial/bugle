@@ -97,7 +97,7 @@ private:
   ref<Expr> doTranslateConstant(llvm::Constant *C);
 
   Type translateType(llvm::Type *T);
-  Type addPadding(Type ElTy, llvm::Type *T);
+  Type handlePadding(Type ElTy, llvm::Type *T);
   Type translateArrayRangeType(llvm::Type *T);
   Type translateSourceType(llvm::Type *T);
   Type translateSourceArrayRangeType(llvm::Type *T);

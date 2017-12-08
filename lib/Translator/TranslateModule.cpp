@@ -21,6 +21,10 @@ static cl::opt<bool> ModelBVAsByteArray(
     cl::desc("Model each array composed of bit vector elements as an array of "
              "bit vectors of size 8"));
 
+static unsigned gcd(unsigned a, unsigned b) {
+  return b == 0 ? a : gcd(b, a % b);
+}
+
 TranslateModule::AddressSpaceMap::AddressSpaceMap(unsigned Global,
                                                   unsigned GroupShared,
                                                   unsigned Constant)
@@ -382,31 +386,33 @@ bugle::Type TranslateModule::translateType(llvm::Type *T) {
   return Type(K, TD.getTypeSizeInBits(T));
 }
 
-bugle::Type TranslateModule::addPadding(bugle::Type ElTy, llvm::Type *T) {
+bugle::Type TranslateModule::handlePadding(bugle::Type ElTy, llvm::Type *T) {
   unsigned Padding = TD.getTypeAllocSizeInBits(T) - TD.getTypeSizeInBits(T);
 
   if (Padding % ElTy.width == 0)
     return ElTy;
   else
-    return Type(Type::BV, 8);
+    return Type(Type::BV, gcd(Padding, ElTy.width));
 }
 
 bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
   if (auto AT = dyn_cast<ArrayType>(T))
-    return addPadding(translateArrayRangeType(AT->getElementType()), T);
+    return handlePadding(translateArrayRangeType(AT->getElementType()), T);
   if (auto VT = dyn_cast<VectorType>(T))
-    return addPadding(translateArrayRangeType(VT->getElementType()), T);
+    return handlePadding(translateArrayRangeType(VT->getElementType()), T);
   if (auto ST = dyn_cast<StructType>(T)) {
     auto i = ST->element_begin(), e = ST->element_end();
     if (i == e)
       return Type(Type::BV, 8);
-    auto ET = *i;
+    auto ElTy = translateArrayRangeType(*i);
     ++i;
     for (; i != e; ++i) {
-      if (ET != *i)
-        return Type(Type::BV, 8);
+      auto ITy = translateArrayRangeType(*i);
+      auto Kind = ElTy.kind == ITy.kind ? ElTy.kind : Type::BV;
+      auto Width = gcd(ElTy.width, ITy.width);
+      ElTy = Type(Kind, Width);
     }
-    return addPadding(translateArrayRangeType(ET), T);
+    return handlePadding(ElTy, T);
   }
 
   return translateType(T);

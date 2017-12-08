@@ -2137,17 +2137,20 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       } else {
         E = LoadExpr::create(PtrArr, Div, LoadElTy, LoadsAreTemporal);
       }
-    } else if (ArrRangeTy == Type(Type::BV, 8)) {
-      ExprVec BytesLoaded;
-      for (unsigned i = 0; i != LoadTy.width / 8; ++i) {
-        ref<Expr> PtrByteOfs = BVAddExpr::create(
-            PtrOfs, BVConstExpr::create(PtrOfs->getType().width, i));
-        ref<Expr> ValByte =
-            LoadExpr::create(PtrArr, PtrByteOfs, ArrRangeTy, LoadsAreTemporal);
-        BytesLoaded.push_back(ValByte);
-        BBB->addEvalStmt(ValByte, currentSourceLocs);
+    } else if (ArrRangeTy.kind == Type::BV &&
+               LoadTy.width % ArrRangeTy.width == 0 &&
+               !(Div = Expr::createExactBVSDiv(PtrOfs, ArrRangeTy.width / 8))
+                    .isNull()) {
+      ExprVec PartsLoaded;
+      for (unsigned i = 0; i != LoadTy.width / ArrRangeTy.width; ++i) {
+        ref<Expr> PartOfs = BVAddExpr::create(
+            Div, BVConstExpr::create(Div->getType().width, i));
+        ref<Expr> PartVal =
+            LoadExpr::create(PtrArr, PartOfs, ArrRangeTy, LoadsAreTemporal);
+        PartsLoaded.push_back(PartVal);
+        BBB->addEvalStmt(PartVal, currentSourceLocs);
       }
-      E = Expr::createBVConcatN(BytesLoaded);
+      E = Expr::createBVConcatN(PartsLoaded);
       if (LoadTy.isKind(Type::Pointer))
         E = SafeBVToPtrExpr::create(E->getType().width, E);
       else if (LoadTy.isKind(Type::FunctionPointer))
@@ -2204,7 +2207,10 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       } else {
         BBB->addStmt(StoreStmt::create(PtrArr, Div, Val, currentSourceLocs));
       }
-    } else if (ArrRangeTy == Type(Type::BV, 8)) {
+    } else if (ArrRangeTy.kind == Type::BV &&
+               StoreTy.width % ArrRangeTy.width == 0 &&
+               !(Div = Expr::createExactBVSDiv(PtrOfs, ArrRangeTy.width / 8))
+                    .isNull()) {
       if (StoreTy.isKind(Type::Pointer)) {
         Val = SafePtrToBVExpr::create(Val->getType().width, Val);
         BBB->addEvalStmt(Val, currentSourceLocs);
@@ -2212,13 +2218,14 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         Val = FuncPtrToBVExpr::create(Val->getType().width, Val);
         BBB->addEvalStmt(Val, currentSourceLocs);
       }
-      for (unsigned i = 0; i != Val->getType().width / 8; ++i) {
-        ref<Expr> PtrByteOfs = BVAddExpr::create(
-            PtrOfs, BVConstExpr::create(PtrOfs->getType().width, i));
-        ref<Expr> ValByte =
-            BVExtractExpr::create(Val, i * 8, 8); // Assumes little endian
+      for (unsigned i = 0; i != Val->getType().width / ArrRangeTy.width; ++i) {
+        ref<Expr> PartOfs = BVAddExpr::create(
+            Div, BVConstExpr::create(Div->getType().width, i));
+        ref<Expr> PartVal =
+            BVExtractExpr::create(Val, i * ArrRangeTy.width,
+                                  ArrRangeTy.width); // Assumes little endian
         BBB->addStmt(
-            StoreStmt::create(PtrArr, PtrByteOfs, ValByte, currentSourceLocs));
+            StoreStmt::create(PtrArr, PartOfs, PartVal, currentSourceLocs));
       }
     } else {
       TM->NeedAdditionalByteArrayModels = true;
