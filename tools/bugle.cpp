@@ -243,6 +243,7 @@ int main(int argc, char **argv) {
   if (Inlining) {
     PM.add(new bugle::CycleDetectPass());
     PM.add(new bugle::InlinePass(SourceLanguage, EP));
+    PM.add(new bugle::StructSimplificationPass());
   }
   if (Inlining || OnlyExplicitGPUEntryPoints) {
     PM.add(new bugle::SimpleInternalizePass(SourceLanguage, EP,
