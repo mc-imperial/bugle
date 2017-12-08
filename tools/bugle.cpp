@@ -75,6 +75,11 @@ static cl::opt<IntRep> IntegerRepresentation(
 static cl::opt<bool> Inlining(
     "inline", cl::ValueDisallowed, cl::desc("Inline all function calls"));
 
+#ifndef NDEBUG
+static cl::opt<bool> DumpIR("dump-ir", cl::ValueDisallowed, cl::Hidden,
+                            cl::desc("Dump the preprocessed IR"));
+#endif
+
 static cl::opt<bugle::RaceInstrumenter> RaceInstrumentation(
     "race-instrumentation", cl::desc("Race instrumentation method to use"),
     cl::init(bugle::RaceInstrumenter::WatchdogSingle),
@@ -251,6 +256,11 @@ int main(int argc, char **argv) {
   PM.add(createVerifierPass());
 #endif
   PM.run(*M.get());
+
+#ifndef NDEBUG
+  if (DumpIR)
+    M->dump();
+#endif
 
   bugle::TranslateModule TM(M.get(), SourceLanguage, EP, RaceInstrumentation,
                             AddressSpaces, KAS);
