@@ -17,7 +17,7 @@ bool Vector3SimplificationPass::isVec4StoreOfVec3(llvm::StoreInst *SI) {
 
   auto *BCI = dyn_cast<BitCastInst>(SI->getPointerOperand());
   if (BCI == nullptr)
-    return nullptr;
+    return false;
 
   auto *PtrTy = cast<PointerType>(BCI->getSrcTy());
   auto *ElemTy = PtrTy->getElementType();
