@@ -215,7 +215,9 @@ void ArgumentPromotionPass::promote(llvm::Function *F) {
     updateCallSite(&CS, F, NF);
   }
 
-  spliceBody(F, NF);
+  if (!F->isDeclaration()) {
+    spliceBody(F, NF);
+  }
 
   // The remains of F will be removed by a dead-code elimination pass
 }
