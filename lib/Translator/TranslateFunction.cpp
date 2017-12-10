@@ -382,6 +382,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
       fns["get_work_dim"] = &TranslateFunction::handleGetWorkDim;
       fns["get_image_width"] = &TranslateFunction::handleGetImageWidth;
       fns["get_image_height"] = &TranslateFunction::handleGetImageHeight;
+      fns["__translate_sampler_initializer"] = &TranslateFunction::handleSamplerInitializer;
       {
         const std::string types[] = {"char", "uchar", "short", "ushort", "int",
                                      "uint", "long", "ulong", "float", "double",
@@ -1477,6 +1478,23 @@ ref<Expr> TranslateFunction::handleGetImageHeight(bugle::BasicBlock *BBB,
                                                   llvm::CallInst *CI,
                                                   const ExprVec &Args) {
   return GetImageHeightExpr::create(Args[0]);
+}
+
+ref<Expr> TranslateFunction::handleSamplerInitializer(bugle::BasicBlock *BBB,
+                                                      llvm::CallInst *CI,
+                                                      const ExprVec &Args) {
+  GlobalArray *GA = TM->getGlobalArray(CI);
+
+  if (auto *C = dyn_cast<Constant>(CI->getArgOperand(0))) {
+    TM->translateGlobalInit(GA, 0, C);
+  } else {
+    ErrorReporter::reportImplementationLimitation(
+        "Non-constant samplers not supported");
+  }
+
+  return PointerExpr::create(
+      GlobalArrayRefExpr::create(GA),
+      BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
 }
 
 ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
