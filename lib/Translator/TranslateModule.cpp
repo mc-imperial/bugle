@@ -372,18 +372,19 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
 }
 
 bugle::Type TranslateModule::translateType(llvm::Type *T) {
-  Type::Kind K;
-  if (T->isPointerTy()) {
-    llvm::Type *ElTy = T->getPointerElementType();
-    if (ElTy->isFunctionTy())
-      K = Type::FunctionPointer;
+  if (!T->isSized()) {
+    if (SL == SL_OpenCL && T == M->getTypeByName("opencl.sampler_t"))
+      return Type(Type::BV, 32);
     else
-      K = Type::Pointer;
+      ErrorReporter::reportImplementationLimitation(
+          "Cannot translate unsized type");
+  } else if (T->isPointerTy()) {
+    llvm::Type *ElTy = T->getPointerElementType();
+    return Type(ElTy->isFunctionTy() ? Type::FunctionPointer : Type::Pointer,
+                TD.getTypeSizeInBits(T));
   } else {
-    K = Type::BV;
+    return Type(Type::BV, TD.getTypeSizeInBits(T));
   }
-
-  return Type(K, TD.getTypeSizeInBits(T));
 }
 
 bugle::Type TranslateModule::handlePadding(bugle::Type ElTy, llvm::Type *T) {
@@ -419,18 +420,19 @@ bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
 }
 
 bugle::Type TranslateModule::translateSourceType(llvm::Type *T) {
-  Type::Kind K;
-  if (T->isPointerTy()) {
-    llvm::Type *ElTy = T->getPointerElementType();
-    if (ElTy->isFunctionTy())
-      K = Type::FunctionPointer;
+  if (!T->isSized()) {
+    if (SL == SL_OpenCL && T == M->getTypeByName("opencl.sampler_t"))
+      return Type(Type::BV, 32);
     else
-      K = Type::Pointer;
+      ErrorReporter::reportImplementationLimitation(
+          "Cannot translate unsized type");
+  } else if (T->isPointerTy()) {
+    llvm::Type *ElTy = T->getPointerElementType();
+    return Type(ElTy->isFunctionTy() ? Type::FunctionPointer : Type::Pointer,
+                TD.getTypeAllocSizeInBits(T));
   } else {
-    K = Type::BV;
+    return Type(Type::BV, TD.getTypeAllocSizeInBits(T));
   }
-
-  return Type(K, TD.getTypeAllocSizeInBits(T));
 }
 
 bugle::Type TranslateModule::translateSourceArrayRangeType(llvm::Type *T) {
