@@ -86,7 +86,7 @@ void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned ByteOffset,
 void TranslateModule::addGlobalArrayAttribs(GlobalArray *GA, PointerType *PT) {
   // If we have a pointer in CUDA constant address space, only the pointer
   // is constant, unless used as a pointer, the memory pointed to will be
-  // cudaMalloc'ed and hence be in device memory.
+  // cudaMalloc'ed and hence must be in device memory.
   if (SL == SL_CUDA && PT->getElementType()->isPointerTy() &&
       PT->getAddressSpace() == AddressSpaces.constant) {
     GA->addAttribute("global");
