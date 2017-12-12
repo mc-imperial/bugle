@@ -1,6 +1,7 @@
 #include "bugle/Preprocessing/StructSimplificationPass.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Function.h"
+#include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 
 using namespace llvm;
@@ -141,11 +142,170 @@ bool StructSimplificationPass::simplifyStores(llvm::Function &F) {
   return SIs.size() != 0;
 }
 
+bool StructSimplificationPass::isAllocaMemCpyPair(llvm::Value *MaybeAlloca,
+                                                  llvm::Value *MaybeOther,
+                                                  llvm::Value *Size) {
+  // Check whether the MaybeAlloca parameter is a bitcast of the result of an
+  // alloca of a struct whose size is Size, and check whether the MaybeOther
+  // parameter is a pointer to a struct of the same type as the allocated one
+  // after application of either (a) a bitcast, or (b) a getelementptr to the
+  // first element of the struct whose type i8, and either of these possibly
+  // followed by an address space cast.
+
+  if (MaybeAlloca->getType()->getPointerElementType() !=
+          Type::getInt8Ty(MaybeAlloca->getContext()) ||
+      MaybeOther->getType()->getPointerElementType() !=
+          Type::getInt8Ty(MaybeOther->getContext()))
+    return false;
+
+  // Check the MaybeAlloca parameter.
+  auto *AllocaBCI = dyn_cast<BitCastInst>(MaybeAlloca);
+  if (AllocaBCI == nullptr)
+    return false;
+
+  auto *AI = dyn_cast<AllocaInst>(AllocaBCI->getOperand(0));
+  if (AI == nullptr)
+    return false;
+
+  if (!AI->getAllocatedType()->isStructTy() || AI->isArrayAllocation())
+    return false;
+
+  auto *CSize = dyn_cast<ConstantInt>(Size);
+  if (!CSize)
+    return false;
+
+  if (DL.getTypeAllocSize(AI->getAllocatedType()) != CSize->getZExtValue())
+    return false;
+
+  // Check the MaybeOther parameter. The parameter can either be an instruction
+  // or a constant, which require different checks.
+  if (isa<Instruction>(MaybeOther)) {
+    Value *Other = isa<AddrSpaceCastInst>(MaybeOther)
+                       ? cast<AddrSpaceCastInst>(MaybeOther)->getOperand(0)
+                       : MaybeOther;
+    if (auto *GEPI = dyn_cast<GetElementPtrInst>(Other)) {
+      for (unsigned i = 1; i < GEPI->getNumOperands(); ++i) {
+        auto *Op = dyn_cast<ConstantInt>(GEPI->getOperand(i));
+
+        if (Op == nullptr || !Op->isZero())
+          return false;
+      }
+
+      Other = GEPI->getPointerOperand();
+    } else if (auto *BCI = dyn_cast<BitCastInst>(Other)) {
+      Other = BCI->getOperand(0);
+    }
+
+    return AI->getAllocatedType() == Other->getType()->getPointerElementType();
+  } else if (auto *CE = dyn_cast<ConstantExpr>(MaybeOther)) {
+    Value *Other =
+        CE->getOpcode() == Instruction::AddrSpaceCast ? CE->getOperand(0) : CE;
+
+    if (auto *OtherCE = dyn_cast<ConstantExpr>(Other)) {
+      if (OtherCE->getOpcode() == Instruction::GetElementPtr) {
+        for (unsigned i = 1; i < OtherCE->getNumOperands(); ++i) {
+          auto *Op = dyn_cast<ConstantInt>(OtherCE->getOperand(i));
+
+          if (Op == nullptr || !Op->isZero())
+            return false;
+        }
+
+        Other = OtherCE->getOperand(0);
+      } else if (OtherCE->getOpcode() == Instruction::BitCast) {
+        Other = OtherCE->getOperand(0);
+      }
+    }
+
+    return AI->getAllocatedType() == Other->getType()->getPointerElementType();
+  } else {
+    return false;
+  }
+}
+
+void StructSimplificationPass::simplifySingleMemcpy(llvm::MemCpyInst *MemCpy) {
+  // Simplify a memcpy, whose arguments satisfy the conditions of the test
+  // performed by isAllocaMemCpyPair, by replacing the memcpy by a sequence
+  // consisting of a load and a store.
+
+  bool DestIsAlloca = isAllocaMemCpyPair(
+      MemCpy->getOperand(0), MemCpy->getOperand(1), MemCpy->getOperand(2));
+
+  auto *AllocaBCI = DestIsAlloca ? cast<BitCastInst>(MemCpy->getOperand(0))
+                                 : cast<BitCastInst>(MemCpy->getOperand(1));
+  auto *AI = cast<AllocaInst>(AllocaBCI->getOperand(0));
+
+  auto *Other = DestIsAlloca ? MemCpy->getOperand(1) : MemCpy->getOperand(0);
+  Value *OtherOp = Other;
+
+  if (isa<Instruction>(OtherOp)) {
+    OtherOp = isa<AddrSpaceCastInst>(OtherOp)
+                  ? cast<AddrSpaceCastInst>(OtherOp)->getOperand(0)
+                  : OtherOp;
+
+    if (auto *GEPI = dyn_cast<GetElementPtrInst>(OtherOp)) {
+      OtherOp = GEPI->getPointerOperand();
+    } else if (auto *BCI = dyn_cast<BitCastInst>(OtherOp)) {
+      OtherOp = BCI->getOperand(0);
+    }
+  } else if (auto *CE = dyn_cast<ConstantExpr>(OtherOp)) {
+    OtherOp = CE->getOpcode() == Instruction::AddrSpaceCast
+                  ? cast<ConstantExpr>(CE->getOperand(0))
+                  : CE;
+
+    if (auto *OtherCE = dyn_cast<ConstantExpr>(OtherOp)) {
+      if (OtherCE->getOpcode() == Instruction::GetElementPtr ||
+          OtherCE->getOpcode() == Instruction::BitCast) {
+        OtherOp = OtherCE->getOperand(0);
+      }
+    }
+  }
+
+  auto *NewLI = DestIsAlloca ? new LoadInst(OtherOp, "", MemCpy)
+                             : new LoadInst(AI, "", MemCpy);
+  NewLI->setDebugLoc(MemCpy->getDebugLoc());
+
+  auto *NewSI = DestIsAlloca ? new StoreInst(NewLI, AI, MemCpy)
+                             : new StoreInst(NewLI, OtherOp, MemCpy);
+  NewSI->setDebugLoc(MemCpy->getDebugLoc());
+
+  MemCpy->eraseFromParent();
+  if (isa<Instruction>(Other) && Other->getNumUses() == 0) {
+    auto *ASCI = dyn_cast<AddrSpaceCastInst>(Other);
+    if (ASCI != nullptr) {
+      Other = ASCI->getOperand(0);
+      ASCI->eraseFromParent();
+    }
+    cast<Instruction>(Other)->eraseFromParent();
+  }
+
+  if (AllocaBCI->getNumUses() == 0)
+    AllocaBCI->eraseFromParent();
+}
+
+bool StructSimplificationPass::simplifyMemcpys(llvm::Function &F) {
+  llvm::SmallPtrSet<MemCpyInst *, 32> MemCpys;
+
+  for (auto &BB : F)
+    for (auto &I : BB)
+      if (auto *MemCpy = dyn_cast<MemCpyInst>(&I))
+        if (isAllocaMemCpyPair(MemCpy->getOperand(0), MemCpy->getOperand(1),
+                               MemCpy->getOperand(2)) ||
+            isAllocaMemCpyPair(MemCpy->getOperand(1), MemCpy->getOperand(0),
+                               MemCpy->getOperand(2)))
+          MemCpys.insert(MemCpy);
+
+  for (auto *Memcpy : MemCpys)
+    simplifySingleMemcpy(Memcpy);
+
+  return MemCpys.size() != 0;
+}
+
 bool StructSimplificationPass::runOnFunction(llvm::Function &F) {
   bool simplified = false;
 
   simplified |= simplifyLoads(F);
   simplified |= simplifyStores(F);
+  simplified |= simplifyMemcpys(F);
 
   return simplified;
 }

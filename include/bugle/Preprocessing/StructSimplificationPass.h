@@ -1,7 +1,9 @@
 #ifndef BUGLE_PREPROCESSING_STRUCTSIMPLIFICATIONPASS_H
 #define BUGLE_PREPROCESSING_STRUCTSIMPLIFICATIONPASS_H
 
+#include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
 #include "llvm/Pass.h"
 
 namespace llvm {
@@ -12,6 +14,8 @@ namespace bugle {
 
 class StructSimplificationPass : public llvm::FunctionPass {
 private:
+  llvm::DataLayout DL;
+
   bool isGetElementPtrAllocaChain(llvm::Value *V);
   llvm::AllocaInst *getAllocaAndIndexes(llvm::Value *V,
                                         llvm::SmallVector<unsigned, 32> &Idxs);
@@ -22,10 +26,15 @@ private:
   void simplifySingleStore(llvm::StoreInst *SI);
   bool simplifyStores(llvm::Function &F);
 
+  bool isAllocaMemCpyPair(llvm::Value *MaybeAlloca, llvm::Value *MaybeOther,
+                          llvm::Value *Size);
+  void simplifySingleMemcpy(llvm::MemCpyInst *MemCpy);
+  bool simplifyMemcpys(llvm::Function &F);
+
 public:
   static char ID;
 
-  StructSimplificationPass() : FunctionPass(ID) {}
+  StructSimplificationPass(llvm::Module *M) : FunctionPass(ID), DL(M) {}
 
   llvm::StringRef getPassName() const override {
     return "Simplify the handling of structs";

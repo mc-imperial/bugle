@@ -239,11 +239,11 @@ int main(int argc, char **argv) {
   legacy::PassManager PM;
   PM.add(new bugle::Vector3SimplificationPass());
   PM.add(new bugle::ArgumentPromotionPass(SourceLanguage, EP));
-  PM.add(new bugle::StructSimplificationPass());
+  PM.add(new bugle::StructSimplificationPass(M.get()));
   if (Inlining) {
     PM.add(new bugle::CycleDetectPass());
     PM.add(new bugle::InlinePass(SourceLanguage, EP));
-    PM.add(new bugle::StructSimplificationPass());
+    PM.add(new bugle::StructSimplificationPass(M.get()));
   }
   if (Inlining || OnlyExplicitGPUEntryPoints) {
     PM.add(new bugle::SimpleInternalizePass(SourceLanguage, EP,
@@ -256,7 +256,7 @@ int main(int argc, char **argv) {
 #ifndef NDEBUG
   PM.add(createVerifierPass());
 #endif
-  PM.run(*M.get());
+  PM.run(*M);
 
 #ifndef NDEBUG
   if (DumpIR)
