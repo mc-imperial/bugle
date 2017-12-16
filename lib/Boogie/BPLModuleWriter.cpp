@@ -68,10 +68,12 @@ const std::string &BPLModuleWriter::getGlobalInitRequires() {
 void BPLModuleWriter::write() {
   std::string S;
   llvm::raw_string_ostream SS(S);
+
   for (auto i = M->function_begin(), e = M->function_end(); i != e; ++i) {
     BPLFunctionWriter FW(this, SS, *i);
     FW.write();
   }
+
   for (auto i = M->axiom_begin(), e = M->axiom_end(); i != e; ++i) {
     SS << "axiom ";
     writeExpr(SS, i->get());
@@ -175,8 +177,9 @@ void BPLModuleWriter::write() {
 
     if (UsesPointers) {
       OS << "const $arrayId$$" << (*i)->getName() << " : arrayId;\n";
-      OS << "axiom $arrayId$$" << (*i)->getName() << " == " << arrayIdCounter
-         << "bv" << bitsRequiredForArrayBases() << ";\n";
+      OS << "axiom $arrayId$$" << (*i)->getName() << " == "
+         << IntRep->getLiteral(arrayIdCounter, bitsRequiredForArrayBases())
+         << ";\n";
     }
 
     OS << "\n";
@@ -184,25 +187,46 @@ void BPLModuleWriter::write() {
 
   if (UsesPointers) {
     unsigned BitsRequiredForArrayBases = bitsRequiredForArrayBases();
-    OS << "type ptr = bv" << M->getPointerWidth() << ";\n"
-       << "type arrayId = bv" << BitsRequiredForArrayBases << ";\n\n"
+    OS << "type ptr = " << IntRep->getType(M->getPointerWidth()) << ";\n"
+       << "type arrayId = " << IntRep->getType(BitsRequiredForArrayBases)
+       << ";\n\n"
        << "function {:inline true} MKPTR(base: arrayId, offset: "
        << MW->IntRep->getType(M->getPointerWidth()) << ") : ptr {\n"
-       << "  base ++ offset["
-       << (M->getPointerWidth() - BitsRequiredForArrayBases) << ":0]\n"
-       << "}\n\n"
+       << "  "
+       << IntRep->getConcatExpr(
+              "base",
+              IntRep->getExtractExpr(
+                  "offset", (M->getPointerWidth() - BitsRequiredForArrayBases),
+                  0))
+       << "\n}\n\n"
        << "function {:inline true} base#MKPTR(p: ptr) : arrayId {\n"
-       << "  p[" << M->getPointerWidth() << ":"
-       << (M->getPointerWidth() - BitsRequiredForArrayBases) << "]\n"
-       << "}\n\n"
-       << "function {:inline true} offset#MKPTR(p : ptr) : bv"
-       << M->getPointerWidth() << " {\n"
-       << "  0bv" << BitsRequiredForArrayBases << "++p["
-       << (M->getPointerWidth() - BitsRequiredForArrayBases) << ":0]\n"
-       << "}\n\n"
+       << "  "
+       << IntRep->getExtractExpr("p", M->getPointerWidth(),
+                                 M->getPointerWidth() -
+                                     BitsRequiredForArrayBases)
+       << "\n}\n\n"
+       << "function {:inline true} offset#MKPTR(p : ptr) : "
+       << IntRep->getType(M->getPointerWidth()) << " {\n"
+       << "  "
+       << IntRep->getConcatExpr(
+              IntRep->getLiteral(0, BitsRequiredForArrayBases),
+              IntRep->getExtractExpr(
+                  "p", (M->getPointerWidth() - BitsRequiredForArrayBases), 0))
+       << "\n}\n\n"
        << "const $arrayId$$null$ : arrayId;\n"
-       << "axiom $arrayId$$null$ == 0bv" << BitsRequiredForArrayBases
-       << ";\n\n";
+       << "axiom $arrayId$$null$ == "
+       << IntRep->getLiteral(0, BitsRequiredForArrayBases) << ";\n\n";
+
+    if (IntRep->abstractsConcat()) {
+      writeIntrinsic(
+          [&](llvm::raw_ostream &OS) { OS << MW->IntRep->getConcat(); }, false);
+    }
+
+    if (IntRep->abstractsExtract()) {
+      writeIntrinsic(
+          [&](llvm::raw_ostream &OS) { OS << MW->IntRep->getExtract(); },
+          false);
+    }
   }
 
   if (RaceInst == RaceInstrumenter::WatchdogSingle)
@@ -210,21 +234,22 @@ void BPLModuleWriter::write() {
        << ";\n";
 
   if (UsesFunctionPointers) {
-    OS << "type functionPtr = bv" << bitsRequiredForFunctionPointers() 
-       << ";\n";
+    OS << "type functionPtr = "
+       << IntRep->getType(bitsRequiredForFunctionPointers()) << ";\n";
 
     unsigned functionIdCounter = 1;
     for (auto i = M->function_begin(), e = M->function_end(); i != e;
          ++i, ++functionIdCounter) {
       OS << "const $functionId$$" << (*i)->getName() << " : functionPtr;\n";
-      OS << "axiom $functionId$$" << (*i)->getName() << " == " 
-         << functionIdCounter << "bv" << bitsRequiredForFunctionPointers() 
+      OS << "axiom $functionId$$" << (*i)->getName() << " == "
+         << IntRep->getLiteral(functionIdCounter,
+                               bitsRequiredForFunctionPointers())
          << ";\n";
     }
 
     OS << "const $functionId$$null$ : functionPtr;\n";
-    OS << "axiom $functionId$$null$ == 0bv" << bitsRequiredForFunctionPointers()
-       << ";\n\n";
+    OS << "axiom $functionId$$null$ == "
+       << IntRep->getLiteral(0, bitsRequiredForFunctionPointers()) << ";\n\n";
   }
 
   for (auto i = IntrinsicSet.begin(), e = IntrinsicSet.end(); i != e; ++i) {

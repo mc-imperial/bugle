@@ -197,15 +197,17 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << "procedure {:async_work_group_copy} _ASYNC_WORK_GROUP_COPY_"
            << dst->getRangeType().width
-           << "(dstOffset : bv" << DstOffset->getType().width
-           << ", src : [bv"
-           << MW->M->getPointerWidth() << "]bv" << src->getRangeType().width
-           << ", srcOffset : bv" << SrcOffset->getType().width
-           << ", size : bv" << MW->M->getPointerWidth()
-           << ", handle : bv" << MW->M->getPointerWidth()
-           << ") returns (handle' : bv" << MW->M->getPointerWidth()
-           << ", dst : [bv" << MW->M->getPointerWidth() << "]bv"
-           << dst->getRangeType().width << ")";
+           << "(dstOffset : " << MW->IntRep->getType(DstOffset->getType().width)
+           << ", src : [" << MW->IntRep->getType(MW->M->getPointerWidth())
+           << "]" << MW->IntRep->getType(src->getRangeType().width)
+           << ", srcOffset : "
+           << MW->IntRep->getType(SrcOffset->getType().width)
+           << ", size : " << MW->IntRep->getType(MW->M->getPointerWidth())
+           << ", handle : " << MW->IntRep->getType(MW->M->getPointerWidth())
+           << ") returns (handle' : "
+           << MW->IntRep->getType(MW->M->getPointerWidth()) << ", dst : ["
+           << MW->IntRep->getType(MW->M->getPointerWidth()) << "]"
+           << MW->IntRep->getType(dst->getRangeType().width) << ")";
       });
       writeSourceLocsMarker(OS, ES->getSourceLocs(), 2);
       OS << "  ";
@@ -339,8 +341,8 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << "  return;\n";
   } else if (auto WGES = dyn_cast<WaitGroupEventStmt>(S)) {
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      OS << "procedure {:wait_group_events} _WAIT_GROUP_EVENTS(handle : bv"
-         << MW->M->getPointerWidth() << ")";
+      OS << "procedure {:wait_group_events} _WAIT_GROUP_EVENTS(handle : "
+         << MW->IntRep->getType(MW->M->getPointerWidth()) << ")";
     });
     OS << "  ";
     OS << "call {:wait_group_events} ";
