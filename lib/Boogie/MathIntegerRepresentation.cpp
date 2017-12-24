@@ -34,8 +34,14 @@ std::string MathIntegerRepresentation::getZeroExtend(unsigned FromWidth,
 
 std::string MathIntegerRepresentation::getSignExtend(unsigned FromWidth,
                                                      unsigned ToWidth) {
-  std::string S; llvm::raw_string_ostream SS(S);
-  SS << "function BV" << FromWidth << "_SEXT" << ToWidth << "(int) : int";
+  std::string S;
+  llvm::raw_string_ostream SS(S);
+  SS << "function {:inline true} BV" << FromWidth << "_SEXT" << ToWidth
+     << "(x : int) : int {\n"
+     << "  if x <= 0 then x "
+     << "else BV" << FromWidth << "_SEXT" << ToWidth << "_UF(x)\n"
+     << "}\n"
+     << "function BV" << FromWidth << "_SEXT" << ToWidth << "_UF(int) : int;";
   return SS.str();
 }
 

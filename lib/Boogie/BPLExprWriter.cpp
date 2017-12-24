@@ -75,11 +75,13 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
        << "_SEXT" << SEE->getType().width << "(";
     writeExpr(OS, SEE->getSubExpr().get());
     OS << ")";
-    MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
-      unsigned FromWidth = SEE->getSubExpr()->getType().width,
-               ToWidth = SEE->getType().width;
-      OS << MW->IntRep->getSignExtend(FromWidth, ToWidth);
-    });
+    MW->writeIntrinsic(
+        [&](llvm::raw_ostream &OS) {
+          unsigned FromWidth = SEE->getSubExpr()->getType().width,
+                   ToWidth = SEE->getType().width;
+          OS << MW->IntRep->getSignExtend(FromWidth, ToWidth);
+        },
+        false);
   } else if (auto PtrE = dyn_cast<PointerExpr>(E)) {
     OS << "MKPTR(";
     writeExpr(OS, PtrE->getArray().get());

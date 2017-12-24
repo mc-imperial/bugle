@@ -35,7 +35,7 @@ std::string BVIntegerRepresentation::getSignExtend(unsigned FromWidth,
   std::string S; llvm::raw_string_ostream SS(S);
   SS << "function {:bvbuiltin \"sign_extend " << (ToWidth - FromWidth)
      << "\"} BV" << FromWidth << "_SEXT" << ToWidth << "(bv" << FromWidth
-     << ") : bv" << ToWidth;
+     << ") : bv" << ToWidth << ";";
   return SS.str();
 }
 
