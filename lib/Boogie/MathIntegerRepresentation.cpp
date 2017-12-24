@@ -21,11 +21,14 @@ std::string MathIntegerRepresentation::getLiteral(unsigned literal,
 
 std::string MathIntegerRepresentation::getZeroExtend(unsigned FromWidth,
                                                      unsigned ToWidth) {
-  std::string S; llvm::raw_string_ostream SS(S);
+  std::string S;
+  llvm::raw_string_ostream SS(S);
   SS << "function {:inline true} BV" << FromWidth << "_ZEXT" << ToWidth
      << "(x : int) : int {\n"
-     << "  x\n"
-     << "}";
+     << "  if x >= 0 then x "
+     << "else BV" << FromWidth << "_ZEXT" << ToWidth << "_UF(x)\n"
+     << "}\n"
+     << "function BV" << FromWidth << "_ZEXT" << ToWidth << "_UF(int) : int;";
   return SS.str();
 }
 
