@@ -3,10 +3,10 @@ language: cpp
 env:
   global:
     - LLVM_VERSION=5.0
-    - LLVM_CONFIG="llvm-config-${LLVM_VERSION}"
     - Z3_VERSION=4.5.0
     - CVC4_VERSION=1.5
     - CLONE_DEPTH=50
+    - BUILD_ROOT="${TRAVIS_BUILD_DIR}"
 
 cache:
   directories:
@@ -43,17 +43,17 @@ jobs:
       dist: trusty
       sudo: required
       env:
+        - CXX=g++
         - DEFAULT_SOLVER=z3
         - Z3="z3-${Z3_VERSION}-x64-ubuntu-14.04"
       script:
-        - export BUILD_ROOT=${TRAVIS_BUILD_DIR}
         - ${BUILD_ROOT}/.travis/travis_build_and_test.sh
     - os: linux
       dist: trusty
       sudo: required
       env:
+        - CXX=g++
         - DEFAULT_SOLVER=cvc4
         - CVC4="cvc4-${CVC4_VERSION}-x86_64-linux-opt"
       script:
-        - export BUILD_ROOT=${TRAVIS_BUILD_DIR}
         - ${BUILD_ROOT}/.travis/travis_build_and_test.sh
