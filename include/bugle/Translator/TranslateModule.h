@@ -149,9 +149,11 @@ public:
       : BM(nullptr), M(M), TD(M), SL(SL), GPUEntryPoints(EP), RaceInst(RI),
         AddressSpaces(AS), GPUArraySizes(GAS),
         NeedAdditionalByteArrayModels(false), ModelAllAsByteArray(false),
-        NextModelAllAsByteArray(false) {
+        NextModelAllAsByteArray(false),
+        NeedAdditionalGlobalOffsetModels(false) {
     DIF.processModule(*M);
   }
+
   ~TranslateModule() {
     for (auto i = StructMap.begin(), e = StructMap.end(); i != e; ++i) {
       std::for_each(i->second->rbegin(), i->second->rend(),

@@ -21,7 +21,7 @@ public:
 
   SimpleInternalizePass(TranslateModule::SourceLanguage SL,
                         std::set<std::string> &EP, bool EEP)
-      : ModulePass(ID), SL(SL), GPUEntryPoints(EP),
+      : ModulePass(ID), M(nullptr), SL(SL), GPUEntryPoints(EP),
         OnlyExplicitEntryPoints(EEP) {}
 
   llvm::StringRef getPassName() const override {
