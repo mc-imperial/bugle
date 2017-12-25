@@ -1843,11 +1843,10 @@ ref<Expr> TranslateFunction::handleSaddOvl(bugle::BasicBlock *BBB,
   }
 
   assert(cast<IntegerType>(OvlTy)->getBitWidth() == 1);
-  if (TM->TD.getTypeAllocSize(OvlTy) * 8 != 1) {
-    ref<Expr> Pad =
-        BVConstExpr::createZero(TM->TD.getTypeAllocSize(OvlTy) * 8 - 1);
-    OvlResult = BVConcatExpr::create(Pad, OvlResult);
-  }
+  assert(TM->TD.getTypeAllocSize(OvlTy) > 0);
+  ref<Expr> Pad =
+      BVConstExpr::createZero(TM->TD.getTypeAllocSize(OvlTy) * 8 - 1);
+  OvlResult = BVConcatExpr::create(Pad, OvlResult);
 
   return BVConcatExpr::create(OvlResult, AddResult);
 }
@@ -1874,11 +1873,10 @@ ref<Expr> TranslateFunction::handleUaddOvl(bugle::BasicBlock *BBB,
   }
 
   assert(cast<IntegerType>(OvlTy)->getBitWidth() == 1);
-  if (TM->TD.getTypeAllocSize(OvlTy) * 8 != 1) {
-    ref<Expr> Pad =
-        BVConstExpr::createZero(TM->TD.getTypeAllocSize(OvlTy) * 8 - 1);
-    OvlResult = BVConcatExpr::create(Pad, OvlResult);
-  }
+  assert(TM->TD.getTypeAllocSize(OvlTy) > 0);
+  ref<Expr> Pad =
+      BVConstExpr::createZero(TM->TD.getTypeAllocSize(OvlTy) * 8 - 1);
+  OvlResult = BVConcatExpr::create(Pad, OvlResult);
 
   return BVConcatExpr::create(OvlResult, AddResult);
 }
@@ -1907,11 +1905,10 @@ ref<Expr> TranslateFunction::handleSsubOvl(bugle::BasicBlock *BBB,
   }
 
   assert(cast<IntegerType>(OvlTy)->getBitWidth() == 1);
-  if (TM->TD.getTypeAllocSize(OvlTy) * 8 != 1) {
-    ref<Expr> Pad =
-        BVConstExpr::createZero(TM->TD.getTypeAllocSize(OvlTy) * 8 - 1);
-    OvlResult = BVConcatExpr::create(Pad, OvlResult);
-  }
+  assert(TM->TD.getTypeAllocSize(OvlTy) > 0);
+  ref<Expr> Pad =
+      BVConstExpr::createZero(TM->TD.getTypeAllocSize(OvlTy) * 8 - 1);
+  OvlResult = BVConcatExpr::create(Pad, OvlResult);
 
   return BVConcatExpr::create(OvlResult, SubResult);
 }
@@ -1938,11 +1935,10 @@ ref<Expr> TranslateFunction::handleUsubOvl(bugle::BasicBlock *BBB,
   }
 
   assert(cast<IntegerType>(OvlTy)->getBitWidth() == 1);
-  if (TM->TD.getTypeAllocSize(OvlTy) * 8 != 1) {
-    ref<Expr> Pad =
-        BVConstExpr::createZero(TM->TD.getTypeAllocSize(OvlTy) * 8 - 1);
-    OvlResult = BVConcatExpr::create(Pad, OvlResult);
-  }
+  assert(TM->TD.getTypeAllocSize(OvlTy) > 0);
+  ref<Expr> Pad =
+      BVConstExpr::createZero(TM->TD.getTypeAllocSize(OvlTy) * 8 - 1);
+  OvlResult = BVConcatExpr::create(Pad, OvlResult);
 
   return BVConcatExpr::create(OvlResult, SubResult);
 }
