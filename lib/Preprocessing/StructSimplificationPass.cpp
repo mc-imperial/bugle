@@ -7,11 +7,14 @@
 using namespace llvm;
 using namespace bugle;
 
-bool StructSimplificationPass::isGetElementPtrAllocaChain(llvm::Value *V) {
-  // Check that the Value V starts a chain of GetElementPtrInsts leading to
-  // an AllocaInst of a struct, where all indexes of the GetElementPtrInsts
-  // are constant. When starting from a load/store, the latter allows us to turn
-  // such a chain into a chain of ExtractValueInsts/InsertValueInsts.
+bool StructSimplificationPass::isGetElementPtrBitCastAllocaChain(
+    llvm::Value *V) {
+  // Check that the Value V starts a chain of GetElementPtrInsts/BitCastInts
+  // leading to an AllocaInst of a struct, where (a) all indexes of the
+  // GetElementPtrInsts are constant and (b) all BitCastInts take a pointer
+  // to a struct and cast the pointer to a pointer of the type of the first
+  // element of the struct. When starting from a load/store, the latter allows
+  // us to turn such a chain into a ExtractValueInst/InsertValueInst.
 
   if (auto *GEPI = dyn_cast<GetElementPtrInst>(V)) {
     // Check that the first index is constant zero.
@@ -29,7 +32,17 @@ bool StructSimplificationPass::isGetElementPtrAllocaChain(llvm::Value *V) {
     }
 
     // Recurse.
-    return isGetElementPtrAllocaChain(GEPI->getPointerOperand());
+    return isGetElementPtrBitCastAllocaChain(GEPI->getPointerOperand());
+  } else if (auto *BCI = dyn_cast<BitCastInst>(V)) {
+    auto *OperandType = BCI->getOperand(0)->getType()->getPointerElementType();
+    auto *ResultType = BCI->getType()->getPointerElementType();
+
+    if (!OperandType->isStructTy() ||
+        OperandType->getStructElementType(0) != ResultType)
+      return false;
+
+    // Recurse.
+    return isGetElementPtrBitCastAllocaChain(BCI->getOperand(0));
   } else if (auto *AI = dyn_cast<AllocaInst>(V)) {
     return AI->getAllocatedType()->isStructTy() && !AI->isArrayAllocation();
   } else {
@@ -38,8 +51,14 @@ bool StructSimplificationPass::isGetElementPtrAllocaChain(llvm::Value *V) {
 }
 
 llvm::AllocaInst *StructSimplificationPass::getAllocaAndIndexes(
-    llvm::Value *V, llvm::SmallVector<unsigned, 32> &Idxs) {
+    llvm::Value *V, llvm::SmallVectorImpl<unsigned> &Idxs) {
   if (auto *AI = dyn_cast<AllocaInst>(V)) {
+    return AI;
+  } else if (auto *BCI = dyn_cast<BitCastInst>(V)) {
+    // Recurse.
+    auto *AI = getAllocaAndIndexes(BCI->getOperand(0), Idxs);
+
+    Idxs.push_back(0);
     return AI;
   } else if (auto *GEPI = dyn_cast<GetElementPtrInst>(V)) {
     // Recurse.
@@ -60,27 +79,30 @@ llvm::AllocaInst *StructSimplificationPass::getAllocaAndIndexes(
 }
 
 void StructSimplificationPass::simplifySingleLoad(llvm::LoadInst *LI) {
-  // Turn a GetElementPtrInst chain starting from LI, and as found by
-  // isGetElementPtrAllocaChain, into a load followed by a single
+  // Turn a GetElementPtrInst/BitCastInst chain starting from LI, and as found
+  // by isGetElementPtrBitCastAllocaChain, into a load followed by a single
   // ExtractElemInst.
 
   SmallVector<unsigned, 32> Idxs;
-  auto *GEPI = dyn_cast<GetElementPtrInst>(LI->getPointerOperand());
-  auto *AI = getAllocaAndIndexes(GEPI, Idxs);
+  auto *I = dyn_cast<Instruction>(LI->getPointerOperand());
+  auto *AI = getAllocaAndIndexes(I, Idxs);
+
+  if (Idxs.size() == 0)
+    return;
 
   auto *NewLI = new LoadInst(AI, "", LI);
   NewLI->setDebugLoc(LI->getDebugLoc());
 
   auto *EV = ExtractValueInst::Create(NewLI, Idxs, "", LI);
-  EV->setDebugLoc(GEPI->getDebugLoc());
+  EV->setDebugLoc(I->getDebugLoc());
 
   LI->replaceAllUsesWith(EV);
 
   LI->eraseFromParent();
-  while (GEPI != nullptr && GEPI->getNumUses() == 0) {
-    auto *NextGEPI = GEPI->getPointerOperand();
-    GEPI->eraseFromParent();
-    GEPI = dyn_cast<GetElementPtrInst>(NextGEPI);
+  while (I != nullptr && I->getNumUses() == 0) {
+    auto *NextI = I->getOperand(0);
+    I->eraseFromParent();
+    I = dyn_cast<Instruction>(NextI);
   }
 }
 
@@ -90,8 +112,7 @@ bool StructSimplificationPass::simplifyLoads(llvm::Function &F) {
   for (auto &BB : F)
     for (auto &I : BB)
       if (auto *LI = dyn_cast<LoadInst>(&I))
-        if (isa<GetElementPtrInst>(LI->getPointerOperand()) &&
-            isGetElementPtrAllocaChain(LI->getPointerOperand()))
+        if (isGetElementPtrBitCastAllocaChain(LI->getPointerOperand()))
           LIs.insert(LI);
 
   for (auto *LI : LIs)
@@ -101,28 +122,31 @@ bool StructSimplificationPass::simplifyLoads(llvm::Function &F) {
 }
 
 void StructSimplificationPass::simplifySingleStore(llvm::StoreInst *SI) {
-  // Turn a GetElementPtrInst chain starting from SI, and as found by
-  // isGetElementPtrAllocaChain, into a load followed by a single
+  // Turn a GetElementPtrInst/BitCastInst chain starting from SI, and as found
+  // by isGetElementPtrBitCastAllocaChain, into a load followed by a single
   // InsertElemInst, and a store.
 
   SmallVector<unsigned, 32> Idxs;
-  auto *GEPI = dyn_cast<GetElementPtrInst>(SI->getPointerOperand());
-  auto *AI = getAllocaAndIndexes(GEPI, Idxs);
+  auto *I = dyn_cast<Instruction>(SI->getPointerOperand());
+  auto *AI = getAllocaAndIndexes(I, Idxs);
+
+  if (Idxs.size() == 0)
+    return;
 
   auto *NewLI = new LoadInst(AI, "", SI);
 
   auto *IV =
       InsertValueInst::Create(NewLI, SI->getValueOperand(), Idxs, "", SI);
-  IV->setDebugLoc(GEPI->getDebugLoc());
+  IV->setDebugLoc(I->getDebugLoc());
 
   auto *NewSI = new StoreInst(IV, AI, SI);
   NewSI->setDebugLoc(SI->getDebugLoc());
 
   SI->eraseFromParent();
-  while (GEPI != nullptr && GEPI->getNumUses() == 0) {
-    auto *NextGEPI = GEPI->getPointerOperand();
-    GEPI->eraseFromParent();
-    GEPI = dyn_cast<GetElementPtrInst>(NextGEPI);
+  while (I != nullptr && I->getNumUses() == 0) {
+    auto *NextI = I->getOperand(0);
+    I->eraseFromParent();
+    I = dyn_cast<Instruction>(NextI);
   }
 }
 
@@ -132,8 +156,7 @@ bool StructSimplificationPass::simplifyStores(llvm::Function &F) {
   for (auto &BB : F)
     for (auto &I : BB)
       if (auto *SI = dyn_cast<StoreInst>(&I))
-        if (isa<GetElementPtrInst>(SI->getPointerOperand()) &&
-            isGetElementPtrAllocaChain(SI->getPointerOperand()))
+        if (isGetElementPtrBitCastAllocaChain(SI->getPointerOperand()))
           SIs.insert(SI);
 
   for (auto *SI : SIs)

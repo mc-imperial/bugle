@@ -16,9 +16,9 @@ class StructSimplificationPass : public llvm::FunctionPass {
 private:
   llvm::DataLayout DL;
 
-  bool isGetElementPtrAllocaChain(llvm::Value *V);
+  bool isGetElementPtrBitCastAllocaChain(llvm::Value *V);
   llvm::AllocaInst *getAllocaAndIndexes(llvm::Value *V,
-                                        llvm::SmallVector<unsigned, 32> &Idxs);
+                                        llvm::SmallVectorImpl<unsigned> &Idxs);
 
   void simplifySingleLoad(llvm::LoadInst *LI);
   bool simplifyLoads(llvm::Function &F);
