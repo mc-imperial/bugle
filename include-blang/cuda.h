@@ -67,6 +67,7 @@ __device__ void __threadfence_system();
 #include <cuda_textures.h>
 #include <cuda_atomics.h>
 #include <cuda_curand.h>
+#include <cuda_intrinsics.h>
 
 /* Thread block dimensions */
 
@@ -235,7 +236,9 @@ __axiom(gridDim.z > 0)
 #error You must specify the warp size by defining __WARP_SIZE
 #endif
 
+#if __CUDA_ARCH__ >= 300
 __axiom(warpSize == __WARP_SIZE)
+#endif
 
 #pragma GCC diagnostic pop
 
