@@ -350,6 +350,9 @@ __device__ unsigned int umin(unsigned int x, unsigned int y);
 __device__ long long int llmin(long long int x, long long int y);
 __device__ unsigned long long int ullmin(unsigned long long int x, unsigned long long int y);
 
+  /* Type Casting Intrinsics */
+__device__ int __float2int_rn(float x);
+
 #ifdef __cplusplus
 }
 #endif
