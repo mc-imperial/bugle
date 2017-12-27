@@ -83,8 +83,10 @@ private:
 
   std::map<llvm::Value *, llvm::Function *> ValueFunctionMap;
 
-  ref<Expr> translateCUDABuiltinGlobal(std::string Prefix,
-                                       llvm::GlobalVariable *GV);
+  ref<Expr> translate1dCUDABuiltinGlobal(std::string Prefix,
+                                         llvm::GlobalVariable *GV);
+  ref<Expr> translate3dCUDABuiltinGlobal(std::string Prefix,
+                                         llvm::GlobalVariable *GV);
 
   void translateGlobalInit(GlobalArray *GA, unsigned Offset,
                            llvm::Constant *Init);

@@ -35,6 +35,10 @@ struct _3DimensionalVector {
   unsigned x, y, z;
 } threadIdx, blockIdx, blockDim, gridDim;
 
+#if __CUDA_ARCH >= 300
+int warpSize;
+#endif
+
 #define __syncthreads() \
   bugle_barrier(true, true)
 
@@ -222,6 +226,16 @@ __axiom(gridDim.z == __GRID_DIM_2)
 #elif defined(__GRID_DIM_2_FREE)
 __axiom(gridDim.z > 0)
 #endif
+
+/* Warp size */
+
+// Must define a warp size
+
+#ifndef __WARP_SIZE
+#error You must specify the warp size by defining __WARP_SIZE
+#endif
+
+__axiom(warpSize == __WARP_SIZE)
 
 #pragma GCC diagnostic pop
 

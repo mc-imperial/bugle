@@ -100,8 +100,15 @@ void TranslateModule::addGlobalArrayAttribs(GlobalArray *GA, PointerType *PT) {
   }
 }
 
-ref<Expr> TranslateModule::translateCUDABuiltinGlobal(std::string Prefix,
-                                                      GlobalVariable *GV) {
+ref<Expr> TranslateModule::translate1dCUDABuiltinGlobal(std::string Prefix,
+                                                        GlobalVariable *GV) {
+  Type ty = translateArrayRangeType(GV->getType()->getElementType());
+  ref<Expr> Arr[1] = {SpecialVarRefExpr::create(ty, Prefix)};
+  return ConstantArrayRefExpr::create(Arr);
+}
+
+ref<Expr> TranslateModule::translate3dCUDABuiltinGlobal(std::string Prefix,
+                                                        GlobalVariable *GV) {
   Type ty = translateArrayRangeType(GV->getType()->getElementType());
   ref<Expr> Arr[3] = {SpecialVarRefExpr::create(ty, Prefix + "_x"),
                       SpecialVarRefExpr::create(ty, Prefix + "_y"),
@@ -131,13 +138,15 @@ bool TranslateModule::hasInitializer(GlobalVariable *GV) {
 ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
   if (SL == SL_CUDA) {
     if (GV->getName() == "gridDim")
-      return translateCUDABuiltinGlobal("num_groups", GV);
-    if (GV->getName() == "blockIdx")
-      return translateCUDABuiltinGlobal("group_id", GV);
-    if (GV->getName() == "blockDim")
-      return translateCUDABuiltinGlobal("group_size", GV);
-    if (GV->getName() == "threadIdx")
-      return translateCUDABuiltinGlobal("local_id", GV);
+      return translate3dCUDABuiltinGlobal("num_groups", GV);
+    else if (GV->getName() == "blockIdx")
+      return translate3dCUDABuiltinGlobal("group_id", GV);
+    else if (GV->getName() == "blockDim")
+      return translate3dCUDABuiltinGlobal("group_size", GV);
+    else if (GV->getName() == "threadIdx")
+      return translate3dCUDABuiltinGlobal("local_id", GV);
+    else if (GV->getName() == "warpSize")
+      return translate1dCUDABuiltinGlobal("sub_group_size", GV);
   }
 
   GlobalArray *GA = getGlobalArray(GV);
