@@ -326,7 +326,7 @@ ADD_DECL(long)
     __uninterpreted_function_##NAME(ARG1TYPE, ARG2TYPE); \
     _DEVICE_QUALIFIER _BUGLE_INLINE RETURNTYPE \
     NAME(ARG1TYPE x, ARG2TYPE y) { \
-       return __uninterpreted_function_##NAME(x, y);   \
+       return __uninterpreted_function_##NAME(x, y); \
     }
 
 #define DECLARE_UF_UNARY(NAME, ARG1TYPE, RETURNTYPE) \
@@ -334,7 +334,7 @@ ADD_DECL(long)
     __uninterpreted_function_##NAME(ARG1TYPE); \
     _DEVICE_QUALIFIER _BUGLE_INLINE RETURNTYPE \
     NAME(ARG1TYPE x) { \
-       return __uninterpreted_function_##NAME(x);   \
+       return __uninterpreted_function_##NAME(x); \
     }
 
 #ifdef __cplusplus
