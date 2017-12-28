@@ -26,10 +26,17 @@ private:
   void simplifySingleStore(llvm::StoreInst *SI);
   bool simplifyStores(llvm::Function &F);
 
+  bool isBitCastAllocaOfSize(llvm::Value *MaybeAlloca, llvm::Value *Size);
+
   bool isAllocaMemCpyPair(llvm::Value *MaybeAlloca, llvm::Value *MaybeOther,
                           llvm::Value *Size);
   void simplifySingleMemcpy(llvm::MemCpyInst *MemCpy);
   bool simplifyMemcpys(llvm::Function &F);
+
+  bool isAllocaMemsetOfZero(llvm::Value *MaybeAlloca, llvm::Value *MaybeZero,
+                            llvm::Value *Size);
+  void simplifySingleMemset(llvm::MemSetInst *MemSet);
+  bool simplifyMemsets(llvm::Function &F);
 
 public:
   static char ID;

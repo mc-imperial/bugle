@@ -165,20 +165,13 @@ bool StructSimplificationPass::simplifyStores(llvm::Function &F) {
   return SIs.size() != 0;
 }
 
-bool StructSimplificationPass::isAllocaMemCpyPair(llvm::Value *MaybeAlloca,
-                                                  llvm::Value *MaybeOther,
-                                                  llvm::Value *Size) {
+bool StructSimplificationPass::isBitCastAllocaOfSize(llvm::Value *MaybeAlloca,
+                                                     llvm::Value *Size) {
   // Check whether the MaybeAlloca parameter is a bitcast of the result of an
-  // alloca of a struct whose size is Size, and check whether the MaybeOther
-  // parameter is a pointer to a struct of the same type as the allocated one
-  // after application of either (a) a bitcast, or (b) a getelementptr to the
-  // first element of the struct whose type i8, and either of these possibly
-  // followed by an address space cast.
+  // alloca of a struct whose size is Size.
 
   if (MaybeAlloca->getType()->getPointerElementType() !=
-          Type::getInt8Ty(MaybeAlloca->getContext()) ||
-      MaybeOther->getType()->getPointerElementType() !=
-          Type::getInt8Ty(MaybeOther->getContext()))
+      Type::getInt8Ty(MaybeAlloca->getContext()))
     return false;
 
   // Check the MaybeAlloca parameter.
@@ -197,7 +190,27 @@ bool StructSimplificationPass::isAllocaMemCpyPair(llvm::Value *MaybeAlloca,
   if (!CSize)
     return false;
 
-  if (DL.getTypeAllocSize(AI->getAllocatedType()) != CSize->getZExtValue())
+  return DL.getTypeAllocSize(AI->getAllocatedType()) == CSize->getZExtValue();
+}
+
+bool StructSimplificationPass::isAllocaMemCpyPair(llvm::Value *MaybeAlloca,
+                                                  llvm::Value *MaybeOther,
+                                                  llvm::Value *Size) {
+  // Check whether the MaybeAlloca parameter is a bitcast of the result of an
+  // alloca of a struct whose size is Size, and check whether the MaybeOther
+  // parameter is a pointer to a struct of the same type as the allocated one
+  // after application of either (a) a bitcast, or (b) a getelementptr to the
+  // first element of the struct whose type is i8, and either of these possibly
+  // followed by an address space cast.
+
+  if (!isBitCastAllocaOfSize(MaybeAlloca, Size))
+    return false;
+
+  auto *AllocaBCI = cast<BitCastInst>(MaybeAlloca);
+  auto *AI = cast<AllocaInst>(AllocaBCI->getOperand(0));
+
+  if (MaybeOther->getType()->getPointerElementType() !=
+      Type::getInt8Ty(MaybeOther->getContext()))
     return false;
 
   // Check the MaybeOther parameter. The parameter can either be an instruction
@@ -317,10 +330,57 @@ bool StructSimplificationPass::simplifyMemcpys(llvm::Function &F) {
                                MemCpy->getOperand(2)))
           MemCpys.insert(MemCpy);
 
-  for (auto *Memcpy : MemCpys)
-    simplifySingleMemcpy(Memcpy);
+  for (auto *MemCpy : MemCpys)
+    simplifySingleMemcpy(MemCpy);
 
   return MemCpys.size() != 0;
+}
+
+bool StructSimplificationPass::isAllocaMemsetOfZero(llvm::Value *MaybeAlloca,
+                                                    llvm::Value *MaybeZero,
+                                                    llvm::Value *Size) {
+  // Check whether the MaybeAlloca parameter is a bitcast of the result of an
+  // alloca of a struct whose size is Size, and check whether the MaybeZero
+  // parameter is a constant zero value.
+
+  if (!isBitCastAllocaOfSize(MaybeAlloca, Size))
+    return false;
+
+  auto *CI = dyn_cast<ConstantInt>(MaybeZero);
+  return CI != nullptr && CI->getZExtValue() == 0;
+}
+
+void StructSimplificationPass::simplifySingleMemset(llvm::MemSetInst *MemSet) {
+  // Simplify a memset, whose arguments satisfy the conditions of the test
+  // performed by isAllocaMemsetOfZero, by replacing the memset by a store of
+  // a zero value.
+
+  auto *AllocaBCI = cast<BitCastInst>(MemSet->getOperand(0));
+  auto *AI = cast<AllocaInst>(AllocaBCI->getOperand(0));
+
+  auto *Zero = ConstantAggregateZero::get(AI->getAllocatedType());
+  auto *NewSI = new StoreInst(Zero, AI, MemSet);
+  NewSI->setDebugLoc(MemSet->getDebugLoc());
+
+  MemSet->eraseFromParent();
+  if (AllocaBCI->getNumUses() == 0)
+    AllocaBCI->eraseFromParent();
+}
+
+bool StructSimplificationPass::simplifyMemsets(llvm::Function &F) {
+  llvm::SmallPtrSet<MemSetInst *, 32> MemSets;
+
+  for (auto &BB : F)
+    for (auto &I : BB)
+      if (auto *MemSet = dyn_cast<MemSetInst>(&I))
+        if (isAllocaMemsetOfZero(MemSet->getOperand(0), MemSet->getOperand(1),
+                                 MemSet->getOperand(2)))
+          MemSets.insert(MemSet);
+
+  for (auto *MemSet : MemSets)
+    simplifySingleMemset(MemSet);
+
+  return MemSets.size() != 0;
 }
 
 bool StructSimplificationPass::runOnFunction(llvm::Function &F) {
@@ -329,6 +389,7 @@ bool StructSimplificationPass::runOnFunction(llvm::Function &F) {
   simplified |= simplifyLoads(F);
   simplified |= simplifyStores(F);
   simplified |= simplifyMemcpys(F);
+  simplified |= simplifyMemsets(F);
 
   return simplified;
 }
