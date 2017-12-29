@@ -81,8 +81,6 @@ private:
       NextModelPtrAsGlobalOffset;
   std::set<llvm::Value *> PtrMayBeNull, NextPtrMayBeNull;
 
-  std::map<llvm::Value *, llvm::Function *> ValueFunctionMap;
-
   ref<Expr> translate1dCUDABuiltinGlobal(std::string Prefix,
                                          llvm::GlobalVariable *GV);
   ref<Expr> translate3dCUDABuiltinGlobal(std::string Prefix,
@@ -93,7 +91,7 @@ private:
   bool hasInitializer(llvm::GlobalVariable *GV);
   ref<Expr> translateGlobalVariable(llvm::GlobalVariable *GV);
   void addGlobalArrayAttribs(GlobalArray *GA, llvm::PointerType *PT);
-  bugle::GlobalArray *getGlobalArray(llvm::Value *V, llvm::Function *F = 0);
+  bugle::GlobalArray *getGlobalArray(llvm::Value *V, bool IsParameter = false);
 
   ref<Expr> translateConstant(llvm::Constant *C);
   ref<Expr> doTranslateConstant(llvm::Constant *C);
@@ -167,9 +165,8 @@ public:
   static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
                               SourceLanguage SL, std::set<std::string> &EPS);
   std::string getSourceFunctionName(llvm::Function *F);
-  std::string getSourceGlobalArrayName(llvm::Value *V, llvm::Function *F);
-  static std::string getSourceFunctionArgumentName(llvm::Value *V,
-                                                   llvm::Function *F);
+  std::string getSourceGlobalArrayName(llvm::Value *V);
+  static std::string getSourceName(llvm::Value *V, llvm::Function *F);
   void translate();
   bugle::Module *takeModule() { return BM; }
 
