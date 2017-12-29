@@ -109,7 +109,7 @@ class TranslateFunction {
                      llvm::BasicBlock *Succ);
   SourceLocsRef extractSourceLocsForBlock(llvm::BasicBlock *BB);
   SourceLocsRef extractSourceLocs(llvm::Instruction *I);
-  void specifyZeroDimensions(llvm::Function *F, unsigned PtrArgs);
+  void specifyZeroDimensions(unsigned PtrArgs);
   void extractStructArrays(llvm::Value *V);
   void createStructArrays();
   void checkFunctionWideInvariant(llvm::CallInst *CI);

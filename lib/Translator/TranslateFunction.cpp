@@ -452,8 +452,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
   return SpecialFunctionMap;
 }
 
-void TranslateFunction::specifyZeroDimensions(llvm::Function *F,
-                                              unsigned PtrArgs) {
+void TranslateFunction::specifyZeroDimensions(unsigned PtrArgs) {
   ArraySpec &AS = TM->GPUArraySizes[F->getName()];
   if (AS.size() != PtrArgs) {
     std::string msg; llvm::raw_string_ostream msgS(msg);
@@ -567,7 +566,7 @@ void TranslateFunction::translate() {
 
   if (isGPUEntryPoint &&
       TM->GPUArraySizes.find(F->getName()) != TM->GPUArraySizes.end())
-    specifyZeroDimensions(F, PtrArgs);
+    specifyZeroDimensions(PtrArgs);
 
   if (BF->return_begin() != BF->return_end())
     ReturnVar = *BF->return_begin();
