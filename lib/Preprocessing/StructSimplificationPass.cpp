@@ -11,10 +11,10 @@ bool StructSimplificationPass::isGetElementPtrBitCastAllocaChain(
     llvm::Value *V) {
   // Check that the Value V starts a chain of GetElementPtrInsts/BitCastInts
   // leading to an AllocaInst of a struct, where (a) all indexes of the
-  // GetElementPtrInsts are constant and (b) all BitCastInts take a pointer
-  // to a struct and cast the pointer to a pointer of the type of the first
-  // element of the struct. When starting from a load/store, the latter allows
-  // us to turn such a chain into a ExtractValueInst/InsertValueInst.
+  // GetElementPtrInsts are constant and (b) all BitCastInts take a pointer to a
+  // struct and cast the pointer to a pointer of the type of what is the nested
+  // first element of the struct. When starting from a load/store, the latter
+  // allows us to turn such a chain into a ExtractValueInst/InsertValueInst.
 
   if (auto *GEPI = dyn_cast<GetElementPtrInst>(V)) {
     // Check that the first index is constant zero.
@@ -37,9 +37,12 @@ bool StructSimplificationPass::isGetElementPtrBitCastAllocaChain(
     auto *OperandType = BCI->getOperand(0)->getType()->getPointerElementType();
     auto *ResultType = BCI->getType()->getPointerElementType();
 
-    if (!OperandType->isStructTy() ||
-        OperandType->getStructElementType(0) != ResultType)
-      return false;
+    do {
+      if (!OperandType->isStructTy())
+        return false;
+
+      OperandType = OperandType->getStructElementType(0);
+    } while(OperandType != ResultType);
 
     // Recurse.
     return isGetElementPtrBitCastAllocaChain(BCI->getOperand(0));
@@ -58,7 +61,14 @@ llvm::AllocaInst *StructSimplificationPass::getAllocaAndIndexes(
     // Recurse.
     auto *AI = getAllocaAndIndexes(BCI->getOperand(0), Idxs);
 
-    Idxs.push_back(0);
+    auto *OperandType = BCI->getOperand(0)->getType()->getPointerElementType();
+    auto *ResultType = BCI->getType()->getPointerElementType();
+
+    do {
+      Idxs.push_back(0);
+      OperandType = OperandType->getStructElementType(0);
+    } while(OperandType != ResultType);
+
     return AI;
   } else if (auto *GEPI = dyn_cast<GetElementPtrInst>(V)) {
     // Recurse.
