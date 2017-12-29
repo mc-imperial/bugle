@@ -18,6 +18,7 @@ namespace llvm {
 
 class CallInst;
 class Constant;
+class DILocalVariable;
 class GlobalVariable;
 class Module;
 class PointerType;
@@ -141,6 +142,9 @@ private:
   Type defaultRange() {
     return ModelAllAsByteArray ? Type(Type::BV, 8) : Type(Type::Unknown);
   }
+
+  static const llvm::DILocalVariable *getSourceDbgVar(llvm::Value *V,
+                                                      llvm::Function *F);
 
 public:
   TranslateModule(llvm::Module *M, SourceLanguage SL, std::set<std::string> &EP,

@@ -688,23 +688,31 @@ std::string TranslateModule::getSourceGlobalArrayName(llvm::Value *V) {
   }
 }
 
-std::string TranslateModule::getSourceName(llvm::Value *V, llvm::Function *F) {
+const llvm::DILocalVariable *
+TranslateModule::getSourceDbgVar(llvm::Value *V, llvm::Function *F) {
   if (F->isDeclaration())
-    return V->getName();
+    return nullptr;
 
   for (const auto &BB : *F) {
     for (const auto &I : BB) {
       if (const auto *DVI = dyn_cast<DbgValueInst>(&I)) {
         if (DVI->getValue() == V)
-          return DVI->getVariable()->getName();
+          return DVI->getVariable();
       } else if (const auto *DDI = dyn_cast<DbgDeclareInst>(&I)) {
         if (DDI->getAddress() == V)
-          return DDI->getVariable()->getName();
+          return DDI->getVariable();
       }
     }
   }
 
-  return V->getName();
+  return nullptr;
+}
+
+std::string TranslateModule::getSourceName(llvm::Value *V, llvm::Function *F) {
+  if (auto *DILV = getSourceDbgVar(V, F))
+    return DILV->getName();
+  else
+    return V->getName();
 }
 
 // Convert the given unmodelled expression E to modelled form.
