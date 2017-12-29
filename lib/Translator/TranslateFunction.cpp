@@ -2358,6 +2358,9 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       ValueExprMap[I] = Op;
       return;
     }
+  } else if (auto ASCI = dyn_cast<AddrSpaceCastInst>(I)) {
+    ValueExprMap[I] = translateValue(ASCI->getOperand(0), BBB);
+    return;
   } else if (auto SI = dyn_cast<SelectInst>(I)) {
     ref<Expr> Cond = translateValue(SI->getCondition(), BBB),
               TrueVal = translateValue(SI->getTrueValue(), BBB),
