@@ -329,7 +329,8 @@ __device__ double __dsqrt_rd(double x);
 
 /* Overloaded functions */
 
-__device__ float abs(float x);
+__device__ __attribute__((overloadable)) float abs(float x);
+__device__ __attribute__((overloadable)) int abs(int x);
 __device__ float saturate(float x);
 __device__ int max(int x, int y);
 
@@ -352,8 +353,10 @@ __device__ unsigned int umin(unsigned int x, unsigned int y);
 __device__ long long int llmin(long long int x, long long int y);
 __device__ unsigned long long int ullmin(unsigned long long int x, unsigned long long int y);
 
-  /* Type Casting Intrinsics */
+/* Type Casting Intrinsics */
+
 __device__ int __float2int_rn(float x);
+__device__ float __int_as_float(int x);
 
 #ifdef __cplusplus
 }
