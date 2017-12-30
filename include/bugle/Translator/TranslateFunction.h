@@ -61,8 +61,8 @@ class TranslateFunction {
       handleInvariant, handleGlobalInvariant, handleCandidateInvariant,
       handleCandidateGlobalInvariant, handleNonTemporalLoadsBegin,
       handleNonTemporalLoadsEnd, handleRequires, handleEnsures,
-      handleGlobalRequires, handleGlobalEnsures, handleFunctionWideInvariant,
-      handleFunctionWideCandidateInvariant,
+      handleGlobalRequires, handleGlobalEnsures, handleRequiresFreshArray,
+      handleFunctionWideInvariant, handleFunctionWideCandidateInvariant,
       handleReadsFrom, handleWritesTo, handleAll, handleExclusive,
       handleEnabled, handleDominatorEnabled, handleOtherInt, handleOtherBool,
       handleOtherPtrBase, handleOld, handleReturnVal, handleImplies,
@@ -136,6 +136,9 @@ public:
                                llvm::Function *F);
   static bool isStandardEntryPoint(TranslateModule::SourceLanguage SL,
                                    llvm::StringRef fnName);
+  static bool isRequiresFreshArrayFunction(llvm::StringRef fnName);
+  static llvm::StringRef
+  trimForRequiresFreshArrayFunction(llvm::StringRef fnName);
 
   void translate();
 };

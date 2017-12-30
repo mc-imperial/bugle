@@ -130,6 +130,16 @@ bool TranslateFunction::isStandardEntryPoint(TranslateModule::SourceLanguage SL,
   return SL == TranslateModule::SL_C && fnName == "main";
 }
 
+bool TranslateFunction::isRequiresFreshArrayFunction(llvm::StringRef fnName) {
+  return fnName == "__requires_fresh_array";
+}
+
+llvm::StringRef
+TranslateFunction::trimForRequiresFreshArrayFunction(llvm::StringRef fnName) {
+  return fnName.startswith("__requires_fresh_array.") ? "__requires_fresh_array"
+                                                      : fnName;
+}
+
 TranslateFunction::SpecialFnMapTy &
 TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
   SpecialFnMapTy &SpecialFunctionMap = SpecialFunctionMaps[SL];
@@ -151,6 +161,7 @@ TranslateFunction::initSpecialFunctionMap(TranslateModule::SourceLanguage SL) {
     fns["bugle_requires"] = &TranslateFunction::handleRequires;
     fns["__requires"] = &TranslateFunction::handleRequires;
     fns["__global_requires"] = &TranslateFunction::handleGlobalRequires;
+    fns["__requires_fresh_array"] = &TranslateFunction::handleRequiresFreshArray;
     fns["bugle_ensures"] = &TranslateFunction::handleEnsures;
     fns["__ensures"] = &TranslateFunction::handleEnsures;
     fns["__global_ensures"] = &TranslateFunction::handleGlobalEnsures;
@@ -838,6 +849,19 @@ ref<Expr> TranslateFunction::handleGlobalRequires(bugle::BasicBlock *BBB,
                                                   const ExprVec &Args) {
   BF->addGlobalRequires(Expr::createNeZero(Args[0]), extractSourceLocs(CI));
   return nullptr;
+}
+
+ref<Expr> TranslateFunction::handleRequiresFreshArray(bugle::BasicBlock *BBB,
+                                                      llvm::CallInst *CI,
+                                                      const ExprVec &Args) {
+  GlobalArray *GA = TM->getGlobalArray(CI, /*IsParameter=*/true);
+
+  if (TM->SL == TranslateModule::SL_CUDA)
+    GA->addAttribute("global");
+
+  return PointerExpr::create(
+      GlobalArrayRefExpr::create(GA),
+      BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
 }
 
 ref<Expr> TranslateFunction::handleEnsures(bugle::BasicBlock *BBB,
@@ -2469,8 +2493,10 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     } else {
       auto F = CI->getCalledFunction();
       auto SFI = SpecialFunctionMap.Functions.end();
-      if (F)
-        SFI = SpecialFunctionMap.Functions.find(F->getName());
+      if (F) {
+        SFI = SpecialFunctionMap.Functions.find(
+            trimForRequiresFreshArrayFunction(F->getName()));
+      }
       if (SFI != SpecialFunctionMap.Functions.end()) {
         E = (this->*SFI->second)(BBB, CI, Args);
         assert(E.isNull() == CI->getType()->isVoidTy());

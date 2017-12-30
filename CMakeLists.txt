@@ -125,6 +125,7 @@ add_library(buglePreprocessing STATIC
   lib/Preprocessing/ArgumentPromotionPass.cpp
   lib/Preprocessing/ArgumentRenamePass.cpp
   lib/Preprocessing/CycleDetectPass.cpp
+  lib/Preprocessing/FreshArrayPass.cpp
   lib/Preprocessing/InlinePass.cpp
   lib/Preprocessing/RestrictDetectPass.cpp
   lib/Preprocessing/SimpleInternalizePass.cpp
@@ -133,6 +134,7 @@ add_library(buglePreprocessing STATIC
   include/bugle/Preprocessing/ArgumentPromotionPass.h
   include/bugle/Preprocessing/ArgumentRenamePass.h
   include/bugle/Preprocessing/CycleDetectPass.h
+  include/bugle/Preprocessing/FreshArrayPass.h
   include/bugle/Preprocessing/InlinePass.h
   include/bugle/Preprocessing/RestrictDetectPass.h
   include/bugle/Preprocessing/SimpleInternalizePass.h

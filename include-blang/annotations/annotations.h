@@ -71,6 +71,17 @@ _DEVICE_QUALIFIER void __global_requires(bool expr);
     __global_requires(X), \
     __non_temporal_loads_end()
 
+#ifdef __OPENCL_VERSION__
+void __requires_fresh_array(const volatile void* const volatile* p);
+#endif
+
+#ifdef __CUDA_ARCH__
+__device__ void __requires_fresh_array(const volatile void* const volatile* p);
+#endif
+
+#define __requires_fresh_array(X) \
+  __requires_fresh_array((const volatile void* const volatile*)&X)
+
 /* Function postcondition */
 _DEVICE_QUALIFIER void __ensures(bool expr);
 _DEVICE_QUALIFIER void __global_ensures(bool expr);

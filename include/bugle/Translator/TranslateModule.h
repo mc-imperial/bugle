@@ -19,6 +19,7 @@ namespace llvm {
 class CallInst;
 class Constant;
 class DILocalVariable;
+class DIType;
 class GlobalVariable;
 class Module;
 class PointerType;
@@ -143,6 +144,8 @@ private:
     return ModelAllAsByteArray ? Type(Type::BV, 8) : Type(Type::Unknown);
   }
 
+  static std::string getCompositeName(llvm::ArrayRef<unsigned> Idxs,
+                                      llvm::DIType *Type);
   static const llvm::DILocalVariable *getSourceDbgVar(llvm::Value *V,
                                                       llvm::Function *F);
 
@@ -169,7 +172,7 @@ public:
   static bool isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
                               SourceLanguage SL, std::set<std::string> &EPS);
   std::string getSourceFunctionName(llvm::Function *F);
-  std::string getSourceGlobalArrayName(llvm::Value *V);
+  static std::string getSourceGlobalArrayName(llvm::Value *V);
   static std::string getSourceName(llvm::Value *V, llvm::Function *F);
   void translate();
   bugle::Module *takeModule() { return BM; }

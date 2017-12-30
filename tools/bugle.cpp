@@ -24,6 +24,7 @@
 #include "bugle/Preprocessing/ArgumentPromotionPass.h"
 #include "bugle/Preprocessing/ArgumentRenamePass.h"
 #include "bugle/Preprocessing/CycleDetectPass.h"
+#include "bugle/Preprocessing/FreshArrayPass.h"
 #include "bugle/Preprocessing/InlinePass.h"
 #include "bugle/Preprocessing/RestrictDetectPass.h"
 #include "bugle/Preprocessing/SimpleInternalizePass.h"
@@ -237,6 +238,7 @@ int main(int argc, char **argv) {
   GetArraySizes(KAS);
 
   legacy::PassManager PM;
+  PM.add(new bugle::FreshArrayPass());
   PM.add(new bugle::Vector3SimplificationPass());
   PM.add(new bugle::ArgumentPromotionPass(SourceLanguage, EP));
   PM.add(new bugle::StructSimplificationPass(M.get()));

@@ -5,6 +5,7 @@
 #include "bugle/Module.h"
 #include "bugle/Stmt.h"
 #include "bugle/util/ErrorReporter.h"
+#include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -663,6 +664,56 @@ std::string TranslateModule::getSourceFunctionName(llvm::Function *F) {
   return F->getName();
 }
 
+std::string TranslateModule::getCompositeName(ArrayRef<unsigned> Idxs,
+                                              DIType *Type) {
+  if (Idxs.size() == 0)
+    return "";
+
+  while (auto *DT = dyn_cast_or_null<DIDerivedType>(Type))
+    Type = DT->getBaseType().resolve();
+
+  auto *CT = dyn_cast_or_null<DICompositeType>(Type);
+
+  std::string Name;
+  llvm::raw_string_ostream NameS(Name);
+  DIType *ElementType = nullptr;
+
+  if (CT != nullptr) {
+    if (CT->getTag() == dwarf::DW_TAG_structure_type) {
+      const auto &Elements = CT->getElements();
+
+      for (unsigned i = 0, TypeIndex = 0; i < Elements.size(); ++i) {
+        ElementType = dyn_cast<DIType>(Elements[i]);
+
+        if (ElementType != nullptr && !ElementType->isStaticMember()) {
+          if (TypeIndex == Idxs.front())
+            break;
+          ++TypeIndex;
+        }
+
+        ElementType = nullptr;
+      }
+
+      if (ElementType != nullptr) {
+        if (ElementType->getTag() == dwarf::DW_TAG_member) {
+          NameS << '.' << ElementType->getName();
+        } else if (ElementType->getTag() != dwarf::DW_TAG_inheritance) {
+          NameS << ".?"; // Do not know how to handle tag type.
+        }
+      }
+    } else if (CT->getTag() == dwarf::DW_TAG_array_type) {
+      ElementType = CT->getBaseType().resolve();
+      NameS << '[' << Idxs.front() << ']';
+    }
+  }
+
+  if (ElementType == nullptr)
+    NameS << ".?"; // Do no know how to handle unknown element type.
+
+  NameS << getCompositeName(Idxs.drop_front(), ElementType);
+  return NameS.str();
+}
+
 std::string TranslateModule::getSourceGlobalArrayName(llvm::Value *V) {
   llvm::Function *F = nullptr;
 
@@ -681,6 +732,32 @@ std::string TranslateModule::getSourceGlobalArrayName(llvm::Value *V) {
       return DIs[0]->getVariable()->getName();
 
     return GV->getName();
+  } else if (isa<CallInst>(V) &&
+             TranslateFunction::isRequiresFreshArrayFunction(
+                 TranslateFunction::trimForRequiresFreshArrayFunction(
+                     cast<CallInst>(V)->getCalledFunction()->getName()))) {
+    // If the __requires_fresh_array call is followed by a single insert value
+    // instruction, than the fresh array is part of an aggregate. We use the
+    // indices of the instruction to reconstruct the composite name of the
+    // fresh array.
+    ArrayRef<unsigned> Idxs;
+    if (V->getNumUses() == 1) {
+      InsertValueInst *IVI = dyn_cast<InsertValueInst>(*V->user_begin());
+      if (IVI != nullptr)
+        Idxs = IVI->getIndices();
+
+      // Look past futher insert value instructions, which may exist if multiple
+      // fresh arrays are declared for a single aggregate.
+      while (IVI != nullptr) {
+        V = IVI->getAggregateOperand();
+        IVI = dyn_cast<InsertValueInst>(IVI->getAggregateOperand());
+      }
+    }
+
+    auto *DILV = getSourceDbgVar(V, F);
+    DIType *DIT = DILV != nullptr ? DILV->getType().resolve() : nullptr;
+
+    return getSourceName(V, F) + getCompositeName(Idxs, DIT);
   } else if (F) {
     return getSourceName(V, F);
   } else {
