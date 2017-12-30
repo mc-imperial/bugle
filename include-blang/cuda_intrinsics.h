@@ -14,4 +14,10 @@ __device__ float __shfl_xor(float var, int laneMask, int width=warpSize);
 
 #endif
 
+#if __CUDA_ARCH__ >= 350
+
+static __device__ __inline__ float __ldg(const float *ptr) { return *ptr; }
+
+#endif
+
 #endif

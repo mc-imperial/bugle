@@ -147,6 +147,8 @@ __device__ float fabsf(float x);
 __device__ float fmaxf(float x, float y);
 __device__ float fminf(float x, float y);
 
+__device__ int isnan(float x);
+
 /* TABLE C-2 */
 __device__ double rsqrt(double x);
 __device__ double sqrt(double x) __THROW;
