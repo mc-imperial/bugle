@@ -528,8 +528,6 @@ void TranslateFunction::createStructArrays() {
 }
 
 void TranslateFunction::translate() {
-  initSpecialFunctionMap(TM->SL);
-
   if (isGPUEntryPoint || isStandardEntryPoint(TM->SL, F->getName()))
     BF->setEntryPoint(true);
 
