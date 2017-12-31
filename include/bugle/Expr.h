@@ -572,10 +572,10 @@ BINARY_EXPR(Implies)
 #undef BINARY_EXPR
 
 class CallExpr : public Expr {
-  Function *callee;
-  std::vector<ref<Expr>> args;
   CallExpr(Type t, Function *callee, const std::vector<ref<Expr>> &args)
       : Expr(t), callee(callee), args(args) {}
+  Function *callee;
+  std::vector<ref<Expr>> args;
 
 public:
   static ref<Expr> create(Function *callee, const std::vector<ref<Expr>> &args);
@@ -586,10 +586,10 @@ public:
 };
 
 class CallMemberOfExpr : public Expr {
-  ref<Expr> func;
-  std::vector<ref<Expr>> callExprs;
   CallMemberOfExpr(Type t, ref<Expr> func, std::vector<ref<Expr>> callExprs)
       : Expr(t), func(func), callExprs(callExprs) {}
+  ref<Expr> func;
+  std::vector<ref<Expr>> callExprs;
 
 public:
   static ref<Expr> create(ref<Expr> func, std::vector<ref<Expr>> &callExprs);
@@ -670,9 +670,9 @@ public:
 };
 
 class AddNoovflPredicateExpr : public Expr {
-  std::vector<ref<Expr>> exprs;
   AddNoovflPredicateExpr(const std::vector<ref<Expr>> &exprs)
       : Expr(Type(Type::BV, 1)), exprs(exprs) {}
+  std::vector<ref<Expr>> exprs;
 
 public:
   static ref<Expr> create(const std::vector<ref<Expr>> &exprs);
