@@ -521,7 +521,7 @@ void TranslateFunction::createStructArrays() {
       GA->addAttribute("global");
     auto PtrExpr = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                                        BVConstExpr::createZero(PtrSize));
-    BF->addRequires(EqExpr::create(ValueExprMap[*i], PtrExpr), 0);
+    BF->addRequires(EqExpr::create(ValueExprMap[*i], PtrExpr), nullptr);
   }
 
   delete BB;
@@ -599,7 +599,7 @@ void TranslateFunction::translate() {
   // See if we can model the return value. This requires the function to have
   // a body.
   if (BBList.begin() != BBList.end())
-    TM->computeValueModel(F, 0, ReturnVals);
+    TM->computeValueModel(F, nullptr, ReturnVals);
 }
 
 void TranslateFunction::computeClosure(std::vector<PhiPair> &currentAssigns,
@@ -642,7 +642,7 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V,
 
   if (V->getType()->isMetadataTy()) {
     // ignore metadata values
-    return 0;
+    return nullptr;
   }
 
   if (isa<InlineAsm>(V))
@@ -702,7 +702,7 @@ TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB) {
 
 SourceLocsRef
 TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
-  SourceLocs *sourcelocs = 0;
+  SourceLocs *sourcelocs = nullptr;
   if (MDNode *mdnode = I->getMetadata("dbg")) {
     sourcelocs = new SourceLocs();
     DILocation *Loc = cast<DILocation>(mdnode);
@@ -719,7 +719,7 @@ TranslateFunction::extractSourceLocs(llvm::Instruction *I) {
 ref<Expr> TranslateFunction::handleNoop(bugle::BasicBlock *BBB,
                                         llvm::CallInst *CI,
                                         const ExprVec &Args) {
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
@@ -727,7 +727,7 @@ ref<Expr> TranslateFunction::handleAssert(bugle::BasicBlock *BBB,
                                           const ExprVec &Args) {
   BBB->addStmt(AssertStmt::create(Expr::createNeZero(Args[0]), /*global=*/false,
                                   /*candidate=*/false, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleGlobalAssert(bugle::BasicBlock *BBB,
@@ -735,7 +735,7 @@ ref<Expr> TranslateFunction::handleGlobalAssert(bugle::BasicBlock *BBB,
                                                 const ExprVec &Args) {
   BBB->addStmt(AssertStmt::create(Expr::createNeZero(Args[0]), /*global=*/true,
                                   /*candidate=*/false, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleCandidateAssert(bugle::BasicBlock *BBB,
@@ -743,7 +743,7 @@ ref<Expr> TranslateFunction::handleCandidateAssert(bugle::BasicBlock *BBB,
                                                    const ExprVec &Args) {
   BBB->addStmt(AssertStmt::create(Expr::createNeZero(Args[0]), /*global=*/false,
                                   /*candidate=*/true, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleCandidateGlobalAssert(bugle::BasicBlock *BBB,
@@ -751,7 +751,7 @@ ref<Expr> TranslateFunction::handleCandidateGlobalAssert(bugle::BasicBlock *BBB,
                                                          const ExprVec &Args) {
   BBB->addStmt(AssertStmt::create(Expr::createNeZero(Args[0]), /*global=*/true,
                                   /*candidate=*/true, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleInvariant(bugle::BasicBlock *BBB,
@@ -760,7 +760,7 @@ ref<Expr> TranslateFunction::handleInvariant(bugle::BasicBlock *BBB,
   BBB->addStmt(
       AssertStmt::createInvariant(Expr::createNeZero(Args[0]), /*global=*/false,
                                   /*candidate=*/false, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleGlobalInvariant(bugle::BasicBlock *BBB,
@@ -769,7 +769,7 @@ ref<Expr> TranslateFunction::handleGlobalInvariant(bugle::BasicBlock *BBB,
   BBB->addStmt(
       AssertStmt::createInvariant(Expr::createNeZero(Args[0]), /*global=*/true,
                                   /*candidate=*/false, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleCandidateInvariant(bugle::BasicBlock *BBB,
@@ -778,7 +778,7 @@ ref<Expr> TranslateFunction::handleCandidateInvariant(bugle::BasicBlock *BBB,
   BBB->addStmt(
       AssertStmt::createInvariant(Expr::createNeZero(Args[0]), /*global=*/false,
                                   /*candidate=*/true, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr>
@@ -788,7 +788,7 @@ TranslateFunction::handleCandidateGlobalInvariant(bugle::BasicBlock *BBB,
   BBB->addStmt(
       AssertStmt::createInvariant(Expr::createNeZero(Args[0]), /*global=*/true,
                                   /*candidate=*/true, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleNonTemporalLoadsBegin(bugle::BasicBlock *BBB,
@@ -797,7 +797,7 @@ ref<Expr> TranslateFunction::handleNonTemporalLoadsBegin(bugle::BasicBlock *BBB,
   if (!LoadsAreTemporal)
     ErrorReporter::reportFatalError("Nested __non_temporal_loads_begin");
   LoadsAreTemporal = false;
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleNonTemporalLoadsEnd(bugle::BasicBlock *BBB,
@@ -807,7 +807,7 @@ ref<Expr> TranslateFunction::handleNonTemporalLoadsEnd(bugle::BasicBlock *BBB,
     ErrorReporter::reportFatalError(
         "__non_temporal_loads_end without __non_temporal_loads_begin");
   LoadsAreTemporal = true;
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
@@ -816,42 +816,42 @@ ref<Expr> TranslateFunction::handleAssertFail(bugle::BasicBlock *BBB,
   BBB->addStmt(
       AssertStmt::create(BoolConstExpr::create(false), /*global=*/false,
                          /*candidate=*/false, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleAssume(bugle::BasicBlock *BBB,
                                           llvm::CallInst *CI,
                                           const ExprVec &Args) {
   BBB->addStmt(AssumeStmt::create(Expr::createNeZero(Args[0])));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleRequires(bugle::BasicBlock *BBB,
                                             llvm::CallInst *CI,
                                             const ExprVec &Args) {
   BF->addRequires(Expr::createNeZero(Args[0]), extractSourceLocs(CI));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleGlobalRequires(bugle::BasicBlock *BBB,
                                                   llvm::CallInst *CI,
                                                   const ExprVec &Args) {
   BF->addGlobalRequires(Expr::createNeZero(Args[0]), extractSourceLocs(CI));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleEnsures(bugle::BasicBlock *BBB,
                                            llvm::CallInst *CI,
                                            const ExprVec &Args) {
   BF->addEnsures(Expr::createNeZero(Args[0]), extractSourceLocs(CI));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleGlobalEnsures(bugle::BasicBlock *BBB,
                                                  llvm::CallInst *CI,
                                                  const ExprVec &Args) {
   BF->addGlobalEnsures(Expr::createNeZero(Args[0]), extractSourceLocs(CI));
-  return 0;
+  return nullptr;
 }
 
 bool TranslateFunction::isLegalFunctionWideInvariantValue(Value *V) {
@@ -889,16 +889,17 @@ ref<Expr> TranslateFunction::handleFunctionWideInvariant(bugle::BasicBlock *BBB,
   checkFunctionWideInvariant(CI);
   BF->addProcedureWideInvariant(Expr::createNeZero(Args[0]),
                                 extractSourceLocs(CI));
-  return 0;
+  return nullptr;
 }
 
-ref<Expr> TranslateFunction::handleFunctionWideCandidateInvariant(bugle::BasicBlock *BBB,
-                                                                  llvm::CallInst *CI,
-                                                                  const ExprVec &Args) {
+ref<Expr>
+TranslateFunction::handleFunctionWideCandidateInvariant(bugle::BasicBlock *BBB,
+                                                        llvm::CallInst *CI,
+                                                        const ExprVec &Args) {
   checkFunctionWideInvariant(CI);
   BF->addProcedureWideCandidateInvariant(Expr::createNeZero(Args[0]),
                                          extractSourceLocs(CI));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleReadsFrom(bugle::BasicBlock *BBB,
@@ -914,7 +915,8 @@ ref<Expr> TranslateFunction::handleReadsFrom(bugle::BasicBlock *BBB,
   }
   if (arrayIdExpr->getType().range().isKind(Type::Unknown))
     TM->NextModelAllAsByteArray = true;
-  return 0;
+
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleWritesTo(bugle::BasicBlock *BBB,
@@ -930,9 +932,11 @@ ref<Expr> TranslateFunction::handleWritesTo(bugle::BasicBlock *BBB,
   }
   BF->addModifies(UnderlyingArrayExpr::create(arrayIdExpr),
                   extractSourceLocs(CI));
+
   if (arrayIdExpr->getType().range().isKind(Type::Unknown))
     TM->NextModelAllAsByteArray = true;
-  return 0;
+
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleOld(bugle::BasicBlock *BBB,
@@ -1003,8 +1007,10 @@ ref<Expr> TranslateFunction::handleReadHasOccurred(bugle::BasicBlock *BBB,
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   ref<Expr> result =
       BoolToBVExpr::create(AccessHasOccurredExpr::create(arrayIdExpr, false));
+
   if (arrayIdExpr->getType().range().isKind(Type::Unknown))
     TM->NextModelAllAsByteArray = true;
+
   return result;
 }
 
@@ -1014,8 +1020,10 @@ ref<Expr> TranslateFunction::handleWriteHasOccurred(bugle::BasicBlock *BBB,
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   ref<Expr> result =
       BoolToBVExpr::create(AccessHasOccurredExpr::create(arrayIdExpr, true));
+
   if (arrayIdExpr->getType().range().isKind(Type::Unknown))
     TM->NextModelAllAsByteArray = true;
+
   return result;
 }
 
@@ -1045,6 +1053,7 @@ ref<Expr> TranslateFunction::handleReadOffset(bugle::BasicBlock *BBB,
       TM->NextModelAllAsByteArray = true;
     }
   }
+
   return result;
 }
 
@@ -1074,6 +1083,7 @@ ref<Expr> TranslateFunction::handleWriteOffset(bugle::BasicBlock *BBB,
       TM->NextModelAllAsByteArray = true;
     }
   }
+
   return result;
 }
 
@@ -1095,6 +1105,7 @@ ref<Expr> TranslateFunction::handlePtrOffset(bugle::BasicBlock *BBB,
       TM->NextModelAllAsByteArray = true;
     }
   }
+
   return result;
 }
 
@@ -1102,8 +1113,10 @@ ref<Expr> TranslateFunction::handlePtrBase(bugle::BasicBlock *BBB,
                                            llvm::CallInst *CI,
                                            const ExprVec &Args) {
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
+
   if (arrayIdExpr->getType().range().isKind(Type::Unknown))
     TM->NextModelAllAsByteArray = true;
+
   return arrayIdExpr;
 }
 
@@ -1118,7 +1131,8 @@ ref<Expr> TranslateFunction::handleArraySnapshot(bugle::BasicBlock *BBB,
       srcArrayIdExpr->getType().range().isKind(Type::Unknown) ||
       dstArrayIdExpr->getType().range() != srcArrayIdExpr->getType().range())
     TM->NextModelAllAsByteArray = true;
-  return 0;
+
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
@@ -1197,7 +1211,7 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
   }
 
   BBB->addStmt(CallStmt::create(BF, Args, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr>
@@ -1236,7 +1250,7 @@ TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB,
   }
 
   BBB->addStmt(CallStmt::create(BF, Args, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
@@ -1268,7 +1282,7 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
 
   if (DstRangeTy == Type(Type::Any)) {
     BBB->addStmt(AssertStmt::createBadAccess(currentSourceLocs));
-    return 0;
+    return nullptr;
   }
 
   assert(DstRangeTy.width % 8 == 0);
@@ -1302,7 +1316,8 @@ ref<Expr> TranslateFunction::handleMemset(bugle::BasicBlock *BBB,
       TM->NextModelAllAsByteArray = true;
     }
   }
-  return 0;
+
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
@@ -1329,12 +1344,12 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
 
   if (DstRangeTy == Type(Type::Any)) {
     BBB->addStmt(AssertStmt::createBadAccess(currentSourceLocs));
-    return 0;
+    return nullptr;
   }
 
   if (SrcRangeTy == Type(Type::Any)) {
     BBB->addStmt(AssertStmt::createBadAccess(currentSourceLocs));
-    return 0;
+    return nullptr;
   }
 
   assert(SrcRangeTy.width % 8 == 0);
@@ -1372,7 +1387,8 @@ ref<Expr> TranslateFunction::handleMemcpy(bugle::BasicBlock *BBB,
       TM->NextModelAllAsByteArray = true;
     }
   }
-  return 0;
+
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleTrap(bugle::BasicBlock *BBB,
@@ -1381,7 +1397,7 @@ ref<Expr> TranslateFunction::handleTrap(bugle::BasicBlock *BBB,
   BBB->addStmt(
       AssertStmt::create(BoolConstExpr::create(false), /*global=*/false,
                          /*candidate=*/false, currentSourceLocs));
-  return 0;
+  return nullptr;
 }
 
 static std::string mkDimName(const std::string &prefix, ref<Expr> dim) {
@@ -1604,7 +1620,7 @@ ref<Expr> TranslateFunction::handleWaitGroupEvents(bugle::BasicBlock *BBB,
     BBB->addStmt(WaitGroupEventStmt::create(LE, currentSourceLocs));
   }
 
-  return 0;
+  return nullptr;
 }
 
 ref<Expr> TranslateFunction::handleCeil(bugle::BasicBlock *BBB,
