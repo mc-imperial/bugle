@@ -34,8 +34,8 @@ bool StructSimplificationPass::isGetElementPtrBitCastAllocaChain(
     // Recurse.
     return isGetElementPtrBitCastAllocaChain(GEPI->getPointerOperand());
   } else if (auto *BCI = dyn_cast<BitCastInst>(V)) {
-    auto *OperandType = BCI->getOperand(0)->getType()->getPointerElementType();
-    auto *ResultType = BCI->getType()->getPointerElementType();
+    auto *OperandType = BCI->getSrcTy()->getPointerElementType();
+    auto *ResultType = BCI->getDestTy()->getPointerElementType();
 
     do {
       if (!OperandType->isStructTy())
@@ -61,8 +61,8 @@ llvm::AllocaInst *StructSimplificationPass::getAllocaAndIndexes(
     // Recurse.
     auto *AI = getAllocaAndIndexes(BCI->getOperand(0), Idxs);
 
-    auto *OperandType = BCI->getOperand(0)->getType()->getPointerElementType();
-    auto *ResultType = BCI->getType()->getPointerElementType();
+    auto *OperandType = BCI->getSrcTy()->getPointerElementType();
+    auto *ResultType = BCI->getDestTy()->getPointerElementType();
 
     do {
       Idxs.push_back(0);
@@ -274,13 +274,13 @@ void StructSimplificationPass::simplifySingleMemcpy(llvm::MemCpyInst *MemCpy) {
   // consisting of a load and a store.
 
   bool DestIsAlloca = isAllocaMemCpyPair(
-      MemCpy->getOperand(0), MemCpy->getOperand(1), MemCpy->getOperand(2));
+      MemCpy->getRawDest(), MemCpy->getRawSource(), MemCpy->getLength());
 
-  auto *AllocaBCI = DestIsAlloca ? cast<BitCastInst>(MemCpy->getOperand(0))
-                                 : cast<BitCastInst>(MemCpy->getOperand(1));
+  auto *AllocaBCI = DestIsAlloca ? cast<BitCastInst>(MemCpy->getRawDest())
+                                 : cast<BitCastInst>(MemCpy->getRawSource());
   auto *AI = cast<AllocaInst>(AllocaBCI->getOperand(0));
 
-  auto *Other = DestIsAlloca ? MemCpy->getOperand(1) : MemCpy->getOperand(0);
+  auto *Other = DestIsAlloca ? MemCpy->getRawSource() : MemCpy->getRawDest();
   Value *OtherOp = Other;
 
   if (isa<Instruction>(OtherOp)) {
@@ -334,10 +334,10 @@ bool StructSimplificationPass::simplifyMemcpys(llvm::Function &F) {
   for (auto &BB : F)
     for (auto &I : BB)
       if (auto *MemCpy = dyn_cast<MemCpyInst>(&I))
-        if (isAllocaMemCpyPair(MemCpy->getOperand(0), MemCpy->getOperand(1),
-                               MemCpy->getOperand(2)) ||
-            isAllocaMemCpyPair(MemCpy->getOperand(1), MemCpy->getOperand(0),
-                               MemCpy->getOperand(2)))
+        if (isAllocaMemCpyPair(MemCpy->getRawSource(), MemCpy->getRawDest(),
+                               MemCpy->getLength()) ||
+            isAllocaMemCpyPair(MemCpy->getRawDest(), MemCpy->getRawSource(),
+                               MemCpy->getLength()))
           MemCpys.insert(MemCpy);
 
   for (auto *MemCpy : MemCpys)
@@ -365,7 +365,7 @@ void StructSimplificationPass::simplifySingleMemset(llvm::MemSetInst *MemSet) {
   // performed by isAllocaMemsetOfZero, by replacing the memset by a store of
   // a zero value.
 
-  auto *AllocaBCI = cast<BitCastInst>(MemSet->getOperand(0));
+  auto *AllocaBCI = cast<BitCastInst>(MemSet->getRawDest());
   auto *AI = cast<AllocaInst>(AllocaBCI->getOperand(0));
 
   auto *Zero = ConstantAggregateZero::get(AI->getAllocatedType());
@@ -383,8 +383,8 @@ bool StructSimplificationPass::simplifyMemsets(llvm::Function &F) {
   for (auto &BB : F)
     for (auto &I : BB)
       if (auto *MemSet = dyn_cast<MemSetInst>(&I))
-        if (isAllocaMemsetOfZero(MemSet->getOperand(0), MemSet->getOperand(1),
-                                 MemSet->getOperand(2)))
+        if (isAllocaMemsetOfZero(MemSet->getRawDest(), MemSet->getValue(),
+                                 MemSet->getLength()))
           MemSets.insert(MemSet);
 
   for (auto *MemSet : MemSets)
