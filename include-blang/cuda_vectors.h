@@ -4,6 +4,7 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wc++11-extensions"
 
+typedef unsigned short ushort;
 typedef unsigned int uint;
 
 /* See Table B-1 in CUDA Specification */
@@ -22,27 +23,27 @@ typedef unsigned int uint;
   typedef struct {   \
     TYPE x, y, z, w; \
   } NAME##4;         \
-  __device__ static __inline__ NAME##1 make_##NAME##1(TYPE x) \
+  __host__ __device__ static __inline__ NAME##1 make_##NAME##1(TYPE x) \
   { \
     return { x }; \
   } \
-  __device__ static __inline__ NAME##2 make_##NAME##2(TYPE x, TYPE y) \
+  __host__ __device__ static __inline__ NAME##2 make_##NAME##2(TYPE x, TYPE y) \
   { \
     return { x, y }; \
   } \
-  __device__ static __inline__ NAME##2 make_##NAME##2(TYPE x) \
+  __host__ __device__ static __inline__ NAME##2 make_##NAME##2(TYPE x) \
   { \
     return make_##NAME##2(x, x); \
   } \
-  __device__ static __inline__ NAME##3 make_##NAME##3(TYPE x, TYPE y, TYPE z) \
+  __host__ __device__ static __inline__ NAME##3 make_##NAME##3(TYPE x, TYPE y, TYPE z) \
   { \
     return { x, y, z }; \
   } \
-  __device__ static __inline__ NAME##3 make_##NAME##3(TYPE x) \
+  __host__ __device__ static __inline__ NAME##3 make_##NAME##3(TYPE x) \
   { \
     return make_##NAME##3(x, x, x); \
   } \
-  __device__ static __inline__ NAME##4 make_##NAME##4(TYPE x, TYPE y, TYPE z, TYPE w) \
+  __host__ __device__ static __inline__ NAME##4 make_##NAME##4(TYPE x, TYPE y, TYPE z, TYPE w) \
   { \
     return { x, y, z, w }; \
   } \
@@ -69,23 +70,23 @@ __MAKE_VECTOR_OPERATIONS(double,double)
 /* from helper_math.h */
 
 #define __MAKE_VECTOR_FROM_SIMILAR(TYPE,ZERO) \
-  __device__ static __inline__ TYPE##2 make_##TYPE##2(TYPE##3 a) \
+  __host__ __device__ static __inline__ TYPE##2 make_##TYPE##2(TYPE##3 a) \
   { \
     return make_##TYPE##2(a.x, a.y);  /* discards z */ \
   } \
-  __device__ static __inline__ TYPE##3 make_##TYPE##3(TYPE##2 a) \
+  __host__ __device__ static __inline__ TYPE##3 make_##TYPE##3(TYPE##2 a) \
   { \
     return make_##TYPE##3(a.x, a.y, ZERO); \
   } \
-  __device__ static __inline__ TYPE##3 make_##TYPE##3(TYPE##2 a, TYPE s) \
+  __host__ __device__ static __inline__ TYPE##3 make_##TYPE##3(TYPE##2 a, TYPE s) \
   { \
     return make_##TYPE##3(a.x, a.y, s); \
   } \
-  __device__ static __inline__ TYPE##4 make_##TYPE##4(TYPE##3 a) \
+  __host__ __device__ static __inline__ TYPE##4 make_##TYPE##4(TYPE##3 a) \
   { \
     return make_##TYPE##4(a.x, a.y, a.z, ZERO); \
   } \
-  __device__ static __inline__ TYPE##4 make_##TYPE##4(TYPE##3 a, TYPE w) \
+  __host__ __device__ static __inline__ TYPE##4 make_##TYPE##4(TYPE##3 a, TYPE w) \
   { \
     return make_##TYPE##4(a.x, a.y, a.z, w); \
   }
@@ -97,15 +98,15 @@ __MAKE_VECTOR_FROM_SIMILAR(uint,0)
 #undef __MAKE_VECTOR_FROM_SIMILAR
 
 #define __MAKE_CONVERT(TYPE_TO,TYPE_FROM) \
-  __device__ static __inline__ TYPE_TO##2 make_##TYPE_TO##2(TYPE_FROM##2 a) \
+  __host__ __device__ static __inline__ TYPE_TO##2 make_##TYPE_TO##2(TYPE_FROM##2 a) \
   { \
     return make_##TYPE_TO##2(TYPE_TO(a.x), TYPE_TO(a.y)); \
   } \
-  __device__ static __inline__ TYPE_TO##3 make_##TYPE_TO##3(TYPE_FROM##3 a) \
+  __host__ __device__ static __inline__ TYPE_TO##3 make_##TYPE_TO##3(TYPE_FROM##3 a) \
   { \
     return make_##TYPE_TO##3(TYPE_TO(a.x), TYPE_TO(a.y), TYPE_TO(a.z)); \
   } \
-  __device__ static __inline__ TYPE_TO##4 make_##TYPE_TO##4(TYPE_FROM##4 a) \
+  __host__ __device__ static __inline__ TYPE_TO##4 make_##TYPE_TO##4(TYPE_FROM##4 a) \
   { \
     return make_##TYPE_TO##4(TYPE_TO(a.x), TYPE_TO(a.y), TYPE_TO(a.z), TYPE_TO(a.w)); \
   }
@@ -118,12 +119,12 @@ __MAKE_CONVERT(uint,int)
 
 #undef __MAKE_CONVERT_TWO
 
-__device__ static __inline__ float3 make_float3(float4 a)
+__host__ __device__ static __inline__ float3 make_float3(float4 a)
 {
   return make_float3(a.x, a.y, a.z);  /* discards w */
 }
 
-__device__ static __inline__ uint3 make_uint3(uint4 a)
+__host__ __device__ static __inline__ uint3 make_uint3(uint4 a)
 {
   return make_uint3(a.x, a.y, a.z);  /* discards w */
 }
