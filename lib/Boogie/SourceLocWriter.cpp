@@ -7,7 +7,7 @@ using namespace bugle;
 
 unsigned SourceLocWriter::writeSourceLocs(const SourceLocsRef &sourcelocs) {
   ++SourceLocCounter;
-  if (L == 0)
+  if (L == nullptr)
     return SourceLocCounter - 1;
 
   llvm::raw_ostream &OS = L->os();

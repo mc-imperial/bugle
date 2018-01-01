@@ -473,14 +473,14 @@ void TranslateFunction::specifyZeroDimensions(unsigned PtrArgs) {
   }
 
   auto ArraySize = AS.begin();
-  for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
-    if (!i->getType()->isPointerTy() ||
-        i->getType()->getPointerElementType()->isFunctionTy())
+  for (auto &Arg : F->args()) {
+    if (!Arg.getType()->isPointerTy() ||
+        Arg.getType()->getPointerElementType()->isFunctionTy())
       continue;
     if (ArraySize->first) {
-      GlobalArray *GA = TM->getGlobalArray(&*i, /*IsParameter=*/true);
-      auto PTy = cast<PointerType>(i->getType());
-      uint64_t ElementSize = TM->TD.getTypeAllocSize(PTy->getElementType());
+      GlobalArray *GA = TM->getGlobalArray(&Arg, /*IsParameter=*/true);
+      auto *ElTy = Arg.getType()->getPointerElementType();
+      uint64_t ElementSize = TM->TD.getTypeAllocSize(ElTy);
       uint64_t size = ArraySize->second;
       if (size % ElementSize != 0) {
         std::string msg; llvm::raw_string_ostream msgS(msg);
@@ -511,28 +511,28 @@ void TranslateFunction::createStructArrays() {
   if (!SV) {
     SV = new std::vector<llvm::Instruction *>();
     TM->StructMap[F] = SV;
-    for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
-      if (i->getType()->isStructTy())
-        extractStructArrays(&*i);
+    for (auto &Arg : F->args()) {
+      if (Arg.getType()->isStructTy())
+        extractStructArrays(&Arg);
     }
   }
 
   BasicBlock *BB = new BasicBlock("");
   unsigned PtrSize = TM->TD.getPointerSizeInBits();
 
-  for (auto i = SV->begin(), e = SV->end(); i != e; ++i) {
-    translateInstruction(BB, *i);
+  for (auto *I : *SV) {
+    translateInstruction(BB, I);
 
-    if (!(*i)->getType()->isPointerTy() ||
-        (*i)->getType()->getPointerElementType()->isFunctionTy())
+    if (!I->getType()->isPointerTy() ||
+        I->getType()->getPointerElementType()->isFunctionTy())
       continue;
 
-    GlobalArray *GA = TM->getGlobalArray(*i, /*IsParameter=*/true);
+    GlobalArray *GA = TM->getGlobalArray(I, /*IsParameter=*/true);
     if (TM->SL == TranslateModule::SL_CUDA)
       GA->addAttribute("global");
     auto PtrExpr = PointerExpr::create(GlobalArrayRefExpr::create(GA),
                                        BVConstExpr::createZero(PtrSize));
-    BF->addRequires(EqExpr::create(ValueExprMap[*i], PtrExpr), nullptr);
+    BF->addRequires(EqExpr::create(ValueExprMap[I], PtrExpr), nullptr);
   }
 
   delete BB;
@@ -553,19 +553,19 @@ void TranslateFunction::translate() {
 
   unsigned PtrSize = TM->TD.getPointerSizeInBits();
   unsigned PtrArgs = 0;
-  for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i) {
-    if (isGPUEntryPoint && i->getType()->isPointerTy() &&
-        !i->getType()->getPointerElementType()->isFunctionTy()) {
-      GlobalArray *GA = TM->getGlobalArray(&*i, /*IsParameter=*/true);
+  for (auto &Arg : F->args()) {
+    if (isGPUEntryPoint && Arg.getType()->isPointerTy() &&
+        !Arg.getType()->getPointerElementType()->isFunctionTy()) {
+      GlobalArray *GA = TM->getGlobalArray(&Arg, /*IsParameter=*/true);
       ++PtrArgs;
       if (TM->SL == TranslateModule::SL_CUDA)
         GA->addAttribute("global");
-      ValueExprMap[&*i] = PointerExpr::create(GlobalArrayRefExpr::create(GA),
-                                              BVConstExpr::createZero(PtrSize));
+      ValueExprMap[&Arg] = PointerExpr::create(
+          GlobalArrayRefExpr::create(GA), BVConstExpr::createZero(PtrSize));
     } else {
-      Var *V = BF->addArgument(
-          TM->getModelledType(&*i), TranslateModule::getSourceName(&*i, F));
-      ValueExprMap[&*i] = TM->unmodelValue(&*i, VarRefExpr::create(V));
+      Var *V = BF->addArgument(TM->getModelledType(&Arg),
+                               TranslateModule::getSourceName(&Arg, F));
+      ValueExprMap[&Arg] = TM->unmodelValue(&Arg, VarRefExpr::create(V));
     }
   }
 
@@ -582,15 +582,15 @@ void TranslateFunction::translate() {
   std::set<llvm::BasicBlock *> BBSet;
   std::vector<llvm::BasicBlock *> BBList;
 
-  for (auto i = F->begin(), e = F->end(); i != e; ++i) {
-    AddBasicBlockInOrder(BBSet, BBList, &*i);
-    BasicBlockMap[&*i] = BF->addBasicBlock(i->getName());
+  for (auto &BB : *F) {
+    AddBasicBlockInOrder(BBSet, BBList, &BB);
+    BasicBlockMap[&BB] = BF->addBasicBlock(BB.getName());
   }
 
-  for (auto i = BBList.begin(), e = BBList.end(); i != e; ++i) {
-    Stmt *AS = AssertStmt::createBlockSourceLoc(extractSourceLocsForBlock(*i));
-    BasicBlockMap[*i]->addStmt(AS);
-    translateBasicBlock(BasicBlockMap[*i], *i);
+  for (auto *BBB : BBList) {
+    Stmt *AS = AssertStmt::createBlockSourceLoc(extractSourceLocsForBlock(BBB));
+    BasicBlockMap[BBB]->addStmt(AS);
+    translateBasicBlock(BasicBlockMap[BBB], BBB);
   }
 
   // If we're modelling everything as a byte array, don't bother to compute
@@ -599,37 +599,39 @@ void TranslateFunction::translate() {
     return;
 
   // For each phi we encountered in the function, see if we can model it.
-  for (auto i = PhiAssignsMap.begin(), e = PhiAssignsMap.end(); i != e; ++i) {
+  for (auto &Phi : PhiAssignsMap) {
     ExprVec assigns;
     std::set<llvm::PHINode *> foundPhiNodes;
-    foundPhiNodes.insert(i->first);
-    computeClosure(i->second, foundPhiNodes, assigns);
-    TM->computeValueModel(i->first, PhiVarMap[i->first], assigns);
+    foundPhiNodes.insert(Phi.first);
+    computeClosure(Phi.second, foundPhiNodes, assigns);
+    TM->computeValueModel(Phi.first, PhiVarMap[Phi.first], assigns);
   }
 
   // See if we can model the return value. This requires the function to have
   // a body.
-  if (BBList.begin() != BBList.end())
+  if (!BBList.empty())
     TM->computeValueModel(F, nullptr, ReturnVals);
 }
 
 void TranslateFunction::computeClosure(std::vector<PhiPair> &currentAssigns,
                                        std::set<llvm::PHINode *> &foundPhiNodes,
                                        ExprVec &assigns) {
-  for (auto i = currentAssigns.begin(), e = currentAssigns.end(); i != e; ++i) {
+  for (auto &Pair : currentAssigns) {
     // See if this phi node is referring to another phi node, either directly
     // or through a number of getelementptr instructions. Compute the transitive
-    // closure in case such a phi node exists.
-    auto operand = i->first;
+    // closure if such a phi node exists.
+    auto operand = Pair.first;
+
     while (isa<GetElementPtrInst>(operand))
       operand = cast<GetElementPtrInst>(operand)->getPointerOperand();
+
     if (auto PN = dyn_cast<PHINode>(operand)) {
       if (foundPhiNodes.find(PN) == foundPhiNodes.end()) {
         foundPhiNodes.insert(PN);
         computeClosure(PhiAssignsMap[PN], foundPhiNodes, assigns);
       }
     } else {
-      assigns.push_back(i->second);
+      assigns.push_back(Pair.second);
     }
   }
 }
@@ -697,15 +699,15 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
 SourceLocsRef
 TranslateFunction::extractSourceLocsForBlock(llvm::BasicBlock *BB) {
   SourceLocsRef sourcelocs;
-  for (auto i = BB->begin(), e = BB->end(); i != e; ++i) {
+  for (auto &I : *BB) {
     // Skip over llvm.dbg.value, as these may point to the point of declaration
     // of a variable, which may be outside the current basic block.
-    if (auto *II = dyn_cast<IntrinsicInst>(&*i)) {
+    if (auto *II = dyn_cast<IntrinsicInst>(&I)) {
       if (II->getIntrinsicID() == Intrinsic::dbg_value)
         continue;
     }
-    sourcelocs = extractSourceLocs(&*i);
-    if (sourcelocs.get())
+    sourcelocs = extractSourceLocs(&I);
+    if (sourcelocs != nullptr)
       break;
   }
   return sourcelocs;
@@ -888,9 +890,9 @@ bool TranslateFunction::isLegalFunctionWideInvariantValue(Value *V) {
       return false;
   }
 
-  if (auto U = dyn_cast<User>(V)) {
-    for (auto i = U->op_begin(), e = U->op_end(); i != e; ++i) {
-      if (!isLegalFunctionWideInvariantValue(*i))
+  if (auto *U = dyn_cast<User>(V)) {
+    for (auto &Op : U->operands()) {
+      if (!isLegalFunctionWideInvariantValue(Op))
         return false;
     }
   }
@@ -932,11 +934,13 @@ ref<Expr> TranslateFunction::handleReadsFrom(bugle::BasicBlock *BBB,
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   BF->addModifies(AccessHasOccurredExpr::create(arrayIdExpr, false),
                   extractSourceLocs(CI));
+
   if (TM->RaceInst == bugle::RaceInstrumenter::Original) {
     ref<Expr> access = AccessOffsetExpr::create(
         arrayIdExpr, TM->TD.getPointerSizeInBits(), false);
     BF->addModifies(access, extractSourceLocs(CI));
   }
+
   if (arrayIdExpr->getType().range().isKind(Type::Unknown))
     TM->NextModelAllAsByteArray = true;
 
@@ -949,11 +953,13 @@ ref<Expr> TranslateFunction::handleWritesTo(bugle::BasicBlock *BBB,
   ref<Expr> arrayIdExpr = ArrayIdExpr::create(Args[0], TM->defaultRange());
   BF->addModifies(AccessHasOccurredExpr::create(arrayIdExpr, true),
                   extractSourceLocs(CI));
+
   if (TM->RaceInst == bugle::RaceInstrumenter::Original) {
     ref<Expr> access = AccessOffsetExpr::create(
         arrayIdExpr, TM->TD.getPointerSizeInBits(), true);
     BF->addModifies(access, extractSourceLocs(CI));
   }
+
   BF->addModifies(UnderlyingArrayExpr::create(arrayIdExpr),
                   extractSourceLocs(CI));
 
@@ -996,8 +1002,10 @@ ref<Expr> TranslateFunction::handleOtherPtrBase(bugle::BasicBlock *BBB,
                                                 llvm::CallInst *CI,
                                                 const ExprVec &Args) {
   Type range = Expr::getPointerRange(Args[0], TM->defaultRange());
+
   if (range.isKind(Type::Unknown))
     TM->NextModelAllAsByteArray = true;
+
   return OtherPtrBaseExpr::create(Args[0]);
 }
 
@@ -1209,8 +1217,8 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
                                                     const ExprVec &Args) {
   assert(CI->getNumArgOperands() > 1);
 
-  auto BF = BarrierInvariants[CI->getNumArgOperands()];
-  if (!BF) {
+  auto *BF = BarrierInvariants[CI->getNumArgOperands()];
+  if (BF == nullptr) {
     llvm::Function *F = CI->getCalledFunction();
     std::string S = F->getName().str();
     llvm::raw_string_ostream SS(S);
@@ -1246,8 +1254,8 @@ TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB,
   assert(CI->getNumArgOperands() % 2 != 0 &&
          "__barrier_invariant_binary not followed by a sequence of pairs");
 
-  auto BF = BinaryBarrierInvariants[CI->getNumArgOperands()];
-  if (!BF) {
+  auto *BF = BinaryBarrierInvariants[CI->getNumArgOperands()];
+  if (BF == nullptr) {
     llvm::Function *F = CI->getCalledFunction();
     std::string S = F->getName().str();
     llvm::raw_string_ostream SS(S);
@@ -1679,10 +1687,12 @@ ref<Expr> TranslateFunction::handleCtlz(bugle::BasicBlock *BBB,
                                         const ExprVec &Args) {
   llvm::Type *Ty = CI->getType();
   ref<Expr> isZeroUndef;
+
   if (TM->SL == TranslateModule::SL_CUDA)
     isZeroUndef = BoolConstExpr::create(false);
   else
     isZeroUndef = BVToBoolExpr::create(Args[1]);
+
   return maybeTranslateSIMDInst(BBB, Ty, Ty, Args[0],
                                 [&](llvm::Type *T, ref<Expr> E) {
     return BVCtlzExpr::create(E, isZeroUndef);
@@ -2051,7 +2061,7 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(
   if (!isa<VectorType>(Ty))
     return F(Ty, Op);
 
-  auto VT = cast<VectorType>(Ty);
+  auto *VT = cast<VectorType>(Ty);
   unsigned NumElems = VT->getNumElements();
   assert(cast<VectorType>(OpTy)->getNumElements() == NumElems);
   unsigned ElemWidth = Op->getType().width / NumElems;
@@ -2062,6 +2072,7 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(
     BBB->addEvalStmt(Elem, currentSourceLocs);
     Elems.push_back(Elem);
   }
+
   return Expr::createBVConcatN(Elems);
 }
 
@@ -2071,7 +2082,7 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(
   if (!isa<VectorType>(Ty))
     return F(LHS, RHS);
 
-  auto VT = cast<VectorType>(Ty);
+  auto *VT = cast<VectorType>(Ty);
   unsigned NumElems = VT->getNumElements();
   assert(cast<VectorType>(OpTy)->getNumElements() == NumElems);
   unsigned ElemWidth = LHS->getType().width / NumElems;
@@ -2083,18 +2094,18 @@ ref<Expr> TranslateFunction::maybeTranslateSIMDInst(
     BBB->addEvalStmt(Elem, currentSourceLocs);
     Elems.push_back(Elem);
   }
+
   return Expr::createBVConcatN(Elems);
 }
 
 void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                                              Instruction *I) {
-
   SourceLocsRef SLI = extractSourceLocs(I);
-  if (SLI.get() != 0)
+  if (SLI != nullptr)
     currentSourceLocs = SLI;
 
   ref<Expr> E;
-  if (auto BO = dyn_cast<BinaryOperator>(I)) {
+  if (auto *BO = dyn_cast<BinaryOperator>(I)) {
     ref<Expr> LHS = translateValue(BO->getOperand(0), BBB),
               RHS = translateValue(BO->getOperand(1), BBB);
     ref<Expr>(*F)(ref<Expr>, ref<Expr>);
@@ -2122,35 +2133,35 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           "Unsupported binary operator");
     }
     E = maybeTranslateSIMDInst(BBB, BO->getType(), BO->getType(), LHS, RHS, F);
-  } else if (auto GEPI = dyn_cast<GetElementPtrInst>(I)) {
+  } else if (auto *GEPI = dyn_cast<GetElementPtrInst>(I)) {
     ref<Expr> Ptr = translateValue(GEPI->getPointerOperand(), BBB);
     E = TM->translateGEP(Ptr, klee::gep_type_begin(GEPI),
                          klee::gep_type_end(GEPI),
                          [&](Value *V) { return translateValue(V, BBB); });
-  } else if (auto EV = dyn_cast<ExtractValueInst>(I)) {
+  } else if (auto *EV = dyn_cast<ExtractValueInst>(I)) {
     ref<Expr> Agg = translateValue(EV->getAggregateOperand(), BBB);
     E = TM->translateEV(Agg, klee::ev_type_begin(EV), klee::ev_type_end(EV),
                         [&](Value *V) { return translateValue(V, BBB); });
-  } else if (auto IV = dyn_cast<InsertValueInst>(I)) {
+  } else if (auto *IV = dyn_cast<InsertValueInst>(I)) {
     ref<Expr> Agg = translateValue(IV->getAggregateOperand(), BBB);
     ref<Expr> Val = translateValue(IV->getInsertedValueOperand(), BBB);
     E = TM->translateIV(Agg, Val, klee::iv_type_begin(IV),
                         klee::iv_type_end(IV),
                         [&](Value *V) { return translateValue(V, BBB); });
-  } else if (auto AI = dyn_cast<AllocaInst>(I)) {
-    auto AS = dyn_cast<Constant>(AI->getArraySize());
-    if (!AS)
+  } else if (auto *AI = dyn_cast<AllocaInst>(I)) {
+    auto *AS = dyn_cast<Constant>(AI->getArraySize());
+    if (AS == nullptr)
       ErrorReporter::reportImplementationLimitation(
           "Variable length arrays not supported");
-    auto NE = dyn_cast<BVConstExpr>(TM->translateConstant(AS));
-    if (!NE || NE->getValue().getZExtValue() != 1)
+    auto *NE = dyn_cast<BVConstExpr>(TM->translateConstant(AS));
+    if (NE == nullptr || NE->getValue().getZExtValue() != 1)
       ErrorReporter::reportImplementationLimitation(
           "Only alloca with one element supported");
     GlobalArray *GA = TM->getGlobalArray(AI);
     E = PointerExpr::create(
         GlobalArrayRefExpr::create(GA),
         BVConstExpr::createZero(TM->TD.getPointerSizeInBits()));
-  } else if (auto LI = dyn_cast<LoadInst>(I)) {
+  } else if (auto *LI = dyn_cast<LoadInst>(I)) {
     ref<Expr> Ptr = translateValue(LI->getPointerOperand(), BBB),
               PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
               PtrOfs = ArrayOffsetExpr::create(Ptr);
@@ -2218,7 +2229,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       }
       E = TM->translateArbitrary(LoadTy);
     }
-  } else if (auto SI = dyn_cast<StoreInst>(I)) {
+  } else if (auto *SI = dyn_cast<StoreInst>(I)) {
     ref<Expr> Ptr = translateValue(SI->getPointerOperand(), BBB),
               Val = translateValue(SI->getValueOperand(), BBB),
               PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
@@ -2290,7 +2301,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       }
     }
     return;
-  } else if (auto II = dyn_cast<ICmpInst>(I)) {
+  } else if (auto *II = dyn_cast<ICmpInst>(I)) {
     ref<Expr> LHS = translateValue(II->getOperand(0), BBB),
               RHS = translateValue(II->getOperand(1), BBB);
     E = maybeTranslateSIMDInst(BBB, II->getType(), II->getOperand(0)->getType(),
@@ -2300,7 +2311,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       BBB->addEvalStmt(E, currentSourceLocs);
       return BoolToBVExpr::create(E);
     });
-  } else if (auto FI = dyn_cast<FCmpInst>(I)) {
+  } else if (auto *FI = dyn_cast<FCmpInst>(I)) {
     ref<Expr> LHS = translateValue(FI->getOperand(0), BBB),
               RHS = translateValue(FI->getOperand(1), BBB);
     E = maybeTranslateSIMDInst(BBB, FI->getType(), FI->getOperand(0)->getType(),
@@ -2318,42 +2329,42 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       BBB->addEvalStmt(E, currentSourceLocs);
       return BoolToBVExpr::create(E);
     });
-  } else if (auto ZEI = dyn_cast<ZExtInst>(I)) {
+  } else if (auto *ZEI = dyn_cast<ZExtInst>(I)) {
     ref<Expr> Op = translateValue(ZEI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, ZEI->getType(),
                                ZEI->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return BVZExtExpr::create(cast<IntegerType>(Ty)->getBitWidth(), Op);
     });
-  } else if (auto SEI = dyn_cast<SExtInst>(I)) {
+  } else if (auto *SEI = dyn_cast<SExtInst>(I)) {
     ref<Expr> Op = translateValue(SEI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, SEI->getType(),
                                SEI->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return BVSExtExpr::create(cast<IntegerType>(Ty)->getBitWidth(), Op);
     });
-  } else if (auto FPSII = dyn_cast<FPToSIInst>(I)) {
+  } else if (auto *FPSII = dyn_cast<FPToSIInst>(I)) {
     ref<Expr> Op = translateValue(FPSII->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, FPSII->getType(),
                                FPSII->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return FPToSIExpr::create(cast<IntegerType>(Ty)->getBitWidth(), Op);
     });
-  } else if (auto FPUII = dyn_cast<FPToUIInst>(I)) {
+  } else if (auto *FPUII = dyn_cast<FPToUIInst>(I)) {
     ref<Expr> Op = translateValue(FPUII->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, FPUII->getType(),
                                FPUII->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return FPToUIExpr::create(cast<IntegerType>(Ty)->getBitWidth(), Op);
     });
-  } else if (auto SIFPI = dyn_cast<SIToFPInst>(I)) {
+  } else if (auto *SIFPI = dyn_cast<SIToFPInst>(I)) {
     ref<Expr> Op = translateValue(SIFPI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, SIFPI->getType(),
                                SIFPI->getOperand(0)->getType(), Op,
                                [&](llvm::Type *Ty, ref<Expr> Op) {
       return SIToFPExpr::create(TM->TD.getTypeSizeInBits(Ty), Op);
     });
-  } else if (auto UIFPI = dyn_cast<UIToFPInst>(I)) {
+  } else if (auto *UIFPI = dyn_cast<UIToFPInst>(I)) {
     ref<Expr> Op = translateValue(UIFPI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, UIFPI->getType(),
                                UIFPI->getOperand(0)->getType(), Op,
@@ -2361,50 +2372,50 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       return UIToFPExpr::create(TM->TD.getTypeSizeInBits(Ty), Op);
     });
   } else if (isa<FPExtInst>(I) || isa<FPTruncInst>(I)) {
-    auto CI = cast<CastInst>(I);
+    auto *CI = cast<CastInst>(I);
     ref<Expr> Op = translateValue(CI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, CI->getType(), CI->getOperand(0)->getType(),
                                Op, [&](llvm::Type *Ty, ref<Expr> Op) {
       return FPConvExpr::create(TM->TD.getTypeSizeInBits(Ty), Op);
     });
-  } else if (auto TI = dyn_cast<TruncInst>(I)) {
+  } else if (auto *TI = dyn_cast<TruncInst>(I)) {
     ref<Expr> Op = translateValue(TI->getOperand(0), BBB);
     E = maybeTranslateSIMDInst(BBB, TI->getType(), TI->getOperand(0)->getType(),
                                Op, [&](llvm::Type *Ty, ref<Expr> Op) {
       return BVExtractExpr::create(Op, 0, cast<IntegerType>(Ty)->getBitWidth());
     });
-  } else if (auto I2PI = dyn_cast<IntToPtrInst>(I)) {
+  } else if (auto *I2PI = dyn_cast<IntToPtrInst>(I)) {
     ref<Expr> Op = translateValue(I2PI->getOperand(0), BBB);
     assert(I2PI->getType()->isPointerTy());
     if (I2PI->getType()->getPointerElementType()->isFunctionTy())
       E = BVToFuncPtrExpr::create(TM->TD.getPointerSizeInBits(), Op);
     else
       E = BVToPtrExpr::create(TM->TD.getPointerSizeInBits(), Op);
-  } else if (auto P2II = dyn_cast<PtrToIntInst>(I)) {
+  } else if (auto *P2II = dyn_cast<PtrToIntInst>(I)) {
     ref<Expr> Op = translateValue(P2II->getOperand(0), BBB);
     Type OpTy = Op->getType();
     if (OpTy.isKind(Type::Pointer))
       E = PtrToBVExpr::create(TM->TD.getTypeSizeInBits(I->getType()), Op);
     else if (OpTy.isKind(Type::FunctionPointer))
       E = FuncPtrToBVExpr::create(TM->TD.getTypeSizeInBits(I->getType()), Op);
-  } else if (auto BCI = dyn_cast<BitCastInst>(I)) {
+  } else if (auto *BCI = dyn_cast<BitCastInst>(I)) {
     ref<Expr> Op = translateValue(BCI->getOperand(0), BBB);
     E = TM->translateBitCast(BCI->getSrcTy(), BCI->getDestTy(), Op);
     if (Op.get() == E.get()) {
       ValueExprMap[I] = Op;
       return;
     }
-  } else if (auto ASCI = dyn_cast<AddrSpaceCastInst>(I)) {
+  } else if (auto *ASCI = dyn_cast<AddrSpaceCastInst>(I)) {
     ValueExprMap[I] = translateValue(ASCI->getOperand(0), BBB);
     return;
-  } else if (auto SI = dyn_cast<SelectInst>(I)) {
+  } else if (auto *SI = dyn_cast<SelectInst>(I)) {
     ref<Expr> Cond = translateValue(SI->getCondition(), BBB),
               TrueVal = translateValue(SI->getTrueValue(), BBB),
               FalseVal = translateValue(SI->getFalseValue(), BBB);
-    if (auto VT = dyn_cast<VectorType>(SI->getCondition()->getType())) {
+    if (auto *VT = dyn_cast<VectorType>(SI->getCondition()->getType())) {
       unsigned elementBitWidth =
           TrueVal->getType().width / VT->getNumElements();
-      E = 0;
+      E = nullptr;
       for (unsigned i = 0; i < VT->getNumElements(); ++i) {
         ref<Expr> Ite = IfThenElseExpr::create(
             BVToBoolExpr::create(BVExtractExpr::create(Cond, i, 1)),
@@ -2418,7 +2429,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       Cond = BVToBoolExpr::create(Cond);
       E = IfThenElseExpr::create(Cond, TrueVal, FalseVal);
     }
-  } else if (auto EEI = dyn_cast<ExtractElementInst>(I)) {
+  } else if (auto *EEI = dyn_cast<ExtractElementInst>(I)) {
     ref<Expr> Vec = translateValue(EEI->getVectorOperand(), BBB),
               Idx = translateValue(EEI->getIndexOperand(), BBB);
     unsigned EltBits = TM->TD.getTypeSizeInBits(EEI->getType());
@@ -2431,7 +2442,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       ref<Expr> Extract = BVExtractExpr::create(Vec, EltBits * i, EltBits);
       E = IfThenElseExpr::create(Cmp, Extract, E);
     }
-  } else if (auto IEI = dyn_cast<InsertElementInst>(I)) {
+  } else if (auto *IEI = dyn_cast<InsertElementInst>(I)) {
     ref<Expr> Vec = translateValue(IEI->getOperand(0), BBB),
               NewElt = translateValue(IEI->getOperand(1), BBB),
               Idx = translateValue(IEI->getOperand(2), BBB);
@@ -2446,7 +2457,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
                                                Vec, EltBits * i, EltBits));
     }
     E = Expr::createBVConcatN(Elems);
-  } else if (auto SVI = dyn_cast<ShuffleVectorInst>(I)) {
+  } else if (auto *SVI = dyn_cast<ShuffleVectorInst>(I)) {
     ref<Expr> Vec1 = translateValue(SVI->getOperand(0), BBB),
               Vec2 = translateValue(SVI->getOperand(1), BBB);
     unsigned EltBits =
@@ -2471,13 +2482,13 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       Elems.push_back(L);
     }
     E = Expr::createBVConcatN(Elems);
-  } else if (auto CI = dyn_cast<CallInst>(I)) {
+  } else if (auto *CI = dyn_cast<CallInst>(I)) {
     CallSite CS(CI);
     ExprVec Args;
     std::transform(CS.arg_begin(), CS.arg_end(), std::back_inserter(Args),
                    [&](Value *V) { return translateValue(V, BBB); });
 
-    if (auto II = dyn_cast<IntrinsicInst>(CI)) {
+    if (auto *II = dyn_cast<IntrinsicInst>(CI)) {
       auto ID = II->getIntrinsicID();
       auto SFII = SpecialFunctionMap.Intrinsics.find(ID);
       if (SFII != SpecialFunctionMap.Intrinsics.end()) {
@@ -2491,7 +2502,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         ErrorReporter::reportImplementationLimitation(msg);
       }
     } else {
-      auto F = CI->getCalledFunction();
+      auto *F = CI->getCalledFunction();
       auto SFI = SpecialFunctionMap.Functions.end();
       if (F) {
         SFI = SpecialFunctionMap.Functions.find(
@@ -2504,13 +2515,13 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
           return;
       } else {
         if (CI->getType()->isVoidTy()) {
-          auto V = CI->getCalledValue();
+          auto *V = CI->getCalledValue();
           BBB->addStmt(TM->modelCallStmt(V->getType(), CI->getCalledFunction(),
                                          translateValue(V, BBB), Args,
                                          currentSourceLocs));
           return;
         } else {
-          auto V = CI->getCalledValue();
+          auto *V = CI->getCalledValue();
           E = TM->modelCallExpr(V->getType(), CI->getCalledFunction(),
                                 translateValue(V, BBB), Args);
           BBB->addEvalStmt(E, currentSourceLocs);
@@ -2519,8 +2530,8 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
         }
       }
     }
-  } else if (auto RI = dyn_cast<ReturnInst>(I)) {
-    if (auto V = RI->getReturnValue()) {
+  } else if (auto *RI = dyn_cast<ReturnInst>(I)) {
+    if (auto *V = RI->getReturnValue()) {
       assert(ReturnVar && "Returning value without return variable?");
       ref<Expr> Val = TM->modelValue(F, translateValue(V, BBB));
       BBB->addStmt(VarAssignStmt::create(ReturnVar, Val));
@@ -2528,7 +2539,7 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
     }
     BBB->addStmt(ReturnStmt::create());
     return;
-  } else if (auto BI = dyn_cast<BranchInst>(I)) {
+  } else if (auto *BI = dyn_cast<BranchInst>(I)) {
     if (BI->isConditional()) {
       ref<Expr> Cond =
           BVToBoolExpr::create(translateValue(BI->getCondition(), BBB));
@@ -2555,19 +2566,19 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
       BBB->addStmt(GotoStmt::create(BasicBlockMap[BI->getSuccessor(0)]));
     }
     return;
-  } else if (auto SI = dyn_cast<SwitchInst>(I)) {
+  } else if (auto *SI = dyn_cast<SwitchInst>(I)) {
     ref<Expr> Cond = translateValue(SI->getCondition(), BBB);
     ref<Expr> DefaultExpr = BoolConstExpr::create(true);
     std::vector<bugle::BasicBlock *> Succs;
 
-    for (auto i = SI->case_begin(), e = SI->case_end(); i != e; ++i) {
-      ref<Expr> Val = TM->translateConstant(i->getCaseValue());
+    for (auto &Case : SI->cases()) {
+      ref<Expr> Val = TM->translateConstant(Case.getCaseValue());
       bugle::BasicBlock *BB = BF->addBasicBlock("casebb");
       Succs.push_back(BB);
       BB->addStmt(AssumeStmt::createPartition(EqExpr::create(Cond, Val)));
       BB->addStmt(AssertStmt::createBlockSourceLoc(currentSourceLocs));
-      addPhiAssigns(BB, SI->getParent(), i->getCaseSuccessor());
-      BB->addStmt(GotoStmt::create(BasicBlockMap[i->getCaseSuccessor()]));
+      addPhiAssigns(BB, SI->getParent(), Case.getCaseSuccessor());
+      BB->addStmt(GotoStmt::create(BasicBlockMap[Case.getCaseSuccessor()]));
       DefaultExpr = AndExpr::create(DefaultExpr, NeExpr::create(Cond, Val));
     }
 
@@ -2582,11 +2593,11 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
 
     BBB->addStmt(GotoStmt::create(Succs));
     return;
-  } else if (auto PN = dyn_cast<PHINode>(I)) {
+  } else if (auto *PN = dyn_cast<PHINode>(I)) {
     ValueExprMap[I] =
         TM->unmodelValue(PN, VarRefExpr::create(getPhiVariable(PN)));
     return;
-  } else if (dyn_cast<UnreachableInst>(I)) {
+  } else if (isa<UnreachableInst>(I)) {
     BBB->addStmt(
         AssertStmt::create(BoolConstExpr::create(false), /*global=*/false,
                            /*candidate=*/false, currentSourceLocs));
@@ -2604,6 +2615,6 @@ void TranslateFunction::translateInstruction(bugle::BasicBlock *BBB,
 
 void TranslateFunction::translateBasicBlock(bugle::BasicBlock *BBB,
                                             llvm::BasicBlock *BB) {
-  for (auto i = BB->begin(), e = BB->end(); i != e; ++i)
-    translateInstruction(BBB, &*i);
+  for (auto &I : *BB)
+    translateInstruction(BBB, &I);
 }

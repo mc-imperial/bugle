@@ -46,12 +46,12 @@ ref<Expr> TranslateModule::translateConstant(Constant *C) {
 
 void TranslateModule::translateGlobalInit(GlobalArray *GA, unsigned ByteOffset,
                                           Constant *Init) {
-  if (auto CS = dyn_cast<ConstantStruct>(Init)) {
-    auto SL = TD.getStructLayout(CS->getType());
+  if (auto *CS = dyn_cast<ConstantStruct>(Init)) {
+    auto *SL = TD.getStructLayout(CS->getType());
     for (unsigned i = 0; i < CS->getNumOperands(); ++i)
       translateGlobalInit(GA, ByteOffset + SL->getElementOffset(i),
                           CS->getOperand(i));
-  } else if (auto CA = dyn_cast<ConstantArray>(Init)) {
+  } else if (auto *CA = dyn_cast<ConstantArray>(Init)) {
     uint64_t ElemSize = TD.getTypeAllocSize(CA->getType()->getElementType());
     for (unsigned i = 0; i < CA->getNumOperands(); ++i)
       translateGlobalInit(GA, ByteOffset + i * ElemSize, CA->getOperand(i));
@@ -151,8 +151,10 @@ ref<Expr> TranslateModule::translateGlobalVariable(GlobalVariable *GV) {
   }
 
   GlobalArray *GA = getGlobalArray(GV);
+
   if (hasInitializer(GV))
     translateGlobalInit(GA, 0, GV->getInitializer());
+
   return GlobalArrayRefExpr::create(GA);
 }
 
@@ -224,7 +226,7 @@ ref<Expr> TranslateModule::maybeTranslateSIMDInst(
   if (!isa<VectorType>(Ty))
     return F(Ty, Op);
 
-  auto VT = cast<VectorType>(Ty);
+  auto *VT = cast<VectorType>(Ty);
   unsigned NumElems = VT->getNumElements();
   assert(cast<VectorType>(OpTy)->getNumElements() == NumElems);
   unsigned ElemWidth = Op->getType().width / NumElems;
@@ -234,6 +236,7 @@ ref<Expr> TranslateModule::maybeTranslateSIMDInst(
     ref<Expr> Elem = F(VT->getElementType(), Opi);
     Elems.push_back(Elem);
   }
+
   return Expr::createBVConcatN(Elems);
 }
 
@@ -243,7 +246,7 @@ ref<Expr> TranslateModule::maybeTranslateSIMDInst(
   if (!isa<VectorType>(Ty))
     return F(LHS, RHS);
 
-  auto VT = cast<VectorType>(Ty);
+  auto *VT = cast<VectorType>(Ty);
   unsigned NumElems = VT->getNumElements();
   assert(cast<VectorType>(OpTy)->getNumElements() == NumElems);
   unsigned ElemWidth = LHS->getType().width / NumElems;
@@ -254,15 +257,16 @@ ref<Expr> TranslateModule::maybeTranslateSIMDInst(
     ref<Expr> Elem = F(LHSi, RHSi);
     Elems.push_back(Elem);
   }
+
   return Expr::createBVConcatN(Elems);
 }
 
 ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
-  if (auto CI = dyn_cast<ConstantInt>(C))
+  if (auto *CI = dyn_cast<ConstantInt>(C))
     return BVConstExpr::create(CI->getValue());
-  if (auto CF = dyn_cast<ConstantFP>(C))
+  if (auto *CF = dyn_cast<ConstantFP>(C))
     return BVConstExpr::create(CF->getValueAPF().bitcastToAPInt());
-  if (auto CE = dyn_cast<ConstantExpr>(C)) {
+  if (auto *CE = dyn_cast<ConstantExpr>(C)) {
     switch (CE->getOpcode()) {
     case Instruction::GetElementPtr: {
       ref<Expr> Op = translateConstant(CE->getOperand(0));
@@ -330,12 +334,12 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
       ErrorReporter::reportImplementationLimitation(msg);
     }
   }
-  if (auto GV = dyn_cast<GlobalVariable>(C)) {
+  if (auto *GV = dyn_cast<GlobalVariable>(C)) {
     ref<Expr> Arr = translateGlobalVariable(GV);
     return PointerExpr::create(
         Arr, BVConstExpr::createZero(TD.getPointerSizeInBits()));
   }
-  if (auto F = dyn_cast<llvm::Function>(C)) {
+  if (auto *F = dyn_cast<llvm::Function>(C)) {
     auto FI = FunctionMap.find(F);
     if (FI == FunctionMap.end()) {
       std::string DN = getSourceFunctionName(F);
@@ -345,10 +349,10 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     std::string name = FI->second->getName();
     return FunctionPointerExpr::create(name, TD.getPointerSizeInBits());
   }
-  if (auto UV = dyn_cast<UndefValue>(C)) {
+  if (auto *UV = dyn_cast<UndefValue>(C)) {
     return translateArbitrary(translateType(UV->getType()));
   }
-  if (auto CDS = dyn_cast<ConstantDataSequential>(C)) {
+  if (auto *CDS = dyn_cast<ConstantDataSequential>(C)) {
     std::vector<ref<Expr>> Elems;
     for (unsigned i = 0; i != CDS->getNumElements(); ++i) {
       if (CDS->getElementType()->isFloatingPointTy())
@@ -360,14 +364,14 @@ ref<Expr> TranslateModule::doTranslateConstant(Constant *C) {
     }
     return Expr::createBVConcatN(Elems);
   }
-  if (auto CV = dyn_cast<ConstantVector>(C)) {
+  if (auto *CV = dyn_cast<ConstantVector>(C)) {
     std::vector<ref<Expr>> Elems;
     std::transform(
         CV->op_begin(), CV->op_end(), std::back_inserter(Elems),
         [&](Use &U) { return translateConstant(cast<Constant>(U.get())); });
     return Expr::createBVConcatN(Elems);
   }
-  if (auto CAZ = dyn_cast<ConstantAggregateZero>(C)) {
+  if (auto *CAZ = dyn_cast<ConstantAggregateZero>(C)) {
     return BVConstExpr::createZero(TD.getTypeSizeInBits(CAZ->getType()));
   }
   if (isa<ConstantPointerNull>(C)) {
@@ -407,11 +411,11 @@ bugle::Type TranslateModule::handlePadding(bugle::Type ElTy, llvm::Type *T) {
 }
 
 bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
-  if (auto AT = dyn_cast<ArrayType>(T))
+  if (auto *AT = dyn_cast<ArrayType>(T))
     return handlePadding(translateArrayRangeType(AT->getElementType()), T);
-  if (auto VT = dyn_cast<VectorType>(T))
+  if (auto *VT = dyn_cast<VectorType>(T))
     return handlePadding(translateArrayRangeType(VT->getElementType()), T);
-  if (auto ST = dyn_cast<StructType>(T)) {
+  if (auto *ST = dyn_cast<StructType>(T)) {
     auto i = ST->element_begin(), e = ST->element_end();
     if (i == e)
       return Type(Type::BV, 8);
@@ -446,7 +450,7 @@ bugle::Type TranslateModule::translateSourceType(llvm::Type *T) {
 }
 
 bugle::Type TranslateModule::translateSourceArrayRangeType(llvm::Type *T) {
-  if (auto AT = dyn_cast<ArrayType>(T))
+  if (auto *AT = dyn_cast<ArrayType>(T))
     return translateSourceArrayRangeType(AT->getElementType());
 
   return translateSourceType(T);
@@ -454,7 +458,7 @@ bugle::Type TranslateModule::translateSourceArrayRangeType(llvm::Type *T) {
 
 void TranslateModule::getSourceArrayDimensions(llvm::Type *T,
                                                std::vector<uint64_t> &dim) {
-  if (auto AT = dyn_cast<ArrayType>(T)) {
+  if (auto *AT = dyn_cast<ArrayType>(T)) {
     dim.push_back(AT->getArrayNumElements());
     getSourceArrayDimensions(AT->getElementType(), dim);
   }
@@ -576,7 +580,7 @@ ref<Expr> TranslateModule::translateIV(
   uint64_t offset = 0;
 
   for (auto i = begin; i != end; ++i) {
-    if (StructType *st = dyn_cast<StructType>(*i)) {
+    if (auto *st = dyn_cast<StructType>(*i)) {
       const StructLayout *sl = TD.getStructLayout(st);
       const ConstantInt *ci = cast<ConstantInt>(i.getOperand());
       offset += sl->getElementOffset((unsigned)ci->getZExtValue());
@@ -615,23 +619,24 @@ ref<Expr> TranslateModule::translateBitCast(llvm::Type *SrcTy,
                                             llvm::Type *DestTy, ref<Expr> Op) {
   if (SrcTy->isPointerTy() && DestTy->isPointerTy() &&
       SrcTy->getPointerElementType()->isFunctionTy() &&
-      !DestTy->getPointerElementType()->isFunctionTy())
+      !DestTy->getPointerElementType()->isFunctionTy()) {
     return FuncPtrToPtrExpr::create(Op);
-  else if (SrcTy->isPointerTy() && DestTy->isPointerTy() &&
-           !SrcTy->getPointerElementType()->isFunctionTy() &&
-           DestTy->getPointerElementType()->isFunctionTy())
+  } else if (SrcTy->isPointerTy() && DestTy->isPointerTy() &&
+             !SrcTy->getPointerElementType()->isFunctionTy() &&
+             DestTy->getPointerElementType()->isFunctionTy()) {
     return PtrToFuncPtrExpr::create(Op);
-  else
+  } else {
     return Op;
+  }
 }
 
 bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
                                       SourceLanguage SL,
                                       std::set<std::string> &EPS) {
   if (SL == SL_OpenCL || SL == SL_CUDA) {
-    if (NamedMDNode *NMD = M->getNamedMetadata("nvvm.annotations")) {
+    if (auto *NMD = M->getNamedMetadata("nvvm.annotations")) {
       for (unsigned i = 0, e = NMD->getNumOperands(); i != e; ++i) {
-        MDNode *MD = NMD->getOperand(i);
+        auto *MD = NMD->getOperand(i);
         if (MD->getOperand(0) == ValueAsMetadata::get(F))
           for (unsigned fi = 1, fe = MD->getNumOperands(); fi != fe; fi += 2)
             if (cast<MDString>(MD->getOperand(fi))->getString() == "kernel")
@@ -641,9 +646,9 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
   }
 
   if (SL == SL_OpenCL) {
-    if (NamedMDNode *NMD = M->getNamedMetadata("opencl.kernels")) {
+    if (auto *NMD = M->getNamedMetadata("opencl.kernels")) {
       for (unsigned i = 0, e = NMD->getNumOperands(); i != e; ++i) {
-        MDNode *MD = NMD->getOperand(i);
+        auto *MD = NMD->getOperand(i);
         if (MD->getOperand(0) == ValueAsMetadata::get(F))
           return true;
       }
@@ -654,10 +659,9 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
 }
 
 std::string TranslateModule::getSourceFunctionName(llvm::Function *F) {
-  auto SS = DIF.subprograms();
-  for (auto i = SS.begin(), e = SS.end(); i != e; ++i) {
-    if ((*i)->describes(F)) {
-      return (*i)->getName();
+  for (auto *S : DIF.subprograms()) {
+    if (S->describes(F)) {
+      return S->getName();
     }
   }
 
@@ -865,7 +869,7 @@ ref<Expr> TranslateModule::unmodelValue(Value *V, ref<Expr> E) {
 void TranslateModule::computeValueModel(Value *Val, Var *Var,
                                         llvm::ArrayRef<ref<Expr>> Assigns) {
   llvm::Type *VTy = Val->getType();
-  if (auto F = dyn_cast<llvm::Function>(Val))
+  if (auto *F = dyn_cast<llvm::Function>(Val))
     VTy = F->getReturnType();
 
   if (!VTy->isPointerTy())
@@ -876,8 +880,8 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
     return;
 
   std::set<GlobalArray *> GlobalSet;
-  for (auto ai = Assigns.begin(), ae = Assigns.end(); ai != ae; ++ai) {
-    if ((*ai)->computeArrayCandidates(GlobalSet))
+  for (auto &Assign : Assigns) {
+    if (Assign->computeArrayCandidates(GlobalSet))
       continue;
     else
       return;
@@ -1073,7 +1077,7 @@ void TranslateModule::translate() {
           std::transform(
               i->second.begin(), i->second.end(), std::back_inserter(Parms),
               [&](const std::vector<ref<Expr>> *cs) { return (*cs)[pidx]; });
-          computeValueModel(&*pi, 0, Parms);
+          computeValueModel(&*pi, nullptr, Parms);
         }
       }
     }
