@@ -17,6 +17,7 @@ bool isTemporal(Expr *e) {
   if (auto LE = dyn_cast<LoadExpr>(e)) {
     return LE->getIsTemporal();
   }
+
   return isa<HavocExpr>(e) || isa<ArraySnapshotExpr>(e) || isa<AtomicExpr>(e) ||
          isa<AsyncWorkGroupCopyExpr>(e) || isa<BVCtlzExpr>(e);
 }
@@ -27,7 +28,7 @@ void ProcessBasicBlock(BasicBlock *BB) {
     return;
   auto i = V.end() - 1;
   while (true) {
-    if (auto ES = dyn_cast<EvalStmt>(*i)) {
+    if (auto *ES = dyn_cast<EvalStmt>(*i)) {
       Expr *E = ES->getExpr().get();
       if (hasSideEffects(E)) {
         if (i == V.begin())
@@ -60,8 +61,8 @@ void ProcessBasicBlock(BasicBlock *BB) {
 }
 
 void ProcessFunction(Function *F) {
-  for (auto i = F->begin(), e = F->end(); i != e; ++i)
-    ProcessBasicBlock(*i);
+  for (auto *BB : *F)
+    ProcessBasicBlock(BB);
 }
 
 void ProcessModule(Module *M) {

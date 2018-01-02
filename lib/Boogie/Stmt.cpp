@@ -100,15 +100,13 @@ CallStmt *CallStmt::create(Function *callee, const std::vector<ref<Expr>> &args,
 CallMemberOfStmt *CallMemberOfStmt::create(ref<Expr> func,
                                            std::vector<Stmt *> &callStmts,
                                            const SourceLocsRef &sourcelocs) {
-#ifndef NDEBUG
-  for (auto i = callStmts.begin(), e = callStmts.end(); i != e; ++i)
-    assert(isa<CallStmt>(*i));
-#endif
+  assert(std::all_of(callStmts.begin(), callStmts.end(),
+                     [](Stmt *S) { return isa<CallStmt>(S); }));
   return new CallMemberOfStmt(func, callStmts, sourcelocs);
 }
 
-Stmt *WaitGroupEventStmt::create(ref<Expr> handle,
-                                 const SourceLocsRef &sourcelocs) {
+WaitGroupEventStmt *
+WaitGroupEventStmt::create(ref<Expr> handle, const SourceLocsRef &sourcelocs) {
   assert(handle->getType().isKind(Type::BV));
   return new WaitGroupEventStmt(handle, sourcelocs);
 }

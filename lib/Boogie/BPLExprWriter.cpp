@@ -40,12 +40,12 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
   if (DumpRefCounts)
     OS << "/*rc=" << E->refCount << "*/";
 
-  if (auto CE = dyn_cast<BVConstExpr>(E)) {
+  if (auto *CE = dyn_cast<BVConstExpr>(E)) {
     auto &Val = CE->getValue();
     MW->IntRep->printVal(OS, Val);
-  } else if (auto BCE = dyn_cast<BoolConstExpr>(E)) {
+  } else if (auto *BCE = dyn_cast<BoolConstExpr>(E)) {
     OS << (BCE->getValue() ? "true" : "false");
-  } else if (auto EE = dyn_cast<BVExtractExpr>(E)) {
+  } else if (auto *EE = dyn_cast<BVExtractExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 8);
     std::string s; llvm::raw_string_ostream ss(s);
     writeExpr(ss, EE->getSubExpr().get(), 9);
@@ -58,7 +58,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     }
   } else if (isa<BVCtlzExpr>(E)) {
     llvm_unreachable("Handled at statement level");
-  } else if (auto ZEE = dyn_cast<BVZExtExpr>(E)) {
+  } else if (auto *ZEE = dyn_cast<BVZExtExpr>(E)) {
     OS << "BV" << ZEE->getSubExpr()->getType().width
        << "_ZEXT" << ZEE->getType().width << "(";
     writeExpr(OS, ZEE->getSubExpr().get());
@@ -91,24 +91,24 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
   } else if (dyn_cast<NullFunctionPointerExpr>(E)) {
     MW->UsesFunctionPointers = true;
     OS << "$functionId$$null$";
-  } else if (auto FuncPtrE = dyn_cast<FunctionPointerExpr>(E)) {
+  } else if (auto *FuncPtrE = dyn_cast<FunctionPointerExpr>(E)) {
     MW->UsesFunctionPointers = true;
     OS << "$functionId$$" << FuncPtrE->getFuncName();
-  } else if (auto VarE = dyn_cast<VarRefExpr>(E)) {
+  } else if (auto *VarE = dyn_cast<VarRefExpr>(E)) {
     OS << "$" << VarE->getVar()->getName();
-  } else if (auto SVarE = dyn_cast<SpecialVarRefExpr>(E)) {
+  } else if (auto *SVarE = dyn_cast<SpecialVarRefExpr>(E)) {
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
       OS << "const {:" << SVarE->getAttr() << "} " << SVarE->getAttr() << " : ";
       MW->writeType(OS, SVarE->getType());
     });
     OS << SVarE->getAttr();
-  } else if (auto ArrE = dyn_cast<GlobalArrayRefExpr>(E)) {
+  } else if (auto *ArrE = dyn_cast<GlobalArrayRefExpr>(E)) {
     MW->UsesPointers = true;
     OS << "$arrayId$$" << ArrE->getArray()->getName();
   } else if (isa<NullArrayRefExpr>(E)) {
     MW->UsesPointers = true;
     OS << "$arrayId$$null$";
-  } else if (auto ConcatE = dyn_cast<BVConcatExpr>(E)) {
+  } else if (auto *ConcatE = dyn_cast<BVConcatExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
     std::string lhsS; llvm::raw_string_ostream lhsSS(lhsS);
     std::string rhsS; llvm::raw_string_ostream rhsSS(rhsS);
@@ -119,27 +119,27 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       MW->writeIntrinsic(
           [&](llvm::raw_ostream &OS) { OS << MW->IntRep->getConcat(); }, false);
     }
-  } else if (auto EE = dyn_cast<EqExpr>(E)) {
+  } else if (auto *EE = dyn_cast<EqExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
     writeExpr(OS, EE->getLHS().get(), 4);
     OS << " == ";
     writeExpr(OS, EE->getRHS().get(), 4);
-  } else if (auto NE = dyn_cast<NeExpr>(E)) {
+  } else if (auto *NE = dyn_cast<NeExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
     writeExpr(OS, NE->getLHS().get(), 4);
     OS << " != ";
     writeExpr(OS, NE->getRHS().get(), 4);
-  } else if (auto AE = dyn_cast<AndExpr>(E)) {
+  } else if (auto *AE = dyn_cast<AndExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 2);
     writeExpr(OS, AE->getLHS().get(), 3);
     OS << " && ";
     writeExpr(OS, AE->getRHS().get(), 3);
-  } else if (auto OE = dyn_cast<OrExpr>(E)) {
+  } else if (auto *OE = dyn_cast<OrExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 2);
     writeExpr(OS, OE->getLHS().get(), 3);
     OS << " || ";
     writeExpr(OS, OE->getRHS().get(), 3);
-  } else if (auto ITEE = dyn_cast<IfThenElseExpr>(E)) {
+  } else if (auto *ITEE = dyn_cast<IfThenElseExpr>(E)) {
     OS << "(if ";
     writeExpr(OS, ITEE->getCond().get());
     OS << " then ";
@@ -149,39 +149,39 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     OS << ")";
   } else if (isa<HavocExpr>(E)) {
     llvm_unreachable("Handled at statement level");
-  } else if (auto B2BVE = dyn_cast<BoolToBVExpr>(E)) {
+  } else if (auto *B2BVE = dyn_cast<BoolToBVExpr>(E)) {
     OS << "(if ";
     writeExpr(OS, B2BVE->getSubExpr().get());
     OS << " then " << MW->IntRep->getLiteral(1, 1) << " else "
        << MW->IntRep->getLiteral(0, 1) << ")";
-  } else if (auto BV2BE = dyn_cast<BVToBoolExpr>(E)) {
+  } else if (auto *BV2BE = dyn_cast<BVToBoolExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 4);
     writeExpr(OS, BV2BE->getSubExpr().get(), 4);
     OS << " == " << MW->IntRep->getLiteral(1, 1);
-  } else if (auto AIE = dyn_cast<ArrayIdExpr>(E)) {
+  } else if (auto *AIE = dyn_cast<ArrayIdExpr>(E)) {
     OS << "base#MKPTR(";
     writeExpr(OS, AIE->getSubExpr().get());
     OS << ")";
-  } else if (auto AOE = dyn_cast<ArrayOffsetExpr>(E)) {
+  } else if (auto *AOE = dyn_cast<ArrayOffsetExpr>(E)) {
     OS << "offset#MKPTR(";
     writeExpr(OS, AOE->getSubExpr().get());
     OS << ")";
-  } else if (auto NotE = dyn_cast<NotExpr>(E)) {
+  } else if (auto *NotE = dyn_cast<NotExpr>(E)) {
     ScopedParenPrinter X(OS, Depth, 7);
     OS << "!";
     writeExpr(OS, NotE->getSubExpr().get(), 8);
-  } else if (auto CE = dyn_cast<CallExpr>(E)) {
+  } else if (auto *CE = dyn_cast<CallExpr>(E)) {
     OS << "$" << CE->getCallee()->getName() << "(";
-    for (auto b = CE->getArgs().begin(), i = b, e = CE->getArgs().end(); i != e;
-         ++i) {
-      if (i != b)
+    const auto &Args = CE->getArgs();
+    for (unsigned i = 0; i < Args.size(); ++i) {
+      if (i > 0)
         OS << ", ";
-      writeExpr(OS, i->get());
+      writeExpr(OS, Args[i].get());
     }
     OS << ")";
   } else if (isa<CallMemberOfExpr>(E)) {
     llvm_unreachable("Handled at statement level");
-  } else if (auto ANOVE = dyn_cast<AddNoovflExpr>(E)) {
+  } else if (auto *ANOVE = dyn_cast<AddNoovflExpr>(E)) {
     unsigned width = ANOVE->getFirst()->getType().width;
     OS << "$__add_noovfl_" << (ANOVE->getIsSigned() ? "signed" : "unsigned")
        << "_" << width << "(";
@@ -272,18 +272,19 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
           },
           false);
     }
-  } else if (auto ANOVPE = dyn_cast<AddNoovflPredicateExpr>(E)) {
-    auto exprs = ANOVPE->getExprs();
+  } else if (auto *ANOVPE = dyn_cast<AddNoovflPredicateExpr>(E)) {
+    const auto &exprs = ANOVPE->getExprs();
     unsigned n = exprs.size();
     unsigned width = exprs[0]->getType().width;
     OS << "__add_noovfl_" << n << "(";
-    for (auto b = exprs.begin(), i = b, e = exprs.end(); i != e; ++i) {
-      OS << (i != b ? ", " : "");
-      writeExpr(OS, i->get());
+    for (unsigned i = 0; i < n; ++i) {
+      if (i > 0)
+        OS << ", ";
+      writeExpr(OS, exprs[i].get());
     }
     OS << ")";
 
-    unsigned b = (unsigned)std::ceil(std::log((float)n) / std::log(2.0));
+    unsigned b = (unsigned)std::ceil(std::log((double)n) / std::log((double)2));
     std::string S; llvm::raw_string_ostream SS(S);
     SS << MW->IntRep->getConcatExpr(MW->IntRep->getLiteral(0, b), "v0");
     std::string lhs = SS.str();
@@ -333,12 +334,11 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
           [&](llvm::raw_ostream &OS) { OS << MW->IntRep->getExtract(); },
           false);
     }
-  } else if (auto UFE = dyn_cast<UninterpretedFunctionExpr>(E)) {
+  } else if (auto *UFE = dyn_cast<UninterpretedFunctionExpr>(E)) {
     OS << UFE->getName() << "(";
     for (unsigned i = 0; i < UFE->getNumOperands(); ++i) {
-      if (i > 0) {
+      if (i > 0)
         OS << ", ";
-      }
       writeExpr(OS, UFE->getOperand(i).get());
     }
     OS << ")";
@@ -346,16 +346,15 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
       OS << "function " << UFE->getName() << "(";
       for (unsigned i = 0; i < UFE->getNumOperands(); ++i) {
-        if (i > 0) {
+        if (i > 0)
           OS << ", ";
-        }
         MW->writeType(OS, UFE->getOperand(i)->getType());
       }
       OS << ") : ";
       MW->writeType(OS, UFE->getType());
     });
-  } else if (auto AHTVE = dyn_cast<AtomicHasTakenValueExpr>(E)) {
-    auto Array = AHTVE->getArray().get();
+  } else if (auto *AHTVE = dyn_cast<AtomicHasTakenValueExpr>(E)) {
+    auto Array = AHTVE->getArray();
     assert(!(isa<NullArrayRefExpr>(Array) ||
              MW->M->global_begin() == MW->M->global_end()));
 
@@ -390,18 +389,18 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     }
   } else if (isa<AsyncWorkGroupCopyExpr>(E)) {
     llvm_unreachable("Handled at statement level");
-  } else if (auto IE = dyn_cast<ImpliesExpr>(E)) {
+  } else if (auto *IE = dyn_cast<ImpliesExpr>(E)) {
     OS << "(";
     writeExpr(OS, IE->getLHS().get());
     OS << " ==> ";
     writeExpr(OS, IE->getRHS().get());
     OS << ")";
-  } else if (auto AHOE = dyn_cast<AccessHasOccurredExpr>(E)) {
+  } else if (auto *AHOE = dyn_cast<AccessHasOccurredExpr>(E)) {
     writeAccessHasOccurredVar(OS, AHOE->getArray().get(),
                               AHOE->getAccessKind());
-  } else if (auto AOE = dyn_cast<AccessOffsetExpr>(E)) {
+  } else if (auto *AOE = dyn_cast<AccessOffsetExpr>(E)) {
     writeAccessOffsetVar(OS, AOE->getArray().get(), AOE->getAccessKind());
-  } else if (auto UnE = dyn_cast<UnaryExpr>(E)) {
+  } else if (auto *UnE = dyn_cast<UnaryExpr>(E)) {
     switch (UnE->getKind()) {
     case Expr::BVToPtr:
     case Expr::BVToFuncPtr:
@@ -510,7 +509,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     OS << "(";
     writeExpr(OS, UnE->getSubExpr().get());
     OS << ")";
-  } else if (auto BinE = dyn_cast<BinaryExpr>(E)) {
+  } else if (auto *BinE = dyn_cast<BinaryExpr>(E)) {
     switch (BinE->getKind()) {
     case Expr::BVAdd:
     case Expr::BVSub:
@@ -681,8 +680,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     OS << ", ";
     writeExpr(OS, BinE->getRHS().get());
     OS << ")";
-  } else if (auto LE = dyn_cast<LoadExpr>(E)) {
-    auto PtrArr = LE->getArray().get();
+  } else if (auto *LE = dyn_cast<LoadExpr>(E)) {
+    auto PtrArr = LE->getArray();
     assert(!(isa<NullArrayRefExpr>(PtrArr) ||
              MW->M->global_begin() == MW->M->global_end()));
     std::set<GlobalArray *> Globals;
@@ -703,8 +702,8 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
     llvm_unreachable("Handled at statement level");
   } else if (isa<ArraySnapshotExpr>(E)) {
     llvm_unreachable("Handled at statement level");
-  } else if (auto UAE = dyn_cast<UnderlyingArrayExpr>(E)) {
-    auto Array = UAE->getArray().get();
+  } else if (auto *UAE = dyn_cast<UnderlyingArrayExpr>(E)) {
+    auto Array = UAE->getArray();
     assert(!(isa<NullArrayRefExpr>(Array) ||
              MW->M->global_begin() == MW->M->global_end()));
 
@@ -720,7 +719,7 @@ void BPLExprWriter::writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth) {
       ErrorReporter::reportImplementationLimitation(
           "Underlying array expressions for pointers not supported");
     }
-  } else if (auto MOE = dyn_cast<ArrayMemberOfExpr>(E)) {
+  } else if (auto *MOE = dyn_cast<ArrayMemberOfExpr>(E)) {
     writeExpr(OS, MOE->getSubExpr().get(), Depth);
   } else {
     llvm_unreachable("Unsupported expression");
@@ -733,7 +732,7 @@ void BPLExprWriter::writeAccessHasOccurredVar(llvm::raw_ostream &OS,
 
   std::string prefix = "_" + accessKind + "_HAS_OCCURRED_$$";
 
-  if (auto GARE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
+  if (auto *GARE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
     OS << prefix << GARE->getArray()->getName();
   } else {
     std::set<GlobalArray *> Globals;
@@ -748,15 +747,15 @@ void BPLExprWriter::writeAccessHasOccurredVar(llvm::raw_ostream &OS,
     } else {
       MW->UsesPointers = true;
       OS << "(";
-      for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
-        if (*i == nullptr)
+      for (auto *GA : Globals) {
+        if (GA == nullptr)
           continue; // Null pointer; dealt with as last case
-        if (!(*i)->isGlobalOrGroupShared())
+        if (!GA->isGlobalOrGroupShared())
           continue; // Accesses of local arrays are not tracked
         OS << "if (";
         writeExpr(OS, PtrArr);
-        OS << " == $arrayId$$" << (*i)->getName() << ") then "
-           << prefix << (*i)->getName() << " else ";
+        OS << " == $arrayId$$" << GA->getName() << ") then "
+           << prefix << GA->getName() << " else ";
       }
       OS << "false)";
     }
@@ -780,7 +779,7 @@ void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
     prefix = "_WATCHED_OFFSET_$$";
   }
 
-  if (auto GARE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
+  if (auto *GARE = dyn_cast<GlobalArrayRefExpr>(PtrArr)) {
     OS << prefix << GARE->getArray()->getName();
   } else {
     std::set<GlobalArray *> Globals;
@@ -795,15 +794,15 @@ void BPLExprWriter::writeAccessOffsetVar(llvm::raw_ostream &OS,
     } else {
       MW->UsesPointers = true;
       OS << "(";
-      for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
-        if (*i == nullptr)
+      for (auto *GA : Globals) {
+        if (GA == nullptr)
           continue; // Null pointer; dealt with as last case
-        if (!(*i)->isGlobalOrGroupShared())
+        if (!GA->isGlobalOrGroupShared())
           continue; // Offsets of local arrays are not tracked
         OS << "if (";
         writeExpr(OS, PtrArr);
-        OS << " == $arrayId$$" << (*i)->getName() << ") then "
-           << prefix << (*i)->getName() << " else ";
+        OS << " == $arrayId$$" << GA->getName() << ") then "
+           << prefix << GA->getName() << " else ";
       }
       OS << MW->IntRep->getLiteral(0, MW->M->getPointerWidth()) << ")";
     }

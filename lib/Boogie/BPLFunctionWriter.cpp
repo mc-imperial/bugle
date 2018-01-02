@@ -40,13 +40,13 @@ void BPLFunctionWriter::maybeWriteCaseSplit(
     } else {
       MW->UsesPointers = true;
       OS << "  ";
-      for (auto i = Globals.begin(), e = Globals.end(); i != e; ++i) {
-        if (*i == nullptr)
+      for (auto *GA : Globals) {
+        if (GA == nullptr)
           continue; // Null pointer; dealt with as last case
         OS << "if (";
         writeExpr(OS, PtrArr);
-        OS << " == $arrayId$$" << (*i)->getName() << ") {\n";
-        F(*i, 4);
+        OS << " == $arrayId$$" << GA->getName() << ") {\n";
+        F(GA, 4);
         OS << "\n  } else ";
       }
       OS << "{\n    assert {:bad_pointer_access} ";
@@ -69,21 +69,21 @@ void BPLFunctionWriter::writeExpr(llvm::raw_ostream &OS, Expr *E,
 
 void BPLFunctionWriter::writeCallStmt(llvm::raw_ostream &OS, CallStmt *CS) {
   OS << "$" << CS->getCallee()->getName() << "(";
-  for (auto b = CS->getArgs().begin(), i = b, e = CS->getArgs().end(); i != e;
-       ++i) {
-    if (i != b)
+  const auto &Args = CS->getArgs();
+  for (unsigned i = 0; i < Args.size(); ++i) {
+    if (i > 0)
       OS << ", ";
-    writeExpr(OS, i->get());
+    writeExpr(OS, Args[i].get());
   }
   OS << ")";
 }
 
 void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
-  if (auto ES = dyn_cast<EvalStmt>(S)) {
+  if (auto *ES = dyn_cast<EvalStmt>(S)) {
     assert(!ES->getExpr()->preventEvalStmt);
     assert(SSAVarIds.find(ES->getExpr().get()) == SSAVarIds.end());
     unsigned id = SSAVarIds.size();
-    if (auto ASE = dyn_cast<ArraySnapshotExpr>(ES->getExpr())) {
+    if (auto *ASE = dyn_cast<ArraySnapshotExpr>(ES->getExpr())) {
       auto DstArray = ASE->getDst().get();
       auto SrcArray = ASE->getSrc().get();
 
@@ -119,13 +119,13 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     }
     if (isa<HavocExpr>(ES->getExpr())) {
       OS << "  havoc v" << id << ";\n";
-    } else if (auto CMOE = dyn_cast<CallMemberOfExpr>(ES->getExpr())) {
+    } else if (auto *CMOE = dyn_cast<CallMemberOfExpr>(ES->getExpr())) {
       auto CES = CMOE->getCallExprs();
       auto SL = ES->getSourceLocs();
       auto F = CMOE->getFunc();
       OS << "  ";
-      for (auto i = CES.begin(), e = CES.end(); i != e; ++i) {
-        auto CE = cast<CallExpr>(i->get());
+      for (auto &E : CES) {
+        auto *CE = cast<CallExpr>(E);
         OS << "if (";
         writeExpr(OS, F.get());
         OS << " == $functionId$$" << CE->getCallee()->getName() << ") {\n";
@@ -138,7 +138,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       OS << "{\n    assert {:bad_pointer_access} ";
       writeSourceLocs(OS, SL);
       OS << "false;\n  }\n";
-    } else if (auto LE = dyn_cast<LoadExpr>(ES->getExpr())) {
+    } else if (auto *LE = dyn_cast<LoadExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, LE->getArray().get(), ES->getSourceLocs(),
                           [&](GlobalArray *GA, unsigned int indent) {
         writeSourceLocsMarker(OS, ES->getSourceLocs(), indent);
@@ -148,7 +148,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         writeExpr(OS, LE->getOffset().get());
         OS << "];";
       });
-    } else if (auto AE = dyn_cast<AtomicExpr>(ES->getExpr())) {
+    } else if (auto *AE = dyn_cast<AtomicExpr>(ES->getExpr())) {
       maybeWriteCaseSplit(OS, AE->getArray().get(), ES->getSourceLocs(),
                           [&](GlobalArray *GA, unsigned int indent) {
         writeSourceLocsMarker(OS, ES->getSourceLocs(), indent);
@@ -169,11 +169,11 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
         writeExpr(OS, AE->getOffset().get());
         OS << ");";
       });
-    } else if (auto AWGCE = dyn_cast<AsyncWorkGroupCopyExpr>(ES->getExpr())) {
-      auto DstArray = AWGCE->getDst().get();
-      auto DstOffset = AWGCE->getDstOffset().get();
-      auto SrcArray = AWGCE->getSrc().get();
-      auto SrcOffset = AWGCE->getSrcOffset().get();
+    } else if (auto *AWGCE = dyn_cast<AsyncWorkGroupCopyExpr>(ES->getExpr())) {
+      auto DstArray = AWGCE->getDst();
+      auto DstOffset = AWGCE->getDstOffset();
+      auto SrcArray = AWGCE->getSrc();
+      auto SrcOffset = AWGCE->getSrcOffset();
 
       std::set<GlobalArray *> GlobalsDst;
       if (!DstArray->computeArrayCandidates(GlobalsDst)) {
@@ -213,16 +213,16 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       OS << "  ";
       OS << "call {:async_work_group_copy} v" << id << ", $$" << dst->getName()
          << " := _ASYNC_WORK_GROUP_COPY_" << dst->getRangeType().width << "(";
-      writeExpr(OS, DstOffset);
+      writeExpr(OS, DstOffset.get());
       OS << ", "
          << "$$" << src->getName() << ", ";
-      writeExpr(OS, SrcOffset);
+      writeExpr(OS, SrcOffset.get());
       OS << ", ";
       writeExpr(OS, AWGCE->getSize().get());
       OS << ", ";
       writeExpr(OS, AWGCE->getHandle().get());
       OS << ");\n";
-    } else if (auto CE = dyn_cast<BVCtlzExpr>(ES->getExpr())) {
+    } else if (auto *CE = dyn_cast<BVCtlzExpr>(ES->getExpr())) {
       unsigned Width = CE->getVal()->getType().width;
 
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
@@ -247,18 +247,18 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       OS << ";\n";
     }
     SSAVarIds[ES->getExpr().get()] = id;
-  } else if (auto CS = dyn_cast<CallStmt>(S)) {
+  } else if (auto *CS = dyn_cast<CallStmt>(S)) {
     OS << "  call ";
     writeSourceLocs(OS, CS->getSourceLocs());
     writeCallStmt(OS, CS);
     OS << ";\n";
-  } else if (auto CMOS = dyn_cast<CallMemberOfStmt>(S)) {
+  } else if (auto *CMOS = dyn_cast<CallMemberOfStmt>(S)) {
     auto CSS = CMOS->getCallStmts();
     auto SL = S->getSourceLocs();
     auto F = CMOS->getFunc();
     OS << "  ";
-    for (auto i = CSS.begin(), e = CSS.end(); i != e; ++i) {
-      CS = cast<CallStmt>(*i);
+    for (auto *S : CSS) {
+      auto *CS = cast<CallStmt>(S);
       OS << "if (";
       writeExpr(OS, F.get());
       OS << " == $functionId$$" << CS->getCallee()->getName() << ") {\n";
@@ -270,7 +270,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << "{\n    assert {:bad_pointer_access} ";
     writeSourceLocs(OS, SL);
     OS << "false;\n  }\n";
-  } else if (auto SS = dyn_cast<StoreStmt>(S)) {
+  } else if (auto *SS = dyn_cast<StoreStmt>(S)) {
     maybeWriteCaseSplit(OS, SS->getArray().get(), SS->getSourceLocs(),
                         [&](GlobalArray *GA, unsigned int indent) {
       writeSourceLocsMarker(OS, SS->getSourceLocs(), indent);
@@ -282,38 +282,38 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       writeExpr(OS, SS->getValue().get());
       OS << ";";
     });
-  } else if (auto VAS = dyn_cast<VarAssignStmt>(S)) {
+  } else if (auto *VAS = dyn_cast<VarAssignStmt>(S)) {
     OS << "  ";
-    for (auto b = VAS->getVars().begin(), i = b, e = VAS->getVars().end();
-         i != e; ++i) {
-      if (i != b)
+    const auto &Vars = VAS->getVars();
+    for (unsigned i = 0; i < Vars.size(); ++i) {
+      if (i > 0)
         OS << ", ";
-      OS << "$" << (*i)->getName();
+      OS << "$" << Vars[i]->getName();
     }
     OS << " := ";
-    for (auto b = VAS->getValues().begin(), i = b, e = VAS->getValues().end();
-         i != e; ++i) {
-      if (i != b)
+    const auto &Vals = VAS->getValues();
+    for (unsigned i = 0; i < Vals.size(); ++i) {
+      if (i > 0)
         OS << ", ";
-      writeExpr(OS, i->get());
+      writeExpr(OS, Vals[i].get());
     }
     OS << ";\n";
-  } else if (auto GS = dyn_cast<GotoStmt>(S)) {
+  } else if (auto *GS = dyn_cast<GotoStmt>(S)) {
     OS << "  goto ";
-    for (auto b = GS->getBlocks().begin(), i = b, e = GS->getBlocks().end();
-         i != e; ++i) {
-      if (i != b)
+    const auto &Blocks = GS->getBlocks();
+    for (unsigned i = 0; i < Blocks.size(); ++i) {
+      if (i > 0)
         OS << ", ";
-      OS << "$" << (*i)->getName();
+      OS << "$" << Blocks[i]->getName();
     }
     OS << ";\n";
-  } else if (auto AS = dyn_cast<AssumeStmt>(S)) {
+  } else if (auto *AS = dyn_cast<AssumeStmt>(S)) {
     OS << "  assume ";
     if (AS->isPartition())
       OS << "{:partition} ";
     writeExpr(OS, AS->getPredicate().get());
     OS << ";\n";
-  } else if (auto AtS = dyn_cast<AssertStmt>(S)) {
+  } else if (auto *AtS = dyn_cast<AssertStmt>(S)) {
     OS << "  assert ";
     if (AtS->isGlobal())
       OS << "{:do_not_predicate} ";
@@ -339,7 +339,7 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
     OS << ";\n";
   } else if (isa<ReturnStmt>(S)) {
     OS << "  return;\n";
-  } else if (auto WGES = dyn_cast<WaitGroupEventStmt>(S)) {
+  } else if (auto *WGES = dyn_cast<WaitGroupEventStmt>(S)) {
     MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
       OS << "procedure {:wait_group_events} _WAIT_GROUP_EVENTS(handle : "
          << MW->IntRep->getType(MW->M->getPointerWidth()) << ")";
@@ -357,8 +357,8 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
 
 void BPLFunctionWriter::writeBasicBlock(llvm::raw_ostream &OS, BasicBlock *BB) {
   OS << "$" << BB->getName() << ":\n";
-  for (auto i = BB->begin(), e = BB->end(); i != e; ++i)
-    writeStmt(OS, *i);
+  for (auto *E : *BB)
+    writeStmt(OS, E);
 }
 
 void BPLFunctionWriter::writeSourceLocs(llvm::raw_ostream &OS,
@@ -483,8 +483,9 @@ void BPLFunctionWriter::write() {
 
     std::string Body;
     llvm::raw_string_ostream BodyOS(Body);
-    std::for_each(F->begin(), F->end(),
-                  [&](BasicBlock *BB) { writeBasicBlock(BodyOS, BB); });
+    for (auto *BB : *F) {
+      writeBasicBlock(BodyOS, BB);
+    }
 
     OS << "{\n";
 
@@ -494,9 +495,9 @@ void BPLFunctionWriter::write() {
       OS << ";\n";
     }
 
-    for (auto i = SSAVarIds.begin(), e = SSAVarIds.end(); i != e; ++i) {
-      OS << "  var v" << i->second << ":";
-      MW->writeType(OS, i->first->getType());
+    for (const auto &VarId : SSAVarIds) {
+      OS << "  var v" << VarId.second << ":";
+      MW->writeType(OS, VarId.first->getType());
       OS << ";\n";
     }
 

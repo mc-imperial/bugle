@@ -52,12 +52,12 @@ bool InlinePass::doInline(llvm::Instruction *I, llvm::Function *OF) {
     return false;
 }
 
-void InlinePass::doInline(llvm::BasicBlock *B, llvm::Function *OF) {
+void InlinePass::doInline(llvm::BasicBlock *BB, llvm::Function *OF) {
   // Re-process block as long as we did some inlining.
   bool AppliedInlining = true;
   while (AppliedInlining) {
-    for (auto i = B->begin(), e = B->end(); i != e; ++i) {
-      AppliedInlining = doInline(&*i, OF);
+    for (auto &I : *BB) {
+      AppliedInlining = doInline(&I, OF);
       if (AppliedInlining)
         break;
     }
@@ -69,15 +69,15 @@ void InlinePass::doInline(llvm::Function *F) {
   if (!TranslateFunction::isNormalFunction(SL, F))
     return;
 
-  for (auto i = F->begin(), e = F->end(); i != e; ++i)
-    doInline(&*i, F);
+  for (auto &BB : *F)
+    doInline(&BB, F);
 }
 
 bool InlinePass::runOnModule(llvm::Module &M) {
   this->M = &M;
 
-  for (auto i = M.begin(), e = M.end(); i != e; ++i)
-    doInline(&*i);
+  for (auto &F : M)
+    doInline(&F);
 
   return true;
 }

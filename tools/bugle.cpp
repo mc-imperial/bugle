@@ -231,8 +231,8 @@ int main(int argc, char **argv) {
       GlobalAddrSpace, GroupSharedAddrSpace, ConstantAddrSpace);
 
   std::set<std::string> EP;
-  for (auto i = GPUEntryPoints.begin(), e = GPUEntryPoints.end(); i != e; ++i)
-    EP.insert(*i);
+  for (auto &E : GPUEntryPoints)
+    EP.insert(E);
 
   std::map<std::string, bugle::ArraySpec> KAS;
   GetArraySizes(KAS);

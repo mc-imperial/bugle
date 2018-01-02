@@ -16,16 +16,16 @@ using namespace bugle;
 bool ArgumentPromotionPass::needsPromotion(llvm::Function *F) {
   // Only apply promotion to normal functions.
   if (TranslateFunction::isNormalFunction(SL, F))
-    for (auto i = F->arg_begin(), e = F->arg_end(); i != e; ++i)
-      if (i->hasByValAttr())
+    for (auto &Arg : F->args())
+      if (Arg.hasByValAttr())
         return true;
 
   return false;
 }
 
 bool ArgumentPromotionPass::canPromote(llvm::Function *F) {
-  for (auto i = F->users().begin(), e = F->users().end(); i != e; ++i) {
-    CallSite CS(*i);
+  for (auto *User : F->users()) {
+    CallSite CS(User);
     if (!CS.getInstruction())
       return false;
   }
@@ -34,9 +34,9 @@ bool ArgumentPromotionPass::canPromote(llvm::Function *F) {
 }
 
 bool ArgumentPromotionPass::usesFunctionPointers(llvm::Function *F) {
-  for (auto fi = F->begin(), fe = F->end(); fi != fe; ++fi)
-    for (auto bi = fi->begin(), be = fi->end(); bi != be; ++bi) {
-      auto CI = dyn_cast<CallInst>(bi);
+  for (auto &BB : *F)
+    for (auto &I : BB) {
+      auto CI = dyn_cast<CallInst>(&I);
 
       if (!CI)
         continue;
@@ -49,8 +49,8 @@ bool ArgumentPromotionPass::usesFunctionPointers(llvm::Function *F) {
 }
 
 llvm::Function *ArgumentPromotionPass::createNewFunction(llvm::Function *F) {
-  FunctionType *FTy = F->getFunctionType();
-  const AttributeList &FAL = F->getAttributes();
+  auto *FTy = F->getFunctionType();
+  const auto &FAL = F->getAttributes();
   std::vector<llvm::Type *> NewArgs;
   std::vector<AttributeSet> NewAttributes;
 
@@ -66,10 +66,9 @@ llvm::Function *ArgumentPromotionPass::createNewFunction(llvm::Function *F) {
     }
   }
 
-  llvm::Type *RetTy = FTy->getReturnType();
-  FunctionType *NFty = FunctionType::get(RetTy, NewArgs, FTy->isVarArg());
-  llvm::Function *NF =
-      llvm::Function::Create(NFty, F->getLinkage(), F->getName());
+  auto *RetTy = FTy->getReturnType();
+  auto *NFty = FunctionType::get(RetTy, NewArgs, FTy->isVarArg());
+  auto *NF = llvm::Function::Create(NFty, F->getLinkage(), F->getName());
   NF->copyAttributesFrom(F);
   NF->setAttributes(AttributeList::get(F->getContext(), FAL.getFnAttributes(),
                                        FAL.getRetAttributes(), NewAttributes));
@@ -79,8 +78,8 @@ llvm::Function *ArgumentPromotionPass::createNewFunction(llvm::Function *F) {
 
 void ArgumentPromotionPass::updateCallSite(CallSite *CS, llvm::Function *F,
                                            llvm::Function *NF) {
-  Instruction *CI = CS->getInstruction();
-  const AttributeList &CAL = CS->getAttributes();
+  auto *CI = CS->getInstruction();
+  const auto &CAL = CS->getAttributes();
   std::vector<Value *> NewArgs;
   std::vector<AttributeSet> NewAttributes;
 
@@ -102,7 +101,7 @@ void ArgumentPromotionPass::updateCallSite(CallSite *CS, llvm::Function *F,
     }
   }
 
-  CallInst *NC = CallInst::Create(NF, NewArgs, "", CI);
+  auto *NC = CallInst::Create(NF, NewArgs, "", CI);
   NC->setCallingConv(CS->getCallingConv());
   NC->setAttributes(AttributeList::get(F->getContext(), CAL.getFnAttributes(),
                                        CAL.getRetAttributes(), NewAttributes));
@@ -145,7 +144,7 @@ void ArgumentPromotionPass::spliceBody(llvm::Function *F, llvm::Function *NF) {
   for (auto i = F->arg_begin(), e = F->arg_end(), ni = NF->arg_begin(); i != e;
        ++i, ++ni) {
     Value *AI = &*ni;
-    ni->takeName(&*i);
+    AI->takeName(&*i);
 
     // The splice function does not update the relevant debug intrinsics. Update
     // these manually.
@@ -176,8 +175,8 @@ void ArgumentPromotionPass::spliceBody(llvm::Function *F, llvm::Function *NF) {
 
     // Copy the value of the function argument into locally allocated space
     if (i->hasByValAttr()) {
-      Instruction *InsertPoint = &*NF->begin()->begin();
-      llvm::Type *ArgTy = cast<PointerType>(i->getType())->getElementType();
+      auto *InsertPoint = &*NF->begin()->begin();
+      auto *ArgTy = cast<PointerType>(i->getType())->getElementType();
       AI = new AllocaInst(ArgTy, DL.getAllocaAddrSpace(),
                           ni->getName() + ".val", InsertPoint);
       new StoreInst(&*ni, AI, InsertPoint);
@@ -188,7 +187,7 @@ void ArgumentPromotionPass::spliceBody(llvm::Function *F, llvm::Function *NF) {
 }
 
 void ArgumentPromotionPass::promote(llvm::Function *F) {
-  llvm::Function *NF = createNewFunction(F);
+  auto *NF = createNewFunction(F);
 
   // Update debug information to point to new function
   NF->setSubprogram(F->getSubprogram());
@@ -196,10 +195,8 @@ void ArgumentPromotionPass::promote(llvm::Function *F) {
 
   // Replace the function in the remaining (non-debug) meta-data
   std::set<MDNode *> doneMD;
-  const auto &NMDL = M->getNamedMDList();
-  for (auto i = NMDL.begin(), e = NMDL.end(); i != e; ++i) {
-    for (unsigned j = 0, k = i->getNumOperands(); j != k; ++j) {
-      MDNode *MD = i->getOperand(j);
+  for (auto &NMD : M->getNamedMDList()) {
+    for (auto *MD : NMD.operands()) {
       replaceMetaData(F, NF, MD, doneMD);
     }
   }
@@ -224,15 +221,15 @@ bool ArgumentPromotionPass::runOnModule(llvm::Module &M) {
   bool promoted = false;
   this->M = &M;
 
-  for (auto i = M.begin(), e = M.end(); i != e; ++i) {
-    if (usesFunctionPointers(&*i)) {
+  for (auto &F : M) {
+    if (usesFunctionPointers(&F)) {
       return false;
     }
   }
 
-  for (auto i = M.begin(), e = M.end(); i != e; ++i) {
-    if (needsPromotion(&*i) && canPromote(&*i)) {
-      promote(&*i);
+  for (auto &F : M) {
+    if (needsPromotion(&F) && canPromote(&F)) {
+      promote(&F);
       promoted = true;
     }
   }

@@ -30,8 +30,8 @@ bool SimpleInternalizePass::runOnModule(llvm::Module &M) {
   bool changed = false;
   this->M = &M;
 
-  for (auto i = M.begin(), e = M.end(); i != e; ++i)
-    changed &= doInternalize(&*i);
+  for (auto &F : M)
+    changed |= doInternalize(&F);
 
   return changed;
 }

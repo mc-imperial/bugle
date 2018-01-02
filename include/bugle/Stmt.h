@@ -205,11 +205,12 @@ public:
 
 class WaitGroupEventStmt : public Stmt {
   WaitGroupEventStmt(ref<Expr> handle, const SourceLocsRef &sourcelocs)
-    : Stmt(sourcelocs), handle(handle) {}
+      : Stmt(sourcelocs), handle(handle) {}
   ref<Expr> handle;
 
 public:
-  static Stmt *create(ref<Expr> handle, const SourceLocsRef &sourcelocs);
+  static WaitGroupEventStmt *create(ref<Expr> handle,
+                                    const SourceLocsRef &sourcelocs);
 
   STMT_KIND(WaitGroupEvent)
   ref<Expr> getHandle() const { return handle; }

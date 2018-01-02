@@ -252,8 +252,8 @@ void BPLModuleWriter::write() {
        << IntRep->getLiteral(0, bitsRequiredForFunctionPointers()) << ";\n\n";
   }
 
-  for (auto i = IntrinsicSet.begin(), e = IntrinsicSet.end(); i != e; ++i) {
-    OS << *i << "\n";
+  for (const auto &I : IntrinsicSet) {
+    OS << I << "\n";
   }
 
   OS << SS.str();

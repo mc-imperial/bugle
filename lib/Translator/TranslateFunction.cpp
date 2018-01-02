@@ -666,12 +666,12 @@ ref<Expr> TranslateFunction::translateValue(llvm::Value *V,
 }
 
 Var *TranslateFunction::getPhiVariable(llvm::PHINode *PN) {
-  auto &i = PhiVarMap[PN];
-  if (i)
-    return i;
+  auto &V = PhiVarMap[PN];
+  if (V)
+    return V;
 
-  i = BF->addLocal(TM->getModelledType(PN), PN->getName());
-  return i;
+  V = BF->addLocal(TM->getModelledType(PN), PN->getName());
+  return V;
 }
 
 void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
@@ -679,17 +679,16 @@ void TranslateFunction::addPhiAssigns(bugle::BasicBlock *BBB,
                                       llvm::BasicBlock *Succ) {
   std::vector<Var *> Vars;
   ExprVec Exprs;
-  for (auto i = Succ->begin(), e = Succ->end(); i != e && isa<PHINode>(i); ++i){
-    PHINode *PN = cast<PHINode>(i);
-    int idx = PN->getBasicBlockIndex(Pred);
+  for (auto &PN : Succ->phis()) {
+    int idx = PN.getBasicBlockIndex(Pred);
     assert(idx != -1 && "No phi index?");
 
-    Vars.push_back(getPhiVariable(PN));
+    Vars.push_back(getPhiVariable(&PN));
     auto Val =
-        TM->modelValue(PN, translateValue(PN->getIncomingValue(idx), BBB));
+        TM->modelValue(&PN, translateValue(PN.getIncomingValue(idx), BBB));
     Exprs.push_back(Val);
-    PhiPair pair = std::make_pair(PN->getIncomingValue(idx), Val);
-    PhiAssignsMap[PN].push_back(pair);
+    PhiPair pair = std::make_pair(PN.getIncomingValue(idx), Val);
+    PhiAssignsMap[&PN].push_back(pair);
   }
 
   if (!Vars.empty())
@@ -1183,7 +1182,7 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
                                     ArrRangeTy.width / 8));
 
   ExprVec AtomicArgs;
-  for (unsigned i = 1, e = Args.size(); i < e; ++i)
+  for (size_t i = 1; i < Args.size(); ++i)
     AtomicArgs.push_back(Args[i]);
 
   ref<Expr> result;
@@ -1217,26 +1216,24 @@ ref<Expr> TranslateFunction::handleBarrierInvariant(bugle::BasicBlock *BBB,
                                                     const ExprVec &Args) {
   assert(CI->getNumArgOperands() > 1);
 
-  auto *BF = BarrierInvariants[CI->getNumArgOperands()];
+  auto *&BF = BarrierInvariants[CI->getNumArgOperands()];
   if (BF == nullptr) {
     llvm::Function *F = CI->getCalledFunction();
     std::string S = F->getName().str();
     llvm::raw_string_ostream SS(S);
     SS << (CI->getNumArgOperands() - 1);
     BF = TM->BM->addFunction(SS.str(), TM->getSourceFunctionName(F));
-    BarrierInvariants[CI->getNumArgOperands()] = BF;
 
-    int count = 0;
-    for (auto i = Args.begin(), e = Args.end(); i != e; ++i, ++count) {
+    for (size_t i = 0; i < Args.size(); ++i) {
       std::string S;
       llvm::raw_string_ostream SS(S);
-      if (count == 0) {
+      if (i == 0) {
         SS << "expr";
       } else {
         SS << "instantiation";
-        SS << count;
+        SS << i;
       }
-      BF->addArgument((*i)->getType(), SS.str());
+      BF->addArgument(Args[i]->getType(), SS.str());
     }
 
     BF->addAttribute("barrier_invariant");
@@ -1254,28 +1251,26 @@ TranslateFunction::handleBarrierInvariantBinary(bugle::BasicBlock *BBB,
   assert(CI->getNumArgOperands() % 2 != 0 &&
          "__barrier_invariant_binary not followed by a sequence of pairs");
 
-  auto *BF = BinaryBarrierInvariants[CI->getNumArgOperands()];
+  auto *&BF = BinaryBarrierInvariants[CI->getNumArgOperands()];
   if (BF == nullptr) {
     llvm::Function *F = CI->getCalledFunction();
     std::string S = F->getName().str();
     llvm::raw_string_ostream SS(S);
     SS << ((CI->getNumArgOperands() - 1) / 2);
     BF = TM->BM->addFunction(SS.str(), TM->getSourceFunctionName(F));
-    BinaryBarrierInvariants[CI->getNumArgOperands()] = BF;
 
-    int count = 0;
-    for (auto i = Args.begin(), e = Args.end(); i != e; ++i, ++count) {
+    for (size_t i = 0; i < Args.size(); ++i) {
       std::string S;
       llvm::raw_string_ostream SS(S);
-      if (count == 0) {
+      if (i == 0) {
         SS << "expr";
       } else {
         SS << "instantiation";
-        SS << (count / 2);
+        SS << (i / 2);
         SS << "_";
-        SS << ((count % 2) == 0 ? 2 : 1);
+        SS << ((i % 2) == 0 ? 2 : 1);
       }
-      BF->addArgument((*i)->getType(), SS.str());
+      BF->addArgument(Args[i]->getType(), SS.str());
     }
 
     BF->addAttribute("binary_barrier_invariant");

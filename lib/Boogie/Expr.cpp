@@ -8,21 +8,21 @@
 using namespace bugle;
 
 bool Expr::computeArrayCandidates(std::set<GlobalArray *> &GlobalSet) const {
-  if (auto GARE = dyn_cast<GlobalArrayRefExpr>(this)) {
+  if (auto *GARE = dyn_cast<GlobalArrayRefExpr>(this)) {
     GlobalSet.insert(GARE->getArray());
     return true;
-  } else if (auto MOE = dyn_cast<ArrayMemberOfExpr>(this)) {
+  } else if (auto *MOE = dyn_cast<ArrayMemberOfExpr>(this)) {
     GlobalSet.insert(MOE->getElems().begin(), MOE->getElems().end());
     return true;
   } else if (isa<NullArrayRefExpr>(this)) {
     GlobalSet.insert(nullptr);
     return true;
-  } else if (auto ITE = dyn_cast<IfThenElseExpr>(this)) {
+  } else if (auto *ITE = dyn_cast<IfThenElseExpr>(this)) {
     return ITE->getTrueExpr()->computeArrayCandidates(GlobalSet) &&
            ITE->getFalseExpr()->computeArrayCandidates(GlobalSet);
-  } else if (auto AIE = dyn_cast<ArrayIdExpr>(this)) {
+  } else if (auto *AIE = dyn_cast<ArrayIdExpr>(this)) {
     return AIE->getSubExpr()->computeArrayCandidates(GlobalSet);
-  } else if (auto PE = dyn_cast<PointerExpr>(this)) {
+  } else if (auto *PE = dyn_cast<PointerExpr>(this)) {
     return PE->getArray()->computeArrayCandidates(GlobalSet);
   } else {
     return false;
@@ -51,16 +51,13 @@ ref<Expr> GlobalArrayRefExpr::create(GlobalArray *global) {
 ref<Expr> NullArrayRefExpr::create() { return new NullArrayRefExpr(); }
 
 ref<Expr> ConstantArrayRefExpr::create(llvm::ArrayRef<ref<Expr>> array) {
-#ifndef NDEBUG
   assert(array.size() > 0);
-  Type t = array[0]->getType();
-  for (auto i = array.begin() + 1, e = array.end(); i != e; ++i) {
-    assert((*i)->getType() == t);
-  }
-#endif
+  assert(std::all_of(array.begin(), array.end(), [&](const ref<Expr> &A) {
+    return A->getType() == array[0]->getType();
+  }));
 
-  for (auto i = array.begin(), e = array.end(); i != e; ++i)
-    (*i)->preventEvalStmt = true;
+  for (auto &A : array)
+    A->preventEvalStmt = true;
 
   return new ConstantArrayRefExpr(array);
 }
@@ -85,7 +82,7 @@ ref<Expr> LoadExpr::create(ref<Expr> array, ref<Expr> offset, Type type,
   assert(array->getType().array);
   assert(offset->getType().isKind(Type::BV));
 
-  if (auto CA = dyn_cast<ConstantArrayRefExpr>(array)) {
+  if (auto *CA = dyn_cast<ConstantArrayRefExpr>(array)) {
     // More restrictive than strictly necessary, but sufficient for CUDA.
     auto OfsCE = cast<BVConstExpr>(offset);
     uint64_t Ofs = OfsCE->getValue().getZExtValue();
@@ -119,28 +116,27 @@ ref<Expr> BVExtractExpr::create(ref<Expr> expr, unsigned offset,
   if (offset == 0 && width == expr->getType().width)
     return expr;
 
-  if (auto e = dyn_cast<BVConstExpr>(expr))
+  if (auto *e = dyn_cast<BVConstExpr>(expr))
     return BVConstExpr::create(e->getValue().ashr(offset).zextOrTrunc(width));
 
-  if (auto e = dyn_cast<BVExtractExpr>(expr))
+  if (auto *e = dyn_cast<BVExtractExpr>(expr))
     return BVExtractExpr::create(e->getSubExpr(), e->getOffset() + offset,
                                  width);
 
-  if (auto e = dyn_cast<BVConcatExpr>(expr)) {
+  if (auto *e = dyn_cast<BVConcatExpr>(expr)) {
     unsigned RHSWidth = e->getRHS()->getType().width;
     if (offset + width <= RHSWidth)
       return BVExtractExpr::create(e->getRHS(), offset, width);
     if (offset >= RHSWidth)
       return BVExtractExpr::create(e->getLHS(), offset - RHSWidth, width);
     if (offset == 0 && RHSWidth < width) {
-      ref<Expr> EE =
-          BVExtractExpr::create(e->getLHS(), offset, width - RHSWidth);
+      auto EE = BVExtractExpr::create(e->getLHS(), offset, width - RHSWidth);
       return BVConcatExpr::create(EE, e->getRHS());
     }
   }
 
   if (isa<BVZExtExpr>(expr) || isa<BVSExtExpr>(expr)) {
-    auto UE = cast<UnaryExpr>(expr);
+    auto *UE = cast<UnaryExpr>(expr);
     if (offset + width <= UE->getSubExpr()->getType().width)
       return BVExtractExpr::create(UE->getSubExpr(), offset, width);
   }
@@ -165,11 +161,11 @@ ref<Expr> NotExpr::create(ref<Expr> op) {
 
 Type Expr::getArrayCandidateType(const std::set<GlobalArray *> &Globals) {
   Type t(Type::Any);
-  for (auto gi = Globals.begin(), ge = Globals.end(); gi != ge; ++gi) {
-    if (*gi) {
+  for (auto *GA : Globals) {
+    if (GA != nullptr) {
       if (t.kind == Type::Any)
-        t = (*gi)->getRangeType();
-      else if (t != (*gi)->getRangeType())
+        t = GA->getRangeType();
+      else if (t != GA->getRangeType())
         return Type(Type::Unknown);
     }
   }
@@ -368,23 +364,22 @@ ref<Expr> ArrayMemberOfExpr::create(ref<Expr> expr,
   assert(expr->getType().array);
   assert(!elems.empty());
 
-  Type t = Expr::getArrayCandidateType(elems);
-#ifndef NDEBUG
-  for (auto i = elems.begin(), e = elems.end(); i != e; ++i) {
-    assert(*i == nullptr || (*i)->getRangeType() == t);
-  }
-#endif
+  Type Ty = Expr::getArrayCandidateType(elems);
 
-  return new ArrayMemberOfExpr(Type(Type::ArrayOf, t), expr, elems);
+  assert(std::all_of(elems.begin(), elems.end(), [&](GlobalArray *GA) {
+    return GA == nullptr || GA->getRangeType() == Ty;
+  }));
+
+  return new ArrayMemberOfExpr(Type(Type::ArrayOf, Ty), expr, elems);
 }
 
 ref<Expr> BVToPtrExpr::create(unsigned ptrWidth, ref<Expr> bv) {
   assert(bv->getType().isKind(Type::BV));
 
-  if (auto e = dyn_cast<PtrToBVExpr>(bv))
+  if (auto *e = dyn_cast<PtrToBVExpr>(bv))
     return e->getSubExpr();
 
-  if (auto e = dyn_cast<BVConstExpr>(bv))
+  if (auto *e = dyn_cast<BVConstExpr>(bv))
     if (e->getValue() == 0)
       return PointerExpr::create(NullArrayRefExpr::create(),
                                  BVConstExpr::createZero(ptrWidth));
@@ -395,10 +390,10 @@ ref<Expr> BVToPtrExpr::create(unsigned ptrWidth, ref<Expr> bv) {
 ref<Expr> PtrToBVExpr::create(unsigned bvWidth, ref<Expr> ptr) {
   assert(ptr->getType().isKind(Type::Pointer));
 
-  if (auto e = dyn_cast<BVToPtrExpr>(ptr))
+  if (auto *e = dyn_cast<BVToPtrExpr>(ptr))
     return BVZExtExpr::create(bvWidth, e->getSubExpr());
 
-  if (auto e = dyn_cast<PointerExpr>(ptr))
+  if (auto *e = dyn_cast<PointerExpr>(ptr))
     if (dyn_cast<NullArrayRefExpr>(e->getArray()))
       return BVZExtExpr::create(bvWidth, e->getOffset());
 
@@ -408,10 +403,10 @@ ref<Expr> PtrToBVExpr::create(unsigned bvWidth, ref<Expr> ptr) {
 ref<Expr> SafeBVToPtrExpr::create(unsigned ptrWidth, ref<Expr> bv) {
   assert(bv->getType().isKind(Type::BV));
 
-  if (auto e = dyn_cast<SafePtrToBVExpr>(bv))
+  if (auto *e = dyn_cast<SafePtrToBVExpr>(bv))
     return e->getSubExpr();
 
-  if (auto e = dyn_cast<BVConstExpr>(bv))
+  if (auto *e = dyn_cast<BVConstExpr>(bv))
     if (e->getValue() == 0)
       return PointerExpr::create(NullArrayRefExpr::create(),
                                  BVConstExpr::createZero(ptrWidth));
@@ -424,10 +419,10 @@ ref<Expr> SafePtrToBVExpr::create(unsigned bvWidth, ref<Expr> ptr) {
   const Type &ty = ptr->getType();
   assert(ty.isKind(Type::Pointer));
 
-  if (auto e = dyn_cast<SafeBVToPtrExpr>(ptr))
+  if (auto *e = dyn_cast<SafeBVToPtrExpr>(ptr))
     return BVZExtExpr::create(bvWidth, e->getSubExpr());
 
-  if (auto e = dyn_cast<PointerExpr>(ptr))
+  if (auto *e = dyn_cast<PointerExpr>(ptr))
     if (dyn_cast<NullArrayRefExpr>(e->getArray()))
       return BVZExtExpr::create(bvWidth, e->getOffset());
 
@@ -438,7 +433,7 @@ ref<Expr> SafePtrToBVExpr::create(unsigned bvWidth, ref<Expr> ptr) {
 ref<Expr> BVToFuncPtrExpr::create(unsigned ptrWidth, ref<Expr> bv) {
   assert(bv->getType().isKind(Type::BV));
 
-  if (auto e = dyn_cast<FuncPtrToBVExpr>(bv))
+  if (auto *e = dyn_cast<FuncPtrToBVExpr>(bv))
     return e->getSubExpr();
 
   return new BVToFuncPtrExpr(Type(Type::FunctionPointer, ptrWidth), bv);
@@ -447,7 +442,7 @@ ref<Expr> BVToFuncPtrExpr::create(unsigned ptrWidth, ref<Expr> bv) {
 ref<Expr> FuncPtrToBVExpr::create(unsigned bvWidth, ref<Expr> ptr) {
   assert(ptr->getType().isKind(Type::FunctionPointer));
 
-  if (auto e = dyn_cast<BVToFuncPtrExpr>(ptr))
+  if (auto *e = dyn_cast<BVToFuncPtrExpr>(ptr))
     return BVZExtExpr::create(bvWidth, e->getSubExpr());
 
   return new FuncPtrToBVExpr(Type(Type::BV, bvWidth), ptr);
@@ -460,7 +455,7 @@ ref<Expr> PtrToFuncPtrExpr::create(ref<Expr> ptr) {
 
   assert(ty.isKind(Type::Pointer));
 
-  if (auto e = dyn_cast<FuncPtrToPtrExpr>(ptr))
+  if (auto *e = dyn_cast<FuncPtrToPtrExpr>(ptr))
     return e->getSubExpr();
 
   return new PtrToFuncPtrExpr(Type(Type::FunctionPointer, ty.width), ptr);
@@ -473,7 +468,7 @@ ref<Expr> FuncPtrToPtrExpr::create(ref<Expr> ptr) {
 
   assert(ty.isKind(Type::FunctionPointer));
 
-  if (auto e = dyn_cast<PtrToFuncPtrExpr>(ptr))
+  if (auto *e = dyn_cast<PtrToFuncPtrExpr>(ptr))
     return e->getSubExpr();
 
   return new FuncPtrToPtrExpr(Type(Type::Pointer, ty.width), ptr);
@@ -483,7 +478,7 @@ ref<Expr> BVToBoolExpr::create(ref<Expr> bv) {
   assert(bv->getType().isKind(Type::BV));
   assert(bv->getType().width == 1);
 
-  if (auto e = dyn_cast<BoolToBVExpr>(bv))
+  if (auto *e = dyn_cast<BoolToBVExpr>(bv))
     return e->getSubExpr();
 
   return new BVToBoolExpr(Type(Type::Bool), bv);
@@ -492,7 +487,7 @@ ref<Expr> BVToBoolExpr::create(ref<Expr> bv) {
 ref<Expr> BoolToBVExpr::create(ref<Expr> bv) {
   assert(bv->getType().isKind(Type::Bool));
 
-  if (auto e = dyn_cast<BVToBoolExpr>(bv))
+  if (auto *e = dyn_cast<BVToBoolExpr>(bv))
     return e->getSubExpr();
 
   return new BoolToBVExpr(Type(Type::BV, 1), bv);
@@ -505,16 +500,16 @@ ref<Expr> EqExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
           lhs->getType().array) ||
          (lhs->getType() == rhs->getType()));
 
-  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
-    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+  if (auto *e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto *e2 = dyn_cast<BVConstExpr>(rhs))
       return BoolConstExpr::create(e1->getValue() == e2->getValue());
 
-  if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
-    if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
+  if (auto *e1 = dyn_cast<BoolConstExpr>(lhs))
+    if (auto *e2 = dyn_cast<BoolConstExpr>(rhs))
       return BoolConstExpr::create(e1->getValue() == e2->getValue());
 
-  if (auto e1 = dyn_cast<GlobalArrayRefExpr>(lhs))
-    if (auto e2 = dyn_cast<GlobalArrayRefExpr>(rhs))
+  if (auto *e1 = dyn_cast<GlobalArrayRefExpr>(lhs))
+    if (auto *e2 = dyn_cast<GlobalArrayRefExpr>(rhs))
       return BoolConstExpr::create(e1->getArray() == e2->getArray());
 
   return new EqExpr(Type(Type::Bool), lhs, rhs);
@@ -523,16 +518,16 @@ ref<Expr> EqExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 ref<Expr> NeExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhs->getType() == rhs->getType());
 
-  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
-    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+  if (auto *e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto *e2 = dyn_cast<BVConstExpr>(rhs))
       return BoolConstExpr::create(e1->getValue() != e2->getValue());
 
-  if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
-    if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
+  if (auto *e1 = dyn_cast<BoolConstExpr>(lhs))
+    if (auto *e2 = dyn_cast<BoolConstExpr>(rhs))
       return BoolConstExpr::create(e1->getValue() != e2->getValue());
 
-  if (auto e1 = dyn_cast<GlobalArrayRefExpr>(lhs))
-    if (auto e2 = dyn_cast<GlobalArrayRefExpr>(rhs))
+  if (auto *e1 = dyn_cast<GlobalArrayRefExpr>(lhs))
+    if (auto *e2 = dyn_cast<GlobalArrayRefExpr>(rhs))
       return BoolConstExpr::create(e1->getArray() != e2->getArray());
 
   return new NeExpr(Type(Type::Bool), lhs, rhs);
@@ -546,10 +541,10 @@ ref<Expr> AndExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhs->getType().isKind(Type::Bool) &&
          rhs->getType().isKind(Type::Bool));
 
-  if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
+  if (auto *e1 = dyn_cast<BoolConstExpr>(lhs))
     return e1->getValue() ? rhs : lhs;
 
-  if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
+  if (auto *e2 = dyn_cast<BoolConstExpr>(rhs))
     return e2->getValue() ? lhs : rhs;
 
   return new AndExpr(Type(Type::Bool), lhs, rhs);
@@ -559,10 +554,10 @@ ref<Expr> OrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhs->getType().isKind(Type::Bool) &&
          rhs->getType().isKind(Type::Bool));
 
-  if (auto e1 = dyn_cast<BoolConstExpr>(lhs))
+  if (auto *e1 = dyn_cast<BoolConstExpr>(lhs))
     return e1->getValue() ? lhs : rhs;
 
-  if (auto e2 = dyn_cast<BoolConstExpr>(rhs))
+  if (auto *e2 = dyn_cast<BoolConstExpr>(rhs))
     return e2->getValue() ? rhs : lhs;
 
   return new OrExpr(Type(Type::Bool), lhs, rhs);
@@ -570,10 +565,10 @@ ref<Expr> OrExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
 
 static ref<Expr> reassociateConstAdd(BVAddExpr *nonConstOp,
                                      BVConstExpr *constOp) {
-  if (auto clhs = dyn_cast<BVConstExpr>(nonConstOp->getLHS()))
+  if (auto *clhs = dyn_cast<BVConstExpr>(nonConstOp->getLHS()))
     return BVAddExpr::create(nonConstOp->getRHS(),
                              BVAddExpr::create(clhs, constOp));
-  if (auto crhs = dyn_cast<BVConstExpr>(nonConstOp->getRHS()))
+  if (auto *crhs = dyn_cast<BVConstExpr>(nonConstOp->getRHS()))
     return BVAddExpr::create(nonConstOp->getLHS(),
                              BVAddExpr::create(crhs, constOp));
   return ref<Expr>();
@@ -584,22 +579,22 @@ ref<Expr> BVAddExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhsTy.isKind(Type::BV));
   assert(lhsTy == rhs->getType());
 
-  if (auto e1 = dyn_cast<BVConstExpr>(lhs)) {
+  if (auto *e1 = dyn_cast<BVConstExpr>(lhs)) {
     if (e1->getValue().isMinValue())
       return rhs;
-    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+    if (auto *e2 = dyn_cast<BVConstExpr>(rhs))
       return BVConstExpr::create(e1->getValue() + e2->getValue());
-    if (auto e2 = dyn_cast<BVAddExpr>(rhs)) {
+    if (auto *e2 = dyn_cast<BVAddExpr>(rhs)) {
       auto ca = reassociateConstAdd(e2, e1);
       if (!ca.isNull())
         return ca;
     }
   }
 
-  if (auto e2 = dyn_cast<BVConstExpr>(rhs)) {
+  if (auto *e2 = dyn_cast<BVConstExpr>(rhs)) {
     if (e2->getValue().isMinValue())
       return lhs;
-    if (auto e1 = dyn_cast<BVAddExpr>(lhs)) {
+    if (auto *e1 = dyn_cast<BVAddExpr>(lhs)) {
       auto ca = reassociateConstAdd(e1, e2);
       if (!ca.isNull())
         return ca;
@@ -614,11 +609,11 @@ ref<Expr> BVSubExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhsTy.isKind(Type::BV));
   assert(lhsTy == rhs->getType());
 
-  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
-    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+  if (auto *e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto *e2 = dyn_cast<BVConstExpr>(rhs))
       return BVConstExpr::create(e1->getValue() - e2->getValue());
 
-  if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+  if (auto *e2 = dyn_cast<BVConstExpr>(rhs))
     if (e2->getValue().isMinValue())
       return lhs;
 
@@ -630,14 +625,14 @@ ref<Expr> BVMulExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhsTy.isKind(Type::BV));
   assert(lhsTy == rhs->getType());
 
-  if (auto e1 = dyn_cast<BVConstExpr>(lhs)) {
+  if (auto *e1 = dyn_cast<BVConstExpr>(lhs)) {
     if (e1->getValue().getLimitedValue() == 1)
       return rhs;
-    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+    if (auto *e2 = dyn_cast<BVConstExpr>(rhs))
       return BVConstExpr::create(e1->getValue() * e2->getValue());
   }
 
-  if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+  if (auto *e2 = dyn_cast<BVConstExpr>(rhs))
     if (e2->getValue().getLimitedValue() == 1)
       return lhs;
 
@@ -649,8 +644,8 @@ ref<Expr> BVSDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhsTy.isKind(Type::BV));
   assert(lhsTy == rhs->getType());
 
-  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
-    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+  if (auto *e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto *e2 = dyn_cast<BVConstExpr>(rhs))
       if (e2->getValue().getSExtValue() != 0)
         return BVConstExpr::create(e1->getValue().sdiv(e2->getValue()));
 
@@ -662,8 +657,8 @@ ref<Expr> BVUDivExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   assert(lhsTy.isKind(Type::BV));
   assert(lhsTy == rhs->getType());
 
-  if (auto e1 = dyn_cast<BVConstExpr>(lhs))
-    if (auto e2 = dyn_cast<BVConstExpr>(rhs))
+  if (auto *e1 = dyn_cast<BVConstExpr>(lhs))
+    if (auto *e2 = dyn_cast<BVConstExpr>(rhs))
       if (e2->getValue().getZExtValue() != 0)
         return BVConstExpr::create(e1->getValue().udiv(e2->getValue()));
 
@@ -688,26 +683,26 @@ ref<Expr> Expr::createExactBVSDiv(ref<Expr> lhs, uint64_t rhs, Var *base) {
   if ((rhs & (rhs - 1)) != 0)
     return ref<Expr>();
 
-  if (auto CE = dyn_cast<BVConstExpr>(lhs)) {
+  if (auto *CE = dyn_cast<BVConstExpr>(lhs)) {
     int64_t val = CE->getValue().getSExtValue();
     if (val % ((int64_t)rhs) == 0)
       return BVConstExpr::create(CE->getType().width,
                                  (uint64_t)(val / ((int64_t)rhs)));
-  } else if (auto AE = dyn_cast<BVAddExpr>(lhs)) {
+  } else if (auto *AE = dyn_cast<BVAddExpr>(lhs)) {
     auto lhsDiv = createExactBVSDiv(AE->getLHS(), rhs, base);
     if (lhsDiv.isNull())
       return ref<Expr>();
     auto rhsDiv = createExactBVSDiv(AE->getRHS(), rhs, base);
     if (!rhsDiv.isNull())
       return BVAddExpr::create(lhsDiv, rhsDiv);
-  } else if (auto ME = dyn_cast<BVMulExpr>(lhs)) {
-    if (auto CE = dyn_cast<BVConstExpr>(ME->getLHS()))
+  } else if (auto *ME = dyn_cast<BVMulExpr>(lhs)) {
+    if (auto *CE = dyn_cast<BVConstExpr>(ME->getLHS()))
       return createExactBVSDivMul(ME->getRHS().get(), CE, (int64_t)rhs);
-    if (auto CE = dyn_cast<BVConstExpr>(ME->getRHS()))
+    if (auto *CE = dyn_cast<BVConstExpr>(ME->getRHS()))
       return createExactBVSDivMul(ME->getLHS().get(), CE, (int64_t)rhs);
   } else if (base) {
-    if (auto AOE = dyn_cast<ArrayOffsetExpr>(lhs)) {
-      if (auto VRE = dyn_cast<VarRefExpr>(AOE->getSubExpr())) {
+    if (auto *AOE = dyn_cast<ArrayOffsetExpr>(lhs)) {
+      if (auto *VRE = dyn_cast<VarRefExpr>(AOE->getSubExpr())) {
         if (VRE->getVar() == base)
           return lhs;
       }
@@ -999,15 +994,14 @@ ref<Expr> CallExpr::create(Function *f, const std::vector<ref<Expr>> &args) {
 ref<Expr> CallMemberOfExpr::create(ref<Expr> f, std::vector<ref<Expr>> &ces) {
   assert(f->getType().isKind(Type::FunctionPointer));
   assert(ces.size() > 0);
-  Type T = (*ces.begin())->getType();
-#ifndef NDEBUG
-  for (auto i = ces.begin(), e = ces.end(); i != e; ++i) {
-    auto CE = dyn_cast<CallExpr>(*i);
-    assert(CE);
-    assert(CE->getType() == T);
-  }
-#endif
-  return new CallMemberOfExpr(T, f, ces);
+
+  const Type &Ty = ces[0]->getType();
+
+  assert(std::all_of(ces.begin(), ces.end(), [&](ref<Expr> &E) {
+    return cast<CallExpr>(E)->getType() == Ty;
+  }));
+
+  return new CallMemberOfExpr(Ty, f, ces);
 }
 
 ref<Expr> OldExpr::create(ref<Expr> op) {
@@ -1071,12 +1065,10 @@ ref<Expr> AddNoovflExpr::create(ref<Expr> first, ref<Expr> second,
 
 ref<Expr> AddNoovflPredicateExpr::create(const std::vector<ref<Expr>> &exprs) {
   assert(!exprs.empty());
-#ifndef NDEBUG
-  for (auto i = exprs.begin(), e = exprs.end(); i != e; ++i) {
-    assert((*i)->getType().isKind(Type::BV));
-    assert((*i)->getType().width == exprs[0]->getType().width);
-  }
-#endif
+  assert(std::all_of(exprs.begin(), exprs.end(), [&](const ref<Expr> &E) {
+    return E->getType().isKind(Type::BV) &&
+           E->getType().width == exprs[0]->getType().width;
+  }));
 
   return new AddNoovflPredicateExpr(exprs);
 }

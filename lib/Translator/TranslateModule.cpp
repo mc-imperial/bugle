@@ -416,12 +416,12 @@ bugle::Type TranslateModule::translateArrayRangeType(llvm::Type *T) {
   if (auto *VT = dyn_cast<VectorType>(T))
     return handlePadding(translateArrayRangeType(VT->getElementType()), T);
   if (auto *ST = dyn_cast<StructType>(T)) {
-    auto i = ST->element_begin(), e = ST->element_end();
-    if (i == e)
+    if (ST->getNumElements() == 0)
       return Type(Type::BV, 8);
-    auto ElTy = translateArrayRangeType(*i);
-    ++i;
-    for (; i != e; ++i) {
+
+    auto ElTy = translateArrayRangeType(*ST->element_begin());
+    for (auto i = std::next(ST->element_begin()), e = ST->element_end(); i != e;
+         ++i) {
       auto ITy = translateArrayRangeType(*i);
       auto Kind = ElTy.kind == ITy.kind ? ElTy.kind : Type::BV;
       auto Width = gcd(ElTy.width, ITy.width);
@@ -506,28 +506,28 @@ TranslateModule::translateGEP(ref<Expr> Ptr, klee::gep_type_iterator begin,
   ref<Expr> PtrArr = ArrayIdExpr::create(Ptr, defaultRange()),
             PtrOfs = ArrayOffsetExpr::create(Ptr);
   for (auto i = begin; i != end; ++i) {
-    if (auto *st = dyn_cast<StructType>(*i)) {
-      const StructLayout *sl = TD.getStructLayout(st);
-      const ConstantInt *ci = cast<ConstantInt>(i.getOperand());
-      uint64_t addend = sl->getElementOffset((unsigned)ci->getZExtValue());
+    if (auto *ST = dyn_cast<StructType>(*i)) {
+      const StructLayout *SL = TD.getStructLayout(ST);
+      const ConstantInt *CI = cast<ConstantInt>(i.getOperand());
+      uint64_t Addend = SL->getElementOffset((unsigned)CI->getZExtValue());
       PtrOfs = BVAddExpr::create(
-          PtrOfs, BVConstExpr::create(BM->getPointerWidth(), addend));
-    } else if (auto *set = dyn_cast<SequentialType>(*i)) {
-      uint64_t elementSize = TD.getTypeAllocSize(set->getElementType());
-      Value *operand = i.getOperand();
-      ref<Expr> index = xlate(operand);
-      index = BVZExtExpr::create(BM->getPointerWidth(), index);
-      ref<Expr> addend = BVMulExpr::create(
-          index, BVConstExpr::create(BM->getPointerWidth(), elementSize));
-      PtrOfs = BVAddExpr::create(PtrOfs, addend);
-    } else if (auto *pt = dyn_cast<PointerType>(*i)) {
-      uint64_t elementSize = TD.getTypeAllocSize(pt->getElementType());
-      Value *operand = i.getOperand();
-      ref<Expr> index = xlate(operand);
-      index = BVZExtExpr::create(BM->getPointerWidth(), index);
-      ref<Expr> addend = BVMulExpr::create(
-          index, BVConstExpr::create(BM->getPointerWidth(), elementSize));
-      PtrOfs = BVAddExpr::create(PtrOfs, addend);
+          PtrOfs, BVConstExpr::create(BM->getPointerWidth(), Addend));
+    } else if (auto *SET = dyn_cast<SequentialType>(*i)) {
+      uint64_t ElementSize = TD.getTypeAllocSize(SET->getElementType());
+      Value *Operand = i.getOperand();
+      ref<Expr> Index = xlate(Operand);
+      Index = BVZExtExpr::create(BM->getPointerWidth(), Index);
+      ref<Expr> Addend = BVMulExpr::create(
+          Index, BVConstExpr::create(BM->getPointerWidth(), ElementSize));
+      PtrOfs = BVAddExpr::create(PtrOfs, Addend);
+    } else if (auto *PT = dyn_cast<PointerType>(*i)) {
+      uint64_t ElementSize = TD.getTypeAllocSize(PT->getElementType());
+      Value *Operand = i.getOperand();
+      ref<Expr> Index = xlate(Operand);
+      Index = BVZExtExpr::create(BM->getPointerWidth(), Index);
+      ref<Expr> Addend = BVMulExpr::create(
+          Index, BVConstExpr::create(BM->getPointerWidth(), ElementSize));
+      PtrOfs = BVAddExpr::create(PtrOfs, Addend);
     } else {
       ErrorReporter::reportImplementationLimitation("Unhandled GEP type");
     }
@@ -541,26 +541,25 @@ TranslateModule::translateEV(ref<Expr> Agg, klee::ev_type_iterator begin,
                              klee::ev_type_iterator end,
                              std::function<ref<Expr>(Value *)> xlate) {
   ref<Expr> ValElem = Agg;
-
   for (auto i = begin; i != end; ++i) {
-    if (StructType *st = dyn_cast<StructType>(*i)) {
-      const StructLayout *sl = TD.getStructLayout(st);
-      const ConstantInt *ci = cast<ConstantInt>(i.getOperand());
-      uint64_t addend = sl->getElementOffset((unsigned)ci->getZExtValue());
-      llvm::Type *Ty = st->getElementType((unsigned)ci->getZExtValue());
-      uint64_t size = TD.getTypeSizeInBits(Ty);
-      ValElem = BVExtractExpr::create(ValElem, addend * 8, size);
+    if (StructType *ST = dyn_cast<StructType>(*i)) {
+      const StructLayout *SL = TD.getStructLayout(ST);
+      const ConstantInt *CI = cast<ConstantInt>(i.getOperand());
+      uint64_t Addend = SL->getElementOffset((unsigned)CI->getZExtValue());
+      llvm::Type *Ty = ST->getElementType((unsigned)CI->getZExtValue());
+      uint64_t Size = TD.getTypeSizeInBits(Ty);
+      ValElem = BVExtractExpr::create(ValElem, Addend * 8, Size);
       Type ValElemTy = translateType(Ty);
       if (ValElemTy.isKind(Type::Pointer))
         ValElem = SafeBVToPtrExpr::create(ValElem->getType().width, ValElem);
       else if (ValElemTy.isKind(Type::FunctionPointer))
         ValElem = BVToFuncPtrExpr::create(ValElem->getType().width, ValElem);
-    } else if (auto *set = dyn_cast<SequentialType>(*i)) {
-      llvm::Type *Ty = set->getElementType();
-      uint64_t elementSize = TD.getTypeAllocSize(Ty);
-      uint64_t index = cast<ConstantInt>(i.getOperand())->getZExtValue();
-      uint64_t size = TD.getTypeSizeInBits(Ty);
-      ValElem = BVExtractExpr::create(ValElem, index * elementSize * 8, size);
+    } else if (auto *SET = dyn_cast<SequentialType>(*i)) {
+      llvm::Type *Ty = SET->getElementType();
+      uint64_t ElementSize = TD.getTypeAllocSize(Ty);
+      uint64_t Index = cast<ConstantInt>(i.getOperand())->getZExtValue();
+      uint64_t Size = TD.getTypeSizeInBits(Ty);
+      ValElem = BVExtractExpr::create(ValElem, Index * ElementSize * 8, Size);
       Type ValElemTy = translateType(Ty);
       if (ValElemTy.isKind(Type::Pointer))
         ValElem = SafeBVToPtrExpr::create(ValElem->getType().width, ValElem);
@@ -577,17 +576,16 @@ TranslateModule::translateEV(ref<Expr> Agg, klee::ev_type_iterator begin,
 ref<Expr> TranslateModule::translateIV(
     ref<Expr> Agg, ref<Expr> Val, klee::iv_type_iterator begin,
     klee::iv_type_iterator end, std::function<ref<Expr>(Value *)> xlate) {
-  uint64_t offset = 0;
-
+  uint64_t Offset = 0;
   for (auto i = begin; i != end; ++i) {
-    if (auto *st = dyn_cast<StructType>(*i)) {
-      const StructLayout *sl = TD.getStructLayout(st);
-      const ConstantInt *ci = cast<ConstantInt>(i.getOperand());
-      offset += sl->getElementOffset((unsigned)ci->getZExtValue());
-    } else if (auto *set = dyn_cast<SequentialType>(*i)) {
-      uint64_t elementSize = TD.getTypeAllocSize(set->getElementType());
-      uint64_t index = cast<ConstantInt>(i.getOperand())->getZExtValue();
-      offset += index * elementSize;
+    if (auto *ST = dyn_cast<StructType>(*i)) {
+      const StructLayout *SL = TD.getStructLayout(ST);
+      const ConstantInt *CI = cast<ConstantInt>(i.getOperand());
+      Offset += SL->getElementOffset((unsigned)CI->getZExtValue());
+    } else if (auto *SET = dyn_cast<SequentialType>(*i)) {
+      uint64_t ElementSize = TD.getTypeAllocSize(SET->getElementType());
+      uint64_t Index = cast<ConstantInt>(i.getOperand())->getZExtValue();
+      Offset += Index * ElementSize;
     } else {
       ErrorReporter::reportImplementationLimitation("Unhandled IV type");
     }
@@ -595,8 +593,8 @@ ref<Expr> TranslateModule::translateIV(
 
   std::vector<ref<Expr>> Elems;
 
-  if (offset > 0) {
-    Elems.push_back(BVExtractExpr::create(Agg, 0, offset * 8));
+  if (Offset > 0) {
+    Elems.push_back(BVExtractExpr::create(Agg, 0, Offset * 8));
   }
 
   if (Val->getType().isKind(Type::Pointer))
@@ -606,10 +604,10 @@ ref<Expr> TranslateModule::translateIV(
 
   Elems.push_back(Val);
 
-  uint64_t aggWidth = Agg->getType().width;
-  uint64_t valEnd = offset * 8 + Val->getType().width;
-  if (valEnd < aggWidth) {
-    Elems.push_back(BVExtractExpr::create(Agg, valEnd, aggWidth - valEnd));
+  uint64_t AggWidth = Agg->getType().width;
+  uint64_t ValEnd = Offset * 8 + Val->getType().width;
+  if (ValEnd < AggWidth) {
+    Elems.push_back(BVExtractExpr::create(Agg, ValEnd, AggWidth - ValEnd));
   }
 
   return Expr::createBVConcatN(Elems);
@@ -635,11 +633,10 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
                                       std::set<std::string> &EPS) {
   if (SL == SL_OpenCL || SL == SL_CUDA) {
     if (auto *NMD = M->getNamedMetadata("nvvm.annotations")) {
-      for (unsigned i = 0, e = NMD->getNumOperands(); i != e; ++i) {
-        auto *MD = NMD->getOperand(i);
+      for (auto *MD : NMD->operands()) {
         if (MD->getOperand(0) == ValueAsMetadata::get(F))
-          for (unsigned fi = 1, fe = MD->getNumOperands(); fi != fe; fi += 2)
-            if (cast<MDString>(MD->getOperand(fi))->getString() == "kernel")
+          for (unsigned i = 1, e = MD->getNumOperands(); i != e; i += 2)
+            if (cast<MDString>(MD->getOperand(i))->getString() == "kernel")
               return true;
       }
     }
@@ -647,8 +644,7 @@ bool TranslateModule::isGPUEntryPoint(llvm::Function *F, llvm::Module *M,
 
   if (SL == SL_OpenCL) {
     if (auto *NMD = M->getNamedMetadata("opencl.kernels")) {
-      for (unsigned i = 0, e = NMD->getNumOperands(); i != e; ++i) {
-        auto *MD = NMD->getOperand(i);
+      for (auto *MD : NMD->operands()) {
         if (MD->getOperand(0) == ValueAsMetadata::get(F))
           return true;
       }
@@ -729,7 +725,7 @@ std::string TranslateModule::getSourceGlobalArrayName(llvm::Value *V) {
     F = I->getParent() != nullptr ? I->getFunction() : nullptr;
   }
 
-  if (auto GV = dyn_cast<GlobalVariable>(V)) {
+  if (auto *GV = dyn_cast<GlobalVariable>(V)) {
     SmallVector<DIGlobalVariableExpression *, 1> DIs;
     GV->getDebugInfo(DIs);
     if (DIs.size() > 0)
@@ -759,7 +755,7 @@ std::string TranslateModule::getSourceGlobalArrayName(llvm::Value *V) {
     }
 
     auto *DILV = getSourceDbgVar(V, F);
-    DIType *DIT = DILV != nullptr ? DILV->getType().resolve() : nullptr;
+    auto *DIT = DILV != nullptr ? DILV->getType().resolve() : nullptr;
 
     return getSourceName(V, F) + getCompositeName(Idxs, DIT);
   } else if (F) {
@@ -827,7 +823,8 @@ bugle::Type TranslateModule::getModelledType(Value *V) {
     return Type(Type::BV, TD.getPointerSizeInBits());
   } else {
     llvm::Type *VTy = V->getType();
-    if (auto F = dyn_cast<llvm::Function>(V))
+
+    if (auto *F = dyn_cast<llvm::Function>(V))
       VTy = F->getReturnType();
 
     return translateType(VTy);
@@ -838,7 +835,7 @@ bugle::Type TranslateModule::getModelledType(Value *V) {
 ref<Expr> TranslateModule::unmodelValue(Value *V, ref<Expr> E) {
   auto OI = ModelPtrAsGlobalOffset.find(V);
   if (OI != ModelPtrAsGlobalOffset.end()) {
-    auto GA = getGlobalArray(*OI->second.begin());
+    auto *GA = getGlobalArray(*OI->second.begin());
     auto WidthCst = BVConstExpr::create(TD.getPointerSizeInBits(),
                                         GA->getRangeType().width / 8);
     if (OI->second.size() == 1 && PtrMayBeNull.find(V) == PtrMayBeNull.end()) {
@@ -898,8 +895,8 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
   if (GlobalsType.isKind(Type::Any) || GlobalsType.isKind(Type::Unknown)) {
     ModelGlobalsAsByteArray = true;
   } else {
-    for (auto ai = Assigns.begin(), ae = Assigns.end(); ai != ae; ++ai) {
-      auto AOE = ArrayOffsetExpr::create(*ai);
+    for (auto &Assign : Assigns) {
+      auto AOE = ArrayOffsetExpr::create(Assign);
       if (Expr::createExactBVSDiv(AOE, GlobalsType.width / 8, Var).isNull()) {
         ModelGlobalsAsByteArray = true;
         break;
@@ -908,10 +905,9 @@ void TranslateModule::computeValueModel(Value *Val, Var *Var,
   }
 
   // Remove null pointer candidates
-  auto null = (bugle::GlobalArray *)0;
-  if (GlobalSet.find(null) != GlobalSet.end()) {
+  if (GlobalSet.find(nullptr) != GlobalSet.end()) {
     NextPtrMayBeNull.insert(Val);
-    GlobalSet.erase(GlobalSet.find(null));
+    GlobalSet.erase(GlobalSet.find(nullptr));
   }
 
   // If we only had null pointers, there is nothing to do
@@ -937,28 +933,28 @@ Stmt *TranslateModule::modelCallStmt(llvm::Type *T, llvm::Function *F,
                                      ref<Expr> Val,
                                      std::vector<ref<Expr>> &args,
                                      SourceLocsRef &sourcelocs) {
-  std::map<llvm::Function *, Function *> FS;
+  std::map<llvm::Function *, Function *> FMap;
 
   if (F) {
     auto FI = FunctionMap.find(F);
     assert(FI != FunctionMap.end() && "Couldn't find function in map!");
-    FS[F] = (FI->second);
+    FMap[F] = (FI->second);
   } else {
     for (auto i = FunctionMap.begin(), e = FunctionMap.end(); i != e; ++i) {
       if (i->first->getType() == T && !i->second->isEntryPoint())
-        FS[i->first] = i->second;
+        FMap[i->first] = i->second;
     }
   }
 
   std::vector<Stmt *> CSS;
-  for (auto i = FS.begin(), e = FS.end(); i != e; ++i) {
-    std::vector<ref<Expr>> fargs;
-    std::transform(args.begin(), args.end(), i->first->arg_begin(),
-                   std::back_inserter(fargs), [&](ref<Expr> E, Argument &Arg) {
+  for (auto &MappedF : FMap) {
+    std::vector<ref<Expr>> FArgs;
+    std::transform(args.begin(), args.end(), MappedF.first->arg_begin(),
+                   std::back_inserter(FArgs), [&](ref<Expr> E, Argument &Arg) {
       return modelValue(&Arg, E);
     });
-    auto CS = CallStmt::create(i->second, fargs, sourcelocs);
-    CallSites[i->first].push_back(&CS->getArgs());
+    auto CS = CallStmt::create(MappedF.second, FArgs, sourcelocs);
+    CallSites[MappedF.first].push_back(&CS->getArgs());
     CSS.push_back(CS);
   }
 
@@ -974,28 +970,28 @@ Stmt *TranslateModule::modelCallStmt(llvm::Type *T, llvm::Function *F,
 ref<Expr> TranslateModule::modelCallExpr(llvm::Type *T, llvm::Function *F,
                                          ref<Expr> Val,
                                          std::vector<ref<Expr>> &args) {
-  std::map<llvm::Function *, Function *> FS;
+  std::map<llvm::Function *, Function *> FMap;
 
   if (F) {
     auto FI = FunctionMap.find(F);
     assert(FI != FunctionMap.end() && "Couldn't find function in map!");
-    FS[F] = (FI->second);
+    FMap[F] = (FI->second);
   } else {
     for (auto i = FunctionMap.begin(), e = FunctionMap.end(); i != e; ++i)
       if (i->first->getType() == T && !i->second->isEntryPoint())
-        FS[i->first] = i->second;
+        FMap[i->first] = i->second;
   }
 
   std::vector<ref<Expr>> CES;
-  for (auto i = FS.begin(), e = FS.end(); i != e; ++i) {
+  for (auto &MappedF : FMap) {
     std::vector<ref<Expr>> fargs;
-    std::transform(args.begin(), args.end(), i->first->arg_begin(),
+    std::transform(args.begin(), args.end(), MappedF.first->arg_begin(),
                    std::back_inserter(fargs), [&](ref<Expr> E, Argument &Arg) {
       return modelValue(&Arg, E);
     });
-    ref<Expr> E = CallExpr::create(i->second, fargs);
+    ref<Expr> E = CallExpr::create(MappedF.second, fargs);
     auto CE = dyn_cast<CallExpr>(E);
-    CallSites[i->first].push_back(&CE->getArgs());
+    CallSites[MappedF.first].push_back(&CE->getArgs());
     CES.push_back(CE);
   }
 
@@ -1024,42 +1020,42 @@ void TranslateModule::translate() {
 
     BM->setPointerWidth(TD.getPointerSizeInBits());
 
-    for (auto i = M->begin(), e = M->end(); i != e; ++i) {
-      if (TranslateFunction::isUninterpretedFunction(i->getName())) {
-        TranslateFunction::addUninterpretedFunction(SL, i->getName());
+    for (auto &F : *M) {
+      if (TranslateFunction::isUninterpretedFunction(F.getName())) {
+        TranslateFunction::addUninterpretedFunction(SL, F.getName());
       }
 
-      if (i->isIntrinsic() ||
-          TranslateFunction::isAxiomFunction(i->getName()) ||
-          TranslateFunction::isSpecialFunction(SL, i->getName()))
+      if (F.isIntrinsic() ||
+          TranslateFunction::isAxiomFunction(F.getName()) ||
+          TranslateFunction::isSpecialFunction(SL, F.getName()))
         continue;
 
-      auto BF = FunctionMap[&*i] =
-          BM->addFunction(i->getName(), getSourceFunctionName(&*i));
+      auto BF = FunctionMap[&F] =
+          BM->addFunction(F.getName(), getSourceFunctionName(&F));
 
-      auto RT = i->getFunctionType()->getReturnType();
+      auto *RT = F.getFunctionType()->getReturnType();
       if (!RT->isVoidTy())
-        BF->addReturn(getModelledType(&*i), "ret");
+        BF->addReturn(getModelledType(&F), "ret");
     }
 
-    for (auto i = M->begin(), e = M->end(); i != e; ++i) {
-      if (i->isIntrinsic())
+    for (auto &F : *M) {
+      if (F.isIntrinsic())
         continue;
 
-      if (TranslateFunction::isAxiomFunction(i->getName())) {
-        bugle::Function F("", "");
-        Type RT = translateType(i->getFunctionType()->getReturnType());
-        Var *RV = F.addReturn(RT, "ret");
-        TranslateFunction TF(this, &F, &*i, false);
+      if (TranslateFunction::isAxiomFunction(F.getName())) {
+        bugle::Function BF("", "");
+        Type RT = translateType(F.getFunctionType()->getReturnType());
+        Var *RV = BF.addReturn(RT, "ret");
+        TranslateFunction TF(this, &BF, &F, false);
         TF.translate();
-        assert(F.begin() + 1 == F.end() && "Expected one basic block");
-        bugle::BasicBlock *BB = *F.begin();
-        VarAssignStmt *S = cast<VarAssignStmt>(*(BB->end() - 2));
+        assert(BF.begin() + 1 == BF.end() && "Expected one basic block");
+        bugle::BasicBlock *BBB = *BF.begin();
+        VarAssignStmt *S = cast<VarAssignStmt>(*(BBB->end() - 2));
         assert(S->getVars()[0] == RV); (void)RV;
         BM->addAxiom(Expr::createNeZero(S->getValues()[0]));
-      } else if (!TranslateFunction::isSpecialFunction(SL, i->getName())) {
-        bool EP = isGPUEntryPoint(&*i, M, SL, GPUEntryPoints);
-        TranslateFunction TF(this, FunctionMap[&*i], &*i, EP);
+      } else if (!TranslateFunction::isSpecialFunction(SL, F.getName())) {
+        bool EP = isGPUEntryPoint(&F, M, SL, GPUEntryPoints);
+        TranslateFunction TF(this, FunctionMap[&F], &F, EP);
         TF.translate();
       }
     }
@@ -1069,15 +1065,15 @@ void TranslateModule::translate() {
     // the same global array, in which case we can model the parameter as an
     // offset, and potentially avoid the case split.
     if (!ModelAllAsByteArray && NextModelAllAsByteArray) {
-      for (auto i = CallSites.begin(), e = CallSites.end(); i != e; ++i) {
-        unsigned pidx = 0;
-        for (auto pi = i->first->arg_begin(), pe = i->first->arg_end();
-             pi != pe; ++pi, ++pidx) {
+      for (auto &CSS : CallSites) {
+        unsigned idx = 0;
+        for (auto i = CSS.first->arg_begin(), e = CSS.first->arg_end(); i != e;
+             ++i, ++idx) {
           std::vector<ref<Expr>> Parms;
           std::transform(
-              i->second.begin(), i->second.end(), std::back_inserter(Parms),
-              [&](const std::vector<ref<Expr>> *cs) { return (*cs)[pidx]; });
-          computeValueModel(&*pi, nullptr, Parms);
+              CSS.second.begin(), CSS.second.end(), std::back_inserter(Parms),
+              [&](const std::vector<ref<Expr>> *CS) { return (*CS)[idx]; });
+          computeValueModel(&*i, nullptr, Parms);
         }
       }
     }

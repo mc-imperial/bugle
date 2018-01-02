@@ -20,22 +20,22 @@ bool RestrictDetectPass::doInitialization(llvm::Module &M) {
 }
 
 const DISubprogram *RestrictDetectPass::getDebugInfo(llvm::Function *F) {
-  auto SS = DIF.subprograms();
-  for (auto i = SS.begin(), e = SS.end(); i != e; ++i) {
-    if ((*i)->describes(F))
-      return *i;
+  for (auto *S : DIF.subprograms()) {
+    if (S->describes(F))
+      return S;
   }
 
-  return 0;
+  return nullptr;
 }
 
 std::string RestrictDetectPass::getFunctionLocation(llvm::Function *F) {
-  auto MDS = getDebugInfo(F);
+  auto *MDS = getDebugInfo(F);
   if (MDS) {
-    std::string l; llvm::raw_string_ostream lS(l);
-    lS << "'" << MDS->getName() << "' on line " << MDS->getLine()
+    std::string S;
+    llvm::raw_string_ostream SS(S);
+    SS << "'" << MDS->getName() << "' on line " << MDS->getLine()
        << " of " << MDS->getFilename();
-    return lS.str();
+    return SS.str();
   } else
     return "'" + F->getName().str() + "'";
 }
@@ -51,23 +51,23 @@ bool RestrictDetectPass::ignoreArgument(unsigned i, const DISubprogram *DIS) {
 void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
   auto *DIS = getDebugInfo(&F);
   std::vector<Argument *> AL;
-  for (auto i = F.arg_begin(), e = F.arg_end(); i != e; ++i) {
-    if (!i->getType()->isPointerTy())
+  for (auto &Arg : F.args()) {
+    if (!Arg.getType()->isPointerTy())
       continue;
-    if (i->hasNoAliasAttr())
+    if (Arg.hasNoAliasAttr())
       continue;
-    if (i->getType()->getPointerElementType()->isFunctionTy())
+    if (Arg.getType()->getPointerElementType()->isFunctionTy())
       continue;
-    if (ignoreArgument(i->getArgNo(), DIS))
+    if (ignoreArgument(Arg.getArgNo(), DIS))
       continue;
 
-    unsigned addressSpace = i->getType()->getPointerAddressSpace();
+    unsigned addressSpace = Arg.getType()->getPointerAddressSpace();
     if (addressSpace == AddressSpaces.generic &&
         SL == TranslateModule::SL_CUDA)
-      AL.push_back(&*i);
+      AL.push_back(&Arg);
 
     if (addressSpace == AddressSpaces.global)
-      AL.push_back(&*i);
+      AL.push_back(&Arg);
   }
 
   if (AL.size() <= 1)
@@ -90,7 +90,7 @@ void RestrictDetectPass::doRestrictCheck(llvm::Function &F) {
 }
 
 bool RestrictDetectPass::runOnFunction(llvm::Function &F) {
-  if (!(SL == TranslateModule::SL_OpenCL || SL == TranslateModule::SL_CUDA))
+  if (SL != TranslateModule::SL_OpenCL && SL != TranslateModule::SL_CUDA)
     return false;
   if (!TranslateFunction::isNormalFunction(SL, &F))
     return false;
