@@ -1171,7 +1171,7 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
                                           const ExprVec &Args) {
   assert(Args.size() > 0);
   ref<Expr> Ptr = Args[0],
-            PtrArr = ArrayIdExpr::create(Ptr, TM->translateType(CI->getType())),
+            PtrArr = ArrayIdExpr::create(Ptr, TM->defaultRange()),
             PtrOfs = ArrayOffsetExpr::create(Ptr);
   Type ArrRangeTy = PtrArr->getType().range();
   Type AtomicTy = TM->translateType(CI->getType());
@@ -1203,9 +1203,20 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
   } else if (ArrRangeTy == Type(Type::Any)) {
     BBB->addStmt(AssertStmt::createBadAccess(currentSourceLocs));
     // The result is irrelevant, but the caller requires one.
-    return BVConstExpr::createZero(AtomicTy.width);
+    result = BVConstExpr::createZero(AtomicTy.width);
   } else {
-    ErrorReporter::reportFatalError("Unhandled atomic array type");
+    TM->NeedAdditionalByteArrayModels = true;
+    std::set<GlobalArray *> Globals;
+    if (PtrArr->computeArrayCandidates(Globals)) {
+      std::transform(
+          Globals.begin(), Globals.end(),
+          std::inserter(TM->ModelAsByteArray, TM->ModelAsByteArray.begin()),
+          [&](GlobalArray *A) { return TM->GlobalValueMap[A]; });
+    } else {
+      TM->NextModelAllAsByteArray = true;
+    }
+    // The result is irrelevant, but the caller requires one.
+    result = BVConstExpr::createZero(AtomicTy.width);
   }
 
   return result;
