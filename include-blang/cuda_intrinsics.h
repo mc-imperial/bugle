@@ -1,6 +1,8 @@
 #ifndef CUDA_INTRINSICS_H
 #define CUDA_INTRINSICS_H
 
+extern "C" __device__ int printf(const char *format, ...);
+
 #if __CUDA_ARCH__ >= 300
 
 __device__ int __shfl(int var, int srcLane, int width=warpSize);
