@@ -937,19 +937,19 @@ ref<Expr> FUnoExpr::create(ref<Expr> lhs, ref<Expr> rhs) {
   return new FUnoExpr(Type(Type::Bool), lhs, rhs);
 }
 
-ref<Expr> Expr::createPtrLt(ref<Expr> lhs, ref<Expr> rhs) {
+ref<Expr> Expr::createPtrLt(ref<Expr> lhs, ref<Expr> rhs, Type defaultRange) {
   return IfThenElseExpr::create(
-      EqExpr::create(ArrayIdExpr::create(lhs, Type(Type::Unknown)),
-                     ArrayIdExpr::create(rhs, Type(Type::Unknown))),
+      EqExpr::create(ArrayIdExpr::create(lhs, defaultRange),
+                     ArrayIdExpr::create(rhs, defaultRange)),
       BVSltExpr::create(ArrayOffsetExpr::create(lhs),
                         ArrayOffsetExpr::create(rhs)),
       PtrLtExpr::create(lhs, rhs));
 }
 
-ref<Expr> Expr::createPtrLe(ref<Expr> lhs, ref<Expr> rhs) {
+ref<Expr> Expr::createPtrLe(ref<Expr> lhs, ref<Expr> rhs, Type defaultRange) {
   return IfThenElseExpr::create(
-      EqExpr::create(ArrayIdExpr::create(lhs, Type(Type::Unknown)),
-                     ArrayIdExpr::create(rhs, Type(Type::Unknown))),
+      EqExpr::create(ArrayIdExpr::create(lhs, defaultRange),
+                     ArrayIdExpr::create(rhs, defaultRange)),
       BVSleExpr::create(ArrayOffsetExpr::create(lhs),
                         ArrayOffsetExpr::create(rhs)),
       PtrLtExpr::create(lhs, rhs));

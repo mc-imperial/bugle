@@ -179,13 +179,13 @@ ref<Expr> TranslateModule::translateICmp(CmpInst::Predicate P, ref<Expr> LHS,
     assert(RHS->getType().isKind(Type::Pointer));
     switch (P) {
     case ICmpInst::ICMP_ULT:
-    case ICmpInst::ICMP_SLT: return Expr::createPtrLt(LHS, RHS);
+    case ICmpInst::ICMP_SLT: return Expr::createPtrLt(LHS, RHS, defaultRange());
     case ICmpInst::ICMP_ULE:
-    case ICmpInst::ICMP_SLE: return Expr::createPtrLe(LHS, RHS);
+    case ICmpInst::ICMP_SLE: return Expr::createPtrLe(LHS, RHS, defaultRange());
     case ICmpInst::ICMP_UGT:
-    case ICmpInst::ICMP_SGT: return Expr::createPtrLt(RHS, LHS);
+    case ICmpInst::ICMP_SGT: return Expr::createPtrLt(RHS, LHS, defaultRange());
     case ICmpInst::ICMP_UGE:
-    case ICmpInst::ICMP_SGE: return Expr::createPtrLe(RHS, LHS);
+    case ICmpInst::ICMP_SGE: return Expr::createPtrLe(RHS, LHS, defaultRange());
     default:
       ErrorReporter::reportImplementationLimitation("Unsupported ptr icmp");
     }
