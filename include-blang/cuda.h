@@ -59,6 +59,8 @@ __device__ void __threadfence_system();
 */
 #define __align__(n)
 
+#define __launch_bounds__(x, y)
+
 #include <bugle.h>
 #include <annotations/annotations.h>
 #include <cuda_math_constants.h>
