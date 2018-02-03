@@ -19,10 +19,10 @@ using namespace bugle;
 
 void BPLFunctionWriter::maybeWriteCaseSplit(
     llvm::raw_ostream &OS, Expr *PtrArr, const SourceLocsRef &SLocs,
-    std::function<void(GlobalArray *, unsigned int)> F) {
+    std::function<void(GlobalArray *, unsigned)> F, unsigned indent) {
   if (isa<NullArrayRefExpr>(PtrArr) ||
       MW->M->global_begin() == MW->M->global_end()) {
-    OS << "  assert {:bad_pointer_access} ";
+    OS << std::string(indent, ' ') << "assert {:bad_pointer_access} ";
     writeSourceLocs(OS, SLocs);
     OS << "false;\n";
   } else {
@@ -35,23 +35,24 @@ void BPLFunctionWriter::maybeWriteCaseSplit(
     }
 
     if (Globals.size() == 1 && *Globals.begin() != nullptr) {
-      F(*Globals.begin(), 2);
+      F(*Globals.begin(), indent);
       OS << "\n";
     } else {
       MW->UsesPointers = true;
-      OS << "  ";
+      OS << std::string(indent, ' ');
       for (auto *GA : Globals) {
         if (GA == nullptr)
           continue; // Null pointer; dealt with as the last case.
         OS << "if (";
         writeExpr(OS, PtrArr);
         OS << " == $arrayId$$" << GA->getName() << ") {\n";
-        F(GA, 4);
-        OS << "\n  } else ";
+        F(GA, indent + 2);
+        OS << "\n" << std::string(indent, ' ') << "} else ";
       }
-      OS << "{\n    assert {:bad_pointer_access} ";
+      OS << "{\n"
+         << std::string(indent + 2, ' ') << "assert {:bad_pointer_access} ";
       writeSourceLocs(OS, SLocs);
-      OS << "false;\n  }\n";
+      OS << "false;\n" << std::string(indent, ' ') << "}\n";
     }
   }
 }

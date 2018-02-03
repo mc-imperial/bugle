@@ -32,7 +32,8 @@ class BPLFunctionWriter : BPLExprWriter {
 
   void maybeWriteCaseSplit(llvm::raw_ostream &OS, Expr *PtrArr,
                            const SourceLocsRef &SLocs,
-                           std::function<void(GlobalArray *, unsigned int)> F);
+                           std::function<void(GlobalArray *, unsigned)> F,
+                           unsigned indent = 2);
   void writeVar(llvm::raw_ostream &OS, Var *V);
   void writeExpr(llvm::raw_ostream &OS, Expr *E, unsigned Depth = 0) override;
   void writeCallStmt(llvm::raw_ostream &OS, CallStmt *CS);
