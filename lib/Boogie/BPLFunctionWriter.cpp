@@ -176,31 +176,16 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
       auto SrcArray = AWGCE->getSrc();
       auto SrcOffset = AWGCE->getSrcOffset();
 
-      std::set<GlobalArray *> GlobalsDst;
-      if (!DstArray->computeArrayCandidates(GlobalsDst)) {
-        GlobalsDst.insert(MW->M->global_begin(), MW->M->global_end());
-      }
-
-      std::set<GlobalArray *> GlobalsSrc;
-      if (!SrcArray->computeArrayCandidates(GlobalsSrc)) {
-        GlobalsSrc.insert(MW->M->global_begin(), MW->M->global_end());
-      }
-
-      if (GlobalsDst.size() != 1 || GlobalsSrc.size() != 1) {
-        ErrorReporter::reportImplementationLimitation(
-            "Async work group copies on pointers not supported");
-      }
-
-      auto dst = *GlobalsDst.begin();
-      auto src = *GlobalsSrc.begin();
-      assert(dst->getRangeType() == src->getRangeType());
+      auto DstRangeType = DstArray->getType().range();
+      auto SrcRangeType = SrcArray->getType().range();
+      assert(DstRangeType == SrcRangeType);
 
       MW->writeIntrinsic([&](llvm::raw_ostream &OS) {
         OS << "procedure {:async_work_group_copy} _ASYNC_WORK_GROUP_COPY_"
-           << dst->getRangeType().width
+           << DstRangeType.width
            << "(dstOffset : " << MW->IntRep->getType(DstOffset->getType().width)
            << ", src : [" << MW->IntRep->getType(MW->M->getPointerWidth())
-           << "]" << MW->IntRep->getType(src->getRangeType().width)
+           << "]" << MW->IntRep->getType(SrcRangeType.width)
            << ", srcOffset : "
            << MW->IntRep->getType(SrcOffset->getType().width)
            << ", size : " << MW->IntRep->getType(MW->M->getPointerWidth())
@@ -208,21 +193,33 @@ void BPLFunctionWriter::writeStmt(llvm::raw_ostream &OS, Stmt *S) {
            << ") returns (handle' : "
            << MW->IntRep->getType(MW->M->getPointerWidth()) << ", dst : ["
            << MW->IntRep->getType(MW->M->getPointerWidth()) << "]"
-           << MW->IntRep->getType(dst->getRangeType().width) << ")";
+           << MW->IntRep->getType(DstRangeType.width) << ")";
       });
-      writeSourceLocsMarker(OS, ES->getSourceLocs(), 2);
-      OS << "  ";
-      OS << "call {:async_work_group_copy} v" << id << ", $$" << dst->getName()
-         << " := _ASYNC_WORK_GROUP_COPY_" << dst->getRangeType().width << "(";
-      writeExpr(OS, DstOffset.get());
-      OS << ", "
-         << "$$" << src->getName() << ", ";
-      writeExpr(OS, SrcOffset.get());
-      OS << ", ";
-      writeExpr(OS, AWGCE->getSize().get());
-      OS << ", ";
-      writeExpr(OS, AWGCE->getHandle().get());
-      OS << ");\n";
+
+      maybeWriteCaseSplit(
+          OS, SrcArray.get(), ES->getSourceLocs(),
+          [&](GlobalArray *SrcGA, unsigned int indent) {
+            maybeWriteCaseSplit(
+                OS, DstArray.get(), ES->getSourceLocs(),
+                [&](GlobalArray *DstGA, unsigned int indent) {
+                  writeSourceLocsMarker(OS, ES->getSourceLocs(), indent);
+                  OS << std::string(indent, ' ')
+                     << "call {:async_work_group_copy} v" << id
+                     << ", $$" << DstGA->getName()
+                     << " := _ASYNC_WORK_GROUP_COPY_" << DstRangeType.width
+                     << "(";
+                  writeExpr(OS, DstOffset.get());
+                  OS << ", "
+                     << "$$" << SrcGA->getName() << ", ";
+                  writeExpr(OS, SrcOffset.get());
+                  OS << ", ";
+                  writeExpr(OS, AWGCE->getSize().get());
+                  OS << ", ";
+                  writeExpr(OS, AWGCE->getHandle().get());
+                  OS << ");";
+                },
+                indent);
+          });
     } else if (auto *CE = dyn_cast<BVCtlzExpr>(ES->getExpr())) {
       unsigned Width = CE->getVal()->getType().width;
 

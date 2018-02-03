@@ -1557,23 +1557,17 @@ ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
        DstRangeTy = DstArr->getType().range();
 
   if (DstRangeTy == Type(Type::Any)) {
-    ErrorReporter::reportImplementationLimitation(
-        "async_work_group_copy with null pointer destination not supported");
-  }
-
-  if (DstRangeTy == Type(Type::Unknown)) {
-    ErrorReporter::reportImplementationLimitation(
-        "async_work_group_copy with destination of mixed type not supported");
+    BBB->addStmt(AssertStmt::createBadAccess(currentSourceLocs));
+    // The result is irrelevant, but the caller requires one.
+    Type HandleTy = TM->translateType(CI->getType());
+    return BVConstExpr::createZero(HandleTy.width);
   }
 
   if (SrcRangeTy == Type(Type::Any)) {
-    ErrorReporter::reportImplementationLimitation(
-        "async_work_group_copy with null pointer not supported");
-  }
-
-  if (SrcRangeTy == Type(Type::Unknown)) {
-    ErrorReporter::reportImplementationLimitation(
-        "async_work_group_copy with source of mixed type not supported");
+    BBB->addStmt(AssertStmt::createBadAccess(currentSourceLocs));
+    // The result is irrelevant, but the caller requires one.
+    Type HandleTy = TM->translateType(CI->getType());
+    return BVConstExpr::createZero(HandleTy.width);
   }
 
   assert(SrcRangeTy.width % 8 == 0);
@@ -1590,8 +1584,9 @@ ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
   ref<Expr> result;
   ref<Expr> SrcDiv = Expr::createExactBVSDiv(SrcOfs, SrcRangeTy.width / 8);
   ref<Expr> DstDiv = Expr::createExactBVSDiv(DstOfs, DstRangeTy.width / 8);
-  if (SrcRangeTy == DstRangeTy && SrcRangeTy.width <= SrcArgRangeTy.width &&
-      !SrcDiv.isNull() && !DstDiv.isNull()) {
+  if (SrcRangeTy == DstRangeTy && SrcRangeTy != Type(Type::Unknown) &&
+      SrcRangeTy.width <= SrcArgRangeTy.width && !SrcDiv.isNull() &&
+      !DstDiv.isNull()) {
     // Compensate for the modelled width being smaller than the width expected
     // by the function. In case the modelled width is larger, we model both
     // the source and destinations as byte-arrays.
