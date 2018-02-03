@@ -42,7 +42,7 @@ void BPLFunctionWriter::maybeWriteCaseSplit(
       OS << "  ";
       for (auto *GA : Globals) {
         if (GA == nullptr)
-          continue; // Null pointer; dealt with as last case
+          continue; // Null pointer; dealt with as the last case.
         OS << "if (";
         writeExpr(OS, PtrArr);
         OS << " == $arrayId$$" << GA->getName() << ") {\n";

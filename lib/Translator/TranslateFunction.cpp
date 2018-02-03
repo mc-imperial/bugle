@@ -1202,7 +1202,7 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
     result = Expr::createBVConcatN(Elems);
   } else if (ArrRangeTy == Type(Type::Any)) {
     BBB->addStmt(AssertStmt::createBadAccess(currentSourceLocs));
-    // The result is irrelevant, but the caller requires one
+    // The result is irrelevant, but the caller requires one.
     return BVConstExpr::createZero(AtomicTy.width);
   } else {
     ErrorReporter::reportFatalError("Unhandled atomic array type");
@@ -1606,7 +1606,7 @@ ref<Expr> TranslateFunction::handleAsyncWorkGroupCopy(bugle::BasicBlock *BBB,
     } else {
       TM->NextModelAllAsByteArray = true;
     }
-    // The result is irrelevant, but the caller requires one
+    // The result is irrelevant, but the caller requires one.
     Type HandleTy = TM->translateType(CI->getType());
     result = BVConstExpr::createZero(HandleTy.width);
   }
