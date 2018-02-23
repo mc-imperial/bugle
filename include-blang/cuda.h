@@ -35,7 +35,7 @@ struct _3DimensionalVector {
   unsigned x, y, z;
 } threadIdx, blockIdx, blockDim, gridDim;
 
-#if __CUDA_ARCH >= 300
+#if __CUDA_ARCH__ >= 300
 int warpSize;
 #endif
 
