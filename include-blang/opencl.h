@@ -22,7 +22,6 @@ typedef __SIZE_TYPE__ event_t;
 #pragma OPENCL EXTENSION cl_khr_fp64 : enable
 
 #include <annotations/annotations.h>
-#include <opencl_builtins.h>
 #include <opencl_limits.h>
 #include <opencl_atomics.h>
 

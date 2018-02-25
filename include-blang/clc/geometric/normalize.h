@@ -31,8 +31,6 @@ _CLC_OVERLOAD _CLC_INLINE float4 __bugle_normalize(float4 p) {
 
 #ifdef cl_khr_fp64
 
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable
-
 _CLC_OVERLOAD _CLC_INLINE double __bugle_normalize(double p) {
   return sign(p);
 }
