@@ -5,17 +5,17 @@
 
 namespace llvm {
 
-class tool_output_file;
+class ToolOutputFile;
 }
 
 namespace bugle {
 
 class SourceLocWriter {
-  llvm::tool_output_file *L;
+  llvm::ToolOutputFile *L;
   unsigned SourceLocCounter;
 
 public:
-  SourceLocWriter(llvm::tool_output_file *L) : L(L), SourceLocCounter(0) {}
+  SourceLocWriter(llvm::ToolOutputFile *L) : L(L), SourceLocCounter(0) {}
   unsigned writeSourceLocs(const SourceLocsRef &sourcelocs);
 };
 }

@@ -278,14 +278,13 @@ int main(int argc, char **argv) {
   }
 
   std::error_code ErrorCode;
-  tool_output_file F(OutFile, ErrorCode, sys::fs::F_Text);
+  ToolOutputFile F(OutFile, ErrorCode, sys::fs::F_Text);
   if (ErrorCode)
     bugle::ErrorReporter::reportFatalError(ErrorCode.message());
 
-  tool_output_file *L = nullptr;
+  ToolOutputFile *L = nullptr;
   if (!SourceLocationFilename.empty()) {
-    L = new tool_output_file(SourceLocationFilename, ErrorCode,
-                             sys::fs::F_Text);
+    L = new ToolOutputFile(SourceLocationFilename, ErrorCode, sys::fs::F_Text);
     if (ErrorCode)
       bugle::ErrorReporter::reportFatalError(ErrorCode.message());
   }

@@ -163,16 +163,14 @@ void ArgumentPromotionPass::spliceBody(llvm::Function *F, llvm::Function *NF) {
     }
 
     for (auto *DVI : DVIs) {
-      DIB.insertDbgValueIntrinsic(AI, DVI->getOffset(), DVI->getVariable(),
-                                  DVI->getExpression(), DVI->getDebugLoc(),
-                                  DVI);
+      DIB.insertDbgValueIntrinsic(AI, DVI->getVariable(), DVI->getExpression(),
+                                  DVI->getDebugLoc(), DVI);
       DVI->eraseFromParent();
     }
 
     for (auto *DDI : DDIs) {
-      DIB.insertDbgValueIntrinsic(AI, 0, DDI->getVariable(),
-                                  DDI->getExpression(), DDI->getDebugLoc(),
-                                  DDI);
+      DIB.insertDbgValueIntrinsic(AI, DDI->getVariable(), DDI->getExpression(),
+                                  DDI->getDebugLoc(), DDI);
       DDI->eraseFromParent();
     }
 
