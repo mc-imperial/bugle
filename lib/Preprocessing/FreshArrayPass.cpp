@@ -28,31 +28,34 @@ bool FreshArrayPass::runOnModule(llvm::Module &M) {
       FreshArrayCalls.push_back(CI);
   }
 
-  unsigned i = 0;
+  // Replace each call to __requires_fresh_array by a store to its pointer
+  // argument, where the value stored is produced by a fresh function named
+  // __requires_fresh_array.n for some integer n.
+  unsigned FunctionCount = 0;
   for (auto *CI : FreshArrayCalls) {
-    auto *StorePtr = CI->getOperand(0);
+    auto *PtrToStoreTo = CI->getOperand(0);
 
-    auto *BCI = dyn_cast<BitCastInst>(StorePtr);
+    auto *BCI = dyn_cast<BitCastInst>(PtrToStoreTo);
     if (BCI != nullptr) {
-      StorePtr = BCI->getOperand(0);
+      PtrToStoreTo = BCI->getOperand(0);
     }
 
     // Append a number to the name of the newly created function, as we may
     // create multiple instances with different types.
     std::string FName;
     llvm::raw_string_ostream FNameS(FName);
-    FNameS << FreshArrayFunction->getName() << '.' << i++;
+    FNameS << FreshArrayFunction->getName() << '.' << FunctionCount++;
 
     auto *NewFreshArrayFunctionTy = FunctionType::get(
-        StorePtr->getType()->getPointerElementType(), {}, false);
+        PtrToStoreTo->getType()->getPointerElementType(), {}, false);
     auto *NewFreshArrayFunction = llvm::Function::Create(
         NewFreshArrayFunctionTy, FreshArrayFunction->getLinkage(), FNameS.str(),
         &M);
 
-    auto *StoreVal = CallInst::Create(NewFreshArrayFunction, {}, "", CI);
-    StoreVal->setDebugLoc(CI->getDebugLoc());
+    auto *ValToStore = CallInst::Create(NewFreshArrayFunction, {}, "", CI);
+    ValToStore->setDebugLoc(CI->getDebugLoc());
 
-    auto *NewSI = new StoreInst(StoreVal, StorePtr, CI);
+    auto *NewSI = new StoreInst(ValToStore, PtrToStoreTo, CI);
     NewSI->setDebugLoc(CI->getDebugLoc());
     CI->eraseFromParent();
 
