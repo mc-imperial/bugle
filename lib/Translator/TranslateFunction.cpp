@@ -1176,28 +1176,26 @@ ref<Expr> TranslateFunction::handleAtomic(bugle::BasicBlock *BBB,
   Type ArrRangeTy = PtrArr->getType().range();
   Type AtomicTy = TM->translateType(CI->getType());
   assert(AtomicTy.width % 32 == 0);
-  if (ArrRangeTy.width > 8)
-    PtrOfs = BVSDivExpr::create(
-        PtrOfs, BVConstExpr::create(TM->TD.getPointerSizeInBits(),
-                                    ArrRangeTy.width / 8));
 
   ExprVec AtomicArgs;
   for (size_t i = 1; i < Args.size(); ++i)
     AtomicArgs.push_back(Args[i]);
 
   ref<Expr> result;
+  ref<Expr> Div;
   // If ArrRangeTy is Any, then we are using a null pointer.
-  if (ArrRangeTy.isKind(Type::BV)) {
+  if (ArrRangeTy.isKind(Type::BV) && AtomicTy.width % ArrRangeTy.width == 0 &&
+      !(Div = Expr::createExactBVSDiv(PtrOfs, ArrRangeTy.width / 8)).isNull()) {
     ExprVec Elems;
     unsigned NumElems = AtomicTy.width / ArrRangeTy.width;
     for (unsigned i = 0; i < NumElems; ++i) {
-      ref<Expr> E = AtomicExpr::create(PtrArr, PtrOfs, AtomicArgs,
+      ref<Expr> PartOfs = BVAddExpr::create(
+          Div, BVConstExpr::create(Div->getType().width, i));
+      ref<Expr> E = AtomicExpr::create(PtrArr, PartOfs, AtomicArgs,
                                        CI->getCalledFunction()->getName(),
                                        NumElems, i + 1);
       BBB->addEvalStmt(E, currentSourceLocs);
       Elems.push_back(E);
-      PtrOfs = BVAddExpr::create(
-          PtrOfs, BVConstExpr::create(TM->TD.getPointerSizeInBits(), 1));
     }
     result = Expr::createBVConcatN(Elems);
   } else if (ArrRangeTy == Type(Type::Any)) {
