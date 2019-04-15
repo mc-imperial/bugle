@@ -6,6 +6,7 @@ env:
     - Z3_VERSION=4.6.0
     - CVC4_VERSION=1.5
     - CLONE_DEPTH=50
+    - LIBCLC_VERSION=bac1578088e
     - BUILD_ROOT="${TRAVIS_BUILD_DIR}"
 
 cache:
