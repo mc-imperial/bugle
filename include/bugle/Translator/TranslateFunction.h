@@ -132,6 +132,8 @@ public:
   static bool isPreOrPostCondition(llvm::StringRef fnName);
   static bool isBarrierFunction(TranslateModule::SourceLanguage SL,
                                 llvm::StringRef fnName);
+  static bool isGridBarrierFunction(TranslateModule::SourceLanguage SL,
+                                llvm::StringRef fnName);
   static bool isNormalFunction(TranslateModule::SourceLanguage SL,
                                llvm::Function *F);
   static bool isStandardEntryPoint(TranslateModule::SourceLanguage SL,

@@ -108,6 +108,11 @@ bool TranslateFunction::isBarrierFunction(TranslateModule::SourceLanguage SL,
          fnName == "bugle_barrier";
 }
 
+bool TranslateFunction::isGridBarrierFunction(TranslateModule::SourceLanguage SL,
+                                          StringRef fnName) {
+  return SL == TranslateModule::SL_CUDA && fnName == "bugle_grid_barrier";
+}
+
 bool TranslateFunction::isNormalFunction(TranslateModule::SourceLanguage SL,
                                          llvm::Function *F) {
   if (F->isIntrinsic())
@@ -121,6 +126,8 @@ bool TranslateFunction::isNormalFunction(TranslateModule::SourceLanguage SL,
   if (isSpecificationFunction(F->getName()))
     return false;
   if (isBarrierFunction(SL, F->getName()))
+    return false;
+  if (isGridBarrierFunction(SL, F->getName()))
     return false;
   return true;
 }
@@ -547,6 +554,9 @@ void TranslateFunction::translate() {
 
   if (isBarrierFunction(TM->SL, F->getName()))
     BF->addAttribute("barrier");
+
+  if (isGridBarrierFunction(TM->SL, F->getName()))
+    BF->addAttribute("grid_barrier");
 
   if (isSpecificationFunction(F->getName()))
     BF->setSpecification(true);
