@@ -109,7 +109,7 @@ bool TranslateFunction::isBarrierFunction(TranslateModule::SourceLanguage SL,
 }
 
 bool TranslateFunction::isGridBarrierFunction(TranslateModule::SourceLanguage SL,
-                                          StringRef fnName) {
+                                              StringRef fnName) {
   return SL == TranslateModule::SL_CUDA && fnName == "bugle_grid_barrier";
 }
 
