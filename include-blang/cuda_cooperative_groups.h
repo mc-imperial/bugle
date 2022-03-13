@@ -20,11 +20,11 @@ namespace cooperative_groups {
   
   __device__ thread_block this_thread_block();
   
-  __inline__ __device__ void synchronize(grid_group g) {
+  static __inline__ __device__ void synchronize(grid_group g) {
       bugle_grid_barrier();
   }
   
-  __inline__ __device__ void synchronize(thread_block t) {
+  static __inline__ __device__ void synchronize(thread_block t) {
       bugle_barrier(true, true);
   }
 }
