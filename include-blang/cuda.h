@@ -70,6 +70,7 @@ __device__ void __threadfence_system();
 #include <cuda_atomics.h>
 #include <cuda_curand.h>
 #include <cuda_intrinsics.h>
+#include <cuda_cooperative_groups.h>
 
 /* Thread block dimensions */
 
