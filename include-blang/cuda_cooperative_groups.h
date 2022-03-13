@@ -5,7 +5,7 @@ namespace cooperative_groups {
   class grid_group {
     public:
       __inline__ __device__ void sync() const {
-          bugle_grid_barrier();
+          bugle_grid_barrier(true, true);
       }
   };
   
@@ -21,7 +21,7 @@ namespace cooperative_groups {
   __device__ thread_block this_thread_block();
   
   static __inline__ __device__ void synchronize(grid_group g) {
-      bugle_grid_barrier();
+      bugle_grid_barrier(true, true);
   }
   
   static __inline__ __device__ void synchronize(thread_block t) {
